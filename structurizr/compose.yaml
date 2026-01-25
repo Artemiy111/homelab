@@ -1,0 +1,16 @@
+services:
+  structurizr:
+    image: structurizr/onpremises
+    container_name: structurizr
+    ports:
+      - "40010:8080"
+    volumes:
+      - /storage/apps/structurizr:/usr/local/structurizr:Z,rw
+    restart: always
+    networks:
+      caddy-net:
+
+networks:
+  caddy-net:
+    external: true  # используем сеть из caddy
+    name: caddy_caddy-net  # полное имя сети (caddy_ + имя сети)

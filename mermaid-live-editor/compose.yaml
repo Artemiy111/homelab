@@ -1,0 +1,10 @@
+services:
+  mermaid-editor:
+    image: ghcr.io/mermaid-js/mermaid-live-editor:latest
+    container_name: mermaid-live-editor
+    ports:
+      - "40030:8080"
+    volumes:
+      - /storage/apps/mermaid-live-editor/data:/usr/src/app/data:Z,rw
+    restart: unless-stopped
+

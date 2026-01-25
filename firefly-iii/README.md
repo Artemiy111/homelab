@@ -2,8 +2,6 @@
 
 [https://firefly-iii.github.io/kubernetes/]
 
-Как всё удалить если зависло?
-
 ```sh
 helm repo add firefly-iii https://firefly-iii.github.io/kubernetes/
 helm repo update
