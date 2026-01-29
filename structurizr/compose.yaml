@@ -8,9 +8,14 @@ services:
       - /storage/apps/structurizr:/usr/local/structurizr:Z,rw
     restart: always
     networks:
-      caddy-net:
+      traefiknet:
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.structurizr.rule=Host(`structurizr.artistick.tech`)
+      - traefik.http.routers.structurizr.entrypoints=websecure
+      - traefik.http.routers.structurizr.tls=true
+      - traefik.http.routers.structurizr.tls.certresolver=letsencrypt
 
 networks:
-  caddy-net:
-    external: true  # используем сеть из caddy
-    name: caddy_caddy-net  # полное имя сети (caddy_ + имя сети)
+  traefiknet:
+    external: true
