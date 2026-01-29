@@ -9,6 +9,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./traefik.yaml:/etc/traefik/traefik.yaml:ro
+      - /storage/apps/traefik/letsencrypt:/letsencrypt:rw
     networks:
       - traefiknet
     restart: unless-stopped
