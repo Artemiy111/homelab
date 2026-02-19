@@ -1,0 +1,10 @@
+services:
+  lute:
+    image: jzohrab/lute3:latest
+    ports:
+      - 40070:5001
+    volumes:
+      - /storage/apps/lute/data/data:/lute_data
+      - /storage/apps/lute/data/backups:/lute_backup
+    security_opt:
+      - label:disable
