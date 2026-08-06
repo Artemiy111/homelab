@@ -126,12 +126,19 @@ function emitWithAck(socket, event, ...args) {
   });
 }
 
-function waitForMonitorList(socket) {
-  return new Promise((resolve, reject) => {
+function createMonitorListWaiter(socket) {
+  let finish;
+  const promise = new Promise((resolve, reject) => {
     const timer = setTimeout(() => {
       socket.off("monitorList", onMonitorList);
       reject(new Error("Uptime Kuma не прислала список мониторов."));
     }, 15_000);
+
+    finish = () => {
+      clearTimeout(timer);
+      socket.off("monitorList", onMonitorList);
+      resolve(null);
+    };
 
     function onMonitorList(monitors) {
       clearTimeout(timer);
@@ -140,12 +147,19 @@ function waitForMonitorList(socket) {
 
     socket.once("monitorList", onMonitorList);
   });
+
+  return { promise, cancel: () => finish() };
 }
 
 async function getMonitorList(socket) {
-  const listPromise = waitForMonitorList(socket);
-  await emitWithAck(socket, "getMonitorList");
-  return listPromise;
+  const waiter = createMonitorListWaiter(socket);
+  try {
+    await emitWithAck(socket, "getMonitorList");
+    return await waiter.promise;
+  } catch (error) {
+    waiter.cancel();
+    throw error;
+  }
 }
 
 function managedFields(monitor) {
@@ -233,12 +247,19 @@ async function main() {
       });
     });
 
-    const initialListPromise = waitForMonitorList(socket);
-    const login = await emitWithAck(socket, "login", { username, password });
+    const initialListWaiter = createMonitorListWaiter(socket);
+    let login;
+    try {
+      login = await emitWithAck(socket, "login", { username, password });
+    } catch (error) {
+      initialListWaiter.cancel();
+      throw error;
+    }
     if (login.tokenRequired) {
+      initialListWaiter.cancel();
       fail("Синхронизация пока не поддерживает учётную запись с двухфакторной аутентификацией.");
     }
-    await initialListPromise;
+    await initialListWaiter.promise;
 
     await synchronize(socket, monitors);
   } finally {
