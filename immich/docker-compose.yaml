@@ -22,14 +22,21 @@ services:
       - /etc/localtime:/etc/localtime:ro
     env_file:
       - .env
-    ports:
-      - '40040:2283'
+    networks:
+      - default
+      - traefiknet
     depends_on:
       - redis
       - database
-    restart: unless-stopped
+    restart: always
     healthcheck:
       disable: false
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.immich.rule=Host(`${IMMICH_HOST}`)
+      - traefik.http.routers.immich.entrypoints=web
+      - traefik.http.services.immich.loadbalancer.server.port=2283
+      - traefik.docker.network=traefiknet
 
   immich-machine-learning:
     container_name: immich_machine_learning
@@ -49,7 +56,7 @@ services:
 
   redis:
     container_name: immich_redis
-    image: docker.io/valkey/valkey:9@sha256:546304417feac0874c3dd576e0952c6bb8f06bb4093ea0c9ca303c73cf458f63
+    image: docker.io/valkey/valkey:9@sha256:8e8d64b405ce18f41b8e5ee20aa4687a8ed0022d1298f2ce31cdcf3a76e09411
     healthcheck:
       test: redis-cli ping || exit 1
     restart: always
@@ -74,3 +81,7 @@ services:
 
 volumes:
   model-cache:
+
+networks:
+  traefiknet:
+    external: true

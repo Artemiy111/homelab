@@ -11,6 +11,7 @@
 | Traefik | Обратный прокси и обнаружение сервисов | `http://traefik.example.net/dashboard/` |
 | Pi-hole | Локальный DNS и блокировка рекламы | `http://pihole.example.net/admin/` |
 | Uptime Kuma | Мониторинг доступности | `http://uptime.example.net/` |
+| Immich | Фото- и видеотека | `http://immich.example.net/` |
 | Restic | Зашифрованные локальные снимки | Только CLI |
 | Tailscale | Удалённый доступ и маршрут в домашнюю сеть | Tailnet |
 
