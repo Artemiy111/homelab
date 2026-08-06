@@ -1,0 +1,7 @@
+/data/restic/cache
+/data/local-ai/models
+/data/jellyfin/cache
+/config/.git
+**/cache
+**/Cache
+**/*.log

@@ -1,0 +1,101 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+
+random_secret() {
+  openssl rand -hex 24
+}
+
+create_traefik_env() {
+  local env_file="$repo_root/traefik/.env"
+  if [[ -e "$env_file" ]]; then
+    echo "Пропуск: $env_file уже существует"
+    return
+  fi
+
+  local password hash
+  password="$(random_secret)"
+  hash="$(printf '%s' "$password" | openssl passwd -apr1 -stdin)"
+
+  umask 077
+  {
+    echo 'TRAEFIK_HOST=traefik.example.net'
+    echo 'TRAEFIK_DASHBOARD_USERNAME=admin'
+    printf 'TRAEFIK_DASHBOARD_PASSWORD=%s\n' "$password"
+    printf "TRAEFIK_DASHBOARD_USERS='admin:%s'\n" "$hash"
+  } >"$env_file"
+}
+
+create_pihole_env() {
+  local env_file="$repo_root/pihole/.env"
+  if [[ -e "$env_file" ]]; then
+    echo "Пропуск: $env_file уже существует"
+    return
+  fi
+
+  umask 077
+  {
+    echo 'PIHOLE_HOST=pihole.example.net'
+    printf 'PIHOLE_ADMIN_PASSWORD=%s\n' "$(random_secret)"
+  } >"$env_file"
+}
+
+create_uptime_kuma_env() {
+  local env_file="$repo_root/uptime-kuma/.env"
+  if [[ -e "$env_file" ]]; then
+    echo "Пропуск: $env_file уже существует"
+    return
+  fi
+
+  umask 077
+  echo 'UPTIME_KUMA_HOST=uptime.example.net' >"$env_file"
+}
+
+create_restic_env() {
+  local env_file="$repo_root/restic/.env"
+  if [[ -e "$env_file" ]]; then
+    echo "Пропуск: $env_file уже существует"
+    return
+  fi
+
+  umask 077
+  {
+    printf 'RESTIC_PASSWORD=%s\n' "$(random_secret)"
+    echo 'BACKUP_SOURCE=/storage/apps'
+    echo "CONFIG_SOURCE=$repo_root"
+    echo 'RESTIC_REPOSITORY_PATH=/storage/backups/restic'
+  } >"$env_file"
+}
+
+mkdir -p \
+  /storage/apps/pihole/etc-pihole \
+  /storage/apps/uptime-kuma/data \
+  /storage/apps/restic/cache \
+  /storage/apps/restic/restore \
+  /storage/backups/restic
+
+docker network inspect traefiknet >/dev/null 2>&1 || docker network create traefiknet >/dev/null
+
+create_traefik_env
+create_pihole_env
+create_uptime_kuma_env
+create_restic_env
+
+chmod 600 \
+  "$repo_root/traefik/.env" \
+  "$repo_root/pihole/.env" \
+  "$repo_root/uptime-kuma/.env" \
+  "$repo_root/restic/.env"
+
+for service in traefik pihole uptime-kuma; do
+  docker compose --project-directory "$repo_root/$service" config --quiet
+done
+
+docker compose \
+  --project-directory "$repo_root/restic" \
+  --profile manual \
+  config --quiet
+
+echo "Подготовка завершена. Пароли сохранены только в локальных .env сервера."

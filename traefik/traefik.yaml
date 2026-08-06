@@ -2,38 +2,25 @@ global:
   checkNewVersion: false
   sendAnonymousUsage: false
 
-logs:
-  level: DEBUG
+log:
+  level: INFO
+
+accessLog: {}
 
 api:
   dashboard: true
-  insecure: true
+
+ping: {}
 
 entryPoints:
   web:
-    address: :80
-    # http:
-    #   redirections:
-    #     entryPoint:
-    #       to: websecure
-    #       scheme: https
-    #       permanent: true
+    address: ":80"
   websecure:
-    address: :443
-    http:
-      tls:
-        certResolver: letsencrypt
+    address: ":443"
 
 providers:
   docker:
     endpoint: "unix:///var/run/docker.sock"
-    exposedByDefault: false  # Только контейнеры с labels будут видны
-    network: traefiknet      # Используем вашу сеть
-
-certificatesResolvers:
-  letsencrypt:
-    acme:
-      email: mail@artistick.tech
-      storage: /letsencrypt/acme.json
-      httpChallenge:
-        entryPoint: web
+    exposedByDefault: false
+    network: traefiknet
+    watch: true

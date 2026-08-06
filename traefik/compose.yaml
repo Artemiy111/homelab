@@ -1,20 +1,32 @@
 services:
   traefik:
-    image: traefik:v3.6
+    image: traefik:v3.7
     container_name: traefik
     ports:
-      - "80:80"
-      - "443:443"
-      - "40080:8080"
+      - "192.0.2.10:80:80"
+      - "192.0.2.10:443:443"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./traefik.yaml:/etc/traefik/traefik.yaml:ro
-      - /storage/apps/traefik/letsencrypt:/letsencrypt:rw
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik.yaml:/etc/traefik/traefik.yaml:Z,ro
     networks:
       - traefiknet
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.traefik.rule=Host(`${TRAEFIK_HOST}`)
+      - traefik.http.routers.traefik.entrypoints=web
+      - traefik.http.routers.traefik.service=api@internal
+      - traefik.http.routers.traefik.middlewares=traefik-auth
+      - traefik.http.middlewares.traefik-auth.basicauth.users=${TRAEFIK_DASHBOARD_USERS}
 
 networks:
   traefiknet:
     external: true
-

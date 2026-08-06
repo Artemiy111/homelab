@@ -1,27 +1,74 @@
-# Packages
+# Домашний сервер
 
-@virtialization
-nvim
-fd
-fastfetch
-htop
-btop
+Конфигурация домашнего сервера Fedora 44 по адресу `192.0.2.10`
+(`ssh homelab`). Сейчас используется Docker Compose; в будущем планируется
+переход на k3s.
 
-[k3s](https://docs.k3s.io/quick-start)
+## Системные сервисы
+
+| Сервис | Назначение | Адрес в локальной сети |
+| --- | --- | --- |
+| Traefik | Обратный прокси и обнаружение сервисов | `http://traefik.example.net/dashboard/` |
+| Pi-hole | Локальный DNS и блокировка рекламы | `http://pihole.example.net/admin/` |
+| Uptime Kuma | Мониторинг доступности | `http://uptime.example.net/` |
+| Restic | Зашифрованные локальные снимки | Только CLI |
+
+Первый этап работает только в локальной сети и использует HTTP. Не следует
+пробрасывать на роутере порты 53, 80 и 443. Для локальных клиентов Pi-hole
+разрешает зону <dns-provider> и все её поддомены в `192.0.2.10`. Публичный DNS,
+динамическое обновление адреса, HTTPS и контролируемый внешний доступ будут
+настроены отдельно.
+
+## Порядок запуска
+
+1. Установить Docker Engine и плагин Compose.
+2. Оставить SELinux в режиме enforcing, а firewalld — включённым.
+3. Создать общую сеть прокси: `docker network create traefiknet`.
+4. В каталоге каждого сервиса скопировать `.env.example` в `.env` и заменить
+   значения-заглушки.
+5. Запустить `traefik`, затем `pihole`, затем `uptime-kuma`.
+6. Настроить DHCP-сервер роутера так, чтобы он выдавал `192.0.2.10` как DNS.
+7. Инициализировать Restic, создать копию и проверить восстановление.
+
+Первичную подготовку каталогов, сети и локальных `.env` можно выполнить командой:
 
 ```sh
-curl -sfL https://get.k3s.io | sh -
-```
-```
+bash scripts/bootstrap-platform.sh
 ```
 
-[lazygit](https://github.com/jesseduffield/lazygit?tab=readme-ov-file#fedora--amazon-linux-2023--centos-stream)
+Скрипт не перезаписывает существующие `.env` и сохраняет сгенерированные пароли
+только на сервере с правами доступа `0600`.
+
+Каждый сервис управляется из своего каталога:
+
+```sh
+cd traefik
+docker compose config
+docker compose up -d
+```
+
+Секреты находятся в игнорируемом файле `.env` рядом с Compose-файлом. В Git
+добавляются только файлы `.env.example`.
+
+Старые и экспериментальные каталоги приложений сохранены для последующего
+разбора. В частности, `caddy/` не входит в активный стек и не должен запускаться
+одновременно с Traefik: оба сервиса публикуют порты 80 и 443. `wg-easy/` также
+пока не разворачивается.
+
+## Пакеты хоста
+
+- `@virtualization`
+- `nvim`
+- `fd`
+- `fastfetch`
+- `htop`
+- `btop`
+
+Будущая установка k3s: [краткое руководство](https://docs.k3s.io/quick-start).
+
+Установка Lazygit: [инструкция для Fedora](https://github.com/jesseduffield/lazygit#fedora-and-centos-stream).
 
 ```sh
 sudo dnf copr enable dejan/lazygit
 sudo dnf install lazygit
-```
-
-
-```
 ```

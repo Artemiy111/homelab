@@ -1,0 +1,36 @@
+services:
+  pihole:
+    image: pihole/pihole:latest
+    container_name: pihole
+    environment:
+      TZ: Asia/Yekaterinburg
+      FTLCONF_dns_listeningMode: ALL
+      FTLCONF_dns_upstreams: 1.1.1.1;1.0.0.1
+      FTLCONF_misc_etc_dnsmasq_d: "true"
+      FTLCONF_webserver_api_password: ${PIHOLE_ADMIN_PASSWORD}
+    ports:
+      - "192.0.2.10:53:53/tcp"
+      - "192.0.2.10:53:53/udp"
+    volumes:
+      - /storage/apps/pihole/etc-pihole:/etc/pihole:Z
+      - ./etc-dnsmasq.d/05-homelab.conf:/etc/dnsmasq.d/05-homelab.conf:Z,ro
+    networks:
+      - default
+      - traefiknet
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "dig", "+short", "+norecurse", "@127.0.0.1", "pi.hole"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.pihole.rule=Host(`${PIHOLE_HOST}`)
+      - traefik.http.routers.pihole.entrypoints=web
+      - traefik.http.services.pihole.loadbalancer.server.port=80
+      - traefik.docker.network=traefiknet
+
+networks:
+  traefiknet:
+    external: true
