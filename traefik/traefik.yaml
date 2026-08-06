@@ -31,6 +31,16 @@ entryPoints:
             sans:
               - "*.example.net"
 
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      storage: /letsencrypt/acme.json
+      dnsChallenge:
+        provider: rfc2136
+        resolvers:
+          - "1.1.1.1:53"
+          - "1.0.0.1:53"
+
 providers:
   docker:
     endpoint: "unix:///var/run/docker.sock"

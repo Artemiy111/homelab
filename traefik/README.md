@@ -26,7 +26,6 @@ cp .env.example .env
 `example.net` и заполнить в `.env`:
 
 ```dotenv
-ACME_EMAIL=your-email@example.com
 RFC2136_NAMESERVER=ns1.<dns-provider>.com:53
 RFC2136_TSIG_ALGORITHM=hmac-sha256.
 RFC2136_TSIG_KEY=имя-ключа-из-<dns-provider>
