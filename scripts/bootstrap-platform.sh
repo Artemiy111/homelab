@@ -25,6 +25,11 @@ create_traefik_env() {
     echo 'TRAEFIK_DASHBOARD_USERNAME=admin'
     printf 'TRAEFIK_DASHBOARD_PASSWORD=%s\n' "$password"
     printf "TRAEFIK_DASHBOARD_USERS='admin:%s'\n" "$hash"
+    echo 'ACME_EMAIL=replace-with-your-email'
+    echo 'RFC2136_NAMESERVER=ns1.<dns-provider>.com:53'
+    echo 'RFC2136_TSIG_ALGORITHM=hmac-sha256.'
+    echo 'RFC2136_TSIG_KEY=replace-with-the-<dns-provider>-tsig-key-name'
+    echo 'RFC2136_TSIG_SECRET=replace-with-the-<dns-provider>-tsig-secret'
   } >"$env_file"
 }
 
@@ -75,10 +80,15 @@ create_restic_env() {
 
 mkdir -p \
   /storage/apps/pihole/etc-pihole \
+  /storage/apps/traefik/letsencrypt \
   /storage/apps/uptime-kuma/data \
   /storage/apps/restic/cache \
   /storage/apps/restic/restore \
   /storage/backups/restic
+
+if [[ ! -e /storage/apps/traefik/letsencrypt/acme.json ]]; then
+  install -m 0600 /dev/null /storage/apps/traefik/letsencrypt/acme.json
+fi
 
 docker network inspect traefiknet >/dev/null 2>&1 || docker network create traefiknet >/dev/null
 

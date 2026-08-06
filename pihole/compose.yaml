@@ -27,7 +27,7 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.routers.pihole.rule=Host(`${PIHOLE_HOST}`)
-      - traefik.http.routers.pihole.entrypoints=web
+      - traefik.http.routers.pihole.entrypoints=websecure
       - traefik.http.services.pihole.loadbalancer.server.port=80
       - traefik.docker.network=traefiknet
 

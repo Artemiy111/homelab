@@ -23,7 +23,7 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.routers.uptime-kuma.rule=Host(`${UPTIME_KUMA_HOST}`)
-      - traefik.http.routers.uptime-kuma.entrypoints=web
+      - traefik.http.routers.uptime-kuma.entrypoints=websecure
       - traefik.http.services.uptime-kuma.loadbalancer.server.port=3001
       - traefik.docker.network=traefiknet
 

@@ -51,7 +51,7 @@ sudo tailscale set --accept-routes
 ```sh
 tailscale ping homelab
 ssh artlab@homelab
-curl -I http://pihole.example.net/admin/
+curl -I https://pihole.example.net/admin/
 ```
 
 Ожидается ответ Tailscale ping, SSH-подключение и HTTP redirect `302` от Pi-hole.
