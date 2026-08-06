@@ -50,7 +50,11 @@ create_uptime_kuma_env() {
   fi
 
   umask 077
-  echo 'UPTIME_KUMA_HOST=uptime.example.net' >"$env_file"
+  {
+    echo 'UPTIME_KUMA_HOST=uptime.example.net'
+    echo 'UPTIME_KUMA_USERNAME=user'
+    echo 'UPTIME_KUMA_PASSWORD='
+  } >"$env_file"
 }
 
 create_restic_env() {

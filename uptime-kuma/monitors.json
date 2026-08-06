@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "monitors": [
+    {
+      "name": "Pi-hole HTTP",
+      "description": "Веб-интерфейс Pi-hole внутри Docker-сети.",
+      "type": "http",
+      "url": "http://pihole/admin/",
+      "interval": 60,
+      "maxretries": 2
+    },
+    {
+      "name": "Traefik",
+      "description": "Встроенная проверка работоспособности Traefik внутри Docker-сети.",
+      "type": "http",
+      "url": "http://traefik:8080/ping",
+      "interval": 60,
+      "maxretries": 2
+    },
+    {
+      "name": "Pi-hole DNS",
+      "description": "Разрешение внутреннего домена через локальный DNS-сервер Pi-hole.",
+      "type": "dns",
+      "hostname": "uptime.example.net",
+      "dns_resolve_server": "192.0.2.10",
+      "dns_resolve_type": "A",
+      "interval": 60,
+      "maxretries": 2
+    }
+  ]
+}
