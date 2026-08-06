@@ -1,0 +1,136 @@
+name: jitsi
+
+services:
+  web:
+    image: jitsi/web:${JITSI_IMAGE_VERSION:?set JITSI_IMAGE_VERSION in jitsi/.env}
+    container_name: jitsi-web
+    restart: unless-stopped
+    environment:
+      DISABLE_HTTPS: "1"
+      ENABLE_AUTH: ${ENABLE_AUTH:-1}
+      ENABLE_GUESTS: ${ENABLE_GUESTS:-1}
+      ENABLE_HTTP_REDIRECT: "0"
+      ENABLE_PREJOIN_PAGE: "1"
+      ENABLE_WELCOME_PAGE: "1"
+      ENABLE_XMPP_WEBSOCKET: "1"
+      JICOFO_AUTH_USER: focus
+      PUBLIC_URL: ${PUBLIC_URL:?set PUBLIC_URL in jitsi/.env}
+      TZ: ${TZ:-Asia/Yekaterinburg}
+      XMPP_AUTH_DOMAIN: auth.meet.jitsi
+      XMPP_BOSH_URL_BASE: http://prosody:5280
+      XMPP_DOMAIN: meet.jitsi
+      XMPP_GUEST_DOMAIN: guest.meet.jitsi
+      XMPP_MUC_DOMAIN: muc.meet.jitsi
+      XMPP_PORT: 5222
+      XMPP_RECORDER_DOMAIN: recorder.meet.jitsi
+      XMPP_SERVER: prosody
+    volumes:
+      - /storage/apps/jitsi/web:/config:Z
+      - /storage/apps/jitsi/web/crontabs:/var/spool/cron/crontabs:Z
+      - /storage/apps/jitsi/transcripts:/usr/share/jitsi-meet/transcripts:Z
+    networks:
+      - default
+      - traefiknet
+    depends_on:
+      - jicofo
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.jitsi.rule=Host(`${JITSI_HOST}`)
+      - traefik.http.routers.jitsi.entrypoints=websecure
+      - traefik.http.services.jitsi.loadbalancer.server.port=80
+      - traefik.docker.network=traefiknet
+
+  prosody:
+    image: jitsi/prosody:${JITSI_IMAGE_VERSION:?set JITSI_IMAGE_VERSION in jitsi/.env}
+    container_name: jitsi-prosody
+    restart: unless-stopped
+    environment:
+      AUTH_TYPE: ${AUTH_TYPE:-internal}
+      ENABLE_AUTH: ${ENABLE_AUTH:-1}
+      ENABLE_GUESTS: ${ENABLE_GUESTS:-1}
+      ENABLE_LOBBY: "1"
+      ENABLE_XMPP_WEBSOCKET: "1"
+      JICOFO_AUTH_PASSWORD: ${JICOFO_AUTH_PASSWORD:?set JICOFO_AUTH_PASSWORD in jitsi/.env}
+      JICOFO_AUTH_USER: focus
+      JICOFO_COMPONENT_SECRET: ${JICOFO_COMPONENT_SECRET:?set JICOFO_COMPONENT_SECRET in jitsi/.env}
+      JVB_AUTH_PASSWORD: ${JVB_AUTH_PASSWORD:?set JVB_AUTH_PASSWORD in jitsi/.env}
+      JVB_AUTH_USER: jvb
+      TZ: ${TZ:-Asia/Yekaterinburg}
+      XMPP_AUTH_DOMAIN: auth.meet.jitsi
+      XMPP_DOMAIN: meet.jitsi
+      XMPP_GUEST_DOMAIN: guest.meet.jitsi
+      XMPP_INTERNAL_MUC_DOMAIN: internal-muc.meet.jitsi
+      XMPP_INTERNAL_MUC_MODULES: ping
+      XMPP_MUC_DOMAIN: muc.meet.jitsi
+      XMPP_RECORDER_DOMAIN: recorder.meet.jitsi
+    volumes:
+      - /storage/apps/jitsi/prosody/config:/config:Z
+      - /storage/apps/jitsi/prosody/prosody-plugins-custom:/prosody-plugins-custom:Z
+    networks:
+      default:
+        aliases:
+          - xmpp.meet.jitsi
+
+  jicofo:
+    image: jitsi/jicofo:${JITSI_IMAGE_VERSION:?set JITSI_IMAGE_VERSION in jitsi/.env}
+    container_name: jitsi-jicofo
+    restart: unless-stopped
+    environment:
+      AUTH_TYPE: ${AUTH_TYPE:-internal}
+      ENABLE_AUTH: ${ENABLE_AUTH:-1}
+      ENABLE_AUTO_OWNER: "1"
+      ENABLE_GUESTS: ${ENABLE_GUESTS:-1}
+      JICOFO_AUTH_PASSWORD: ${JICOFO_AUTH_PASSWORD:?set JICOFO_AUTH_PASSWORD in jitsi/.env}
+      JICOFO_AUTH_USER: focus
+      JICOFO_BREWERY_MUC: JicofoBrewery
+      JICOFO_COMPONENT_SECRET: ${JICOFO_COMPONENT_SECRET:?set JICOFO_COMPONENT_SECRET in jitsi/.env}
+      JICOFO_ENABLE_BRIDGE_HEALTH_CHECKS: "1"
+      SENTRY_DSN: ""
+      TZ: ${TZ:-Asia/Yekaterinburg}
+      XMPP_AUTH_DOMAIN: auth.meet.jitsi
+      XMPP_DOMAIN: meet.jitsi
+      XMPP_INTERNAL_MUC_DOMAIN: internal-muc.meet.jitsi
+      XMPP_MUC_DOMAIN: muc.meet.jitsi
+      XMPP_RECORDER_DOMAIN: recorder.meet.jitsi
+      XMPP_SERVER: prosody
+    volumes:
+      - /storage/apps/jitsi/jicofo:/config:Z
+    networks:
+      - default
+    depends_on:
+      - prosody
+
+  jvb:
+    image: jitsi/jvb:${JITSI_IMAGE_VERSION:?set JITSI_IMAGE_VERSION in jitsi/.env}
+    container_name: jitsi-jvb
+    restart: unless-stopped
+    ports:
+      - "${JVB_BIND_ADDRESS:-192.0.2.10}:${JVB_PORT:-10000}:${JVB_PORT:-10000}/udp"
+    environment:
+      ENABLE_COLIBRI_WEBSOCKET: "1"
+      JVB_ADVERTISE_IPS: ${JVB_ADVERTISE_IPS:?set JVB_ADVERTISE_IPS in jitsi/.env}
+      JVB_AUTH_PASSWORD: ${JVB_AUTH_PASSWORD:?set JVB_AUTH_PASSWORD in jitsi/.env}
+      JVB_AUTH_USER: jvb
+      JVB_BREWERY_MUC: jvbbrewery
+      JVB_DISABLE_STUN: "true"
+      JVB_PORT: ${JVB_PORT:-10000}
+      JVB_WS_DOMAIN: ${JITSI_HOST:?set JITSI_HOST in jitsi/.env}
+      JVB_WS_SERVER_ID: jvb1
+      PUBLIC_URL: ${PUBLIC_URL:?set PUBLIC_URL in jitsi/.env}
+      SENTRY_DSN: ""
+      TZ: ${TZ:-Asia/Yekaterinburg}
+      XMPP_AUTH_DOMAIN: auth.meet.jitsi
+      XMPP_INTERNAL_MUC_DOMAIN: internal-muc.meet.jitsi
+      XMPP_SERVER: prosody
+    volumes:
+      - /storage/apps/jitsi/jvb:/config:Z
+    networks:
+      - default
+    depends_on:
+      - prosody
+    cap_add:
+      - SYS_NICE
+
+networks:
+  traefiknet:
+    external: true

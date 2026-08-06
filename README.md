@@ -12,6 +12,7 @@
 | Pi-hole | Локальный DNS и блокировка рекламы | `https://pihole.example.net/admin/` |
 | Uptime Kuma | Мониторинг доступности | `https://uptime.example.net/` |
 | Immich | Фото- и видеотека | `https://immich.example.net/` |
+| Jitsi Meet | Приватные видеоконференции | `https://meet.example.net/` |
 | Restic | Зашифрованные локальные снимки | Только CLI |
 | Tailscale | Удалённый доступ и маршрут в домашнюю сеть | Tailnet |
 

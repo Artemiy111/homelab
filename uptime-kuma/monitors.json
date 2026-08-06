@@ -18,6 +18,14 @@
       "maxretries": 2
     },
     {
+      "name": "Jitsi Meet",
+      "description": "Веб-интерфейс Jitsi Meet внутри Docker-сети.",
+      "type": "http",
+      "url": "http://jitsi-web/",
+      "interval": 60,
+      "maxretries": 2
+    },
+    {
       "name": "Pi-hole DNS",
       "description": "Разрешение внутреннего домена через локальный DNS-сервер Pi-hole.",
       "type": "dns",
