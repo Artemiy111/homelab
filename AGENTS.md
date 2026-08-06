@@ -11,3 +11,9 @@ The repository uses the five standard triage labels. See `docs/agents/triage-lab
 ### Domain docs
 
 This is a single-context repository. See `docs/agents/domain.md`.
+
+### Доступ к серверу
+
+Подключение, развёртывание и диагностика homelab описаны в
+`docs/agents/server-access.md`. Отслеживаемые файлы на сервере не редактировать:
+изменения проходят через локальный commit, push и `git pull --ff-only`.
