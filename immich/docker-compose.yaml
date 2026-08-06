@@ -33,7 +33,7 @@ services:
       disable: false
     labels:
       - traefik.enable=true
-      - traefik.http.routers.immich.rule=Host(`${IMMICH_HOST}`)
+      - traefik.http.routers.immich.rule=Host(`${IMMICH_DOMAIN}`)
       - traefik.http.routers.immich.entrypoints=web
       - traefik.http.services.immich.loadbalancer.server.port=2283
       - traefik.docker.network=traefiknet
