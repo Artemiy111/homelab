@@ -14,7 +14,7 @@ if [[ -e "$env_file" ]]; then
 else
   umask 077
   {
-    echo 'JITSI_IMAGE_VERSION=latest'
+    echo 'JITSI_IMAGE_VERSION=stable-10978'
     echo 'JITSI_HOST=meet.example.net'
     echo 'PUBLIC_URL=https://meet.example.net'
     echo 'TZ=Asia/Yekaterinburg'
