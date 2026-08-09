@@ -1,0 +1,145 @@
+name: nextcloud
+
+x-nextcloud-environment: &nextcloud-environment
+  POSTGRES_HOST: db
+  POSTGRES_DB: ${POSTGRES_DB:-nextcloud}
+  POSTGRES_USER: ${POSTGRES_USER:-nextcloud}
+  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in nextcloud/.env}
+  REDIS_HOST: redis
+  NEXTCLOUD_ADMIN_USER: ${NEXTCLOUD_ADMIN_USER:?set NEXTCLOUD_ADMIN_USER in nextcloud/.env}
+  NEXTCLOUD_ADMIN_PASSWORD: ${NEXTCLOUD_ADMIN_PASSWORD:?set NEXTCLOUD_ADMIN_PASSWORD in nextcloud/.env}
+  NEXTCLOUD_TRUSTED_DOMAINS: ${NEXTCLOUD_HOST:?set NEXTCLOUD_HOST in nextcloud/.env}
+  TRUSTED_PROXIES: ${TRAEFIK_NETWORK_CIDR:?set TRAEFIK_NETWORK_CIDR in nextcloud/.env}
+  APACHE_DISABLE_REWRITE_IP: "1"
+  OVERWRITEHOST: ${NEXTCLOUD_HOST:?set NEXTCLOUD_HOST in nextcloud/.env}
+  OVERWRITEPROTOCOL: https
+  OVERWRITECLIURL: https://${NEXTCLOUD_HOST:?set NEXTCLOUD_HOST in nextcloud/.env}
+  NEXTCLOUD_INIT_HTACCESS: "true"
+  PHP_MEMORY_LIMIT: 512M
+  PHP_UPLOAD_LIMIT: 16G
+  TZ: ${TZ:-Asia/Yekaterinburg}
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-nextcloud}
+      POSTGRES_USER: ${POSTGRES_USER:-nextcloud}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in nextcloud/.env}
+    volumes:
+      - /storage/apps/nextcloud/postgresql:/var/lib/postgresql/data:Z
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  redis:
+    image: redis:8-alpine
+    restart: unless-stopped
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - /storage/apps/nextcloud/redis:/data:Z
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  app:
+    image: nextcloud:34.0.2-apache
+    init: true
+    restart: unless-stopped
+    environment:
+      <<: *nextcloud-environment
+    volumes:
+      - /storage/apps/nextcloud/html:/var/www/html:z
+    networks:
+      backend:
+      traefiknet:
+        aliases:
+          - nextcloud
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          curl -fsS http://127.0.0.1/status.php |
+          grep -q '"installed":true'
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 5m
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.nextcloud.rule=Host(`${NEXTCLOUD_HOST}`)
+      - traefik.http.routers.nextcloud.entrypoints=websecure
+      - traefik.http.routers.nextcloud.middlewares=nextcloud-dav,nextcloud-security
+      - traefik.http.services.nextcloud.loadbalancer.server.port=80
+      - traefik.http.middlewares.nextcloud-dav.redirectregex.regex=^https://(.*)/.well-known/(?:card|cal)dav
+      - traefik.http.middlewares.nextcloud-dav.redirectregex.replacement=https://$${1}/remote.php/dav/
+      - traefik.http.middlewares.nextcloud-dav.redirectregex.permanent=true
+      - traefik.http.middlewares.nextcloud-security.headers.stsSeconds=15552000
+      - traefik.http.middlewares.nextcloud-security.headers.stsIncludeSubdomains=true
+      - traefik.http.middlewares.nextcloud-security.headers.stsPreload=true
+      - traefik.http.middlewares.nextcloud-security.headers.contentTypeNosniff=true
+      - traefik.http.middlewares.nextcloud-security.headers.referrerPolicy=no-referrer
+      - traefik.docker.network=traefiknet
+
+  cron:
+    image: nextcloud:34.0.2-apache
+    init: true
+    restart: unless-stopped
+    entrypoint: /cron.sh
+    environment:
+      <<: *nextcloud-environment
+    volumes:
+      - /storage/apps/nextcloud/html:/var/www/html:z
+    networks:
+      - backend
+      - traefiknet
+    depends_on:
+      app:
+        condition: service_healthy
+
+  backup-db:
+    image: postgres:16-alpine
+    profiles:
+      - tools
+    environment:
+      PGHOST: db
+      PGDATABASE: ${POSTGRES_DB:-nextcloud}
+      PGUSER: ${POSTGRES_USER:-nextcloud}
+      PGPASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in nextcloud/.env}
+    volumes:
+      - /storage/apps/nextcloud/backups:/backups:Z
+    networks:
+      - backend
+    depends_on:
+      db:
+        condition: service_healthy
+    entrypoint:
+      - /bin/sh
+      - -ec
+    command:
+      - >-
+        umask 077;
+        pg_dump --format=custom --file=/backups/nextcloud.dump.tmp;
+        mv /backups/nextcloud.dump.tmp /backups/nextcloud.dump
+    restart: "no"
+
+networks:
+  backend:
+    internal: true
+  traefiknet:
+    external: true

@@ -61,6 +61,32 @@ create_uptime_kuma_env() {
   } >"$env_file"
 }
 
+create_nextcloud_env() {
+  local env_file="$repo_root/nextcloud/.env"
+  if [[ -e "$env_file" ]]; then
+    echo "Пропуск: $env_file уже существует"
+    return
+  fi
+
+  local traefik_network_cidr
+  traefik_network_cidr="$(
+    docker network inspect traefiknet \
+      --format '{{range .IPAM.Config}}{{.Subnet}}{{end}}'
+  )"
+
+  umask 077
+  {
+    echo 'NEXTCLOUD_HOST=nextcloud.example.net'
+    echo 'NEXTCLOUD_ADMIN_USER=nextcloud-admin'
+    printf 'NEXTCLOUD_ADMIN_PASSWORD=%s\n' "$(random_secret)"
+    echo 'POSTGRES_DB=nextcloud'
+    echo 'POSTGRES_USER=nextcloud'
+    printf 'POSTGRES_PASSWORD=%s\n' "$(random_secret)"
+    printf 'TRAEFIK_NETWORK_CIDR=%s\n' "$traefik_network_cidr"
+    echo 'TZ=Asia/Yekaterinburg'
+  } >"$env_file"
+}
+
 create_restic_env() {
   local env_file="$repo_root/restic/.env"
   if [[ -e "$env_file" ]]; then
@@ -79,6 +105,10 @@ create_restic_env() {
 
 mkdir -p \
   /storage/apps/pihole/etc-pihole \
+  /storage/apps/nextcloud/backups \
+  /storage/apps/nextcloud/html \
+  /storage/apps/nextcloud/postgresql \
+  /storage/apps/nextcloud/redis \
   /storage/apps/traefik/letsencrypt \
   /storage/apps/uptime-kuma/data \
   /storage/apps/restic/cache \
@@ -94,15 +124,17 @@ docker network inspect traefiknet >/dev/null 2>&1 || docker network create traef
 create_traefik_env
 create_pihole_env
 create_uptime_kuma_env
+create_nextcloud_env
 create_restic_env
 
 chmod 600 \
   "$repo_root/traefik/.env" \
   "$repo_root/pihole/.env" \
   "$repo_root/uptime-kuma/.env" \
+  "$repo_root/nextcloud/.env" \
   "$repo_root/restic/.env"
 
-for service in traefik pihole uptime-kuma; do
+for service in traefik pihole uptime-kuma nextcloud; do
   docker compose --project-directory "$repo_root/$service" config --quiet
 done
 
