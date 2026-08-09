@@ -115,8 +115,12 @@ mkdir -p \
   /storage/apps/restic/restore \
   /storage/backups/restic
 
-if [[ ! -e /storage/apps/traefik/letsencrypt/acme.json ]]; then
-  install -m 0600 /dev/null /storage/apps/traefik/letsencrypt/acme.json
+if [[ -x /storage/apps/traefik/letsencrypt ]]; then
+  if [[ ! -e /storage/apps/traefik/letsencrypt/acme.json ]]; then
+    install -m 0600 /dev/null /storage/apps/traefik/letsencrypt/acme.json
+  fi
+else
+  echo 'Пропуск: каталог Traefik ACME недоступен текущему пользователю'
 fi
 
 docker network inspect traefiknet >/dev/null 2>&1 || docker network create traefiknet >/dev/null
