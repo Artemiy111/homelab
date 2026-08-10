@@ -11,8 +11,6 @@ services:
       - /storage/apps/spotdl/config:/config:Z
       - /storage/media/music:/music:z
     working_dir: /music
-    entrypoint:
-      - spotdl
     command:
       - --help
     restart: "no"
