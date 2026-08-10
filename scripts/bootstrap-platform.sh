@@ -153,6 +153,31 @@ create_gitea_env() {
   } >"$env_file"
 }
 
+create_dawarich_env() {
+  local env_file="$repo_root/dawarich/.env"
+  if [[ -e "$env_file" ]]; then
+    echo "Пропуск: $env_file уже существует"
+    return
+  fi
+
+  umask 077
+  {
+    echo 'DAWARICH_HOST=dawarich.example.net'
+    echo 'DAWARICH_VERSION=1.11.0'
+    echo 'POSTGRES_DB=dawarich_production'
+    echo 'POSTGRES_USER=dawarich'
+    printf 'POSTGRES_PASSWORD=%s\n' "$(random_secret)"
+    printf 'SECRET_KEY_BASE=%s\n' "$(openssl rand -hex 64)"
+    echo 'TZ=Asia/Yekaterinburg'
+    echo 'WEB_CONCURRENCY=1'
+    echo 'BACKGROUND_PROCESSING_CONCURRENCY=3'
+    echo 'APP_CPU_LIMIT=0.50'
+    echo 'APP_MEMORY_LIMIT=4G'
+    echo 'LOG_MAX_SIZE=100m'
+    echo 'LOG_MAX_FILE=5'
+  } >"$env_file"
+}
+
 create_restic_env() {
   local env_file="$repo_root/restic/.env"
   if [[ -e "$env_file" ]]; then
@@ -182,6 +207,13 @@ mkdir -p \
   /storage/apps/gitea/backups \
   /storage/apps/gitea/data \
   /storage/apps/gitea/postgresql \
+  /storage/apps/dawarich/backups \
+  /storage/apps/dawarich/postgresql \
+  /storage/apps/dawarich/public \
+  /storage/apps/dawarich/redis \
+  /storage/apps/dawarich/shared \
+  /storage/apps/dawarich/storage \
+  /storage/apps/dawarich/watched \
   /storage/apps/traefik/letsencrypt \
   /storage/apps/uptime-kuma/data \
   /storage/apps/restic/cache \
@@ -211,6 +243,7 @@ create_3x_ui_env
 create_nextcloud_env
 create_jellyfin_env
 create_gitea_env
+create_dawarich_env
 create_restic_env
 
 chmod 600 \
@@ -221,9 +254,10 @@ chmod 600 \
   "$repo_root/nextcloud/.env" \
   "$repo_root/jellyfin/.env" \
   "$repo_root/gitea/.env" \
+  "$repo_root/dawarich/.env" \
   "$repo_root/restic/.env"
 
-for service in traefik pihole uptime-kuma 3x-ui nextcloud jellyfin gitea; do
+for service in traefik pihole uptime-kuma 3x-ui nextcloud jellyfin gitea dawarich; do
   docker compose --project-directory "$repo_root/$service" config --quiet
 done
 
