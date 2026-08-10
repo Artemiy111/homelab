@@ -134,6 +134,11 @@ mkdir -p \
   /storage/apps/restic/restore \
   /storage/backups/restic
 
+chmod 0700 \
+  /storage/apps/3x-ui \
+  /storage/apps/3x-ui/db \
+  /storage/apps/3x-ui/log
+
 if [[ -x /storage/apps/traefik/letsencrypt ]]; then
   if [[ ! -e /storage/apps/traefik/letsencrypt/acme.json ]]; then
     install -m 0600 /dev/null /storage/apps/traefik/letsencrypt/acme.json

@@ -81,4 +81,6 @@ docker compose up -d
 ```
 
 SQLite-база и настройки находятся в `/storage/apps/3x-ui/db` и попадают в общий
-Restic backup каталога `/storage/apps`.
+Restic backup каталога `/storage/apps`. Bootstrap закрывает каталоги 3x-ui
+режимом `0700`, поскольку база содержит клиентские конфигурации и ключевой
+материал.
