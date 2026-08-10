@@ -168,6 +168,8 @@ create_dawarich_env() {
     echo 'POSTGRES_USER=dawarich'
     printf 'POSTGRES_PASSWORD=%s\n' "$(random_secret)"
     printf 'SECRET_KEY_BASE=%s\n' "$(openssl rand -hex 64)"
+    echo 'DAWARICH_ADMIN_EMAIL=demo@dawarich.app'
+    printf 'DAWARICH_ADMIN_PASSWORD=%s\n' "$(random_secret)"
     echo 'TZ=Asia/Yekaterinburg'
     echo 'WEB_CONCURRENCY=1'
     echo 'BACKGROUND_PROCESSING_CONCURRENCY=3'

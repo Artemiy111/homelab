@@ -21,12 +21,18 @@ cd dawarich
 docker compose config --quiet
 docker compose pull
 docker compose up -d
+docker compose --profile tools run --rm init-admin
 docker compose ps
 ```
 
-После запуска войдите с начальными реквизитами Dawarich
-`demo@dawarich.app` / `safepassword` и сразу смените пароль в настройках
-аккаунта.
+`init-admin` заменяет стандартный пароль демонстрационной учётной записи на
+сгенерированный. Начальные реквизиты можно увидеть только в терминале сервера:
+
+```sh
+sed -n '/^DAWARICH_ADMIN_\(EMAIL\|PASSWORD\)=/p' .env
+```
+
+После первого входа можно изменить email и пароль в настройках аккаунта.
 
 ## Проверка
 
