@@ -1,0 +1,18 @@
+services:
+  spotdl:
+    image: spotdl/spotify-downloader:v4.5.2
+    container_name: spotdl
+    profiles:
+      - tools
+    user: "1000:1000"
+    environment:
+      XDG_CONFIG_HOME: /config
+    volumes:
+      - /storage/apps/spotdl/config:/config:Z
+      - /storage/media/music:/music:z
+    working_dir: /music
+    entrypoint:
+      - spotdl
+    command:
+      - --help
+    restart: "no"
