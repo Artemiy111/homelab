@@ -61,6 +61,23 @@ create_uptime_kuma_env() {
   } >"$env_file"
 }
 
+create_3x_ui_env() {
+  local env_file="$repo_root/3x-ui/.env"
+  if [[ -e "$env_file" ]]; then
+    echo "Пропуск: $env_file уже существует"
+    return
+  fi
+
+  umask 077
+  {
+    echo 'XUI_HOST=xui.example.net'
+    echo 'XUI_ADMIN_USERNAME=xui-admin'
+    printf 'XUI_ADMIN_PASSWORD=%s\n' "$(random_secret)"
+    printf 'XUI_WEB_BASE_PATH=/panel-%s/\n' "$(openssl rand -hex 12)"
+    echo 'XUI_INBOUND_PORT=8443'
+  } >"$env_file"
+}
+
 create_nextcloud_env() {
   local env_file="$repo_root/nextcloud/.env"
   if [[ -e "$env_file" ]]; then
@@ -104,6 +121,8 @@ create_restic_env() {
 }
 
 mkdir -p \
+  /storage/apps/3x-ui/db \
+  /storage/apps/3x-ui/log \
   /storage/apps/pihole/etc-pihole \
   /storage/apps/nextcloud/backups \
   /storage/apps/nextcloud/html \
@@ -128,6 +147,7 @@ docker network inspect traefiknet >/dev/null 2>&1 || docker network create traef
 create_traefik_env
 create_pihole_env
 create_uptime_kuma_env
+create_3x_ui_env
 create_nextcloud_env
 create_restic_env
 
@@ -135,10 +155,11 @@ chmod 600 \
   "$repo_root/traefik/.env" \
   "$repo_root/pihole/.env" \
   "$repo_root/uptime-kuma/.env" \
+  "$repo_root/3x-ui/.env" \
   "$repo_root/nextcloud/.env" \
   "$repo_root/restic/.env"
 
-for service in traefik pihole uptime-kuma nextcloud; do
+for service in traefik pihole uptime-kuma 3x-ui nextcloud; do
   docker compose --project-directory "$repo_root/$service" config --quiet
 done
 

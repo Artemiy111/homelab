@@ -1,0 +1,67 @@
+services:
+  initialize:
+    image: ghcr.io/mhsanaei/3x-ui:v3.5.0
+    environment:
+      XUI_ADMIN_USERNAME: ${XUI_ADMIN_USERNAME:?set XUI_ADMIN_USERNAME in 3x-ui/.env}
+      XUI_ADMIN_PASSWORD: ${XUI_ADMIN_PASSWORD:?set XUI_ADMIN_PASSWORD in 3x-ui/.env}
+      XUI_WEB_BASE_PATH: ${XUI_WEB_BASE_PATH:?set XUI_WEB_BASE_PATH in 3x-ui/.env}
+    volumes:
+      - /storage/apps/3x-ui/db:/etc/x-ui:Z
+    entrypoint:
+      - /bin/sh
+      - -ec
+    command:
+      - |
+        if [ ! -f /etc/x-ui/x-ui.db ]; then
+          /app/x-ui setting \
+            -username "$${XUI_ADMIN_USERNAME}" \
+            -password "$${XUI_ADMIN_PASSWORD}" \
+            -webBasePath "$${XUI_WEB_BASE_PATH}"
+        fi
+    restart: "no"
+
+  3x-ui:
+    image: ghcr.io/mhsanaei/3x-ui:v3.5.0
+    container_name: 3x-ui
+    depends_on:
+      initialize:
+        condition: service_completed_successfully
+    environment:
+      TZ: Asia/Yekaterinburg
+      XRAY_VMESS_AEAD_FORCED: "false"
+      XUI_ENABLE_FAIL2BAN: "true"
+      XUI_INIT_WEB_BASE_PATH: ${XUI_WEB_BASE_PATH:?set XUI_WEB_BASE_PATH in 3x-ui/.env}
+      XUI_SKIP_HSTS: "true"
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    ports:
+      - "192.0.2.10:${XUI_INBOUND_PORT:?set XUI_INBOUND_PORT in 3x-ui/.env}:${XUI_INBOUND_PORT}/tcp"
+      - "192.0.2.10:${XUI_INBOUND_PORT:?set XUI_INBOUND_PORT in 3x-ui/.env}:${XUI_INBOUND_PORT}/udp"
+    volumes:
+      - /storage/apps/3x-ui/db:/etc/x-ui:Z
+      - /storage/apps/3x-ui/log:/var/log/x-ui:Z
+    networks:
+      - default
+      - traefiknet
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - curl -fsS "http://127.0.0.1:2053$${XUI_INIT_WEB_BASE_PATH}" >/dev/null
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.3x-ui.rule=Host(`${XUI_HOST}`)
+      - traefik.http.routers.3x-ui.entrypoints=websecure
+      - traefik.http.services.3x-ui.loadbalancer.server.port=2053
+      - traefik.docker.network=traefiknet
+
+networks:
+  traefiknet:
+    external: true

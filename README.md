@@ -11,6 +11,7 @@
 | Traefik | Обратный прокси и обнаружение сервисов | `https://traefik.example.net/dashboard/` |
 | Pi-hole | Локальный DNS и блокировка рекламы | `https://pihole.example.net/admin/` |
 | Uptime Kuma | Мониторинг доступности | `https://uptime.example.net/` |
+| 3x-ui | Управление личным Xray-прокси | `https://xui.example.net/<секретный-путь>/` |
 | Immich | Фото- и видеотека | `https://immich.example.net/` |
 | Jitsi Meet | Приватные видеоконференции | `https://meet.example.net/` |
 | Nextcloud | Файлы, синхронизация, календарь и контакты | `https://nextcloud.example.net/` |
@@ -33,7 +34,7 @@
 3. Создать общую сеть прокси: `docker network create traefiknet`.
 4. В каталоге каждого сервиса скопировать `.env.example` в `.env` и заменить
    значения-заглушки.
-5. Запустить `traefik`, затем `pihole`, `uptime-kuma` и `nextcloud`.
+5. Запустить `traefik`, затем `pihole`, `uptime-kuma`, `3x-ui` и `nextcloud`.
 6. Настроить DHCP-сервер роутера так, чтобы он выдавал `192.0.2.10` как DNS.
 7. Инициализировать Restic, создать копию и проверить восстановление.
 
