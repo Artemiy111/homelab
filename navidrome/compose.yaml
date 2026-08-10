@@ -6,7 +6,7 @@ services:
     environment:
       ND_DATAFOLDER: /data
       ND_MUSICFOLDER: /music
-      ND_SCANSCHEDULE: 1h
+      ND_SCANNER_SCHEDULE: "@every 1h"
       ND_ENABLESHARING: "false"
     volumes:
       - /storage/apps/navidrome/data:/data:Z
