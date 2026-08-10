@@ -35,7 +35,8 @@
 3. Создать общую сеть прокси: `docker network create traefiknet`.
 4. В каталоге каждого сервиса скопировать `.env.example` в `.env` и заменить
    значения-заглушки.
-5. Запустить `traefik`, затем `pihole`, `uptime-kuma`, `3x-ui` и `nextcloud`.
+5. Запустить `traefik`, затем `pihole`, `uptime-kuma`, `3x-ui`, `nextcloud` и
+   `jellyfin`.
 6. Настроить DHCP-сервер роутера так, чтобы он выдавал `192.0.2.10` как DNS.
 7. Инициализировать Restic, создать копию и проверить восстановление.
 
