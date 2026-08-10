@@ -61,7 +61,7 @@ SMTP намеренно не настроен: восстановление па
 
 ```sh
 docker compose ps
-docker compose exec app gitea doctor check --all
+docker compose exec --user git app gitea doctor check --all
 curl --resolve gitea.example.net:443:192.0.2.10 \
   -fsS https://gitea.example.net/api/healthz
 ssh -T -p 2222 git@192.0.2.10
@@ -101,5 +101,5 @@ Gitea в `compose.yaml`, проверьте release notes и выполните:
 docker compose pull
 docker compose up -d
 docker compose ps
-docker compose exec app gitea doctor check --all
+docker compose exec --user git app gitea doctor check --all
 ```
