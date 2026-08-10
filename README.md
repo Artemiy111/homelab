@@ -13,6 +13,7 @@
 | Uptime Kuma | Мониторинг доступности | `https://uptime.example.net/` |
 | 3x-ui | Управление личным Xray-прокси | `https://xui.example.net/<секретный-путь>/` |
 | Immich | Фото- и видеотека | `https://immich.example.net/` |
+| Jellyfin | Домашний медиасервер | `https://jellyfin.example.net/` |
 | Jitsi Meet | Приватные видеоконференции | `https://meet.example.net/` |
 | Nextcloud | Файлы, синхронизация, календарь и контакты | `https://nextcloud.example.net/` |
 | Restic | Зашифрованные локальные снимки | Только CLI |

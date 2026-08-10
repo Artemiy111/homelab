@@ -104,6 +104,27 @@ create_nextcloud_env() {
   } >"$env_file"
 }
 
+create_jellyfin_env() {
+  local env_file="$repo_root/jellyfin/.env"
+  if [[ -e "$env_file" ]]; then
+    echo "Пропуск: $env_file уже существует"
+    return
+  fi
+
+  local render_group_id
+  render_group_id="$(getent group render | cut -d: -f3)"
+  if [[ -z "$render_group_id" ]]; then
+    echo 'Не найдена группа render для Jellyfin' >&2
+    return 1
+  fi
+
+  umask 077
+  {
+    echo 'JELLYFIN_HOST=jellyfin.example.net'
+    printf 'JELLYFIN_RENDER_GROUP_ID=%s\n' "$render_group_id"
+  } >"$env_file"
+}
+
 create_restic_env() {
   local env_file="$repo_root/restic/.env"
   if [[ -e "$env_file" ]]; then
@@ -128,10 +149,13 @@ mkdir -p \
   /storage/apps/nextcloud/html \
   /storage/apps/nextcloud/postgresql \
   /storage/apps/nextcloud/redis \
+  /storage/apps/jellyfin/config \
+  /storage/apps/jellyfin/cache \
   /storage/apps/traefik/letsencrypt \
   /storage/apps/uptime-kuma/data \
   /storage/apps/restic/cache \
   /storage/apps/restic/restore \
+  /storage/media \
   /storage/backups/restic
 
 chmod 0700 \
@@ -154,6 +178,7 @@ create_pihole_env
 create_uptime_kuma_env
 create_3x_ui_env
 create_nextcloud_env
+create_jellyfin_env
 create_restic_env
 
 chmod 600 \
@@ -162,9 +187,10 @@ chmod 600 \
   "$repo_root/uptime-kuma/.env" \
   "$repo_root/3x-ui/.env" \
   "$repo_root/nextcloud/.env" \
+  "$repo_root/jellyfin/.env" \
   "$repo_root/restic/.env"
 
-for service in traefik pihole uptime-kuma 3x-ui nextcloud; do
+for service in traefik pihole uptime-kuma 3x-ui nextcloud jellyfin; do
   docker compose --project-directory "$repo_root/$service" config --quiet
 done
 
