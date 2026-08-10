@@ -1,0 +1,146 @@
+name: gitea
+
+x-gitea-environment: &gitea-environment
+  USER_UID: "1000"
+  USER_GID: "1000"
+  GITEA__database__DB_TYPE: postgres
+  GITEA__database__HOST: db:5432
+  GITEA__database__NAME: ${POSTGRES_DB:-gitea}
+  GITEA__database__USER: ${POSTGRES_USER:-gitea}
+  GITEA__database__PASSWD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in gitea/.env}
+  GITEA__server__DOMAIN: ${GITEA_HOST:?set GITEA_HOST in gitea/.env}
+  GITEA__server__ROOT_URL: https://${GITEA_HOST:?set GITEA_HOST in gitea/.env}/
+  GITEA__server__SSH_DOMAIN: ${GITEA_HOST:?set GITEA_HOST in gitea/.env}
+  GITEA__server__SSH_PORT: ${GITEA_SSH_PORT:-2222}
+  GITEA__server__LFS_START_SERVER: "true"
+  GITEA__security__INSTALL_LOCK: "true"
+  GITEA__security__REVERSE_PROXY_TRUSTED_PROXIES: ${TRAEFIK_NETWORK_CIDR:?set TRAEFIK_NETWORK_CIDR in gitea/.env}
+  GITEA__service__DISABLE_REGISTRATION: "true"
+  GITEA__service__DEFAULT_USER_VISIBILITY: private
+  GITEA__repository__DEFAULT_PRIVATE: private
+  GITEA__openid__ENABLE_OPENID_SIGNIN: "false"
+  GITEA__openid__ENABLE_OPENID_SIGNUP: "false"
+  GITEA__actions__ENABLED: "false"
+  TZ: ${TZ:-Asia/Yekaterinburg}
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-gitea}
+      POSTGRES_USER: ${POSTGRES_USER:-gitea}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in gitea/.env}
+    volumes:
+      - /storage/apps/gitea/postgresql:/var/lib/postgresql/data:Z
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  app:
+    image: docker.gitea.com/gitea:1.27.1
+    container_name: gitea
+    restart: unless-stopped
+    environment:
+      <<: *gitea-environment
+    volumes:
+      - /storage/apps/gitea/data:/data:z
+    ports:
+      - "192.0.2.10:${GITEA_SSH_PORT:-2222}:22"
+    networks:
+      backend:
+      traefiknet:
+        aliases:
+          - gitea
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          wget -qO- http://127.0.0.1:3000/api/healthz |
+          grep -Eq '"status"[[:space:]]*:[[:space:]]*"pass"'
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 2m
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.gitea.rule=Host(`${GITEA_HOST}`)
+      - traefik.http.routers.gitea.entrypoints=websecure
+      - traefik.http.services.gitea.loadbalancer.server.port=3000
+      - traefik.http.middlewares.gitea-security.headers.stsSeconds=15552000
+      - traefik.http.middlewares.gitea-security.headers.stsIncludeSubdomains=true
+      - traefik.http.middlewares.gitea-security.headers.contentTypeNosniff=true
+      - traefik.http.middlewares.gitea-security.headers.referrerPolicy=no-referrer
+      - traefik.http.routers.gitea.middlewares=gitea-security
+      - traefik.docker.network=traefiknet
+
+  init-admin:
+    image: docker.gitea.com/gitea:1.27.1
+    profiles:
+      - tools
+    user: git
+    environment:
+      <<: *gitea-environment
+      GITEA_ADMIN_USERNAME: ${GITEA_ADMIN_USERNAME:?set GITEA_ADMIN_USERNAME in gitea/.env}
+      GITEA_ADMIN_PASSWORD: ${GITEA_ADMIN_PASSWORD:?set GITEA_ADMIN_PASSWORD in gitea/.env}
+      GITEA_ADMIN_EMAIL: ${GITEA_ADMIN_EMAIL:?set GITEA_ADMIN_EMAIL in gitea/.env}
+    volumes:
+      - /storage/apps/gitea/data:/data:z
+    networks:
+      - backend
+    depends_on:
+      app:
+        condition: service_healthy
+    entrypoint:
+      - /bin/sh
+      - -ec
+    command:
+      - >-
+        gitea admin user create
+        --config /data/gitea/conf/app.ini
+        --username "$${GITEA_ADMIN_USERNAME}"
+        --password "$${GITEA_ADMIN_PASSWORD}"
+        --email "$${GITEA_ADMIN_EMAIL}"
+        --admin
+        --must-change-password
+    restart: "no"
+
+  backup-db:
+    image: postgres:16-alpine
+    profiles:
+      - tools
+    environment:
+      PGHOST: db
+      PGDATABASE: ${POSTGRES_DB:-gitea}
+      PGUSER: ${POSTGRES_USER:-gitea}
+      PGPASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in gitea/.env}
+    volumes:
+      - /storage/apps/gitea/backups:/backups:Z
+    networks:
+      - backend
+    depends_on:
+      db:
+        condition: service_healthy
+    entrypoint:
+      - /bin/sh
+      - -ec
+    command:
+      - >-
+        umask 077;
+        pg_dump --format=custom --file=/backups/gitea.dump.tmp;
+        mv /backups/gitea.dump.tmp /backups/gitea.dump
+    restart: "no"
+
+networks:
+  backend:
+    internal: true
+  traefiknet:
+    external: true

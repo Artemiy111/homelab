@@ -125,6 +125,34 @@ create_jellyfin_env() {
   } >"$env_file"
 }
 
+create_gitea_env() {
+  local env_file="$repo_root/gitea/.env"
+  if [[ -e "$env_file" ]]; then
+    echo "Пропуск: $env_file уже существует"
+    return
+  fi
+
+  local traefik_network_cidr
+  traefik_network_cidr="$(
+    docker network inspect traefiknet \
+      --format '{{range .IPAM.Config}}{{.Subnet}}{{end}}'
+  )"
+
+  umask 077
+  {
+    echo 'GITEA_HOST=gitea.example.net'
+    echo 'GITEA_SSH_PORT=2222'
+    echo 'POSTGRES_DB=gitea'
+    echo 'POSTGRES_USER=gitea'
+    printf 'POSTGRES_PASSWORD=%s\n' "$(random_secret)"
+    echo 'GITEA_ADMIN_USERNAME=gitea-admin'
+    printf 'GITEA_ADMIN_PASSWORD=%s\n' "$(random_secret)"
+    echo 'GITEA_ADMIN_EMAIL=gitea-admin@example.invalid'
+    printf 'TRAEFIK_NETWORK_CIDR=%s\n' "$traefik_network_cidr"
+    echo 'TZ=Asia/Yekaterinburg'
+  } >"$env_file"
+}
+
 create_restic_env() {
   local env_file="$repo_root/restic/.env"
   if [[ -e "$env_file" ]]; then
@@ -151,6 +179,9 @@ mkdir -p \
   /storage/apps/nextcloud/redis \
   /storage/apps/jellyfin/config \
   /storage/apps/jellyfin/cache \
+  /storage/apps/gitea/backups \
+  /storage/apps/gitea/data \
+  /storage/apps/gitea/postgresql \
   /storage/apps/traefik/letsencrypt \
   /storage/apps/uptime-kuma/data \
   /storage/apps/restic/cache \
@@ -179,6 +210,7 @@ create_uptime_kuma_env
 create_3x_ui_env
 create_nextcloud_env
 create_jellyfin_env
+create_gitea_env
 create_restic_env
 
 chmod 600 \
@@ -188,9 +220,10 @@ chmod 600 \
   "$repo_root/3x-ui/.env" \
   "$repo_root/nextcloud/.env" \
   "$repo_root/jellyfin/.env" \
+  "$repo_root/gitea/.env" \
   "$repo_root/restic/.env"
 
-for service in traefik pihole uptime-kuma 3x-ui nextcloud jellyfin; do
+for service in traefik pihole uptime-kuma 3x-ui nextcloud jellyfin gitea; do
   docker compose --project-directory "$repo_root/$service" config --quiet
 done
 

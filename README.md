@@ -16,6 +16,7 @@
 | Jellyfin | Домашний медиасервер | `https://jellyfin.example.net/` |
 | Jitsi Meet | Приватные видеоконференции | `https://meet.example.net/` |
 | Nextcloud | Файлы, синхронизация, календарь и контакты | `https://nextcloud.example.net/` |
+| Gitea | Приватный Git-сервис | `https://gitea.example.net/` |
 | Restic | Зашифрованные локальные снимки | Только CLI |
 | Tailscale | Удалённый доступ и маршрут в домашнюю сеть | Tailnet |
 
@@ -35,8 +36,8 @@
 3. Создать общую сеть прокси: `docker network create traefiknet`.
 4. В каталоге каждого сервиса скопировать `.env.example` в `.env` и заменить
    значения-заглушки.
-5. Запустить `traefik`, затем `pihole`, `uptime-kuma`, `3x-ui`, `nextcloud` и
-   `jellyfin`.
+5. Запустить `traefik`, затем `pihole`, `uptime-kuma`, `3x-ui`, `nextcloud`,
+   `jellyfin` и `gitea`.
 6. Настроить DHCP-сервер роутера так, чтобы он выдавал `192.0.2.10` как DNS.
 7. Инициализировать Restic, создать копию и проверить восстановление.
 

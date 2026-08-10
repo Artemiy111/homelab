@@ -34,6 +34,14 @@
       "maxretries": 2
     },
     {
+      "name": "Gitea",
+      "description": "Проверка состояния Gitea и подключения к PostgreSQL внутри Docker-сети.",
+      "type": "http",
+      "url": "http://gitea:3000/api/healthz",
+      "interval": 60,
+      "maxretries": 2
+    },
+    {
       "name": "Pi-hole DNS",
       "description": "Разрешение внутреннего домена через локальный DNS-сервер Pi-hole.",
       "type": "dns",
