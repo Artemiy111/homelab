@@ -32,7 +32,8 @@ docker compose ps
 
 ```sh
 docker compose ps
-docker compose exec app wget -qO- http://127.0.0.1:3000/api/v1/health
+docker compose exec app wget --header='X-Forwarded-Proto: https' -qO- \
+  http://127.0.0.1:3000/api/v1/health
 curl --resolve dawarich.example.net:443:192.0.2.10 \
   -fsS https://dawarich.example.net/api/v1/health
 ```
