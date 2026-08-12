@@ -21,18 +21,12 @@ cd dawarich
 docker compose config --quiet
 docker compose pull
 docker compose up -d
-docker compose --profile tools run --rm init-admin
 docker compose ps
 ```
 
-`init-admin` заменяет стандартный пароль демонстрационной учётной записи на
-сгенерированный. Начальные реквизиты можно увидеть только в терминале сервера:
-
-```sh
-sed -n '/^DAWARICH_ADMIN_\(EMAIL\|PASSWORD\)=/p' .env
-```
-
-После первого входа можно изменить email и пароль в настройках аккаунта.
+На пустой базе встроенный seed Dawarich создаёт администратора
+`demo@dawarich.app` с паролем `safepassword`. Сразу после первого входа измените
+email и пароль в настройках аккаунта.
 
 ## Проверка
 
@@ -45,6 +39,32 @@ curl --resolve dawarich.example.net:443:192.0.2.10 \
 ```
 
 Health endpoint должен вернуть JSON со `"status":"ok"`.
+
+## Полный сброс данных
+
+Команды ниже безвозвратно удаляют только данные Dawarich: пользователей, точки,
+настройки, семейства, PostgreSQL, Redis, загруженные файлы и локальные дампы.
+Сначала остановите Compose-проект, затем очистите содержимое bind-mount через
+одноразовый контейнер — PostgreSQL создаёт часть файлов с UID, недоступным
+обычному пользователю хоста:
+
+```sh
+cd /home/artlab/projects/homelab/dawarich
+docker compose down
+docker run --rm \
+  -v /storage/apps/dawarich:/data:Z \
+  alpine:3.22 \
+  sh -ec 'find /data -mindepth 1 -delete'
+cd ..
+bash scripts/bootstrap-platform.sh
+cd dawarich
+docker compose up -d
+docker compose ps
+```
+
+Не используйте `docker compose down -v`: постоянные данные подключены как
+bind-mounts, а не именованные Docker volumes, поэтому эта команда их не удалит.
+После сброса войдите с начальными реквизитами выше и сразу замените их.
 
 ## Резервное копирование
 

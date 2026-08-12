@@ -163,29 +163,6 @@ services:
       retries: 30
       start_period: 30s
 
-  init-admin:
-    image: freikin/dawarich:${DAWARICH_VERSION:-1.11.0}
-    profiles:
-      - tools
-    environment:
-      <<: *dawarich-environment
-      DAWARICH_ADMIN_EMAIL: ${DAWARICH_ADMIN_EMAIL:-demo@dawarich.app}
-      DAWARICH_ADMIN_PASSWORD: ${DAWARICH_ADMIN_PASSWORD:?set DAWARICH_ADMIN_PASSWORD in dawarich/.env}
-    networks:
-      - backend
-    depends_on:
-      app:
-        condition: service_healthy
-    entrypoint:
-      - bin/rails
-      - runner
-    command:
-      - >-
-        user = User.find_by!(email: ENV.fetch("DAWARICH_ADMIN_EMAIL"));
-        password = ENV.fetch("DAWARICH_ADMIN_PASSWORD");
-        user.update!(password: password, password_confirmation: password)
-    restart: "no"
-
   backup-db:
     image: postgres:17-alpine
     profiles:
