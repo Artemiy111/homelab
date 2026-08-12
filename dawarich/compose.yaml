@@ -122,7 +122,7 @@ services:
       - traefik.http.middlewares.dawarich-security.headers.stsSeconds=15552000
       - traefik.http.middlewares.dawarich-security.headers.stsIncludeSubdomains=true
       - traefik.http.middlewares.dawarich-security.headers.contentTypeNosniff=true
-      - traefik.http.middlewares.dawarich-security.headers.referrerPolicy=same-origin
+      - traefik.http.middlewares.dawarich-security.headers.referrerPolicy=origin
       - traefik.docker.network=traefiknet
 
   sidekiq:
