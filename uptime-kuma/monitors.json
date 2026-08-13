@@ -3,51 +3,127 @@
   "monitors": [
     {
       "name": "Pi-hole HTTP",
-      "description": "Веб-интерфейс Pi-hole внутри Docker-сети.",
+      "description": "Пользовательский HTTPS-маршрут Pi-hole: локальный DNS, TLS, Traefik и веб-приложение.",
       "type": "http",
-      "url": "http://pihole/admin/",
+      "url": "https://pihole.example.net/admin/",
       "interval": 60,
       "maxretries": 2
     },
     {
       "name": "Traefik",
-      "description": "Встроенная проверка работоспособности Traefik внутри Docker-сети.",
+      "description": "Пользовательский HTTPS-маршрут панели Traefik; ответ 401 без учётных данных считается нормальным.",
       "type": "http",
-      "url": "http://traefik:8080/ping",
+      "url": "https://traefik.example.net/dashboard/",
+      "accepted_statuscodes": ["401"],
       "interval": 60,
       "maxretries": 2
     },
     {
       "name": "Jitsi Meet",
-      "description": "Веб-интерфейс Jitsi Meet внутри Docker-сети.",
+      "description": "Пользовательский HTTPS-маршрут Jitsi Meet.",
       "type": "http",
-      "url": "http://jitsi-web/",
+      "url": "https://meet.example.net/",
       "interval": 60,
       "maxretries": 2
     },
     {
       "name": "Nextcloud",
-      "description": "Проверка состояния Nextcloud внутри Docker-сети.",
+      "description": "Публичный health endpoint Nextcloud через локальный DNS, TLS и Traefik.",
       "type": "http",
-      "url": "http://nextcloud/status.php",
+      "url": "https://nextcloud.example.net/status.php",
       "interval": 60,
       "maxretries": 2
     },
     {
       "name": "Gitea",
-      "description": "Проверка состояния Gitea и подключения к PostgreSQL внутри Docker-сети.",
+      "description": "Публичный health endpoint Gitea через локальный DNS, TLS и Traefik; также проверяет подключение к PostgreSQL.",
       "type": "http",
-      "url": "http://gitea:3000/api/healthz",
+      "url": "https://gitea.example.net/api/healthz",
+      "interval": 60,
+      "maxretries": 2
+    },
+    {
+      "name": "Immich",
+      "description": "Публичный ping endpoint Immich через локальный DNS, TLS и Traefik.",
+      "type": "http",
+      "url": "https://immich.example.net/api/server/ping",
+      "interval": 60,
+      "maxretries": 2
+    },
+    {
+      "name": "Dawarich",
+      "description": "Публичный health endpoint Dawarich через локальный DNS, TLS и Traefik.",
+      "type": "http",
+      "url": "https://dawarich.example.net/api/v1/health",
+      "interval": 60,
+      "maxretries": 2
+    },
+    {
+      "name": "Jellyfin",
+      "description": "Публичный health endpoint Jellyfin через локальный DNS, TLS и Traefik.",
+      "type": "http",
+      "url": "https://jellyfin.example.net/health",
+      "interval": 60,
+      "maxretries": 2
+    },
+    {
+      "name": "Navidrome",
+      "description": "Публичный ping endpoint Navidrome через локальный DNS, TLS и Traefik.",
+      "type": "http",
+      "url": "https://music.example.net/ping",
+      "interval": 60,
+      "maxretries": 2
+    },
+    {
+      "name": "3x-ui",
+      "description": "Доступность web backend 3x-ui внутри Docker-сети; публичный путь панели намеренно не хранится в репозитории.",
+      "type": "port",
+      "hostname": "3x-ui",
+      "port": 2053,
+      "interval": 60,
+      "maxretries": 2
+    },
+    {
+      "name": "Sure",
+      "description": "Веб-интерфейс Sure на опубликованном LAN-порту; сервис пока не подключён к Traefik.",
+      "type": "http",
+      "url": "http://192.0.2.10:40060/",
+      "interval": 60,
+      "maxretries": 2
+    },
+    {
+      "name": "Uptime Kuma",
+      "description": "Собственный HTTPS-маршрут Uptime Kuma; фиксирует проблемы маршрута, пока сам процесс Kuma способен выполнять проверки.",
+      "type": "http",
+      "url": "https://uptime.example.net/",
       "interval": 60,
       "maxretries": 2
     },
     {
       "name": "Pi-hole DNS",
-      "description": "Разрешение внутреннего домена через локальный DNS-сервер Pi-hole.",
+      "description": "Разрешение пользовательского домена через локальный DNS-сервер Pi-hole.",
       "type": "dns",
       "hostname": "uptime.example.net",
       "dns_resolve_server": "192.0.2.10",
       "dns_resolve_type": "A",
+      "interval": 60,
+      "maxretries": 2
+    },
+    {
+      "name": "Gitea SSH",
+      "description": "Доступность опубликованного SSH-порта Gitea.",
+      "type": "port",
+      "hostname": "192.0.2.10",
+      "port": 2222,
+      "interval": 60,
+      "maxretries": 2
+    },
+    {
+      "name": "Xray inbound",
+      "description": "Доступность опубликованного TCP-входа Xray; UDP тем же монитором не проверяется.",
+      "type": "port",
+      "hostname": "192.0.2.10",
+      "port": 8443,
       "interval": 60,
       "maxretries": 2
     }
