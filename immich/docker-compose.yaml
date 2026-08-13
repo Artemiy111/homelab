@@ -19,7 +19,8 @@ services:
     volumes:
       # Do not edit the next line. If you want to change the media storage location on your system, edit the value of UPLOAD_LOCATION in the .env file
       - ${UPLOAD_LOCATION}:/data:Z
-      - /storage/photos/PhotoLibrary:/mnt/photos:ro,Z
+      - /storage/media/visual/Artemiy/Library:/mnt/Artemiy/Library:ro,Z
+      - /storage/media/visual/Family/Library:/mnt/Family/Library:ro,Z
       - /etc/localtime:/etc/localtime:ro
     env_file:
       - .env
