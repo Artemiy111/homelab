@@ -95,7 +95,7 @@
       "name": "Uptime Kuma",
       "description": "Собственный HTTPS-маршрут Uptime Kuma; фиксирует проблемы маршрута, пока сам процесс Kuma способен выполнять проверки.",
       "type": "http",
-      "url": "https://uptime.example.net/",
+      "url": "https://kuma.example.net/",
       "interval": 60,
       "maxretries": 2
     },
@@ -103,7 +103,7 @@
       "name": "Pi-hole DNS",
       "description": "Разрешение пользовательского домена через локальный DNS-сервер Pi-hole.",
       "type": "dns",
-      "hostname": "uptime.example.net",
+      "hostname": "kuma.example.net",
       "dns_resolve_server": "192.0.2.10",
       "dns_resolve_type": "A",
       "interval": 60,

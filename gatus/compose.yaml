@@ -1,0 +1,22 @@
+services:
+  gatus:
+    image: ghcr.io/twin/gatus:v5.36.0@sha256:c5f210d095fa78e6efaa20ffeb14803f2ba4f10615e16a6d12087697149617f0
+    container_name: gatus
+    volumes:
+      - ./config:/config:Z,ro
+      - /storage/apps/gatus/data:/data:Z
+    networks:
+      - traefiknet
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.gatus.rule=Host(`${GATUS_HOST}`)
+      - traefik.http.routers.gatus.entrypoints=websecure
+      - traefik.http.services.gatus.loadbalancer.server.port=8080
+      - traefik.docker.network=traefiknet
+
+networks:
+  traefiknet:
+    external: true

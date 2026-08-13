@@ -1,0 +1,154 @@
+storage:
+  type: sqlite
+  path: /data/gatus.db
+  caching: true
+  maximum-number-of-results: 1000
+  maximum-number-of-events: 100
+
+ui:
+  title: Homelab Status
+  header: Homelab Status
+  default-sort-by: group
+
+endpoints:
+  - name: Pi-hole HTTP
+    group: Infrastructure
+    url: https://pihole.example.net/admin/
+    interval: 60s
+    client: &https-client
+      timeout: 10s
+      dns-resolver: tcp://192.0.2.10:53
+    conditions: &https-ok
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > 168h"
+
+  - name: Traefik
+    group: Infrastructure
+    url: https://traefik.example.net/dashboard/
+    interval: 60s
+    client: *https-client
+    conditions:
+      - "[STATUS] == 401"
+      - "[CERTIFICATE_EXPIRATION] > 168h"
+
+  - name: Pi-hole DNS
+    group: Infrastructure
+    url: 192.0.2.10
+    interval: 60s
+    dns:
+      query-name: uptime.example.net
+      query-type: A
+    conditions:
+      - "[DNS_RCODE] == NOERROR"
+      - "[BODY] == 192.0.2.10"
+
+  - name: Gitea SSH
+    group: Infrastructure
+    url: tcp://192.0.2.10:2222
+    interval: 60s
+    conditions: &tcp-connected
+      - "[CONNECTED] == true"
+
+  - name: Xray inbound
+    group: Infrastructure
+    url: tcp://192.0.2.10:8443
+    interval: 60s
+    conditions: *tcp-connected
+
+  - name: Gatus
+    group: Monitoring
+    url: https://uptime.example.net/
+    interval: 60s
+    client: *https-client
+    conditions: *https-ok
+
+  - name: Uptime Kuma
+    group: Monitoring
+    url: https://kuma.example.net/
+    interval: 60s
+    client: *https-client
+    conditions: *https-ok
+
+  - name: Jitsi Meet
+    group: Applications
+    url: https://meet.example.net/
+    interval: 60s
+    client: *https-client
+    conditions: *https-ok
+
+  - name: Nextcloud
+    group: Applications
+    url: https://nextcloud.example.net/status.php
+    interval: 60s
+    client: *https-client
+    conditions:
+      - "[STATUS] == 200"
+      - "[BODY].installed == true"
+      - "[BODY].maintenance == false"
+      - "[BODY].needsDbUpgrade == false"
+      - "[CERTIFICATE_EXPIRATION] > 168h"
+
+  - name: Gitea
+    group: Applications
+    url: https://gitea.example.net/api/healthz
+    interval: 60s
+    client: *https-client
+    conditions:
+      - "[STATUS] == 200"
+      - "[BODY].status == pass"
+      - "[CERTIFICATE_EXPIRATION] > 168h"
+
+  - name: Immich
+    group: Applications
+    url: https://immich.example.net/api/server/ping
+    interval: 60s
+    client: *https-client
+    conditions:
+      - "[STATUS] == 200"
+      - "[BODY].res == pong"
+      - "[CERTIFICATE_EXPIRATION] > 168h"
+
+  - name: Dawarich
+    group: Applications
+    url: https://dawarich.example.net/api/v1/health
+    interval: 60s
+    client: *https-client
+    conditions:
+      - "[STATUS] == 200"
+      - "[BODY].status == ok"
+      - "[CERTIFICATE_EXPIRATION] > 168h"
+
+  - name: Jellyfin
+    group: Applications
+    url: https://jellyfin.example.net/health
+    interval: 60s
+    client: *https-client
+    conditions:
+      - "[STATUS] == 200"
+      - "[BODY] == Healthy"
+      - "[CERTIFICATE_EXPIRATION] > 168h"
+
+  - name: Navidrome
+    group: Applications
+    url: https://music.example.net/ping
+    interval: 60s
+    client: *https-client
+    conditions:
+      - "[STATUS] == 200"
+      - "[BODY] == ."
+      - "[CERTIFICATE_EXPIRATION] > 168h"
+
+  - name: 3x-ui backend
+    group: Applications
+    url: tcp://3x-ui:2053
+    interval: 60s
+    conditions: *tcp-connected
+
+  - name: Sure
+    group: Applications
+    url: http://192.0.2.10:40060/
+    interval: 60s
+    client:
+      timeout: 10s
+    conditions:
+      - "[STATUS] == 200"
