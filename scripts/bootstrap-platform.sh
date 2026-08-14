@@ -215,7 +215,6 @@ create_beszel_env() {
     echo 'BESZEL_HOST=beszel.example.net'
     echo 'BESZEL_AGENT_KEY='
     echo 'BESZEL_AGENT_TOKEN='
-    echo 'USER_CREATION=true'
   } >"$env_file"
 }
 

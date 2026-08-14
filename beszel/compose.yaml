@@ -4,6 +4,7 @@ services:
     container_name: beszel
     environment:
       APP_URL: https://${BESZEL_HOST}
+      DISABLE_PASSWORD_AUTH: true
     volumes:
       - /storage/apps/beszel/data:/beszel_data:Z
       - /storage/apps/beszel/socket:/beszel_socket:z
