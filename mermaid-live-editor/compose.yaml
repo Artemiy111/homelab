@@ -11,7 +11,6 @@ services:
       - traefik.enable=true
       - traefik.http.routers.mermaid-live-editor.rule=Host(`mermaid.example.net`)
       - traefik.http.routers.mermaid-live-editor.entrypoints=websecure
-      - traefik.http.routers.mermaid-live-editor.tls=true
       - traefik.http.routers.mermaid-live-editor.middlewares=secure-headers@file,ratelimit-default@file
       - traefik.http.services.mermaid-live-editor.loadbalancer.server.port=8080
       - traefik.docker.network=traefiknet
