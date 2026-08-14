@@ -153,6 +153,31 @@ create_gitea_env() {
   } >"$env_file"
 }
 
+create_pocket_id_env() {
+  local env_file="$repo_root/pocket-id/.env"
+  if [[ -e "$env_file" ]]; then
+    echo "Пропуск: $env_file уже существует"
+    return
+  fi
+
+  local traefik_network_cidr puid pgid
+  traefik_network_cidr="$(
+    docker network inspect traefiknet \
+      --format '{{range .IPAM.Config}}{{.Subnet}}{{end}}'
+  )"
+  puid="$(id -u)"
+  pgid="$(id -g)"
+
+  umask 077
+  {
+    echo 'POCKET_ID_HOST=id.example.net'
+    printf 'ENCRYPTION_KEY=%s\n' "$(openssl rand -base64 32)"
+    printf 'TRAEFIK_NETWORK_CIDR=%s\n' "$traefik_network_cidr"
+    printf 'PUID=%s\n' "$puid"
+    printf 'PGID=%s\n' "$pgid"
+  } >"$env_file"
+}
+
 create_dawarich_env() {
   local env_file="$repo_root/dawarich/.env"
   if [[ -e "$env_file" ]]; then
@@ -222,6 +247,7 @@ mkdir -p \
   /storage/apps/gitea/backups \
   /storage/apps/gitea/data \
   /storage/apps/gitea/postgresql \
+  /storage/apps/pocket-id/data \
   /storage/apps/dawarich/backups \
   /storage/apps/dawarich/postgresql \
   /storage/apps/dawarich/public \
@@ -244,6 +270,10 @@ chmod 0700 \
   /storage/apps/3x-ui/db \
   /storage/apps/3x-ui/log
 
+chmod 0700 \
+  /storage/apps/pocket-id \
+  /storage/apps/pocket-id/data
+
 if [[ -x /storage/apps/traefik/letsencrypt ]]; then
   if [[ ! -e /storage/apps/traefik/letsencrypt/acme.json ]]; then
     install -m 0600 /dev/null /storage/apps/traefik/letsencrypt/acme.json
@@ -261,6 +291,7 @@ create_3x_ui_env
 create_nextcloud_env
 create_jellyfin_env
 create_gitea_env
+create_pocket_id_env
 create_dawarich_env
 create_beszel_env
 create_restic_env
@@ -273,11 +304,12 @@ chmod 600 \
   "$repo_root/nextcloud/.env" \
   "$repo_root/jellyfin/.env" \
   "$repo_root/gitea/.env" \
+  "$repo_root/pocket-id/.env" \
   "$repo_root/dawarich/.env" \
   "$repo_root/beszel/.env" \
   "$repo_root/restic/.env"
 
-for service in traefik pihole uptime-kuma 3x-ui nextcloud jellyfin gitea dawarich; do
+for service in traefik pihole uptime-kuma 3x-ui nextcloud jellyfin gitea pocket-id dawarich; do
   docker compose --project-directory "$repo_root/$service" config --quiet
 done
 
