@@ -100,6 +100,14 @@
       "maxretries": 2
     },
     {
+      "name": "Beszel",
+      "description": "Публичный health endpoint Beszel Hub через локальный DNS, TLS и Traefik.",
+      "type": "http",
+      "url": "https://beszel.example.net/api/health",
+      "interval": 60,
+      "maxretries": 2
+    },
+    {
       "name": "Pi-hole DNS",
       "description": "Разрешение пользовательского домена через локальный DNS-сервер Pi-hole.",
       "type": "dns",

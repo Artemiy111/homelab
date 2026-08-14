@@ -178,6 +178,21 @@ create_dawarich_env() {
   } >"$env_file"
 }
 
+create_beszel_env() {
+  local env_file="$repo_root/beszel/.env"
+  if [[ -e "$env_file" ]]; then
+    echo "Пропуск: $env_file уже существует"
+    return
+  fi
+
+  umask 077
+  {
+    echo 'BESZEL_HOST=beszel.example.net'
+    echo 'BESZEL_AGENT_KEY='
+    echo 'BESZEL_AGENT_TOKEN='
+  } >"$env_file"
+}
+
 create_restic_env() {
   local env_file="$repo_root/restic/.env"
   if [[ -e "$env_file" ]]; then
@@ -214,6 +229,9 @@ mkdir -p \
   /storage/apps/dawarich/shared \
   /storage/apps/dawarich/storage \
   /storage/apps/dawarich/watched \
+  /storage/apps/beszel/data \
+  /storage/apps/beszel/agent \
+  /storage/apps/beszel/socket \
   /storage/apps/traefik/letsencrypt \
   /storage/apps/uptime-kuma/data \
   /storage/apps/restic/cache \
@@ -244,6 +262,7 @@ create_nextcloud_env
 create_jellyfin_env
 create_gitea_env
 create_dawarich_env
+create_beszel_env
 create_restic_env
 
 chmod 600 \
@@ -255,11 +274,17 @@ chmod 600 \
   "$repo_root/jellyfin/.env" \
   "$repo_root/gitea/.env" \
   "$repo_root/dawarich/.env" \
+  "$repo_root/beszel/.env" \
   "$repo_root/restic/.env"
 
 for service in traefik pihole uptime-kuma 3x-ui nextcloud jellyfin gitea dawarich; do
   docker compose --project-directory "$repo_root/$service" config --quiet
 done
+
+docker compose \
+  --project-directory "$repo_root/beszel" \
+  --profile agent \
+  config --quiet
 
 docker compose \
   --project-directory "$repo_root/restic" \
