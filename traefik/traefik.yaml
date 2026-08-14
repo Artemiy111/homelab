@@ -9,6 +9,7 @@ accessLog: {}
 
 api:
   dashboard: true
+  insecure: false
 
 ping: {}
 
@@ -34,6 +35,7 @@ entryPoints:
 certificatesResolvers:
   letsencrypt:
     acme:
+      email: ${LETSENCRYPT_EMAIL:?set LETSENCRYPT_EMAIL in traefik/.env}
       storage: /letsencrypt/acme.json
       dnsChallenge:
         provider: rfc2136
@@ -46,4 +48,8 @@ providers:
     endpoint: "unix:///var/run/docker.sock"
     exposedByDefault: false
     network: traefiknet
+    watch: true
+
+  file:
+    directory: /etc/traefik/dynamic
     watch: true

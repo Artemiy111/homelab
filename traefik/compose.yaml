@@ -14,6 +14,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /storage/apps/traefik/letsencrypt:/letsencrypt:Z
       - ./traefik.yaml:/etc/traefik/traefik.yaml:Z,ro
+      - ./traefik/dynamic:/etc/traefik/dynamic:ro
     networks:
       - traefiknet
     restart: unless-stopped

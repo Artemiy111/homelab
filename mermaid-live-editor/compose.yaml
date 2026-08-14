@@ -2,9 +2,20 @@ services:
   mermaid-editor:
     image: ghcr.io/mermaid-js/mermaid-live-editor:latest
     container_name: mermaid-live-editor
-    ports:
-      - "40030:8080"
     volumes:
-      - /storage/apps/mermaid-live-editor/data:/usr/src/app/data:Z,rw
+      - /storage/apps/mermaid-live-editor/data:/usr/src/app/data:rw,Z
     restart: unless-stopped
+    networks:
+      - traefiknet
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.mermaid-live-editor.rule=Host(`mermaid.example.net`)
+      - traefik.http.routers.mermaid-live-editor.entrypoints=websecure
+      - traefik.http.routers.mermaid-live-editor.tls=true
+      - traefik.http.routers.mermaid-live-editor.middlewares=secure-headers@file,ratelimit-default@file
+      - traefik.http.services.mermaid-live-editor.loadbalancer.server.port=8080
+      - traefik.docker.network=traefiknet
 
+networks:
+  traefiknet:
+    external: true

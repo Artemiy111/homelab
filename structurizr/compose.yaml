@@ -2,19 +2,18 @@ services:
   structurizr:
     image: structurizr/onpremises
     container_name: structurizr
-    ports:
-      - "40010:8080"
     volumes:
       - /storage/apps/structurizr:/usr/local/structurizr:Z,rw
     restart: always
     networks:
-      traefiknet:
+      - traefiknet
     labels:
       - traefik.enable=true
-      - traefik.http.routers.structurizr.rule=Host(`structurizr.artistick.tech`)
+      - traefik.http.routers.structurizr.rule=Host(`structurizr.example.net`)
       - traefik.http.routers.structurizr.entrypoints=websecure
-      - traefik.http.routers.structurizr.tls=true
-      - traefik.http.routers.structurizr.tls.certresolver=letsencrypt
+      - traefik.http.routers.structurizr.middlewares=secure-headers@file,ratelimit-default@file
+      - traefik.http.services.structurizr.loadbalancer.server.port=8080
+      - traefik.docker.network=traefiknet
 
 networks:
   traefiknet:
