@@ -255,6 +255,22 @@ create_restic_env() {
   } >"$env_file"
 }
 
+create_pdf_env() {
+  local env_file="$repo_root/pdf/.env"
+  if [[ -e "$env_file" ]]; then
+    echo "Пропуск: $env_file уже существует"
+    return
+  fi
+
+  umask 077
+  {
+    echo 'PDF_HOST=pdf.example.net'
+    echo 'PDF_ADMIN_USERNAME=admin'
+    printf 'PDF_ADMIN_PASSWORD=%s\n' "$(random_secret)"
+    echo 'PDF_DEFAULT_LOCALE=ru-RU'
+  } >"$env_file"
+}
+
 mkdir -p \
   /storage/apps/3x-ui/db \
   /storage/apps/3x-ui/log \
@@ -284,6 +300,11 @@ mkdir -p \
   /storage/apps/uptime-kuma/data \
   /storage/apps/restic/cache \
   /storage/apps/restic/restore \
+  /storage/apps/pdf/configs \
+  /storage/apps/pdf/customFiles \
+  /storage/apps/pdf/logs \
+  /storage/apps/pdf/pipeline \
+  /storage/apps/pdf/tessdata \
   /storage/media \
   /storage/backups/restic
 
@@ -318,6 +339,7 @@ create_dawarich_env
 create_beszel_env
 create_image_updates_env
 create_restic_env
+create_pdf_env
 
 chmod 600 \
   "$repo_root/traefik/.env" \
@@ -331,9 +353,10 @@ chmod 600 \
   "$repo_root/dawarich/.env" \
   "$repo_root/beszel/.env" \
   "$repo_root/image-updates/.env" \
-  "$repo_root/restic/.env"
+  "$repo_root/restic/.env" \
+  "$repo_root/pdf/.env"
 
-for service in traefik pihole uptime-kuma 3x-ui nextcloud jellyfin gitea pocket-id dawarich image-updates; do
+for service in traefik pihole uptime-kuma 3x-ui nextcloud jellyfin gitea pocket-id dawarich pdf image-updates; do
   docker compose --project-directory "$repo_root/$service" config --quiet
 done
 

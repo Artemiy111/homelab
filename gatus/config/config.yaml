@@ -163,6 +163,16 @@ endpoints:
       - "[BODY] == ."
       - "[CERTIFICATE_EXPIRATION] > 168h"
 
+  - name: Stirling PDF
+    group: Applications
+    url: https://pdf.example.net/api/v1/info/status
+    interval: 60s
+    client: *https-client
+    conditions:
+      - "[STATUS] == 200"
+      - "[BODY].status == UP"
+      - "[CERTIFICATE_EXPIRATION] > 168h"
+
   - name: 3x-ui backend
     group: Applications
     url: tcp://3x-ui:2053

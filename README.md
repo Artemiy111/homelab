@@ -22,6 +22,7 @@
 | Gitea | Приватный Git-сервис | `https://gitea.example.net/` |
 | Pocket ID | Passkey-аутентификация и OpenID Connect | `https://id.example.net/` |
 | Dawarich | История местоположений и карта перемещений | `https://dawarich.example.net/` |
+| Stirling PDF | Операции с PDF и OCR | `https://pdf.example.net/` |
 | Restic | Зашифрованные локальные снимки | Только CLI |
 | Tailscale | Удалённый доступ и маршрут в домашнюю сеть | Tailnet |
 
@@ -42,7 +43,8 @@
 4. В каталоге каждого сервиса скопировать `.env.example` в `.env` и заменить
    значения-заглушки.
 5. Запустить `traefik`, затем `pihole`, `uptime-kuma`, `beszel`, `3x-ui`,
-   `nextcloud`, `jellyfin`, `gitea`, `pocket-id`, `dawarich` и `image-updates`.
+   `nextcloud`, `jellyfin`, `gitea`, `pocket-id`, `dawarich`, `pdf` и
+   `image-updates`.
 6. Настроить DHCP-сервер роутера так, чтобы он выдавал `192.0.2.10` как DNS.
 7. Инициализировать Restic, создать копию и проверить восстановление.
 

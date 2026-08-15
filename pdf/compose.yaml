@@ -1,0 +1,39 @@
+services:
+  stirling-pdf:
+    image: docker.stirlingpdf.com/stirlingtools/stirling-pdf:latest@sha256:3b3670fce70b396ec56ba380a3cc7858e0abf83fe13f31c88f7737847763a396
+    container_name: stirling-pdf
+    environment:
+      DISABLE_ADDITIONAL_FEATURES: "false"
+      SECURITY_ENABLELOGIN: "true"
+      SECURITY_INITIALLOGIN_USERNAME: ${PDF_ADMIN_USERNAME:?set PDF_ADMIN_USERNAME in pdf/.env}
+      SECURITY_INITIALLOGIN_PASSWORD: ${PDF_ADMIN_PASSWORD:?set PDF_ADMIN_PASSWORD in pdf/.env}
+      SYSTEM_DEFAULTLOCALE: ${PDF_DEFAULT_LOCALE:-ru-RU}
+      SYSTEM_FRONTENDURL: https://${PDF_HOST:?set PDF_HOST in pdf/.env}
+      SYSTEM_GOOGLEVISIBILITY: "false"
+    volumes:
+      - /storage/apps/pdf/tessdata:/usr/share/tessdata:Z
+      - /storage/apps/pdf/configs:/configs:Z
+      - /storage/apps/pdf/logs:/logs:Z
+      - /storage/apps/pdf/pipeline:/pipeline:Z
+      - /storage/apps/pdf/customFiles:/customFiles:Z
+    networks:
+      - traefiknet
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8080/api/v1/info/status | grep -q '\"status\":\"UP\"'"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.stirling-pdf.rule=Host(`${PDF_HOST}`)
+      - traefik.http.routers.stirling-pdf.entrypoints=websecure
+      - traefik.http.services.stirling-pdf.loadbalancer.server.port=8080
+      - traefik.docker.network=traefiknet
+
+networks:
+  traefiknet:
+    external: true
