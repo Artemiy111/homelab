@@ -160,21 +160,17 @@ create_pocket_id_env() {
     return
   fi
 
-  local traefik_network_cidr puid pgid
+  local traefik_network_cidr
   traefik_network_cidr="$(
     docker network inspect traefiknet \
       --format '{{range .IPAM.Config}}{{.Subnet}}{{end}}'
   )"
-  puid="$(id -u)"
-  pgid="$(id -g)"
 
   umask 077
   {
     echo 'POCKET_ID_HOST=id.example.net'
     printf 'ENCRYPTION_KEY=%s\n' "$(openssl rand -base64 32)"
     printf 'TRAEFIK_NETWORK_CIDR=%s\n' "$traefik_network_cidr"
-    printf 'PUID=%s\n' "$puid"
-    printf 'PGID=%s\n' "$pgid"
   } >"$env_file"
 }
 
