@@ -10,6 +10,8 @@ services:
     ports:
       - "192.0.2.10:80:80"
       - "192.0.2.10:443:443"
+    extra_hosts:
+      - host.docker.internal:host-gateway
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /storage/apps/traefik/letsencrypt:/letsencrypt:Z

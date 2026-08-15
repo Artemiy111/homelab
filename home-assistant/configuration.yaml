@@ -1,0 +1,34 @@
+# The standard default_config dependencies except local Bluetooth. Listing them
+# explicitly prevents Home Assistant from probing the host's unused hci0 without
+# granting NET_ADMIN and access to the system D-Bus.
+assist_pipeline:
+cloud:
+conversation:
+dhcp:
+energy:
+file:
+go2rtc:
+history:
+homeassistant_alerts:
+logbook:
+media_source:
+mobile_app:
+my:
+ssdp:
+stream:
+sun:
+usage_prediction:
+usb:
+webhook:
+zeroconf:
+
+# Files managed by the automation, script, and scene editors in the UI.
+automation: !include automations.yaml
+script: !include scripts.yaml
+scene: !include scenes.yaml
+
+# Traefik reaches this host-networked container from the traefiknet subnet.
+http:
+  use_x_forwarded_for: true
+  trusted_proxies:
+    - 172.20.0.0/16
