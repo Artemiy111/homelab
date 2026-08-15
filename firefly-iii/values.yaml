@@ -1,3 +1,0 @@
-firefly-db:
-    storage:
-      accessModes: ReadWriteOnce

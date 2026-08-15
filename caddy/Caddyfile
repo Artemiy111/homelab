@@ -1,3 +1,0 @@
-structurizr.home.artistick.tech {
-    reverse_proxy structurizr:8080
-}
