@@ -45,6 +45,10 @@
         icon: mdi-source-repository
         href: https://gitea.example.net/
         description: Git-сервис
+    - code-server:
+        icon: mdi-microsoft-visual-studio-code
+        href: https://code.example.net/
+        description: VS Code в браузере
     - Pocket ID:
         icon: mdi-key
         href: https://id.example.net/

@@ -137,6 +137,13 @@ endpoints:
       - "[BODY].status == pass"
       - "[CERTIFICATE_EXPIRATION] > 168h"
 
+  - name: code-server
+    group: Applications
+    url: https://code.example.net/healthz
+    interval: 60s
+    client: *https-client
+    conditions: *https-ok
+
   - name: Immich
     group: Applications
     url: https://immich.example.net/api/server/ping

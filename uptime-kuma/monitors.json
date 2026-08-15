@@ -43,6 +43,14 @@
       "maxretries": 2
     },
     {
+      "name": "code-server",
+      "description": "Health endpoint code-server через локальный DNS, TLS и Traefik; парольная страница IDE не используется для определения состояния.",
+      "type": "http",
+      "url": "https://code.example.net/healthz",
+      "interval": 60,
+      "maxretries": 2
+    },
+    {
       "name": "Pocket ID",
       "description": "OIDC discovery Pocket ID через локальный DNS, TLS и Traefik.",
       "type": "http",
