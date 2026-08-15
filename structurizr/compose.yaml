@@ -5,8 +5,6 @@ services:
     volumes:
       - /storage/apps/structurizr:/usr/local/structurizr:Z,rw
     restart: always
-    security_opt:
-      - no-new-privileges:true
     networks:
       - traefiknet
     labels:
