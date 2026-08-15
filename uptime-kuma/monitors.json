@@ -139,6 +139,14 @@
       "maxretries": 2
     },
     {
+      "name": "Lute",
+      "description": "Пользовательский HTTPS-маршрут Lute через локальный DNS, TLS и Traefik.",
+      "type": "http",
+      "url": "https://lute.example.net/",
+      "interval": 60,
+      "maxretries": 2
+    },
+    {
       "name": "3x-ui",
       "description": "Доступность web backend 3x-ui внутри Docker-сети; публичный путь панели намеренно не хранится в репозитории.",
       "type": "port",

@@ -69,6 +69,10 @@
         icon: mdi-music-box
         href: https://music.example.net/
         description: Музыкальная библиотека
+    - Lute:
+        icon: mdi-book-open-page-variant
+        href: https://lute.example.net/
+        description: Изучение языков с чтением
 
 - Инструменты:
     - Gatus:

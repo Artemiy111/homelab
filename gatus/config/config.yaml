@@ -231,6 +231,13 @@ endpoints:
     client: *https-client
     conditions: *https-ok
 
+  - name: Lute
+    group: Applications
+    url: https://lute.example.net/
+    interval: 60s
+    client: *https-client
+    conditions: *https-ok
+
   - name: 3x-ui backend
     group: Applications
     url: tcp://3x-ui:2053

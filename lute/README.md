@@ -1,8 +1,26 @@
 # Lute
 
 Lute — веб-приложение для чтения и изучения иностранных языков (Language
-Utilties for Tracking Exposure). Контейнер публикует порт `40070` на хост, а не
-только через Traefik. Постоянные данные находятся в `/storage/apps/lute/data`.
+Utilities for Tracking Exposure). Контейнер доступен только через Traefik по
+адресу `https://lute.example.net/`; порт приложения напрямую на хост не
+публикуется. Внутри контейнера приложение слушает порт `5001`. Постоянные данные
+находятся в `/storage/apps/lute/data`.
+
+## Запуск
+
+Создайте `.env` с именем хоста (используется в правиле маршрутизации Traefik):
+
+```sh
+cp .env.example .env
+chmod 600 .env
+install -d /storage/apps/lute/data/data /storage/apps/lute/data/backups
+docker compose config --quiet
+docker compose up -d
+docker compose ps
+```
+
+Доступ к приложению идёт через `traefiknet`; на хосту должна быть запись DNS
+`lute.example.net` -> адрес сервера.
 
 ## Почему нельзя просто снять привилегии
 

@@ -1,10 +1,34 @@
 services:
   lute:
     image: jzohrab/lute3:latest
-    ports:
-      - 40070:5001
+    container_name: lute
     volumes:
       - /storage/apps/lute/data/data:/lute_data
       - /storage/apps/lute/data/backups:/lute_backup
+    networks:
+      - traefiknet
+    restart: unless-stopped
     security_opt:
       - label:disable
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - >-
+          import urllib.request;
+          urllib.request.urlopen('http://127.0.0.1:5001/', timeout=5)
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.lute.rule=Host(`${LUTE_HOST}`)
+      - traefik.http.routers.lute.entrypoints=websecure
+      - traefik.http.services.lute.loadbalancer.server.port=5001
+      - traefik.docker.network=traefiknet
+
+networks:
+  traefiknet:
+    external: true
