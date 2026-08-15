@@ -12,6 +12,7 @@ services:
       SYSTEM_GOOGLEVISIBILITY: "false"
       PUID: 1000
       PGID: 1000
+      JAVA_CUSTOM_OPTS: "-Xmx640m"
     volumes:
       - /storage/apps/pdf/tessdata:/usr/share/tessdata:Z
       - /storage/apps/pdf/configs:/configs:Z
@@ -21,6 +22,8 @@ services:
     networks:
       - traefiknet
     restart: unless-stopped
+    mem_limit: 1280m
+    mem_reservation: 896m
     security_opt:
       - no-new-privileges:true
     cap_drop:
