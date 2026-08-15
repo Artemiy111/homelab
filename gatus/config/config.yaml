@@ -69,6 +69,13 @@ endpoints:
     client: *https-client
     conditions: *https-ok
 
+  - name: Homepage
+    group: Monitoring
+    url: https://home.example.net/api/healthcheck
+    interval: 60s
+    client: *https-client
+    conditions: *https-ok
+
   - name: Beszel
     group: Monitoring
     url: https://beszel.example.net/api/health

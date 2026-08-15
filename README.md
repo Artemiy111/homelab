@@ -9,6 +9,7 @@
 | Сервис | Назначение | Адрес в локальной сети |
 | --- | --- | --- |
 | Traefik | Обратный прокси и обнаружение сервисов | `https://traefik.example.net/dashboard/` |
+| Homepage | Стартовая страница сервисов homelab | `https://home.example.net/` |
 | Pi-hole | Локальный DNS и блокировка рекламы | `https://pihole.example.net/admin/` |
 | Uptime Kuma | Мониторинг доступности | `https://uptime.example.net/` |
 | Beszel | Метрики хоста и Docker-контейнеров | `https://beszel.example.net/` |
@@ -42,7 +43,7 @@
 3. Создать общую сеть прокси: `docker network create traefiknet`.
 4. В каталоге каждого сервиса скопировать `.env.example` в `.env` и заменить
    значения-заглушки.
-5. Запустить `traefik`, затем `pihole`, `uptime-kuma`, `beszel`, `3x-ui`,
+5. Запустить `traefik`, затем `home`, `pihole`, `uptime-kuma`, `beszel`, `3x-ui`,
    `nextcloud`, `jellyfin`, `gitea`, `pocket-id`, `dawarich`, `pdf` и
    `image-updates`.
 6. Настроить DHCP-сервер роутера так, чтобы он выдавал `192.0.2.10` как DNS.

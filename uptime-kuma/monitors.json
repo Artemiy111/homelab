@@ -108,6 +108,14 @@
       "maxretries": 2
     },
     {
+      "name": "Homepage",
+      "description": "Health endpoint Homepage через локальный DNS, TLS и Traefik.",
+      "type": "http",
+      "url": "https://home.example.net/api/healthcheck",
+      "interval": 60,
+      "maxretries": 2
+    },
+    {
       "name": "Beszel",
       "description": "Публичный health endpoint Beszel Hub через локальный DNS, TLS и Traefik.",
       "type": "http",

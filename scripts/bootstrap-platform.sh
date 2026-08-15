@@ -271,6 +271,17 @@ create_pdf_env() {
   } >"$env_file"
 }
 
+create_home_env() {
+  local env_file="$repo_root/home/.env"
+  if [[ -e "$env_file" ]]; then
+    echo "Пропуск: $env_file уже существует"
+    return
+  fi
+
+  umask 077
+  echo 'HOMEPAGE_HOST=home.example.net' >"$env_file"
+}
+
 mkdir -p \
   /storage/apps/3x-ui/db \
   /storage/apps/3x-ui/log \
@@ -340,6 +351,7 @@ create_beszel_env
 create_image_updates_env
 create_restic_env
 create_pdf_env
+create_home_env
 
 chmod 600 \
   "$repo_root/traefik/.env" \
@@ -354,9 +366,10 @@ chmod 600 \
   "$repo_root/beszel/.env" \
   "$repo_root/image-updates/.env" \
   "$repo_root/restic/.env" \
-  "$repo_root/pdf/.env"
+  "$repo_root/pdf/.env" \
+  "$repo_root/home/.env"
 
-for service in traefik pihole uptime-kuma 3x-ui nextcloud jellyfin gitea pocket-id dawarich pdf image-updates; do
+for service in traefik pihole uptime-kuma 3x-ui nextcloud jellyfin gitea pocket-id dawarich pdf image-updates home; do
   docker compose --project-directory "$repo_root/$service" config --quiet
 done
 

@@ -1,0 +1,73 @@
+- Системные сервисы:
+    - Traefik:
+        icon: mdi-router-network
+        href: https://traefik.example.net/dashboard/
+        description: Обратный прокси
+    - Pi-hole:
+        icon: mdi-dns
+        href: https://pihole.example.net/admin/
+        description: DNS и блокировка рекламы
+    - Uptime Kuma:
+        icon: mdi-monitor-eye
+        href: https://kuma.example.net/
+        description: Мониторинг доступности
+    - Beszel:
+        icon: mdi-chart-line
+        href: https://beszel.example.net/
+        description: Метрики хоста и контейнеров
+    - WUD:
+        icon: mdi-update
+        href: https://wud.example.net/
+        description: Обновления Docker images
+    - Cup:
+        icon: mdi-cup
+        href: https://cup.example.net/
+        description: Независимая проверка обновлений
+
+- Приложения:
+    - Immich:
+        icon: mdi-image-multiple
+        href: https://immich.example.net/
+        description: Фото- и видеотека
+    - Jellyfin:
+        icon: mdi-play-circle
+        href: https://jellyfin.example.net/
+        description: Медиасервер
+    - Jitsi Meet:
+        icon: mdi-video-account
+        href: https://meet.example.net/
+        description: Видеоконференции
+    - Nextcloud:
+        icon: mdi-cloud
+        href: https://nextcloud.example.net/
+        description: Файлы и календарь
+    - Gitea:
+        icon: mdi-source-repository
+        href: https://gitea.example.net/
+        description: Git-сервис
+    - Pocket ID:
+        icon: mdi-key
+        href: https://id.example.net/
+        description: Passkey и OpenID Connect
+    - Dawarich:
+        icon: mdi-map-marker-path
+        href: https://dawarich.example.net/
+        description: История местоположения
+    - Stirling PDF:
+        icon: mdi-file-pdf-box
+        href: https://pdf.example.net/
+        description: Операции с PDF
+    - Navidrome:
+        icon: mdi-music-box
+        href: https://music.example.net/
+        description: Музыкальная библиотека
+
+- Инструменты:
+    - Gatus:
+        icon: mdi-heart-pulse
+        href: https://uptime.example.net/
+        description: Декларативный status page
+    - Restic:
+        icon: mdi-backup-restore
+        href: https://restic.net/
+        description: Зашифрованные резервные копии

@@ -1,0 +1,21 @@
+title: Homelab
+description: Домашний сервер
+language: ru
+theme: dark
+color: slate
+headerStyle: clean
+statusStyle: dot
+disableUpdateCheck: true
+disableIndexing: true
+hideVersion: true
+
+layout:
+  Системные сервисы:
+    style: row
+    columns: 4
+  Приложения:
+    style: row
+    columns: 4
+  Инструменты:
+    style: row
+    columns: 4
