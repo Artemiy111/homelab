@@ -144,6 +144,20 @@ endpoints:
     client: *https-client
     conditions: *https-ok
 
+  - name: Authentik
+    group: Applications
+    url: https://auth.example.net/-/health/ready/
+    interval: 60s
+    client: *https-client
+    conditions: *https-ok
+
+  - name: Pocket ID
+    group: Applications
+    url: https://id.example.net/.well-known/openid-configuration
+    interval: 60s
+    client: *https-client
+    conditions: *https-ok
+
   - name: LocalAI
     group: Applications
     url: https://localai.example.net/readyz
@@ -200,6 +214,22 @@ endpoints:
       - "[STATUS] == 200"
       - "[BODY].status == UP"
       - "[CERTIFICATE_EXPIRATION] > 168h"
+
+  - name: Home Assistant
+    group: Applications
+    url: http://192.0.2.10:8123/
+    interval: 60s
+    client:
+      timeout: 10s
+    conditions:
+      - "[STATUS] == 200"
+
+  - name: Structurizr
+    group: Applications
+    url: https://structurizr.example.net/
+    interval: 60s
+    client: *https-client
+    conditions: *https-ok
 
   - name: 3x-ui backend
     group: Applications

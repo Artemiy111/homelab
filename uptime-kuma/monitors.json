@@ -27,6 +27,14 @@
       "maxretries": 2
     },
     {
+      "name": "Mermaid Live Editor",
+      "description": "Пользовательский HTTPS-маршрут Mermaid Live Editor.",
+      "type": "http",
+      "url": "https://mermaid.example.net/",
+      "interval": 60,
+      "maxretries": 2
+    },
+    {
       "name": "Nextcloud",
       "description": "Публичный health endpoint Nextcloud через локальный DNS, TLS и Traefik.",
       "type": "http",
@@ -67,6 +75,14 @@
       "maxretries": 2
     },
     {
+      "name": "LocalAI",
+      "description": "Readiness endpoint LocalAI через локальный DNS, TLS и Traefik.",
+      "type": "http",
+      "url": "https://localai.example.net/readyz",
+      "interval": 60,
+      "maxretries": 2
+    },
+    {
       "name": "Immich",
       "description": "Публичный ping endpoint Immich через локальный DNS, TLS и Traefik.",
       "type": "http",
@@ -99,6 +115,30 @@
       "maxretries": 2
     },
     {
+      "name": "Stirling PDF",
+      "description": "Публичный status endpoint Stirling PDF через локальный DNS, TLS и Traefik.",
+      "type": "http",
+      "url": "https://pdf.example.net/api/v1/info/status",
+      "interval": 60,
+      "maxretries": 2
+    },
+    {
+      "name": "Home Assistant",
+      "description": "Веб-интерфейс Home Assistant на LAN-порту; HTTPS-маршрут ограничен локальной сетью, поэтому недоступен контейнерам мониторинга.",
+      "type": "http",
+      "url": "http://192.0.2.10:8123/",
+      "interval": 60,
+      "maxretries": 2
+    },
+    {
+      "name": "Structurizr",
+      "description": "Пользовательский HTTPS-маршрут Structurizr через локальный DNS, TLS и Traefik.",
+      "type": "http",
+      "url": "https://structurizr.example.net/",
+      "interval": 60,
+      "maxretries": 2
+    },
+    {
       "name": "3x-ui",
       "description": "Доступность web backend 3x-ui внутри Docker-сети; публичный путь панели намеренно не хранится в репозитории.",
       "type": "port",
@@ -120,6 +160,32 @@
       "description": "Собственный HTTPS-маршрут Uptime Kuma; фиксирует проблемы маршрута, пока сам процесс Kuma способен выполнять проверки.",
       "type": "http",
       "url": "https://kuma.example.net/",
+      "interval": 60,
+      "maxretries": 2
+    },
+    {
+      "name": "Gatus",
+      "description": "Пользовательский HTTPS-маршрут Gatus; фиксирует проблемы маршрута, пока сам процесс Gatus способен выполнять проверки.",
+      "type": "http",
+      "url": "https://uptime.example.net/",
+      "interval": 60,
+      "maxretries": 2
+    },
+    {
+      "name": "WUD",
+      "description": "Health endpoint WUD через локальный DNS, TLS и Traefik; ответ 401 без учётных данных считается нормальным.",
+      "type": "http",
+      "url": "https://wud.example.net/health",
+      "accepted_statuscodes": ["401"],
+      "interval": 60,
+      "maxretries": 2
+    },
+    {
+      "name": "Cup",
+      "description": "Пользовательский HTTPS-маршрут Cup; ответ 401 без учётных данных считается нормальным.",
+      "type": "http",
+      "url": "https://cup.example.net/",
+      "accepted_statuscodes": ["401"],
       "interval": 60,
       "maxretries": 2
     },
