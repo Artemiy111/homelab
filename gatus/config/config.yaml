@@ -144,6 +144,13 @@ endpoints:
     client: *https-client
     conditions: *https-ok
 
+  - name: LocalAI
+    group: Applications
+    url: https://localai.example.net/readyz
+    interval: 60s
+    client: *https-client
+    conditions: *https-ok
+
   - name: Immich
     group: Applications
     url: https://immich.example.net/api/server/ping
