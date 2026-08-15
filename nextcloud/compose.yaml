@@ -21,14 +21,14 @@ x-nextcloud-environment: &nextcloud-environment
 
 services:
   db:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-nextcloud}
       POSTGRES_USER: ${POSTGRES_USER:-nextcloud}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in nextcloud/.env}
     volumes:
-      - /storage/apps/nextcloud/postgresql:/var/lib/postgresql/data:Z
+      - /storage/apps/nextcloud/postgresql-18:/var/lib/postgresql/18/docker:Z
     networks:
       - backend
     healthcheck:
@@ -53,7 +53,7 @@ services:
       retries: 10
 
   app:
-    image: nextcloud:34.0.2-apache
+    image: nextcloud:34.0.3-apache
     init: true
     restart: unless-stopped
     environment:
@@ -97,7 +97,7 @@ services:
       - traefik.docker.network=traefiknet
 
   cron:
-    image: nextcloud:34.0.2-apache
+    image: nextcloud:34.0.3-apache
     init: true
     restart: unless-stopped
     entrypoint: /cron.sh
@@ -113,7 +113,7 @@ services:
         condition: service_healthy
 
   backup-db:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     profiles:
       - tools
     environment:
