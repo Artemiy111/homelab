@@ -1,0 +1,6 @@
+{
+  "$schema": "https://raw.githubusercontent.com/sergi0g/cup/main/cup.schema.json",
+  "version": 3,
+  "refresh_interval": "0 0 */6 * * *",
+  "theme": "blue"
+}

@@ -218,6 +218,27 @@ create_beszel_env() {
   } >"$env_file"
 }
 
+create_image_updates_env() {
+  local env_file="$repo_root/image-updates/.env"
+  if [[ -e "$env_file" ]]; then
+    echo "Пропуск: $env_file уже существует"
+    return
+  fi
+
+  local password hash
+  password="$(random_secret)"
+  hash="$(printf '%s' "$password" | openssl passwd -apr1 -stdin)"
+
+  umask 077
+  {
+    echo 'WUD_HOST=wud.example.net'
+    echo 'CUP_HOST=cup.example.net'
+    echo 'UPDATES_DASHBOARD_USERNAME=admin'
+    printf 'UPDATES_DASHBOARD_PASSWORD=%s\n' "$password"
+    printf "UPDATES_DASHBOARD_USERS='admin:%s'\n" "$hash"
+  } >"$env_file"
+}
+
 create_restic_env() {
   local env_file="$repo_root/restic/.env"
   if [[ -e "$env_file" ]]; then
@@ -258,6 +279,7 @@ mkdir -p \
   /storage/apps/beszel/data \
   /storage/apps/beszel/agent \
   /storage/apps/beszel/socket \
+  /storage/apps/wud/store \
   /storage/apps/traefik/letsencrypt \
   /storage/apps/uptime-kuma/data \
   /storage/apps/restic/cache \
@@ -294,6 +316,7 @@ create_gitea_env
 create_pocket_id_env
 create_dawarich_env
 create_beszel_env
+create_image_updates_env
 create_restic_env
 
 chmod 600 \
@@ -307,9 +330,10 @@ chmod 600 \
   "$repo_root/pocket-id/.env" \
   "$repo_root/dawarich/.env" \
   "$repo_root/beszel/.env" \
+  "$repo_root/image-updates/.env" \
   "$repo_root/restic/.env"
 
-for service in traefik pihole uptime-kuma 3x-ui nextcloud jellyfin gitea pocket-id dawarich; do
+for service in traefik pihole uptime-kuma 3x-ui nextcloud jellyfin gitea pocket-id dawarich image-updates; do
   docker compose --project-directory "$repo_root/$service" config --quiet
 done
 

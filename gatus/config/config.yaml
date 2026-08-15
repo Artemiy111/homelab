@@ -76,6 +76,24 @@ endpoints:
     client: *https-client
     conditions: *https-ok
 
+  - name: WUD
+    group: Monitoring
+    url: https://wud.example.net/health
+    interval: 60s
+    client: *https-client
+    conditions:
+      - "[STATUS] == 401"
+      - "[CERTIFICATE_EXPIRATION] > 168h"
+
+  - name: Cup
+    group: Monitoring
+    url: https://cup.example.net/
+    interval: 60s
+    client: *https-client
+    conditions:
+      - "[STATUS] == 401"
+      - "[CERTIFICATE_EXPIRATION] > 168h"
+
   - name: Jitsi Meet
     group: Applications
     url: https://meet.example.net/
