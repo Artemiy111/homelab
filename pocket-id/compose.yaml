@@ -10,9 +10,9 @@ services:
       TRUST_PROXY: ${TRAEFIK_NETWORK_CIDR:?set TRAEFIK_NETWORK_CIDR in pocket-id/.env}
       ALLOW_INSECURE_CALLBACK_URLS: "false"
       ANALYTICS_DISABLED: "true"
-      PUID: ${PUID:-1000}
-      PGID: ${PGID:-1000}
-    user: "${PUID:-1000}:${PGID:-1000}"
+      PUID: 1000
+      PGID: 1000
+    user: "1000:1000"
     read_only: true
     volumes:
       - /storage/apps/pocket-id/data:/app/data:Z

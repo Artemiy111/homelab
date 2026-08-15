@@ -10,6 +10,10 @@ services:
     restart: unless-stopped
     security_opt:
       - label:disable
+    cap_drop:
+      - ALL
+    cap_add:
+      - DAC_OVERRIDE
     healthcheck:
       test:
         - CMD
