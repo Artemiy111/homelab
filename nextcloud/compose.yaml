@@ -58,8 +58,6 @@ services:
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
-    cap_drop:
-      - ALL
     environment:
       <<: *nextcloud-environment
     volumes:
@@ -106,8 +104,6 @@ services:
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
-    cap_drop:
-      - ALL
     entrypoint: /cron.sh
     environment:
       <<: *nextcloud-environment
