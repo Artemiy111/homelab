@@ -22,17 +22,20 @@ docker compose ps
 Доступ к приложению идёт через `traefiknet`; на хосту должна быть запись DNS
 `lute.example.net` -> адрес сервера.
 
-## Почему нельзя просто снять привилегии
+## Понижение привилегий
 
-Прямое понижение прав для этого образа ломает запуск:
+Образ не умеет работать от не-root через `user: "1000:1000"`: на старте он пишет
+во внутренний каталог `/pythainlp-data`, владелец которого в образе root, от uid
+1000 туда нет доступа (`PermissionError: '/pythainlp-data'`). Поэтому контейнер
+запускается от root.
 
-- `user: "1000:1000"` — приложение на старте пишет во внутренний каталог
-  `/pythainlp-data`, владелец которого в образе root. От uid 1000 туда доступа
-  нет, получаем `PermissionError: '/pythainlp-data'` и выход.
-- `cap_drop: ALL` при работе от root — хостовый каталог данных
-  `/storage/apps/lute/data` принадлежит uid 1000, а контейнер-root без
-  `CAP_DAC_OVERRIDE` не может в него писать, откуда `sqlite3.OperationalError:
-  attempt to write a readonly database`.
+При этом применяется «точечное» деление привилегий: `cap_drop: ALL` с возвратом
+единственной нужной capability — `CAP_DAC_OVERRIDE`. Она требуется, потому что
+хостовый каталог данных `/storage/apps/lute/data` принадлежит uid 1000, а
+контейнер-root без `CAP_DAC_OVERRIDE` не может в него писать
+(`sqlite3.OperationalError: attempt to write a readonly database`). Остальные
+capability сброшены, понижая поверхность атаки по сравнению с исходным запуском от
+root со всеми capability по умолчанию.
 
-Поэтому оставлена исходная конфигурация: только `security_opt: label:disable`
-(SELinux-метка), без `user` и без `cap_drop`.
+Также задействован `security_opt: label:disable` (SELinux-метка) и добавлен
+healthcheck по `http://127.0.0.1:5001/`.
