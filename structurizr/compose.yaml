@@ -4,7 +4,12 @@ services:
     container_name: structurizr
     volumes:
       - /storage/apps/structurizr:/usr/local/structurizr:Z,rw
+    user: "1000:1000"
     restart: always
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
     networks:
       - traefiknet
     labels:

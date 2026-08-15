@@ -11,8 +11,11 @@ services:
     networks:
       - traefiknet
     restart: unless-stopped
+    user: "1000:1000"
     security_opt:
       - no-new-privileges:true
+    cap_drop:
+      - ALL
     healthcheck:
       test: ["CMD", "/beszel", "health", "--url", "http://127.0.0.1:8090"]
       interval: 120s

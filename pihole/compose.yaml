@@ -18,6 +18,8 @@ services:
       - default
       - traefiknet
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
     healthcheck:
       test: ["CMD", "dig", "+short", "+norecurse", "@127.0.0.1", "pi.hole"]
       interval: 30s

@@ -6,5 +6,8 @@ services:
     volumes:
       - /storage/apps/lute/data/data:/lute_data
       - /storage/apps/lute/data/backups:/lute_backup
+    user: "1000:1000"
     security_opt:
       - label:disable
+    cap_drop:
+      - ALL

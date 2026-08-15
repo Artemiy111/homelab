@@ -8,8 +8,11 @@ services:
     networks:
       - traefiknet
     restart: unless-stopped
+    user: "1000:1000"
     security_opt:
       - no-new-privileges:true
+    cap_drop:
+      - ALL
     labels:
       - traefik.enable=true
       - traefik.http.routers.gatus.rule=Host(`${GATUS_HOST}`)
