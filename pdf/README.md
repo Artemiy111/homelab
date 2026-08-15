@@ -29,3 +29,15 @@ curl -fsS https://pdf.example.net/api/v1/info/status
 
 Образ содержит стандартные OCR-языки. Дополнительные `.traineddata` можно
 положить в `/storage/apps/pdf/tessdata`.
+
+## Безопасность
+
+Контейнер работает от не-root пользователя через переменные `PUID=1000` и
+`PGID=1000`: entrypoint образа сам выполняет `setpriv`/`su`, понижая права до
+`stirlingpdfuser` с этим UID. Дополнительно включён `no-new-privileges:true`.
+
+`cap_drop: ALL` здесь **не работает**: entrypoint для понижения прав вызывает
+`setpriv`, которому нужны возможности `CAP_SETUID`/`CAP_SETGID`. Без них получаем
+`setpriv: setresuid failed: Operation not permitted` и контейнер завершается с
+кодом 127. Поэтому `cap_drop` не используется, а понижение прав достигается
+только через `PUID`/`PGID`.

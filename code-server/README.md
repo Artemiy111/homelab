@@ -41,3 +41,14 @@ code-server.
 - Рабочее пространство намеренно отделено от отслеживаемой копии
   `/home/artlab/projects/homelab`. Изменения самого homelab доставляются через
   локальный commit, push и серверный `git pull --ff-only`.
+
+## Почему нельзя просто снять привилегии
+
+Контейнер уже запускается от не-root пользователя (`user:
+"${CODE_SERVER_UID:-1000}:${CODE_SERVER_GID:-1000}"`). Попытка добавить
+`security_opt: no-new-privileges:true` и `cap_drop: ALL` ломает запуск:
+entrypoint образа использует `fixuid` (setuid-бинарь), чтобы переназначить
+владельца `/home/coder` на заданный UID. При `no-new-privileges` повышение
+привилегий через setuid запрещено, `fixuid` падает и контейнер выходит с кодом 1.
+Поэтому ограничиваемся только явным `user:` и не добавляем `no-new-privileges`/
+`cap_drop`.
