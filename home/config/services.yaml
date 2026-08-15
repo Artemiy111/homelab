@@ -53,6 +53,10 @@
         icon: mdi-key
         href: https://id.example.net/
         description: Passkey и OpenID Connect
+    - Authentik:
+        icon: mdi-shield-account
+        href: https://auth.example.net/
+        description: Identity provider и SSO
     - Dawarich:
         icon: mdi-map-marker-path
         href: https://dawarich.example.net/

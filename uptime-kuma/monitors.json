@@ -59,6 +59,14 @@
       "maxretries": 2
     },
     {
+      "name": "Authentik",
+      "description": "Readiness endpoint Authentik через локальный DNS, TLS и Traefik; также проверяет подключение к PostgreSQL.",
+      "type": "http",
+      "url": "https://auth.example.net/-/health/ready/",
+      "interval": 60,
+      "maxretries": 2
+    },
+    {
       "name": "Immich",
       "description": "Публичный ping endpoint Immich через локальный DNS, TLS и Traefik.",
       "type": "http",

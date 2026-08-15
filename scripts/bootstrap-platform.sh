@@ -178,6 +178,30 @@ create_pocket_id_env() {
   } >"$env_file"
 }
 
+create_authentik_env() {
+  local env_file="$repo_root/authentik/.env"
+  if [[ -e "$env_file" ]]; then
+    echo "Пропуск: $env_file уже существует"
+    return
+  fi
+
+  local traefik_network_cidr
+  traefik_network_cidr="$(
+    docker network inspect traefiknet \
+      --format '{{range .IPAM.Config}}{{.Subnet}}{{end}}'
+  )"
+
+  umask 077
+  {
+    echo 'AUTHENTIK_HOST=auth.example.net'
+    echo 'AUTHENTIK_POSTGRESQL_DATABASE=authentik'
+    echo 'AUTHENTIK_POSTGRESQL_USER=authentik'
+    printf 'AUTHENTIK_POSTGRESQL_PASSWORD=%s\n' "$(openssl rand -base64 36 | tr -d '\n')"
+    printf 'AUTHENTIK_SECRET_KEY=%s\n' "$(openssl rand -base64 60 | tr -d '\n')"
+    printf 'TRAEFIK_NETWORK_CIDR=%s\n' "$traefik_network_cidr"
+  } >"$env_file"
+}
+
 create_dawarich_env() {
   local env_file="$repo_root/dawarich/.env"
   if [[ -e "$env_file" ]]; then
@@ -312,6 +336,9 @@ mkdir -p \
   /storage/apps/gitea/data \
   /storage/apps/gitea/postgresql \
   /storage/apps/pocket-id/data \
+  /storage/apps/authentik/backups \
+  /storage/apps/authentik/data \
+  /storage/apps/authentik/postgresql \
   /storage/apps/dawarich/backups \
   /storage/apps/dawarich/postgresql \
   /storage/apps/dawarich/public \
@@ -346,6 +373,12 @@ chmod 0700 \
   /storage/apps/pocket-id \
   /storage/apps/pocket-id/data
 
+chmod 0700 \
+  /storage/apps/authentik \
+  /storage/apps/authentik/backups \
+  /storage/apps/authentik/data \
+  /storage/apps/authentik/postgresql
+
 chmod 0750 \
   /storage/apps/code-server \
   /storage/apps/code-server/home \
@@ -369,6 +402,7 @@ create_nextcloud_env
 create_jellyfin_env
 create_gitea_env
 create_pocket_id_env
+create_authentik_env
 create_dawarich_env
 create_beszel_env
 create_image_updates_env
@@ -386,6 +420,7 @@ chmod 600 \
   "$repo_root/jellyfin/.env" \
   "$repo_root/gitea/.env" \
   "$repo_root/pocket-id/.env" \
+  "$repo_root/authentik/.env" \
   "$repo_root/dawarich/.env" \
   "$repo_root/beszel/.env" \
   "$repo_root/image-updates/.env" \
@@ -394,7 +429,7 @@ chmod 600 \
   "$repo_root/home/.env" \
   "$repo_root/code-server/.env"
 
-for service in traefik pihole uptime-kuma 3x-ui nextcloud jellyfin gitea pocket-id dawarich pdf image-updates home code-server; do
+for service in traefik pihole uptime-kuma 3x-ui nextcloud jellyfin gitea pocket-id authentik dawarich pdf image-updates home code-server; do
   docker compose --project-directory "$repo_root/$service" config --quiet
 done
 

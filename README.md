@@ -23,6 +23,7 @@
 | Gitea | Приватный Git-сервис | `https://gitea.example.net/` |
 | code-server | VS Code в браузере | `https://code.example.net/` |
 | Pocket ID | Passkey-аутентификация и OpenID Connect | `https://id.example.net/` |
+| Authentik | Identity provider и SSO | `https://auth.example.net/` |
 | Dawarich | История местоположений и карта перемещений | `https://dawarich.example.net/` |
 | Stirling PDF | Операции с PDF и OCR | `https://pdf.example.net/` |
 | Restic | Зашифрованные локальные снимки | Только CLI |
@@ -45,7 +46,7 @@
 4. В каталоге каждого сервиса скопировать `.env.example` в `.env` и заменить
    значения-заглушки.
 5. Запустить `traefik`, затем `home`, `pihole`, `uptime-kuma`, `beszel`, `3x-ui`,
-   `nextcloud`, `jellyfin`, `gitea`, `code-server`, `pocket-id`, `dawarich`,
+   `nextcloud`, `jellyfin`, `gitea`, `code-server`, `pocket-id`, `authentik`, `dawarich`,
    `pdf` и `image-updates`.
 6. Настроить DHCP-сервер роутера так, чтобы он выдавал `192.0.2.10` как DNS.
 7. Инициализировать Restic, создать копию и проверить восстановление.
