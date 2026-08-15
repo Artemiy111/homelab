@@ -101,6 +101,13 @@ endpoints:
     client: *https-client
     conditions: *https-ok
 
+  - name: Mermaid Live Editor
+    group: Applications
+    url: https://mermaid.example.net/
+    interval: 60s
+    client: *https-client
+    conditions: *https-ok
+
   - name: Nextcloud
     group: Applications
     url: https://nextcloud.example.net/status.php
