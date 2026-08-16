@@ -450,7 +450,11 @@ chmod_if_owned 0700 \
 chmod_if_owned 0700 \
   /storage/apps/zitadel \
   /storage/apps/zitadel/bootstrap \
-  /storage/apps/zitadel/backups \
+  /storage/apps/zitadel/backups
+
+# postgres:18 монтируется в /var/lib/postgresql и повторно входит под UID 70,
+# поэтому каталог данных должен оставаться проходимым (0755, а не 0700).
+chmod_if_owned 0755 \
   /storage/apps/zitadel/postgresql
 
 chmod_if_owned 0750 \
