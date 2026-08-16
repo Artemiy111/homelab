@@ -29,7 +29,7 @@ services:
       - no-new-privileges:true
 
   zitadel:
-    image: ghcr.io/zitadel/zitadel:${ZITADEL_VERSION:-v4.15.1}
+    image: ghcr.io/zitadel/zitadel:${ZITADEL_VERSION:-v4.17.1}
     container_name: zitadel
     user: "0"
 
@@ -99,7 +99,7 @@ services:
       - traefik.http.routers.zitadel-console.priority=100
 
   login:
-    image: ghcr.io/zitadel/zitadel-login:${ZITADEL_VERSION:-v4.15.1}
+    image: ghcr.io/zitadel/zitadel-login:${ZITADEL_VERSION:-v4.17.1}
     container_name: zitadel-login
     user: "0"
 

@@ -221,7 +221,7 @@ create_zitadel_env() {
   umask 077
   {
     echo 'ZITADEL_HOST=id.example.net'
-    echo 'ZITADEL_VERSION=v4.15.1'
+    echo 'ZITADEL_VERSION=v4.17.1'
     echo 'POSTGRES_DB=zitadel'
     echo 'POSTGRES_USER=zitadel'
     printf 'POSTGRES_PASSWORD=%s\n' "$(random_secret)"

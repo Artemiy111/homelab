@@ -49,6 +49,13 @@ Allowed; пользователей регистрировать только pa
 регистрации), пароль не задавать. «Local authentication allowed» не выключать —
 это отключит и passkey.
 
+Одноразовую ссылку на регистрацию passkey без SMTP выдаёт
+`scripts/zitadel-passkey-link.sh` (нужен PAT администратора):
+
+```sh
+ZITADEL_PAT=... ./scripts/zitadel-passkey-link.sh
+```
+
 ## OIDC-клиент для oauth2-proxy
 
 Для forward auth (см. `oauth2-proxy/`) создать в консоли ZITADEL приложение:
