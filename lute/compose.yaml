@@ -14,6 +14,7 @@ services:
       - ALL
     cap_add:
       - DAC_OVERRIDE
+
     healthcheck:
       test:
         - CMD
@@ -26,6 +27,10 @@ services:
       timeout: 10s
       retries: 5
       start_period: 30s
+
+    mem_limit: 512m
+    mem_reservation: 256m
+
     labels:
       - traefik.enable=true
       - traefik.http.routers.lute.rule=Host(`${LUTE_HOST}`)
