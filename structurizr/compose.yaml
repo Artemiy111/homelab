@@ -1,12 +1,16 @@
 services:
   structurizr:
-    image: structurizr/onpremises
+    build:
+      context: .
     container_name: structurizr
+
     volumes:
       - /storage/apps/structurizr:/usr/local/structurizr:Z,rw
+      - ./structurizr.properties:/usr/local/structurizr/structurizr.properties:Z,ro
 
     networks:
       - traefiknet
+
     restart: unless-stopped
 
     labels:
@@ -16,6 +20,8 @@ services:
       - traefik.http.routers.structurizr.middlewares=secure-headers@file,ratelimit-default@file
       - traefik.http.services.structurizr.loadbalancer.server.port=8080
       - traefik.docker.network=traefiknet
+
+    user: "1000:1000"
 
 networks:
   traefiknet:

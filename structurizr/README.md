@@ -1,24 +1,83 @@
 # Structurizr
 
-Structurizr on-premises — инструмент для диаграмм C4. Контейнер доступен через
-Traefik по адресу `https://structurizr.example.net/`; порт приложения
-напрямую на хост не публикуется. Постоянные данные находятся в
+Structurizr vNext (open-core) — инструмент для диаграмм C4. Контейнер доступен
+через Traefik по адресу `https://structurizr.example.net/`; порт
+приложения напрямую на хост не публикуется. Постоянные данные находятся в
 `/storage/apps/structurizr`, смонтированном в `/usr/local/structurizr`.
 
-> Внимание: upstream объявил on-premises версию устаревшей («will not receive any
-> further updates»). Рассматривается миграция на Structurizr vNext.
+## Образ
 
-## Почему нельзя просто снять привилегии
+Upstream сделал on-premises заглушкой: `structurizr/onpremises:latest` печатает
+баннер про миграцию и завершается с кодом 0. Пребилт-образ vNext
+(`structurizr/structurizr server`) требует платной лицензии.
 
-Простое понижение прав для этого образа не работает двумя способами:
+Поэтому образ собирается из исходников (open-core, бесплатно): `Dockerfile`
+клонирует upstream на теге `v2026.06.28`, собирает `server` и кладёт его в
+runtime-образ на `eclipse-temurin:21-alpine`. Пересборка при апдейте:
 
-- `user: "1000:1000"` — entrypoint `/usr/local/entrypoint.sh` не исполняем для
-  постороннего UID (образ рассчитан на запуск от root), контейнер падает с
-  `exec: "/usr/local/entrypoint.sh": permission denied`.
-- `cap_drop: ALL` + `no-new-privileges:true` при запуске от root — контейнер
-  уходит в петлю перезапусков (выход с кодом 0): процесс-модель/entrypoint
-  образа несовместимы со снятыми capability.
+```sh
+# в structurizr/: обновить тег vYYYY.MM.DD в Dockerfile, затем
+docker compose build --pull
+docker compose up -d
+```
 
-В итоге оставлена исходная конфигурация (без `user`, `cap_drop` и
-`no-new-privileges`). Образ и так не публикует порты на хост и доступен только
-через `traefiknet`.
+Контейнер запускается от `user: "1000:1000"` — совпадает с владельцем
+`/storage/apps/structurizr` на хосте (artlab), поэтому привилегии root не нужны
+(в отличие от старого on-premises-образа). PNG/SVG-экспорт через Playwright в
+этой сборке недоступен (нужен тег `-playwright`).
+
+## Конфигурация
+
+Настройки в `structurizr.properties`, смонтированном в
+`/usr/local/structurizr/structurizr.properties`:
+включён браузерный DSL-редактор и задан базовый URL за Traefik.
+
+> Примечание: в `/storage/apps/structurizr` лежит пустой файл
+> `structurizr.properties` (владелец root) — это артефакт Docker: он создаёт
+> файл-заготовку как точку монтирования внутри volume. Рабочий конфиг приходит
+> из репозитория; пустой файл можно игнорировать, но не удалять, пока
+> контейнер запущен.
+
+Внимание: open-core сборка не имеет встроенной аутентификации — при
+необходимости закрыть доступ стоит добавить Traefik middleware (например,
+basicauth) на роутер `structurizr`.
+
+## Рабочие пространства (workspace)
+
+Диаграммы C4 всех сервисов homelab описаны в `homelab.dsl` в этом каталоге.
+Файл — источник правды и хранится в Git; схема всех сервисов отрисовывается из
+него. Это соответствует разделению «в Git / на сервере»:
+
+- **В Git** (`structurizr/`): `homelab.dsl` (модель, представления, стили) и
+  `structurizr.properties` (уже монтируется в каталог данных).
+- **На сервере** (`/storage/apps/structurizr`, в контейнере
+  `/usr/local/structurizr`): управляемые сервером данные воркспейса
+  `<id>/workspace.json`, версии `workspace-<timestamp>.json`, превью и картинки.
+  Сервер хранит их в своём формате, поэтому эти файлы вручную не редактируются.
+
+Сервер не читает DSL напрямую из каталога данных — содержимое публикуется через
+workspace API. Сейчас воркспейс `HomeLab` имеет `<id> = 1` и доступен по адресу
+`https://structurizr.example.net/workspace/1/diagrams`. Создание нового
+воркспейса и запоминание его `<id>` выполняется один раз:
+
+1. Открыть `https://structurizr.example.net/workspace/create`
+   (встроенной аутентификации нет — воркспейс создаётся сразу).
+2. Запомнить `<id>` из URL `/workspace/<id>`.
+
+Публикация (после изменения `homelab.dsl`, локально или на сервере после
+`git pull --ff-only`):
+
+```sh
+# проверка синтаксиса (Structurizr CLI, тот же парсер, что у сервера)
+structurizr validate -workspace structurizr/homelab.dsl
+
+# выгрузить воркспейс на сервер
+structurizr push -url https://structurizr.example.net/api \
+  -id <id> -workspace structurizr/homelab.dsl
+```
+
+CLI скачивается с https://github.com/structurizr/cli (jar) либо запускается в
+контейнере `eclipse-temurin:21-alpine`. При push сервер обратно отдаёт layout,
+нарисованный в UI, — перерисовка диаграмм вручную не теряется. Правки модели
+делаются только в `homelab.dsl` (Git — источник правды), иначе следующий push
+их перезапишет.
