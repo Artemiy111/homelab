@@ -244,7 +244,7 @@ create_oauth2_proxy_env() {
     echo 'OAUTH2_PROXY_HOST=oauth.example.net'
     echo 'OAUTH2_PROXY_CLIENT_ID=replace-with-zitadel-client-id'
     echo 'OAUTH2_PROXY_CLIENT_SECRET=replace-with-zitadel-client-secret'
-    printf 'OAUTH2_PROXY_COOKIE_SECRET=%s\n' "$(openssl rand -base64 32 | tr -d '\n')"
+    printf 'OAUTH2_PROXY_COOKIE_SECRET=%s\n' "$(openssl rand -base64 32 | tr -d '\n' | tr '+/' '-_')"
     echo 'OAUTH2_PROXY_VERSION=v7.15.0'
   } >"$env_file"
 }

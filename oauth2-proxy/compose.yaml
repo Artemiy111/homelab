@@ -19,13 +19,14 @@ services:
       - --cookie-domain=.example.net
       - --email-domain=*
       - --upstream=static://202
-      - --reverse-proxy=false
+      - --reverse-proxy=true
       - --skip-provider-button=true
       - --set-xauthrequest=true
       - --pass-user-headers=true
       - --pass-access-token=true
       - --redirect-url=https://${OAUTH2_PROXY_HOST:?set OAUTH2_PROXY_HOST in oauth2-proxy/.env}/oauth2/callback
       - --whitelist-domain=.example.net
+      - --http-address=0.0.0.0:4180
 
     labels:
       - traefik.enable=true
