@@ -1,0 +1,44 @@
+name: oauth2-proxy
+
+services:
+  oauth2-proxy:
+    image: quay.io/oauth2-proxy/oauth2-proxy:${OAUTH2_PROXY_VERSION:-v7.15.0}
+    container_name: oauth2-proxy
+
+    networks:
+      - traefiknet
+    restart: unless-stopped
+
+    command:
+      - --provider=oidc
+      - --oidc-issuer-url=https://${ZITADEL_HOST:?set ZITADEL_HOST in oauth2-proxy/.env}
+      - --client-id=${OAUTH2_PROXY_CLIENT_ID:?set OAUTH2_PROXY_CLIENT_ID in oauth2-proxy/.env}
+      - --client-secret=${OAUTH2_PROXY_CLIENT_SECRET:?set OAUTH2_PROXY_CLIENT_SECRET in oauth2-proxy/.env}
+      - --cookie-secret=${OAUTH2_PROXY_COOKIE_SECRET:?set OAUTH2_PROXY_COOKIE_SECRET in oauth2-proxy/.env}
+      - --cookie-secure=true
+      - --cookie-domain=.example.net
+      - --email-domain=*
+      - --upstream=static://202
+      - --reverse-proxy=false
+      - --skip-provider-button=true
+      - --set-xauthrequest=true
+      - --pass-user-headers=true
+      - --pass-access-token=true
+      - --redirect-url=https://${OAUTH2_PROXY_HOST:?set OAUTH2_PROXY_HOST in oauth2-proxy/.env}/oauth2/callback
+      - --whitelist-domain=.example.net
+
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefiknet
+      - traefik.http.routers.oauth2-proxy.rule=Host(`${OAUTH2_PROXY_HOST}`)
+      - traefik.http.routers.oauth2-proxy.entrypoints=websecure
+      - traefik.http.routers.oauth2-proxy.middlewares=secure-headers@file
+      - traefik.http.services.oauth2-proxy.loadbalancer.server.port=4180
+
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+
+networks:
+  traefiknet:
+    external: true

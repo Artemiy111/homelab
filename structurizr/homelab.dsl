@@ -98,7 +98,7 @@ workspace {
 
         group "Идентификация и доступ" {
 
-            pocketid = softwareSystem "Pocket ID" "Passkey-аутентификация и OpenID Connect (id.example.net)" {
+            pocketid = softwareSystem "Pocket ID" "Passkey-аутентификация и OpenID Connect (pocket-id.example.net)" {
                 tags "idm"
             }
 

@@ -5,6 +5,14 @@ http:
         average: 100
         burst: 50
 
+    oauth2-proxy:
+      forwardAuth:
+        address: http://oauth2-proxy:4180
+        trustForwardHeader: true
+        authResponseHeaders:
+          - X-Auth-Request-User
+          - X-Auth-Request-Email
+
     secure-headers:
       headers:
         stsSeconds: 31536000

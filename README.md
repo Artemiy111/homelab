@@ -22,8 +22,9 @@
 | Nextcloud | Файлы, синхронизация, календарь и контакты | `https://nextcloud.example.net/` |
 | Gitea | Приватный Git-сервис | `https://gitea.example.net/` |
 | code-server | VS Code в браузере | `https://code.example.net/` |
-| Pocket ID | Passkey-аутентификация и OpenID Connect | `https://id.example.net/` |
+| Pocket ID | Passkey-аутентификация и OpenID Connect | `https://pocket-id.example.net/` |
 | Authentik | Identity provider и SSO | `https://auth.example.net/` |
+| Zitadel | Identity provider и SSO (основной) | `https://id.example.net/` |
 | Dawarich | История местоположений и карта перемещений | `https://dawarich.example.net/` |
 | Stirling PDF | Операции с PDF и OCR | `https://pdf.example.net/` |
 | Restic | Зашифрованные локальные снимки | Только CLI |

@@ -202,7 +202,7 @@ endpoints:
 
   - name: Pocket ID
     group: Applications
-    url: https://id.example.net/.well-known/openid-configuration
+    url: https://pocket-id.example.net/.well-known/openid-configuration
     interval: 60s
     client: *https-client
     conditions: *https-ok

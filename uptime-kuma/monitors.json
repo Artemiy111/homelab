@@ -62,7 +62,7 @@
       "name": "Pocket ID",
       "description": "OIDC discovery Pocket ID через локальный DNS, TLS и Traefik.",
       "type": "http",
-      "url": "https://id.example.net/.well-known/openid-configuration",
+      "url": "https://pocket-id.example.net/.well-known/openid-configuration",
       "interval": 60,
       "maxretries": 2
     },

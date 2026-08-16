@@ -168,7 +168,7 @@ create_pocket_id_env() {
 
   umask 077
   {
-    echo 'POCKET_ID_HOST=id.example.net'
+    echo 'POCKET_ID_HOST=pocket-id.example.net'
     printf 'ENCRYPTION_KEY=%s\n' "$(openssl rand -base64 32)"
     printf 'TRAEFIK_NETWORK_CIDR=%s\n' "$traefik_network_cidr"
   } >"$env_file"

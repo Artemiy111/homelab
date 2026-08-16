@@ -51,7 +51,7 @@
         description: VS Code в браузере
     - Pocket ID:
         icon: mdi-key
-        href: https://id.example.net/
+        href: https://pocket-id.example.net/
         description: Passkey и OpenID Connect
     - Authentik:
         icon: mdi-shield-account
