@@ -52,10 +52,13 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+
     volumes:
       - /storage/apps/sure/data/app:/rails/storage
+
     environment:
       <<: *rails_env
+
     ports:
       - ${PORT:-40060}:3000
     networks:
@@ -64,15 +67,19 @@ services:
 
   worker:
     image: ghcr.io/we-promise/sure:stable
+
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
+
     volumes:
       - /storage/apps/sure/data/app:/rails/storage
+
     environment:
       <<: *rails_env
+
     networks:
       - sure_net
     command: bundle exec sidekiq
@@ -80,13 +87,17 @@ services:
 
   db:
     image: postgres:16
+
     volumes:
       - /storage/apps/sure/data/postgresql:/var/lib/postgresql/data
+
     environment:
       <<: *db_env
+
     networks:
       - sure_net
     restart: unless-stopped
+
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB" ]
       interval: 5s
@@ -95,10 +106,13 @@ services:
 
   backup:
     image: prodrigestivill/postgres-backup-local
+
     depends_on:
       - db
+
     volumes:
       - /storage/apps/sure/data/backups:/backups # Change this path to your desired backup location on the host machine
+
     environment:
       - POSTGRES_HOST=db
       - POSTGRES_DB=${POSTGRES_DB:-sure_production}
@@ -108,19 +122,24 @@ services:
       - BACKUP_KEEP_DAYS=7 # Keeps the last 7 days of backups
       - BACKUP_KEEP_WEEKS=4 # Keeps 4 weekly backups
       - BACKUP_KEEP_MONTHS=6 # Keeps 6 monthly backups
+
     networks:
       - sure_net
     restart: unless-stopped
+
     profiles:
       - backup
 
   redis:
     image: redis:latest
+
     volumes:
       - /storage/apps/sure/data/redis:/data
+
     networks:
       - sure_net
     restart: unless-stopped
+
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
       interval: 5s

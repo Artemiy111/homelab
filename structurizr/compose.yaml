@@ -4,9 +4,11 @@ services:
     container_name: structurizr
     volumes:
       - /storage/apps/structurizr:/usr/local/structurizr:Z,rw
+
     networks:
       - traefiknet
     restart: unless-stopped
+
     labels:
       - traefik.enable=true
       - traefik.http.routers.structurizr.rule=Host(`structurizr.example.net`)

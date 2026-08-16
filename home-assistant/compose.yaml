@@ -6,10 +6,12 @@ services:
       - /storage/apps/home-assistant:/config:Z
       - ./configuration.yaml:/config/configuration.yaml:Z,ro
       - /etc/localtime:/etc/localtime:ro
+
     environment:
       TZ: Asia/Yekaterinburg
     network_mode: host
     restart: unless-stopped
+
     healthcheck:
       test:
         - CMD
@@ -21,6 +23,7 @@ services:
       timeout: 10s
       retries: 5
       start_period: 60s
+
     labels:
       - traefik.enable=true
       - traefik.http.routers.homeassistant.rule=Host(`${HOME_ASSISTANT_HOST}`)
@@ -28,6 +31,7 @@ services:
       - traefik.http.routers.homeassistant.middlewares=homeassistant-lan-only
       - traefik.http.middlewares.homeassistant-lan-only.ipallowlist.sourcerange=192.0.2.10/24
       - traefik.http.services.homeassistant.loadbalancer.server.port=8123
+
     cap_add:
       - NET_RAW
     cap_drop:

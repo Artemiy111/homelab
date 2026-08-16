@@ -90,10 +90,13 @@ npx dclint . -r
 
 ```sh
 npx dclint . -r --fix
+python3 scripts/compose-format.py
 ```
 
 Правило `service-keys-order` включает только группировку по смыслу; остальные
 стилевые правила отключены в `.dclintrc`, чтобы не менять то, что не просили.
+dclint не умеет вставлять пустые строки между группами, поэтому после `--fix`
+запускается `scripts/compose-format.py` (идемпотентен, комментарии сохраняет).
 Подробный разбор инструментов — в `docs/research/docker-compose-lint.md`.
 
 ## Пакеты хоста

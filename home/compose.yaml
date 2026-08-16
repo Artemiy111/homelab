@@ -44,6 +44,7 @@ services:
       - traefik.http.services.homepage.loadbalancer.server.port=3000
       - traefik.docker.network=traefiknet
     user: "1000:1000"
+
     cap_drop:
       - ALL
     cpus: 0.5

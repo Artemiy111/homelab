@@ -6,6 +6,7 @@ services:
     container_name: pocket-id
     volumes:
       - /storage/apps/pocket-id/data:/app/data:Z
+
     environment:
       APP_URL: https://${POCKET_ID_HOST:?set POCKET_ID_HOST in pocket-id/.env}
       ENCRYPTION_KEY: ${ENCRYPTION_KEY:?set ENCRYPTION_KEY in pocket-id/.env}
@@ -14,15 +15,18 @@ services:
       ANALYTICS_DISABLED: "true"
       PUID: 1000
       PGID: 1000
+
     networks:
       - traefiknet
     restart: unless-stopped
+
     healthcheck:
       test: [ "CMD", "/app/pocket-id", "healthcheck" ]
       interval: 90s
       timeout: 5s
       retries: 3
       start_period: 10s
+
     labels:
       - traefik.enable=true
       - traefik.http.routers.pocket-id.rule=Host(`${POCKET_ID_HOST}`)
@@ -36,6 +40,7 @@ services:
       - traefik.docker.network=traefiknet
     user: "1000:1000"
     read_only: true
+
     security_opt:
       - no-new-privileges:true
 

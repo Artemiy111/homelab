@@ -28,13 +28,16 @@ services:
     image: postgres:18-alpine
     volumes:
       - /storage/apps/gitea/postgresql:/var/lib/postgresql:Z
+
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-gitea}
       POSTGRES_USER: ${POSTGRES_USER:-gitea}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in gitea/.env}
+
     networks:
       - backend
     restart: unless-stopped
+
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}" ]
       interval: 10s
@@ -45,13 +48,17 @@ services:
   app:
     image: docker.gitea.com/gitea:1.27.1
     container_name: gitea
+
     depends_on:
       db:
         condition: service_healthy
+
     volumes:
       - /storage/apps/gitea/data:/data:z
+
     environment:
       <<: *gitea-environment
+
     ports:
       - "192.0.2.10:${GITEA_SSH_PORT:-2222}:22"
     networks:
@@ -60,6 +67,7 @@ services:
         aliases:
           - gitea
     restart: unless-stopped
+
     healthcheck:
       test:
         - CMD-SHELL
@@ -69,6 +77,7 @@ services:
       timeout: 10s
       retries: 5
       start_period: 2m
+
     labels:
       - traefik.enable=true
       - traefik.http.routers.gitea.rule=Host(`${GITEA_HOST}`)
@@ -83,18 +92,23 @@ services:
 
   init-admin:
     image: docker.gitea.com/gitea:1.27.1
+
     depends_on:
       app:
         condition: service_healthy
+
     volumes:
       - /storage/apps/gitea/data:/data:z
+
     environment:
       <<: *gitea-environment
       GITEA_ADMIN_USERNAME: ${GITEA_ADMIN_USERNAME:?set GITEA_ADMIN_USERNAME in gitea/.env}
       GITEA_ADMIN_PASSWORD: ${GITEA_ADMIN_PASSWORD:?set GITEA_ADMIN_PASSWORD in gitea/.env}
       GITEA_ADMIN_EMAIL: ${GITEA_ADMIN_EMAIL:?set GITEA_ADMIN_EMAIL in gitea/.env}
+
     networks:
       - backend
+
     command:
       - >-
         gitea admin user create --config /data/gitea/conf/app.ini --username "$${GITEA_ADMIN_USERNAME}" --password "$${GITEA_ADMIN_PASSWORD}" --email "$${GITEA_ADMIN_EMAIL}" --admin --must-change-password
@@ -103,23 +117,29 @@ services:
       - -ec
     restart: "no"
     user: git
+
     profiles:
       - tools
 
   backup-db:
     image: postgres:18-alpine
+
     depends_on:
       db:
         condition: service_healthy
+
     volumes:
       - /storage/apps/gitea/backups:/backups:Z
+
     environment:
       PGHOST: db
       PGDATABASE: ${POSTGRES_DB:-gitea}
       PGUSER: ${POSTGRES_USER:-gitea}
       PGPASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in gitea/.env}
+
     networks:
       - backend
+
     command:
       - >-
         umask 077; pg_dump --format=custom --file=/backups/gitea.dump.tmp; mv /backups/gitea.dump.tmp /backups/gitea.dump
@@ -127,6 +147,7 @@ services:
       - /bin/sh
       - -ec
     restart: "no"
+
     profiles:
       - tools
 

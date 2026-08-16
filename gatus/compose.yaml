@@ -5,9 +5,11 @@ services:
     volumes:
       - ./config:/config:Z,ro
       - /storage/apps/gatus/data:/data:Z
+
     networks:
       - traefiknet
     restart: unless-stopped
+
     labels:
       - traefik.enable=true
       - traefik.http.routers.gatus.rule=Host(`${GATUS_HOST}`)
@@ -15,6 +17,7 @@ services:
       - traefik.http.services.gatus.loadbalancer.server.port=8080
       - traefik.docker.network=traefiknet
     user: "1000:1000"
+
     cap_drop:
       - ALL
     security_opt:

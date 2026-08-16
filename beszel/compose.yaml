@@ -5,18 +5,22 @@ services:
     volumes:
       - /storage/apps/beszel/data:/beszel_data:Z
       - /storage/apps/beszel/socket:/beszel_socket:z
+
     environment:
       APP_URL: https://${BESZEL_HOST}
       DISABLE_PASSWORD_AUTH: true
+
     networks:
       - traefiknet
     restart: unless-stopped
+
     healthcheck:
       test: [ "CMD", "/beszel", "health", "--url", "http://127.0.0.1:8090" ]
       interval: 120s
       timeout: 5s
       retries: 3
       start_period: 10s
+
     labels:
       - traefik.enable=true
       - traefik.http.routers.beszel.rule=Host(`${BESZEL_HOST}`)
@@ -24,6 +28,7 @@ services:
       - traefik.http.services.beszel.loadbalancer.server.port=8090
       - traefik.docker.network=traefiknet
     user: "1000:1000"
+
     cap_drop:
       - ALL
     security_opt:
@@ -32,13 +37,16 @@ services:
   beszel-agent:
     image: henrygd/beszel-agent:0.18.7@sha256:8874e2c53f9de5e063a6a80d6b617e20fa593ac5dc4eb4c6ce1f912f510f38f8
     container_name: beszel-agent
+
     depends_on:
       beszel:
         condition: service_healthy
+
     volumes:
       - /storage/apps/beszel/agent:/var/lib/beszel-agent:Z
       - /storage/apps/beszel/socket:/beszel_socket:z
       - /var/run/docker.sock:/var/run/docker.sock:ro
+
     environment:
       LISTEN: /beszel_socket/beszel.sock
       HUB_URL: https://${BESZEL_HOST}
@@ -46,12 +54,14 @@ services:
       TOKEN: ${BESZEL_AGENT_TOKEN:-}
     network_mode: host
     restart: unless-stopped
+
     healthcheck:
       test: [ "CMD", "/agent", "health" ]
       interval: 120s
       timeout: 5s
       retries: 3
       start_period: 10s
+
     profiles:
       - agent
     security_opt:

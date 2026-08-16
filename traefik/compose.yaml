@@ -7,11 +7,13 @@ services:
       - /storage/apps/traefik/letsencrypt:/letsencrypt:Z
       - ./traefik.yaml:/etc/traefik/traefik.yaml:Z,ro
       - ./dynamic:/etc/traefik/dynamic:ro
+
     environment:
       RFC2136_NAMESERVER: ${RFC2136_NAMESERVER:?set RFC2136_NAMESERVER in traefik/.env}
       RFC2136_TSIG_ALGORITHM: ${RFC2136_TSIG_ALGORITHM:?set RFC2136_TSIG_ALGORITHM in traefik/.env}
       RFC2136_TSIG_KEY: ${RFC2136_TSIG_KEY:?set RFC2136_TSIG_KEY in traefik/.env}
       RFC2136_TSIG_SECRET: ${RFC2136_TSIG_SECRET:?set RFC2136_TSIG_SECRET in traefik/.env}
+
     ports:
       - "192.0.2.10:80:80"
       - "192.0.2.10:443:443"
@@ -20,12 +22,14 @@ services:
     extra_hosts:
       - host.docker.internal:host-gateway
     restart: unless-stopped
+
     healthcheck:
       test: [ "CMD", "traefik", "healthcheck", "--ping" ]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 10s
+
     labels:
       - traefik.enable=true
       - traefik.http.routers.traefik.rule=Host(`${TRAEFIK_HOST}`)
@@ -33,6 +37,7 @@ services:
       - traefik.http.routers.traefik.service=api@internal
       - traefik.http.routers.traefik.middlewares=traefik-auth
       - traefik.http.middlewares.traefik-auth.basicauth.users=${TRAEFIK_DASHBOARD_USERS}
+
     security_opt:
       - no-new-privileges:true
 

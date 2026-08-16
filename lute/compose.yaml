@@ -5,6 +5,7 @@ services:
     volumes:
       - /storage/apps/lute/data/data:/lute_data
       - /storage/apps/lute/data/backups:/lute_backup
+
     networks:
       - traefiknet
     restart: unless-stopped
@@ -27,6 +28,7 @@ services:
       - traefik.http.routers.lute.entrypoints=websecure
       - traefik.http.services.lute.loadbalancer.server.port=5001
       - traefik.docker.network=traefiknet
+
     cap_add:
       - DAC_OVERRIDE
     cap_drop:

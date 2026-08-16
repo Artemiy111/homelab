@@ -24,13 +24,16 @@ services:
     image: postgres:18-alpine
     volumes:
       - /storage/apps/nextcloud/postgresql-18:/var/lib/postgresql/18/docker:Z
+
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-nextcloud}
       POSTGRES_USER: ${POSTGRES_USER:-nextcloud}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in nextcloud/.env}
+
     networks:
       - backend
     restart: unless-stopped
+
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}" ]
       interval: 10s
@@ -40,12 +43,15 @@ services:
 
   redis:
     image: redis:8-alpine
+
     volumes:
       - /storage/apps/nextcloud/redis:/data:Z
+
     networks:
       - backend
     command: redis-server --save 60 1 --loglevel warning
     restart: unless-stopped
+
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
       interval: 10s
@@ -54,21 +60,26 @@ services:
 
   app:
     image: nextcloud:34.0.3-apache
+
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
+
     volumes:
       - /storage/apps/nextcloud/html:/var/www/html:z
+
     environment:
       <<: *nextcloud-environment
+
     networks:
       backend:
       traefiknet:
         aliases:
           - nextcloud
     restart: unless-stopped
+
     healthcheck:
       test:
         - CMD-SHELL
@@ -78,6 +89,7 @@ services:
       timeout: 10s
       retries: 5
       start_period: 5m
+
     labels:
       - traefik.enable=true
       - traefik.http.routers.nextcloud.rule=Host(`${NEXTCLOUD_HOST}`)
@@ -94,41 +106,52 @@ services:
       - traefik.http.middlewares.nextcloud-security.headers.referrerPolicy=no-referrer
       - traefik.docker.network=traefiknet
     init: true
+
     security_opt:
       - no-new-privileges:true
 
   cron:
     image: nextcloud:34.0.3-apache
+
     depends_on:
       app:
         condition: service_healthy
+
     volumes:
       - /storage/apps/nextcloud/html:/var/www/html:z
+
     environment:
       <<: *nextcloud-environment
+
     networks:
       - backend
       - traefiknet
     entrypoint: /cron.sh
     restart: unless-stopped
     init: true
+
     security_opt:
       - no-new-privileges:true
 
   backup-db:
     image: postgres:18-alpine
+
     depends_on:
       db:
         condition: service_healthy
+
     volumes:
       - /storage/apps/nextcloud/backups:/backups:Z
+
     environment:
       PGHOST: db
       PGDATABASE: ${POSTGRES_DB:-nextcloud}
       PGUSER: ${POSTGRES_USER:-nextcloud}
       PGPASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in nextcloud/.env}
+
     networks:
       - backend
+
     command:
       - >-
         umask 077; pg_dump --format=custom --file=/backups/nextcloud.dump.tmp; mv /backups/nextcloud.dump.tmp /backups/nextcloud.dump
@@ -136,6 +159,7 @@ services:
       - /bin/sh
       - -ec
     restart: "no"
+
     profiles:
       - tools
 

@@ -6,11 +6,14 @@ services:
       - /storage/apps/jellyfin/config:/config:Z
       - /storage/apps/jellyfin/cache:/cache:Z
       - /storage/media:/media:z,ro
+
     environment:
       JELLYFIN_PublishedServerUrl: https://${JELLYFIN_HOST}
+
     networks:
       - traefiknet
     restart: unless-stopped
+
     labels:
       - traefik.enable=true
       - traefik.http.routers.jellyfin.rule=Host(`${JELLYFIN_HOST}`)
@@ -18,6 +21,7 @@ services:
       - traefik.http.services.jellyfin.loadbalancer.server.port=8096
       - traefik.docker.network=traefiknet
     user: "1000:1000"
+
     devices:
       - /dev/dri/renderD128:/dev/dri/renderD128
     group_add:

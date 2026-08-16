@@ -5,13 +5,16 @@ services:
     volumes:
       - /storage/apps/spotdl/config:/config:Z
       - /storage/media/music:/music:z
+
     environment:
       XDG_CONFIG_HOME: /config
+
     command:
       - --help
     working_dir: /music
     restart: "no"
     user: "1000:1000"
+
     cap_drop:
       - ALL
     profiles:

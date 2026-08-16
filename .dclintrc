@@ -1,4 +1,5 @@
 {
+  "$schema": "https://raw.githubusercontent.com/zavoloklom/docker-compose-linter/refs/heads/main/schemas/linter-config.schema.json",
   "rules": {
     "service-keys-order": 2,
     "service-image-require-explicit-tag": 0,
