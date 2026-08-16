@@ -22,6 +22,10 @@ services:
   redis:
     image: redis:7.4-alpine
     container_name: dawarich_redis
+    volumes:
+      - /storage/apps/dawarich/redis:/data:Z
+    networks:
+      - backend
     command:
       - redis-server
       - --save
@@ -33,12 +37,8 @@ services:
       - --appendonly
       - "no"
     restart: unless-stopped
-    volumes:
-      - /storage/apps/dawarich/redis:/data:Z
-    networks:
-      - backend
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -47,44 +47,27 @@ services:
   db:
     image: postgis/postgis:17-3.5-alpine
     container_name: dawarich_db
-    shm_size: 1g
-    restart: unless-stopped
+    volumes:
+      - /storage/apps/dawarich/postgresql:/var/lib/postgresql/data:z
+      - /storage/apps/dawarich/shared:/var/shared:z
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-dawarich}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in dawarich/.env}
       POSTGRES_DB: ${POSTGRES_DB:-dawarich_production}
-    volumes:
-      - /storage/apps/dawarich/postgresql:/var/lib/postgresql/data:z
-      - /storage/apps/dawarich/shared:/var/shared:z
     networks:
       - backend
+    restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}" ]
       interval: 10s
       timeout: 10s
       retries: 5
       start_period: 30s
+    shm_size: 1g
 
   app:
     image: freikin/dawarich:${DAWARICH_VERSION:-1.11.0}
     container_name: dawarich_app
-    init: true
-    restart: unless-stopped
-    entrypoint: web-entrypoint.sh
-    command: ["bin/rails", "server", "-p", "3000", "-b", "::"]
-    environment:
-      <<: *dawarich-environment
-      WEB_CONCURRENCY: ${WEB_CONCURRENCY:-1}
-    volumes:
-      - /storage/apps/dawarich/public:/var/app/public:z
-      - /storage/apps/dawarich/watched:/var/app/tmp/imports/watched:z
-      - /storage/apps/dawarich/storage:/var/app/storage:z
-      - /storage/apps/dawarich/postgresql:/dawarich_db_data:z
-    networks:
-      backend:
-      traefiknet:
-        aliases:
-          - dawarich
     depends_on:
       db:
         condition: service_healthy
@@ -92,27 +75,36 @@ services:
       redis:
         condition: service_healthy
         restart: true
-    deploy:
-      resources:
-        limits:
-          cpus: ${APP_CPU_LIMIT:-0.50}
-          memory: ${APP_MEMORY_LIMIT:-4G}
+    volumes:
+      - /storage/apps/dawarich/public:/var/app/public:z
+      - /storage/apps/dawarich/watched:/var/app/tmp/imports/watched:z
+      - /storage/apps/dawarich/storage:/var/app/storage:z
+      - /storage/apps/dawarich/postgresql:/dawarich_db_data:z
+    environment:
+      <<: *dawarich-environment
+      WEB_CONCURRENCY: ${WEB_CONCURRENCY:-1}
+    networks:
+      backend:
+      traefiknet:
+        aliases:
+          - dawarich
+    command: [ "bin/rails", "server", "-p", "3000", "-b", "::" ]
+    entrypoint: web-entrypoint.sh
+    restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          wget --header='X-Forwarded-Proto: https' -qO- http://127.0.0.1:3000/api/v1/health | grep -Eq '"status"[[:space:]]*:[[:space:]]*"ok"'
+      interval: 10s
+      timeout: 10s
+      retries: 30
+      start_period: 30s
     logging:
       driver: json-file
       options:
         max-size: ${LOG_MAX_SIZE:-100m}
         max-file: ${LOG_MAX_FILE:-5}
-    healthcheck:
-      test:
-        - CMD-SHELL
-        - >-
-          wget --header='X-Forwarded-Proto: https' -qO-
-          http://127.0.0.1:3000/api/v1/health |
-          grep -Eq '"status"[[:space:]]*:[[:space:]]*"ok"'
-      interval: 10s
-      timeout: 10s
-      retries: 30
-      start_period: 30s
     labels:
       - traefik.enable=true
       - traefik.http.routers.dawarich.rule=Host(`${DAWARICH_HOST}`)
@@ -124,23 +116,16 @@ services:
       - traefik.http.middlewares.dawarich-security.headers.contentTypeNosniff=true
       - traefik.http.middlewares.dawarich-security.headers.referrerPolicy=origin
       - traefik.docker.network=traefiknet
+    deploy:
+      resources:
+        limits:
+          cpus: ${APP_CPU_LIMIT:-0.50}
+          memory: ${APP_MEMORY_LIMIT:-4G}
+    init: true
 
   sidekiq:
     image: freikin/dawarich:${DAWARICH_VERSION:-1.11.0}
     container_name: dawarich_sidekiq
-    init: true
-    restart: unless-stopped
-    entrypoint: sidekiq-entrypoint.sh
-    command: ["sidekiq"]
-    environment:
-      <<: *dawarich-environment
-      BACKGROUND_PROCESSING_CONCURRENCY: ${BACKGROUND_PROCESSING_CONCURRENCY:-3}
-    volumes:
-      - /storage/apps/dawarich/public:/var/app/public:z
-      - /storage/apps/dawarich/watched:/var/app/tmp/imports/watched:z
-      - /storage/apps/dawarich/storage:/var/app/storage:z
-    networks:
-      - backend
     depends_on:
       db:
         condition: service_healthy
@@ -151,43 +136,54 @@ services:
       app:
         condition: service_healthy
         restart: true
+    volumes:
+      - /storage/apps/dawarich/public:/var/app/public:z
+      - /storage/apps/dawarich/watched:/var/app/tmp/imports/watched:z
+      - /storage/apps/dawarich/storage:/var/app/storage:z
+    environment:
+      <<: *dawarich-environment
+      BACKGROUND_PROCESSING_CONCURRENCY: ${BACKGROUND_PROCESSING_CONCURRENCY:-3}
+    networks:
+      - backend
+    command: [ "sidekiq" ]
+    entrypoint: sidekiq-entrypoint.sh
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "pgrep -f sidekiq" ]
+      interval: 10s
+      timeout: 10s
+      retries: 30
+      start_period: 30s
     logging:
       driver: json-file
       options:
         max-size: ${LOG_MAX_SIZE:-100m}
         max-file: ${LOG_MAX_FILE:-5}
-    healthcheck:
-      test: ["CMD-SHELL", "pgrep -f sidekiq"]
-      interval: 10s
-      timeout: 10s
-      retries: 30
-      start_period: 30s
+    init: true
 
   backup-db:
     image: postgres:17-alpine
-    profiles:
-      - tools
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - /storage/apps/dawarich/backups:/backups:Z
     environment:
       PGHOST: db
       PGDATABASE: ${POSTGRES_DB:-dawarich_production}
       PGUSER: ${POSTGRES_USER:-dawarich}
       PGPASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in dawarich/.env}
-    volumes:
-      - /storage/apps/dawarich/backups:/backups:Z
     networks:
       - backend
-    depends_on:
-      db:
-        condition: service_healthy
+    command:
+      - >-
+        umask 077; pg_dump --format=custom --file=/backups/dawarich.dump.tmp; mv /backups/dawarich.dump.tmp /backups/dawarich.dump
     entrypoint:
       - /bin/sh
       - -ec
-    command:
-      - >-
-        umask 077;
-        pg_dump --format=custom --file=/backups/dawarich.dump.tmp;
-        mv /backups/dawarich.dump.tmp /backups/dawarich.dump
     restart: "no"
+    profiles:
+      - tools
 
 networks:
   backend:

@@ -8,17 +8,17 @@ services:
     networks:
       - traefiknet
     restart: unless-stopped
-    user: "1000:1000"
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
     labels:
       - traefik.enable=true
       - traefik.http.routers.gatus.rule=Host(`${GATUS_HOST}`)
       - traefik.http.routers.gatus.entrypoints=websecure
       - traefik.http.services.gatus.loadbalancer.server.port=8080
       - traefik.docker.network=traefiknet
+    user: "1000:1000"
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
 
 networks:
   traefiknet:

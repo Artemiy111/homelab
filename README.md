@@ -76,6 +76,26 @@ docker compose up -d
 одновременно с Traefik: оба сервиса публикуют порты 80 и 443. `wg-easy/` также
 пока не разворачивается.
 
+## Линтинг Compose-файлов
+
+Все `compose.yaml` приводятся к единому порядку полей (смысловая группировка
+ключей) через [dclint](https://github.com/zavoloklom/docker-compose-linter) с
+конфигом `.dclintrc` в корне. Проверка:
+
+```sh
+npx dclint . -r
+```
+
+Автоматическое приведение порядка полей:
+
+```sh
+npx dclint . -r --fix
+```
+
+Правило `service-keys-order` включает только группировку по смыслу; остальные
+стилевые правила отключены в `.dclintrc`, чтобы не менять то, что не просили.
+Подробный разбор инструментов — в `docs/research/docker-compose-lint.md`.
+
 ## Пакеты хоста
 
 - `@virtualization`

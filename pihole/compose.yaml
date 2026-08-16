@@ -2,6 +2,9 @@ services:
   pihole:
     image: pihole/pihole:latest
     container_name: pihole
+    volumes:
+      - /storage/apps/pihole/etc-pihole:/etc/pihole:Z
+      - ./etc-dnsmasq.d/05-homelab.conf:/etc/dnsmasq.d/05-homelab.conf:Z,ro
     environment:
       TZ: Asia/Yekaterinburg
       FTLCONF_dns_listeningMode: ALL
@@ -11,17 +14,12 @@ services:
     ports:
       - "192.0.2.10:53:53/tcp"
       - "192.0.2.10:53:53/udp"
-    volumes:
-      - /storage/apps/pihole/etc-pihole:/etc/pihole:Z
-      - ./etc-dnsmasq.d/05-homelab.conf:/etc/dnsmasq.d/05-homelab.conf:Z,ro
     networks:
       - default
       - traefiknet
     restart: unless-stopped
-    security_opt:
-      - no-new-privileges:true
     healthcheck:
-      test: ["CMD", "dig", "+short", "+norecurse", "@127.0.0.1", "pi.hole"]
+      test: [ "CMD", "dig", "+short", "+norecurse", "@127.0.0.1", "pi.hole" ]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -32,6 +30,8 @@ services:
       - traefik.http.routers.pihole.entrypoints=websecure
       - traefik.http.services.pihole.loadbalancer.server.port=80
       - traefik.docker.network=traefiknet
+    security_opt:
+      - no-new-privileges:true
 
 networks:
   traefiknet:

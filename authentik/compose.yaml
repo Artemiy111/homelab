@@ -15,45 +15,41 @@ services:
   postgresql:
     image: postgres:18-alpine
     container_name: authentik-postgresql
-    restart: unless-stopped
+    volumes:
+      - /storage/apps/authentik/postgresql:/var/lib/postgresql:Z
     environment:
       POSTGRES_DB: ${AUTHENTIK_POSTGRESQL_DATABASE:-authentik}
       POSTGRES_USER: ${AUTHENTIK_POSTGRESQL_USER:-authentik}
       POSTGRES_PASSWORD: ${AUTHENTIK_POSTGRESQL_PASSWORD:?set AUTHENTIK_POSTGRESQL_PASSWORD in authentik/.env}
-    volumes:
-      - /storage/apps/authentik/postgresql:/var/lib/postgresql:Z
     networks:
       - backend
+    restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}" ]
       interval: 10s
       timeout: 5s
       retries: 10
       start_period: 20s
+    mem_limit: 256m
     security_opt:
       - no-new-privileges:true
-    mem_limit: 256m
 
   server:
     image: ghcr.io/goauthentik/server:2026.5.6
     container_name: authentik-server
-    command: server
-    restart: unless-stopped
-    environment: *authentik-environment
-    volumes:
-      - /storage/apps/authentik/data:/data:Z
-    networks:
-      - backend
-      - traefiknet
     depends_on:
       postgresql:
         condition: service_healthy
-    shm_size: 512mb
-    security_opt:
-      - no-new-privileges:true
-    mem_limit: 512m
+    volumes:
+      - /storage/apps/authentik/data:/data:Z
+    environment: *authentik-environment
+    networks:
+      - backend
+      - traefiknet
+    command: server
+    restart: unless-stopped
     healthcheck:
-      test: ["CMD", "ak", "healthcheck"]
+      test: [ "CMD", "ak", "healthcheck" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -71,56 +67,58 @@ services:
       - traefik.http.middlewares.authentik-security.headers.contentTypeNosniff=true
       - traefik.http.middlewares.authentik-security.headers.referrerPolicy=no-referrer
       - traefik.docker.network=traefiknet
+    mem_limit: 512m
+    security_opt:
+      - no-new-privileges:true
+    shm_size: 512mb
 
   worker:
     image: ghcr.io/goauthentik/server:2026.5.6
     container_name: authentik-worker
-    command: worker
-    restart: unless-stopped
-    environment: *authentik-environment
-    volumes:
-      - /storage/apps/authentik/data:/data:Z
-    networks:
-      - backend
     depends_on:
       postgresql:
         condition: service_healthy
-    shm_size: 512mb
-    security_opt:
-      - no-new-privileges:true
-    mem_limit: 256m
+    volumes:
+      - /storage/apps/authentik/data:/data:Z
+    environment: *authentik-environment
+    networks:
+      - backend
+    command: worker
+    restart: unless-stopped
     healthcheck:
-      test: ["CMD", "ak", "healthcheck"]
+      test: [ "CMD", "ak", "healthcheck" ]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 90s
+    mem_limit: 256m
+    security_opt:
+      - no-new-privileges:true
+    shm_size: 512mb
 
   backup-db:
     image: postgres:18-alpine
-    profiles:
-      - tools
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    volumes:
+      - /storage/apps/authentik/backups:/backups:Z
     environment:
       PGHOST: postgresql
       PGDATABASE: ${AUTHENTIK_POSTGRESQL_DATABASE:-authentik}
       PGUSER: ${AUTHENTIK_POSTGRESQL_USER:-authentik}
       PGPASSWORD: ${AUTHENTIK_POSTGRESQL_PASSWORD:?set AUTHENTIK_POSTGRESQL_PASSWORD in authentik/.env}
-    volumes:
-      - /storage/apps/authentik/backups:/backups:Z
     networks:
       - backend
-    depends_on:
-      postgresql:
-        condition: service_healthy
+    command:
+      - >-
+        umask 077; pg_dump --format=custom --file=/backups/authentik.dump.tmp; mv /backups/authentik.dump.tmp /backups/authentik.dump
     entrypoint:
       - /bin/sh
       - -ec
-    command:
-      - >-
-        umask 077;
-        pg_dump --format=custom --file=/backups/authentik.dump.tmp;
-        mv /backups/authentik.dump.tmp /backups/authentik.dump
     restart: "no"
+    profiles:
+      - tools
 
 networks:
   backend:

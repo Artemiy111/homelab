@@ -2,28 +2,28 @@ services:
   jellyfin:
     image: jellyfin/jellyfin:10
     container_name: jellyfin
-    user: "1000:1000"
-    group_add:
-      - "${JELLYFIN_RENDER_GROUP_ID:-105}"
-    environment:
-      JELLYFIN_PublishedServerUrl: https://${JELLYFIN_HOST}
     volumes:
       - /storage/apps/jellyfin/config:/config:Z
       - /storage/apps/jellyfin/cache:/cache:Z
       - /storage/media:/media:z,ro
-    devices:
-      - /dev/dri/renderD128:/dev/dri/renderD128
+    environment:
+      JELLYFIN_PublishedServerUrl: https://${JELLYFIN_HOST}
     networks:
       - traefiknet
     restart: unless-stopped
-    security_opt:
-      - no-new-privileges:true
     labels:
       - traefik.enable=true
       - traefik.http.routers.jellyfin.rule=Host(`${JELLYFIN_HOST}`)
       - traefik.http.routers.jellyfin.entrypoints=websecure
       - traefik.http.services.jellyfin.loadbalancer.server.port=8096
       - traefik.docker.network=traefiknet
+    user: "1000:1000"
+    devices:
+      - /dev/dri/renderD128:/dev/dri/renderD128
+    group_add:
+      - "${JELLYFIN_RENDER_GROUP_ID:-105}"
+    security_opt:
+      - no-new-privileges:true
 
 networks:
   traefiknet:

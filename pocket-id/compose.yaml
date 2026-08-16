@@ -4,6 +4,8 @@ services:
   pocket-id:
     image: ghcr.io/pocket-id/pocket-id:v2.12.0-distroless@sha256:b2fad8a82fab26fe4c11797dd13ea55aa6c7d6ea93fe829a139f2e28be2d339d
     container_name: pocket-id
+    volumes:
+      - /storage/apps/pocket-id/data:/app/data:Z
     environment:
       APP_URL: https://${POCKET_ID_HOST:?set POCKET_ID_HOST in pocket-id/.env}
       ENCRYPTION_KEY: ${ENCRYPTION_KEY:?set ENCRYPTION_KEY in pocket-id/.env}
@@ -12,17 +14,11 @@ services:
       ANALYTICS_DISABLED: "true"
       PUID: 1000
       PGID: 1000
-    user: "1000:1000"
-    read_only: true
-    volumes:
-      - /storage/apps/pocket-id/data:/app/data:Z
     networks:
       - traefiknet
     restart: unless-stopped
-    security_opt:
-      - no-new-privileges:true
     healthcheck:
-      test: ["CMD", "/app/pocket-id", "healthcheck"]
+      test: [ "CMD", "/app/pocket-id", "healthcheck" ]
       interval: 90s
       timeout: 5s
       retries: 3
@@ -38,6 +34,10 @@ services:
       - traefik.http.middlewares.pocket-id-security.headers.referrerPolicy=no-referrer
       - traefik.http.routers.pocket-id.middlewares=pocket-id-security
       - traefik.docker.network=traefiknet
+    user: "1000:1000"
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
 
 networks:
   traefiknet:

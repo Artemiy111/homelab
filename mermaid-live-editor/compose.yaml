@@ -2,28 +2,13 @@ services:
   mermaid-editor:
     image: ghcr.io/mermaid-js/mermaid-live-editor:latest
     container_name: mermaid-live-editor
-    restart: unless-stopped
 
     networks:
       - traefiknet
-
-    user: "1000:1000"
-    read_only: true
-    tmpfs:
-      - /tmp:mode=1777
-      - /var/run:mode=1777
-      - /var/cache/nginx:mode=1777
-    cap_drop:
-      - ALL
-    security_opt:
-      - no-new-privileges:true
-
-    pids_limit: 50
-    mem_limit: 64m
-    cpus: 0.5
+    restart: unless-stopped
 
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:8080/"]
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:8080/" ]
       interval: 30s
       timeout: 3s
       retries: 3
@@ -43,7 +28,21 @@ services:
       - traefik.http.services.mermaid-live-editor.loadbalancer.server.port=8080
       - traefik.docker.network=traefiknet
 
+    user: "1000:1000"
+    cap_drop:
+      - ALL
+    cpus: 0.5
+    mem_limit: 64m
+
+    pids_limit: 50
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:mode=1777
+      - /var/run:mode=1777
+      - /var/cache/nginx:mode=1777
+
 networks:
   traefiknet:
     external: true
-    

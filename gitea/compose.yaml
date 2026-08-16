@@ -26,17 +26,17 @@ x-gitea-environment: &gitea-environment
 services:
   db:
     image: postgres:18-alpine
-    restart: unless-stopped
+    volumes:
+      - /storage/apps/gitea/postgresql:/var/lib/postgresql:Z
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-gitea}
       POSTGRES_USER: ${POSTGRES_USER:-gitea}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in gitea/.env}
-    volumes:
-      - /storage/apps/gitea/postgresql:/var/lib/postgresql:Z
     networks:
       - backend
+    restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}" ]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -45,11 +45,13 @@ services:
   app:
     image: docker.gitea.com/gitea:1.27.1
     container_name: gitea
-    restart: unless-stopped
-    environment:
-      <<: *gitea-environment
+    depends_on:
+      db:
+        condition: service_healthy
     volumes:
       - /storage/apps/gitea/data:/data:z
+    environment:
+      <<: *gitea-environment
     ports:
       - "192.0.2.10:${GITEA_SSH_PORT:-2222}:22"
     networks:
@@ -57,15 +59,12 @@ services:
       traefiknet:
         aliases:
           - gitea
-    depends_on:
-      db:
-        condition: service_healthy
+    restart: unless-stopped
     healthcheck:
       test:
         - CMD-SHELL
         - >-
-          wget -qO- http://127.0.0.1:3000/api/healthz |
-          grep -Eq '"status"[[:space:]]*:[[:space:]]*"pass"'
+          wget -qO- http://127.0.0.1:3000/api/healthz | grep -Eq '"status"[[:space:]]*:[[:space:]]*"pass"'
       interval: 30s
       timeout: 10s
       retries: 5
@@ -84,60 +83,52 @@ services:
 
   init-admin:
     image: docker.gitea.com/gitea:1.27.1
-    profiles:
-      - tools
-    user: git
+    depends_on:
+      app:
+        condition: service_healthy
+    volumes:
+      - /storage/apps/gitea/data:/data:z
     environment:
       <<: *gitea-environment
       GITEA_ADMIN_USERNAME: ${GITEA_ADMIN_USERNAME:?set GITEA_ADMIN_USERNAME in gitea/.env}
       GITEA_ADMIN_PASSWORD: ${GITEA_ADMIN_PASSWORD:?set GITEA_ADMIN_PASSWORD in gitea/.env}
       GITEA_ADMIN_EMAIL: ${GITEA_ADMIN_EMAIL:?set GITEA_ADMIN_EMAIL in gitea/.env}
-    volumes:
-      - /storage/apps/gitea/data:/data:z
     networks:
       - backend
-    depends_on:
-      app:
-        condition: service_healthy
+    command:
+      - >-
+        gitea admin user create --config /data/gitea/conf/app.ini --username "$${GITEA_ADMIN_USERNAME}" --password "$${GITEA_ADMIN_PASSWORD}" --email "$${GITEA_ADMIN_EMAIL}" --admin --must-change-password
     entrypoint:
       - /bin/sh
       - -ec
-    command:
-      - >-
-        gitea admin user create
-        --config /data/gitea/conf/app.ini
-        --username "$${GITEA_ADMIN_USERNAME}"
-        --password "$${GITEA_ADMIN_PASSWORD}"
-        --email "$${GITEA_ADMIN_EMAIL}"
-        --admin
-        --must-change-password
     restart: "no"
+    user: git
+    profiles:
+      - tools
 
   backup-db:
     image: postgres:18-alpine
-    profiles:
-      - tools
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - /storage/apps/gitea/backups:/backups:Z
     environment:
       PGHOST: db
       PGDATABASE: ${POSTGRES_DB:-gitea}
       PGUSER: ${POSTGRES_USER:-gitea}
       PGPASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in gitea/.env}
-    volumes:
-      - /storage/apps/gitea/backups:/backups:Z
     networks:
       - backend
-    depends_on:
-      db:
-        condition: service_healthy
+    command:
+      - >-
+        umask 077; pg_dump --format=custom --file=/backups/gitea.dump.tmp; mv /backups/gitea.dump.tmp /backups/gitea.dump
     entrypoint:
       - /bin/sh
       - -ec
-    command:
-      - >-
-        umask 077;
-        pg_dump --format=custom --file=/backups/gitea.dump.tmp;
-        mv /backups/gitea.dump.tmp /backups/gitea.dump
     restart: "no"
+    profiles:
+      - tools
 
 networks:
   backend:

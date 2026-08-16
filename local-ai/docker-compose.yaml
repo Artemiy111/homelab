@@ -3,10 +3,11 @@ name: local-ai
 services:
   api:
     image: localai/localai:v4.8.0@sha256:78befe43707579dbe1b1d3f17d9788aa41ec493da30a6b6aabdf39e5efd23b7c
-    platform: linux/amd64
-    restart: unless-stopped
-    init: true
-    stop_grace_period: 2m
+    volumes:
+      - /storage/apps/local-ai/models:/models:Z
+      - /storage/apps/local-ai/backends:/backends:Z
+      - /storage/apps/local-ai/configuration:/configuration:Z
+      - /storage/apps/local-ai/data:/data:Z
 
     environment:
       HOME: /tmp/localai
@@ -15,30 +16,12 @@ services:
       LOCALAI_LOG_LEVEL: info
       LOCALAI_SUBTLE_KEY_COMPARISON: "true"
 
-    user: "1000:1000"
-    read_only: true
-    tmpfs:
-      - /tmp:mode=1777,nosuid,nodev,size=4g
-    volumes:
-      - /storage/apps/local-ai/models:/models:Z
-      - /storage/apps/local-ai/backends:/backends:Z
-      - /storage/apps/local-ai/configuration:/configuration:Z
-      - /storage/apps/local-ai/data:/data:Z
-    cap_drop:
-      - ALL
-    security_opt:
-      - no-new-privileges:true
-
-    pids_limit: 512
-    mem_limit: 20g
-    memswap_limit: 20g
-    cpus: 14.0
-
     networks:
       - traefiknet
+    restart: unless-stopped
 
     healthcheck:
-      test: ["CMD", "curl", "--fail", "--silent", "--show-error", "http://127.0.0.1:8080/readyz"]
+      test: [ "CMD", "curl", "--fail", "--silent", "--show-error", "http://127.0.0.1:8080/readyz" ]
       start_period: 10m
       interval: 1m
       timeout: 10s
@@ -60,6 +43,23 @@ services:
       - traefik.http.services.local-ai.loadbalancer.healthcheck.interval=30s
       - traefik.http.services.local-ai.loadbalancer.healthcheck.timeout=5s
       - traefik.docker.network=traefiknet
+
+    user: "1000:1000"
+    cap_drop:
+      - ALL
+    cpus: 14.0
+    init: true
+    mem_limit: 20g
+    memswap_limit: 20g
+
+    pids_limit: 512
+    platform: linux/amd64
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    stop_grace_period: 2m
+    tmpfs:
+      - /tmp:mode=1777,nosuid,nodev,size=4g
 
 networks:
   traefiknet:

@@ -8,12 +8,6 @@ services:
     networks:
       - traefiknet
     restart: unless-stopped
-    security_opt:
-      - label:disable
-    cap_drop:
-      - ALL
-    cap_add:
-      - DAC_OVERRIDE
 
     healthcheck:
       test:
@@ -21,15 +15,11 @@ services:
         - python
         - -c
         - >-
-          import urllib.request;
-          urllib.request.urlopen('http://127.0.0.1:5001/', timeout=5)
+          import urllib.request; urllib.request.urlopen('http://127.0.0.1:5001/', timeout=5)
       interval: 30s
       timeout: 10s
       retries: 5
       start_period: 30s
-
-    mem_limit: 512m
-    mem_reservation: 256m
 
     labels:
       - traefik.enable=true
@@ -37,6 +27,15 @@ services:
       - traefik.http.routers.lute.entrypoints=websecure
       - traefik.http.services.lute.loadbalancer.server.port=5001
       - traefik.docker.network=traefiknet
+    cap_add:
+      - DAC_OVERRIDE
+    cap_drop:
+      - ALL
+
+    mem_limit: 512m
+    mem_reservation: 256m
+    security_opt:
+      - label:disable
 
 networks:
   traefiknet:

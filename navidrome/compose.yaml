@@ -2,28 +2,28 @@ services:
   navidrome:
     image: deluan/navidrome:0.63.1
     container_name: navidrome
-    user: "1000:1000"
+    volumes:
+      - /storage/apps/navidrome/data:/data:Z
+      - /storage/media/music:/music:z,ro
     environment:
       ND_DATAFOLDER: /data
       ND_MUSICFOLDER: /music
       ND_SCANNER_SCHEDULE: "@every 1h"
       ND_ENABLESHARING: "false"
-    volumes:
-      - /storage/apps/navidrome/data:/data:Z
-      - /storage/media/music:/music:z,ro
     networks:
       - traefiknet
     restart: unless-stopped
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
     labels:
       - traefik.enable=true
       - traefik.http.routers.navidrome.rule=Host(`${NAVIDROME_HOST}`)
       - traefik.http.routers.navidrome.entrypoints=websecure
       - traefik.http.services.navidrome.loadbalancer.server.port=4533
       - traefik.docker.network=traefiknet
+    user: "1000:1000"
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
 
 networks:
   traefiknet:

@@ -4,30 +4,18 @@ services:
   homepage:
     image: ghcr.io/gethomepage/homepage:v1.13.2@sha256:a0b71c8e757298d02560186bab9fbe3fc2d375c523a62cc1019177b37e48aa28
     container_name: homepage
-    restart: unless-stopped
+    volumes:
+      - ./config:/app/config:Z,ro
 
     environment:
       HOMEPAGE_ALLOWED_HOSTS: ${HOMEPAGE_HOST:?set HOMEPAGE_HOST in home/.env}
       LOG_TARGETS: stdout
       PUID: "1000"
       PGID: "1000"
-    user: "1000:1000"
-    read_only: true
-    volumes:
-      - ./config:/app/config:Z,ro
-    tmpfs:
-      - /tmp:mode=1777,nosuid,nodev
-    cap_drop:
-      - ALL
-    security_opt:
-      - no-new-privileges:true
-
-    pids_limit: 100
-    mem_limit: 256m
-    cpus: 0.5
 
     networks:
       - traefiknet
+    restart: unless-stopped
 
     healthcheck:
       test:
@@ -55,6 +43,18 @@ services:
       - traefik.http.routers.homepage.middlewares=secure-headers@file,ratelimit-default@file
       - traefik.http.services.homepage.loadbalancer.server.port=3000
       - traefik.docker.network=traefiknet
+    user: "1000:1000"
+    cap_drop:
+      - ALL
+    cpus: 0.5
+    mem_limit: 256m
+
+    pids_limit: 100
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:mode=1777,nosuid,nodev
 
 networks:
   traefiknet:

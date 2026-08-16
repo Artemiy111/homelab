@@ -1,0 +1,12 @@
+{
+  "rules": {
+    "service-keys-order": 2,
+    "service-image-require-explicit-tag": 0,
+    "services-alphabetical-order": 0,
+    "require-project-name-field": 0,
+    "top-level-properties-order": 0,
+    "service-dependencies-alphabetical-order": 0,
+    "require-quotes-in-ports": 0,
+    "no-unbound-port-interfaces": 0
+  }
+}

@@ -4,7 +4,12 @@ services:
   web:
     image: jitsi/web:${JITSI_IMAGE_VERSION:?set JITSI_IMAGE_VERSION in jitsi/.env}
     container_name: jitsi-web
-    restart: unless-stopped
+    depends_on:
+      - jicofo
+    volumes:
+      - /storage/apps/jitsi/web:/config:Z
+      - /storage/apps/jitsi/web/crontabs:/var/spool/cron/crontabs:Z
+      - /storage/apps/jitsi/transcripts:/usr/share/jitsi-meet/transcripts:Z
     environment:
       DISABLE_HTTPS: "1"
       ENABLE_AUTH: ${ENABLE_AUTH:-1}
@@ -32,15 +37,10 @@ services:
       XMPP_PORT: 5222
       XMPP_RECORDER_DOMAIN: recorder.meet.jitsi
       XMPP_SERVER: prosody
-    volumes:
-      - /storage/apps/jitsi/web:/config:Z
-      - /storage/apps/jitsi/web/crontabs:/var/spool/cron/crontabs:Z
-      - /storage/apps/jitsi/transcripts:/usr/share/jitsi-meet/transcripts:Z
     networks:
       - default
       - traefiknet
-    depends_on:
-      - jicofo
+    restart: unless-stopped
     labels:
       - traefik.enable=true
       - traefik.http.routers.jitsi.rule=Host(`${JITSI_HOST}`)
@@ -51,7 +51,9 @@ services:
   prosody:
     image: jitsi/prosody:${JITSI_IMAGE_VERSION:?set JITSI_IMAGE_VERSION in jitsi/.env}
     container_name: jitsi-prosody
-    restart: unless-stopped
+    volumes:
+      - /storage/apps/jitsi/prosody/config:/config:Z
+      - /storage/apps/jitsi/prosody/prosody-plugins-custom:/prosody-plugins-custom:Z
     environment:
       AUTH_TYPE: ${AUTH_TYPE:-internal}
       ENABLE_AUTH: ${ENABLE_AUTH:-1}
@@ -71,18 +73,19 @@ services:
       XMPP_INTERNAL_MUC_MODULES: ping
       XMPP_MUC_DOMAIN: muc.meet.jitsi
       XMPP_RECORDER_DOMAIN: recorder.meet.jitsi
-    volumes:
-      - /storage/apps/jitsi/prosody/config:/config:Z
-      - /storage/apps/jitsi/prosody/prosody-plugins-custom:/prosody-plugins-custom:Z
     networks:
       default:
         aliases:
           - xmpp.meet.jitsi
+    restart: unless-stopped
 
   jicofo:
     image: jitsi/jicofo:${JITSI_IMAGE_VERSION:?set JITSI_IMAGE_VERSION in jitsi/.env}
     container_name: jitsi-jicofo
-    restart: unless-stopped
+    depends_on:
+      - prosody
+    volumes:
+      - /storage/apps/jitsi/jicofo:/config:Z
     environment:
       AUTH_TYPE: ${AUTH_TYPE:-internal}
       ENABLE_AUTH: ${ENABLE_AUTH:-1}
@@ -101,19 +104,17 @@ services:
       XMPP_MUC_DOMAIN: muc.meet.jitsi
       XMPP_RECORDER_DOMAIN: recorder.meet.jitsi
       XMPP_SERVER: prosody
-    volumes:
-      - /storage/apps/jitsi/jicofo:/config:Z
     networks:
       - default
-    depends_on:
-      - prosody
+    restart: unless-stopped
 
   jvb:
     image: jitsi/jvb:${JITSI_IMAGE_VERSION:?set JITSI_IMAGE_VERSION in jitsi/.env}
     container_name: jitsi-jvb
-    restart: unless-stopped
-    ports:
-      - "${JVB_BIND_ADDRESS:-192.0.2.10}:${JVB_PORT:-10000}:${JVB_PORT:-10000}/udp"
+    depends_on:
+      - prosody
+    volumes:
+      - /storage/apps/jitsi/jvb:/config:Z
     environment:
       ENABLE_COLIBRI_WEBSOCKET: "1"
       JVB_ADVERTISE_IPS: ${JVB_ADVERTISE_IPS:?set JVB_ADVERTISE_IPS in jitsi/.env}
@@ -130,12 +131,11 @@ services:
       XMPP_AUTH_DOMAIN: auth.meet.jitsi
       XMPP_INTERNAL_MUC_DOMAIN: internal-muc.meet.jitsi
       XMPP_SERVER: prosody
-    volumes:
-      - /storage/apps/jitsi/jvb:/config:Z
+    ports:
+      - "${JVB_BIND_ADDRESS:-192.0.2.10}:${JVB_PORT:-10000}:${JVB_PORT:-10000}/udp"
     networks:
       - default
-    depends_on:
-      - prosody
+    restart: unless-stopped
     cap_add:
       - SYS_NICE
 

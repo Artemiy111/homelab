@@ -3,25 +3,25 @@ volumes:
 
 services:
   wg-easy:
-    environment:
-    #  Optional:
-    #  - PORT=51821
-    #  - HOST=0.0.0.0
-      - INSECURE=true
-      - DISABLE_IPV6=true
 
     image: ghcr.io/wg-easy/wg-easy:15
     container_name: wg-easy
+    volumes:
+      - etc_wireguard:/etc/wireguard
+      - /lib/modules:/lib/modules:ro
+    environment:
+      #  Optional:
+      #  - PORT=51821
+      #  - HOST=0.0.0.0
+      - INSECURE=true
+      - DISABLE_IPV6=true
+    ports:
+      - "51820:51820/udp"
+      - "51821:51821/tcp"
     networks:
       wg:
         ipv4_address: 10.42.42.42
         ipv6_address: fdcc:ad94:bacf:61a3::2a
-    volumes:
-      - etc_wireguard:/etc/wireguard
-      - /lib/modules:/lib/modules:ro
-    ports:
-      - "51820:51820/udp"
-      - "51821:51821/tcp"
     restart: unless-stopped
     cap_add:
       - NET_ADMIN

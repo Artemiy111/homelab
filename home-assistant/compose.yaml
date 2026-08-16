@@ -2,28 +2,21 @@ services:
   homeassistant:
     image: ghcr.io/home-assistant/home-assistant:stable
     container_name: homeassistant
-    network_mode: host
-    environment:
-      TZ: Asia/Yekaterinburg
     volumes:
       - /storage/apps/home-assistant:/config:Z
       - ./configuration.yaml:/config/configuration.yaml:Z,ro
       - /etc/localtime:/etc/localtime:ro
+    environment:
+      TZ: Asia/Yekaterinburg
+    network_mode: host
     restart: unless-stopped
-    cap_drop:
-      - ALL
-    cap_add:
-      - NET_RAW
-    security_opt:
-      - no-new-privileges:true
     healthcheck:
       test:
         - CMD
         - python
         - -c
         - >-
-          import urllib.request;
-          urllib.request.urlopen('http://127.0.0.1:8123/', timeout=5)
+          import urllib.request; urllib.request.urlopen('http://127.0.0.1:8123/', timeout=5)
       interval: 30s
       timeout: 10s
       retries: 5
@@ -35,3 +28,9 @@ services:
       - traefik.http.routers.homeassistant.middlewares=homeassistant-lan-only
       - traefik.http.middlewares.homeassistant-lan-only.ipallowlist.sourcerange=192.0.2.10/24
       - traefik.http.services.homeassistant.loadbalancer.server.port=8123
+    cap_add:
+      - NET_RAW
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
