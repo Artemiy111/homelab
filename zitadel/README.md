@@ -19,8 +19,10 @@ PostgreSQL и отдельный контейнер Login V2 (Next.js). Дост
 
 ## Первый запуск
 
-`bootstrap-platform.sh` для Zitadel ещё не расширен, поэтому `.env` создать
-вручную:
+`scripts/bootstrap-platform.sh` создаёт `zitadel/.env` со случайными
+`POSTGRES_PASSWORD`, `ADMIN_PASSWORD` и `ZITADEL_MASTERKEY` (админ-пароль сразу
+удовлетворяет политике сложности), а также каталоги `/storage/apps/zitadel/*`.
+Либо вручную:
 
 ```sh
 cd zitadel

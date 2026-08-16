@@ -8,6 +8,19 @@ random_secret() {
   openssl rand -hex 24
 }
 
+chmod_if_owned() {
+  local mode="$1"
+  shift
+  local dir
+  for dir in "$@"; do
+    if [[ -O "$dir" ]]; then
+      chmod "$mode" "$dir"
+    else
+      echo "Пропуск chmod: $dir (владелец — не текущий пользователь)"
+    fi
+  done
+}
+
 create_traefik_env() {
   local env_file="$repo_root/traefik/.env"
   if [[ -e "$env_file" ]]; then
@@ -198,6 +211,44 @@ create_authentik_env() {
   } >"$env_file"
 }
 
+create_zitadel_env() {
+  local env_file="$repo_root/zitadel/.env"
+  if [[ -e "$env_file" ]]; then
+    echo "Пропуск: $env_file уже существует"
+    return
+  fi
+
+  umask 077
+  {
+    echo 'ZITADEL_HOST=id.example.net'
+    echo 'ZITADEL_VERSION=v4.15.1'
+    echo 'POSTGRES_DB=zitadel'
+    echo 'POSTGRES_USER=zitadel'
+    printf 'POSTGRES_PASSWORD=%s\n' "$(random_secret)"
+    echo 'ADMIN_USERNAME=admin'
+    printf 'ADMIN_PASSWORD=Za9!%s\n' "$(openssl rand -base64 18 | tr -d '=\n')"
+    printf 'ZITADEL_MASTERKEY=%s\n' "$(openssl rand -base64 32 | tr -d '\n')"
+  } >"$env_file"
+}
+
+create_oauth2_proxy_env() {
+  local env_file="$repo_root/oauth2-proxy/.env"
+  if [[ -e "$env_file" ]]; then
+    echo "Пропуск: $env_file уже существует"
+    return
+  fi
+
+  umask 077
+  {
+    echo 'ZITADEL_HOST=id.example.net'
+    echo 'OAUTH2_PROXY_HOST=oauth.example.net'
+    echo 'OAUTH2_PROXY_CLIENT_ID=replace-with-zitadel-client-id'
+    echo 'OAUTH2_PROXY_CLIENT_SECRET=replace-with-zitadel-client-secret'
+    printf 'OAUTH2_PROXY_COOKIE_SECRET=%s\n' "$(openssl rand -base64 32 | tr -d '\n')"
+    echo 'OAUTH2_PROXY_VERSION=v7.15.0'
+  } >"$env_file"
+}
+
 create_dawarich_env() {
   local env_file="$repo_root/dawarich/.env"
   if [[ -e "$env_file" ]]; then
@@ -352,6 +403,9 @@ mkdir -p \
   /storage/apps/authentik/backups \
   /storage/apps/authentik/data \
   /storage/apps/authentik/postgresql \
+  /storage/apps/zitadel/bootstrap \
+  /storage/apps/zitadel/backups \
+  /storage/apps/zitadel/postgresql \
   /storage/apps/dawarich/backups \
   /storage/apps/dawarich/postgresql \
   /storage/apps/dawarich/public \
@@ -378,27 +432,33 @@ mkdir -p \
   /storage/media \
   /storage/backups/restic
 
-chmod 0700 \
+chmod_if_owned 0700 \
   /storage/apps/3x-ui \
   /storage/apps/3x-ui/db \
   /storage/apps/3x-ui/log
 
-chmod 0700 \
+chmod_if_owned 0700 \
   /storage/apps/pocket-id \
   /storage/apps/pocket-id/data
 
-chmod 0700 \
+chmod_if_owned 0700 \
   /storage/apps/authentik \
   /storage/apps/authentik/backups \
   /storage/apps/authentik/data \
   /storage/apps/authentik/postgresql
 
-chmod 0750 \
+chmod_if_owned 0700 \
+  /storage/apps/zitadel \
+  /storage/apps/zitadel/bootstrap \
+  /storage/apps/zitadel/backups \
+  /storage/apps/zitadel/postgresql
+
+chmod_if_owned 0750 \
   /storage/apps/code-server \
   /storage/apps/code-server/home \
   /storage/apps/code-server/workspace
 
-chmod 0750 \
+chmod_if_owned 0750 \
   /storage/apps/gatus \
   /storage/apps/gatus/data
 
@@ -421,6 +481,8 @@ create_jellyfin_env
 create_gitea_env
 create_pocket_id_env
 create_authentik_env
+create_zitadel_env
+create_oauth2_proxy_env
 create_dawarich_env
 create_beszel_env
 create_image_updates_env
@@ -440,6 +502,8 @@ chmod 600 \
   "$repo_root/gitea/.env" \
   "$repo_root/pocket-id/.env" \
   "$repo_root/authentik/.env" \
+  "$repo_root/zitadel/.env" \
+  "$repo_root/oauth2-proxy/.env" \
   "$repo_root/dawarich/.env" \
   "$repo_root/beszel/.env" \
   "$repo_root/image-updates/.env" \
@@ -449,7 +513,7 @@ chmod 600 \
   "$repo_root/code-server/.env" \
   "$repo_root/gatus/.env"
 
-for service in traefik pihole uptime-kuma 3x-ui nextcloud jellyfin gitea gatus pocket-id authentik dawarich pdf image-updates home code-server; do
+for service in traefik pihole uptime-kuma 3x-ui nextcloud jellyfin gitea gatus pocket-id authentik zitadel oauth2-proxy dawarich pdf image-updates home code-server; do
   docker compose --project-directory "$repo_root/$service" config --quiet
 done
 
@@ -461,6 +525,11 @@ docker compose \
 docker compose \
   --project-directory "$repo_root/restic" \
   --profile manual \
+  config --quiet
+
+docker compose \
+  --project-directory "$repo_root/zitadel" \
+  --profile tools \
   config --quiet
 
 echo "Подготовка завершена. Пароли сохранены только в локальных .env сервера."

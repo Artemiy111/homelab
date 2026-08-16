@@ -19,7 +19,9 @@ Forward auth перед приложениями без своей автори�
 
 1. В ZITADEL создать OIDC-приложение с redirect URI
    `https://oauth.example.net/oauth2/callback`.
-2. Заполнить `oauth2-proxy/.env` (client_id, client_secret, cookie_secret).
+2. `scripts/bootstrap-platform.sh` создаёт `oauth2-proxy/.env` со случайным
+   `OAUTH2_PROXY_COOKIE_SECRET`; осталось вписать client_id и client_secret
+   из шага 1.
 3. `docker compose up -d`.
 
 ## Что получает upstream
