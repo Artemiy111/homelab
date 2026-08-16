@@ -5,6 +5,23 @@ storage:
   maximum-number-of-results: 1000
   maximum-number-of-events: 100
 
+alerting:
+  ntfy:
+    topic: "${NTFY_TOPIC}"
+    priority: 4
+    default-alert:
+      failure-threshold: 3
+      success-threshold: 2
+      send-on-resolved: true
+
+  telegram:
+    token: "${TELEGRAM_BOT_TOKEN}"
+    id: "${TELEGRAM_CHAT_ID}"
+    default-alert:
+      failure-threshold: 3
+      success-threshold: 2
+      send-on-resolved: true
+
 ui:
   title: Homelab Status
   header: Homelab Status
@@ -21,6 +38,9 @@ endpoints:
     conditions: &https-ok
       - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > 168h"
+    alerts: &alerts-ntfy
+      - type: ntfy
+      - type: telegram
 
   - name: Traefik
     group: Infrastructure
@@ -30,6 +50,7 @@ endpoints:
     conditions:
       - "[STATUS] == 401"
       - "[CERTIFICATE_EXPIRATION] > 168h"
+    alerts: *alerts-ntfy
 
   - name: Pi-hole DNS
     group: Infrastructure
@@ -41,6 +62,7 @@ endpoints:
     conditions:
       - "[DNS_RCODE] == NOERROR"
       - "[BODY] == 192.0.2.10"
+    alerts: *alerts-ntfy
 
   - name: Gitea SSH
     group: Infrastructure
@@ -48,12 +70,16 @@ endpoints:
     interval: 60s
     conditions: &tcp-connected
       - "[CONNECTED] == true"
+    alerts: *alerts-ntfy
 
   - name: Xray inbound
     group: Infrastructure
     url: tcp://192.0.2.10:8443
     interval: 60s
     conditions: *tcp-connected
+    alerts:
+      - type: ntfy
+        enabled: false
 
   - name: Gatus
     group: Monitoring
@@ -61,6 +87,7 @@ endpoints:
     interval: 60s
     client: *https-client
     conditions: *https-ok
+    alerts: *alerts-ntfy
 
   - name: Uptime Kuma
     group: Monitoring
@@ -68,6 +95,7 @@ endpoints:
     interval: 60s
     client: *https-client
     conditions: *https-ok
+    alerts: *alerts-ntfy
 
   - name: Homepage
     group: Monitoring
@@ -75,6 +103,7 @@ endpoints:
     interval: 60s
     client: *https-client
     conditions: *https-ok
+    alerts: *alerts-ntfy
 
   - name: Beszel
     group: Monitoring
@@ -82,6 +111,7 @@ endpoints:
     interval: 60s
     client: *https-client
     conditions: *https-ok
+    alerts: *alerts-ntfy
 
   - name: WUD
     group: Monitoring
@@ -91,6 +121,7 @@ endpoints:
     conditions:
       - "[STATUS] == 401"
       - "[CERTIFICATE_EXPIRATION] > 168h"
+    alerts: *alerts-ntfy
 
   - name: Cup
     group: Monitoring
@@ -100,6 +131,7 @@ endpoints:
     conditions:
       - "[STATUS] == 401"
       - "[CERTIFICATE_EXPIRATION] > 168h"
+    alerts: *alerts-ntfy
 
   - name: Jitsi Meet
     group: Applications
@@ -107,6 +139,7 @@ endpoints:
     interval: 60s
     client: *https-client
     conditions: *https-ok
+    alerts: *alerts-ntfy
 
   - name: Mermaid Live Editor
     group: Applications
@@ -114,6 +147,7 @@ endpoints:
     interval: 60s
     client: *https-client
     conditions: *https-ok
+    alerts: *alerts-ntfy
 
   - name: Nextcloud
     group: Applications
@@ -126,6 +160,7 @@ endpoints:
       - "[BODY].maintenance == false"
       - "[BODY].needsDbUpgrade == false"
       - "[CERTIFICATE_EXPIRATION] > 168h"
+    alerts: *alerts-ntfy
 
   - name: Gitea
     group: Applications
@@ -136,6 +171,7 @@ endpoints:
       - "[STATUS] == 200"
       - "[BODY].status == pass"
       - "[CERTIFICATE_EXPIRATION] > 168h"
+    alerts: *alerts-ntfy
 
   - name: code-server
     group: Applications
@@ -143,6 +179,7 @@ endpoints:
     interval: 60s
     client: *https-client
     conditions: *https-ok
+    alerts: *alerts-ntfy
 
   - name: Authentik
     group: Applications
@@ -150,6 +187,7 @@ endpoints:
     interval: 60s
     client: *https-client
     conditions: *https-ok
+    alerts: *alerts-ntfy
 
   - name: Pocket ID
     group: Applications
@@ -157,6 +195,7 @@ endpoints:
     interval: 60s
     client: *https-client
     conditions: *https-ok
+    alerts: *alerts-ntfy
 
   - name: LocalAI
     group: Applications
@@ -164,6 +203,7 @@ endpoints:
     interval: 60s
     client: *https-client
     conditions: *https-ok
+    alerts: *alerts-ntfy
 
   - name: Immich
     group: Applications
@@ -174,6 +214,7 @@ endpoints:
       - "[STATUS] == 200"
       - "[BODY].res == pong"
       - "[CERTIFICATE_EXPIRATION] > 168h"
+    alerts: *alerts-ntfy
 
   - name: Dawarich
     group: Applications
@@ -184,6 +225,7 @@ endpoints:
       - "[STATUS] == 200"
       - "[BODY].status == ok"
       - "[CERTIFICATE_EXPIRATION] > 168h"
+    alerts: *alerts-ntfy
 
   - name: Jellyfin
     group: Applications
@@ -194,6 +236,7 @@ endpoints:
       - "[STATUS] == 200"
       - "[BODY] == Healthy"
       - "[CERTIFICATE_EXPIRATION] > 168h"
+    alerts: *alerts-ntfy
 
   - name: Navidrome
     group: Applications
@@ -204,6 +247,7 @@ endpoints:
       - "[STATUS] == 200"
       - "[BODY] == ."
       - "[CERTIFICATE_EXPIRATION] > 168h"
+    alerts: *alerts-ntfy
 
   - name: Stirling PDF
     group: Applications
@@ -214,6 +258,7 @@ endpoints:
       - "[STATUS] == 200"
       - "[BODY].status == UP"
       - "[CERTIFICATE_EXPIRATION] > 168h"
+    alerts: *alerts-ntfy
 
   - name: Home Assistant
     group: Applications
@@ -223,6 +268,7 @@ endpoints:
       timeout: 10s
     conditions:
       - "[STATUS] == 200"
+    alerts: *alerts-ntfy
 
   - name: Structurizr
     group: Applications
@@ -230,6 +276,7 @@ endpoints:
     interval: 60s
     client: *https-client
     conditions: *https-ok
+    alerts: *alerts-ntfy
 
   - name: Lute
     group: Applications
@@ -237,12 +284,14 @@ endpoints:
     interval: 60s
     client: *https-client
     conditions: *https-ok
+    alerts: *alerts-ntfy
 
   - name: 3x-ui backend
     group: Applications
     url: tcp://3x-ui:2053
     interval: 60s
     conditions: *tcp-connected
+    alerts: *alerts-ntfy
 
   - name: Sure
     group: Applications
@@ -252,3 +301,4 @@ endpoints:
       timeout: 10s
     conditions:
       - "[STATUS] == 200"
+    alerts: *alerts-ntfy

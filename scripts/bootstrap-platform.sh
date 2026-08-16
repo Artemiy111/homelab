@@ -318,6 +318,23 @@ create_code_server_env() {
   } >"$env_file"
 }
 
+create_gatus_env() {
+  local env_file="$repo_root/gatus/.env"
+  if [[ -e "$env_file" ]]; then
+    echo "Пропуск: $env_file уже существует"
+    return
+  fi
+
+  umask 077
+  {
+    echo 'GATUS_HOST=uptime.example.net'
+    printf 'NTFY_TOPIC=gatus-%s\n' "$(openssl rand -hex 16)"
+    echo '# Telegram-бот (@BotFather): заполните токен и ID чата (у группы ID отрицательный)'
+    echo 'TELEGRAM_BOT_TOKEN='
+    echo 'TELEGRAM_CHAT_ID='
+  } >"$env_file"
+}
+
 mkdir -p \
   /storage/apps/3x-ui/db \
   /storage/apps/3x-ui/log \
@@ -342,6 +359,7 @@ mkdir -p \
   /storage/apps/dawarich/shared \
   /storage/apps/dawarich/storage \
   /storage/apps/dawarich/watched \
+  /storage/apps/gatus/data \
   /storage/apps/beszel/data \
   /storage/apps/beszel/agent \
   /storage/apps/beszel/socket \
@@ -380,6 +398,10 @@ chmod 0750 \
   /storage/apps/code-server/home \
   /storage/apps/code-server/workspace
 
+chmod 0750 \
+  /storage/apps/gatus \
+  /storage/apps/gatus/data
+
 if [[ -x /storage/apps/traefik/letsencrypt ]]; then
   if [[ ! -e /storage/apps/traefik/letsencrypt/acme.json ]]; then
     install -m 0600 /dev/null /storage/apps/traefik/letsencrypt/acme.json
@@ -406,6 +428,7 @@ create_restic_env
 create_pdf_env
 create_home_env
 create_code_server_env
+create_gatus_env
 
 chmod 600 \
   "$repo_root/traefik/.env" \
@@ -423,9 +446,10 @@ chmod 600 \
   "$repo_root/restic/.env" \
   "$repo_root/pdf/.env" \
   "$repo_root/home/.env" \
-  "$repo_root/code-server/.env"
+  "$repo_root/code-server/.env" \
+  "$repo_root/gatus/.env"
 
-for service in traefik pihole uptime-kuma 3x-ui nextcloud jellyfin gitea pocket-id authentik dawarich pdf image-updates home code-server; do
+for service in traefik pihole uptime-kuma 3x-ui nextcloud jellyfin gitea gatus pocket-id authentik dawarich pdf image-updates home code-server; do
   docker compose --project-directory "$repo_root/$service" config --quiet
 done
 

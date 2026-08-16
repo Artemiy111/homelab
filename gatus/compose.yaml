@@ -6,6 +6,11 @@ services:
       - ./config:/config:Z,ro
       - /storage/apps/gatus/data:/data:Z
 
+    environment:
+      NTFY_TOPIC: ${NTFY_TOPIC}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID}
+
     networks:
       - traefiknet
     restart: unless-stopped
