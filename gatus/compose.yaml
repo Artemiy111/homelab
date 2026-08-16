@@ -10,6 +10,7 @@ services:
       NTFY_TOPIC: ${NTFY_TOPIC}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
       TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID}
+      TELEGRAM_PROXY_URL: ${TELEGRAM_PROXY_URL}
 
     networks:
       - traefiknet
