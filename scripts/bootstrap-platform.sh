@@ -227,7 +227,7 @@ create_zitadel_env() {
     printf 'POSTGRES_PASSWORD=%s\n' "$(random_secret)"
     echo 'ADMIN_USERNAME=admin'
     printf 'ADMIN_PASSWORD=Za9!%s\n' "$(openssl rand -base64 18 | tr -d '=\n')"
-    printf 'ZITADEL_MASTERKEY=%s\n' "$(openssl rand -base64 32 | tr -d '\n')"
+    printf 'ZITADEL_MASTERKEY=%s\n' "$(openssl rand -hex 16)"
   } >"$env_file"
 }
 
