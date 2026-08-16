@@ -1,0 +1,74 @@
+name: infisical
+
+services:
+  postgres:
+    image: postgres:14-alpine
+    container_name: infisical-postgres
+    volumes:
+      - /storage/apps/infisical/postgresql:/var/lib/postgresql:Z
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-infisical}
+      POSTGRES_USER: ${POSTGRES_USER:-infisical}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in infisical/.env}
+    networks:
+      - backend
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    mem_limit: 256m
+    security_opt:
+      - no-new-privileges:true
+
+  redis:
+    image: redis:7-alpine
+    container_name: infisical-redis
+    volumes:
+      - /storage/apps/infisical/redis:/data:Z
+    networks:
+      - backend
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+
+  backend:
+    image: infisical/infisical:${INFISICAL_VERSION:-latest}
+    container_name: infisical-backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    env_file: .env
+    environment:
+      - NODE_ENV=production
+    networks:
+      - backend
+      - traefiknet
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    mem_limit: 1g
+    security_opt:
+      - no-new-privileges:true
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefiknet
+      - traefik.http.services.infisical.loadbalancer.server.port=8080
+      - traefik.http.routers.infisical.rule=Host(`${INFISICAL_HOST}`)
+      - traefik.http.routers.infisical.entrypoints=websecure
+      - traefik.http.routers.infisical.service=infisical
+      - traefik.http.routers.infisical.tls.certresolver=letsencrypt
+
+networks:
+  backend:
+    internal: true
+  traefiknet:
+    external: true

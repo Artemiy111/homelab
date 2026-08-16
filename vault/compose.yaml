@@ -1,0 +1,39 @@
+name: vault
+
+services:
+  vault:
+    image: hashicorp/vault:${VAULT_VERSION:-1.21.4}
+    container_name: vault
+    cap_add:
+      - IPC_LOCK
+    ports:
+      - "127.0.0.1:8200:8200"
+    volumes:
+      - /storage/apps/vault/data:/vault/data:Z
+      - /storage/apps/vault/config:/vault/config:ro
+    environment:
+      VAULT_ADDR: "http://127.0.0.1:8200"
+      VAULT_API_ADDR: "http://127.0.0.1:8200"
+    command: vault server -config=/vault/config/vault.hcl
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "vault", "status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    mem_limit: 256m
+    security_opt:
+      - no-new-privileges:true
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefiknet
+      - traefik.http.services.vault.loadbalancer.server.port=8200
+      - traefik.http.routers.vault.rule=Host(`${VAULT_HOST}`)
+      - traefik.http.routers.vault.entrypoints=websecure
+      - traefik.http.routers.vault.service=vault
+      - traefik.http.routers.vault.tls.certresolver=letsencrypt
+
+networks:
+  traefiknet:
+    external: true
