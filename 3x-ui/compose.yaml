@@ -1,6 +1,6 @@
 services:
   initialize:
-    image: ghcr.io/mhsanaei/3x-ui:v3.5.0
+    image: ghcr.io/mhsanaei/3x-ui:v3.6.0
     volumes:
       - /storage/apps/3x-ui/db:/etc/x-ui:Z
 
@@ -23,7 +23,7 @@ services:
     restart: "no"
 
   3x-ui:
-    image: ghcr.io/mhsanaei/3x-ui:v3.5.0
+    image: ghcr.io/mhsanaei/3x-ui:v3.6.0
     container_name: 3x-ui
 
     depends_on:
@@ -44,6 +44,7 @@ services:
     ports:
       - "192.0.2.10:${XUI_INBOUND_PORT:?set XUI_INBOUND_PORT in 3x-ui/.env}:${XUI_INBOUND_PORT}/tcp"
       - "192.0.2.10:${XUI_INBOUND_PORT:?set XUI_INBOUND_PORT in 3x-ui/.env}:${XUI_INBOUND_PORT}/udp"
+      - "192.0.2.10:${XUI_EGRESS_PORT:?set XUI_EGRESS_PORT in 3x-ui/.env}:${XUI_EGRESS_PORT}/tcp"
     networks:
       - default
       - traefiknet
