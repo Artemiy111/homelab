@@ -83,11 +83,16 @@ endpoints:
       - type: ntfy
         enabled: false
 
-  - name: Xray local egress
+  - name: Xray proxy egress
     group: Infrastructure
-    url: tcp://192.0.2.10:8440
-    interval: 60s
-    conditions: *tcp-connected
+    url: https://api.telegram.org
+    interval: 120s
+    client:
+      timeout: 30s
+      proxy-url: http://192.0.2.10:8440
+    conditions:
+      - "[STATUS] == 200"
+      - "[RESPONSE_TIME] < 5000"
     alerts:
       - type: ntfy
         enabled: true
