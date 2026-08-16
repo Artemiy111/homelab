@@ -6,7 +6,7 @@ services:
     container_name: zitadel-postgres
 
     volumes:
-      - /storage/apps/zitadel/postgresql:/var/lib/postgresql/data:Z
+      - /storage/apps/zitadel/postgresql:/var/lib/postgresql:Z
 
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-zitadel}
