@@ -10,7 +10,7 @@ services:
       - "127.0.0.1:8200:8200"
     volumes:
       - /storage/apps/vault/data:/vault/data:Z
-      - /storage/apps/vault/config:/vault/config:ro
+      - ./config:/vault/config:ro
     environment:
       VAULT_ADDR: "http://127.0.0.1:8200"
       VAULT_API_ADDR: "http://127.0.0.1:8200"
