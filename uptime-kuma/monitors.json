@@ -5,7 +5,7 @@
       "name": "Pi-hole HTTP",
       "description": "Пользовательский HTTPS-маршрут Pi-hole: локальный DNS, TLS, Traefik и веб-приложение.",
       "type": "http",
-      "url": "https://pihole.example.net/admin/",
+      "url": "https://pihole.{{DOMAIN}}/admin/",
       "interval": 60,
       "maxretries": 2
     },
@@ -13,7 +13,7 @@
       "name": "Traefik",
       "description": "Пользовательский HTTPS-маршрут панели Traefik; ответ 401 без учётных данных считается нормальным.",
       "type": "http",
-      "url": "https://traefik.example.net/dashboard/",
+      "url": "https://traefik.{{DOMAIN}}/dashboard/",
       "accepted_statuscodes": ["401"],
       "interval": 60,
       "maxretries": 2
@@ -22,7 +22,7 @@
       "name": "Jitsi Meet",
       "description": "Пользовательский HTTPS-маршрут Jitsi Meet.",
       "type": "http",
-      "url": "https://meet.example.net/",
+      "url": "https://meet.{{DOMAIN}}/",
       "interval": 60,
       "maxretries": 2
     },
@@ -30,7 +30,7 @@
       "name": "Mermaid Live Editor",
       "description": "Пользовательский HTTPS-маршрут Mermaid Live Editor.",
       "type": "http",
-      "url": "https://mermaid.example.net/",
+      "url": "https://mermaid.{{DOMAIN}}/",
       "interval": 60,
       "maxretries": 2
     },
@@ -38,7 +38,7 @@
       "name": "Nextcloud",
       "description": "Публичный health endpoint Nextcloud через локальный DNS, TLS и Traefik.",
       "type": "http",
-      "url": "https://nextcloud.example.net/status.php",
+      "url": "https://nextcloud.{{DOMAIN}}/status.php",
       "interval": 60,
       "maxretries": 2
     },
@@ -46,7 +46,7 @@
       "name": "Gitea",
       "description": "Публичный health endpoint Gitea через локальный DNS, TLS и Traefik; также проверяет подключение к PostgreSQL.",
       "type": "http",
-      "url": "https://gitea.example.net/api/healthz",
+      "url": "https://gitea.{{DOMAIN}}/api/healthz",
       "interval": 60,
       "maxretries": 2
     },
@@ -54,7 +54,7 @@
       "name": "code-server",
       "description": "Health endpoint code-server через локальный DNS, TLS и Traefik; парольная страница IDE не используется для определения состояния.",
       "type": "http",
-      "url": "https://code.example.net/healthz",
+      "url": "https://code.{{DOMAIN}}/healthz",
       "interval": 60,
       "maxretries": 2
     },
@@ -62,7 +62,7 @@
       "name": "Pocket ID",
       "description": "OIDC discovery Pocket ID через локальный DNS, TLS и Traefik.",
       "type": "http",
-      "url": "https://pocket-id.example.net/.well-known/openid-configuration",
+      "url": "https://pocket-id.{{DOMAIN}}/.well-known/openid-configuration",
       "interval": 60,
       "maxretries": 2
     },
@@ -70,7 +70,7 @@
       "name": "Authentik",
       "description": "Readiness endpoint Authentik через локальный DNS, TLS и Traefik; также проверяет подключение к PostgreSQL.",
       "type": "http",
-      "url": "https://auth.example.net/-/health/ready/",
+      "url": "https://auth.{{DOMAIN}}/-/health/ready/",
       "interval": 60,
       "maxretries": 2
     },
@@ -78,7 +78,7 @@
       "name": "LocalAI",
       "description": "Readiness endpoint LocalAI через локальный DNS, TLS и Traefik.",
       "type": "http",
-      "url": "https://localai.example.net/readyz",
+      "url": "https://localai.{{DOMAIN}}/readyz",
       "interval": 60,
       "maxretries": 2
     },
@@ -86,7 +86,7 @@
       "name": "Immich",
       "description": "Публичный ping endpoint Immich через локальный DNS, TLS и Traefik.",
       "type": "http",
-      "url": "https://immich.example.net/api/server/ping",
+      "url": "https://immich.{{DOMAIN}}/api/server/ping",
       "interval": 60,
       "maxretries": 2
     },
@@ -94,7 +94,7 @@
       "name": "Dawarich",
       "description": "Публичный health endpoint Dawarich через локальный DNS, TLS и Traefik.",
       "type": "http",
-      "url": "https://dawarich.example.net/api/v1/health",
+      "url": "https://dawarich.{{DOMAIN}}/api/v1/health",
       "interval": 60,
       "maxretries": 2
     },
@@ -102,7 +102,7 @@
       "name": "Jellyfin",
       "description": "Публичный health endpoint Jellyfin через локальный DNS, TLS и Traefik.",
       "type": "http",
-      "url": "https://jellyfin.example.net/health",
+      "url": "https://jellyfin.{{DOMAIN}}/health",
       "interval": 60,
       "maxretries": 2
     },
@@ -110,7 +110,7 @@
       "name": "Navidrome",
       "description": "Публичный ping endpoint Navidrome через локальный DNS, TLS и Traefik.",
       "type": "http",
-      "url": "https://music.example.net/ping",
+      "url": "https://music.{{DOMAIN}}/ping",
       "interval": 60,
       "maxretries": 2
     },
@@ -118,7 +118,7 @@
       "name": "Stirling PDF",
       "description": "Публичный status endpoint Stirling PDF через локальный DNS, TLS и Traefik.",
       "type": "http",
-      "url": "https://pdf.example.net/api/v1/info/status",
+      "url": "https://pdf.{{DOMAIN}}/api/v1/info/status",
       "interval": 60,
       "maxretries": 2
     },
@@ -134,7 +134,7 @@
       "name": "Structurizr",
       "description": "Пользовательский HTTPS-маршрут Structurizr через локальный DNS, TLS и Traefik.",
       "type": "http",
-      "url": "https://structurizr.example.net/",
+      "url": "https://structurizr.{{DOMAIN}}/",
       "interval": 60,
       "maxretries": 2
     },
@@ -142,7 +142,7 @@
       "name": "Lute",
       "description": "Пользовательский HTTPS-маршрут Lute через локальный DNS, TLS и Traefik.",
       "type": "http",
-      "url": "https://lute.example.net/",
+      "url": "https://lute.{{DOMAIN}}/",
       "interval": 60,
       "maxretries": 2
     },
@@ -167,7 +167,7 @@
       "name": "Uptime Kuma",
       "description": "Собственный HTTPS-маршрут Uptime Kuma; фиксирует проблемы маршрута, пока сам процесс Kuma способен выполнять проверки.",
       "type": "http",
-      "url": "https://kuma.example.net/",
+      "url": "https://kuma.{{DOMAIN}}/",
       "interval": 60,
       "maxretries": 2
     },
@@ -175,7 +175,7 @@
       "name": "Gatus",
       "description": "Пользовательский HTTPS-маршрут Gatus; фиксирует проблемы маршрута, пока сам процесс Gatus способен выполнять проверки.",
       "type": "http",
-      "url": "https://uptime.example.net/",
+      "url": "https://uptime.{{DOMAIN}}/",
       "interval": 60,
       "maxretries": 2
     },
@@ -183,7 +183,7 @@
       "name": "WUD",
       "description": "Health endpoint WUD через локальный DNS, TLS и Traefik; ответ 401 без учётных данных считается нормальным.",
       "type": "http",
-      "url": "https://wud.example.net/health",
+      "url": "https://wud.{{DOMAIN}}/health",
       "accepted_statuscodes": ["401"],
       "interval": 60,
       "maxretries": 2
@@ -192,7 +192,7 @@
       "name": "Cup",
       "description": "Пользовательский HTTPS-маршрут Cup; ответ 401 без учётных данных считается нормальным.",
       "type": "http",
-      "url": "https://cup.example.net/",
+      "url": "https://cup.{{DOMAIN}}/",
       "accepted_statuscodes": ["401"],
       "interval": 60,
       "maxretries": 2
@@ -201,7 +201,7 @@
       "name": "Homepage",
       "description": "Health endpoint Homepage через локальный DNS, TLS и Traefik.",
       "type": "http",
-      "url": "https://home.example.net/api/healthcheck",
+      "url": "https://home.{{DOMAIN}}/api/healthcheck",
       "interval": 60,
       "maxretries": 2
     },
@@ -209,7 +209,7 @@
       "name": "Beszel",
       "description": "Публичный health endpoint Beszel Hub через локальный DNS, TLS и Traefik.",
       "type": "http",
-      "url": "https://beszel.example.net/api/health",
+      "url": "https://beszel.{{DOMAIN}}/api/health",
       "interval": 60,
       "maxretries": 2
     },
@@ -217,7 +217,7 @@
       "name": "Pi-hole DNS",
       "description": "Разрешение пользовательского домена через локальный DNS-сервер Pi-hole.",
       "type": "dns",
-      "hostname": "kuma.example.net",
+      "hostname": "kuma.{{DOMAIN}}",
       "dns_resolve_server": "192.0.2.10",
       "dns_resolve_type": "A",
       "interval": 60,

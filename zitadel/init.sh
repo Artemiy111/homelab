@@ -15,7 +15,7 @@ ensure_dirs 0700 \
 ensure_dirs 0755 /storage/apps/zitadel/postgresql
 
 write_env_file "$repo_root/zitadel/.env" <<EOF
-ZITADEL_HOST=id.example.net
+ZITADEL_HOST=id.$DOMAIN
 ZITADEL_VERSION=v4.17.1
 POSTGRES_DB=zitadel
 POSTGRES_USER=zitadel

@@ -12,7 +12,7 @@ ensure_dirs 0700 \
 traefik_network_cidr="$(traefik_network_cidr)"
 
 write_env_file "$repo_root/pocket-id/.env" <<EOF
-POCKET_ID_HOST=pocket-id.example.net
+POCKET_ID_HOST=pocket-id.$DOMAIN
 ENCRYPTION_KEY=$(openssl rand -base64 32)
 TRAEFIK_NETWORK_CIDR=$traefik_network_cidr
 EOF

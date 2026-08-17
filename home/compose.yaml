@@ -9,6 +9,7 @@ services:
 
     environment:
       HOMEPAGE_ALLOWED_HOSTS: ${HOMEPAGE_HOST:?set HOMEPAGE_HOST in home/.env}
+      HOMEPAGE_VAR_DOMAIN: ${DOMAIN:?set DOMAIN in home/.env}
       LOG_TARGETS: stdout
       PUID: "1000"
       PGID: "1000"

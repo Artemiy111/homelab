@@ -42,6 +42,43 @@ test("повторяющиеся имена отклоняются", async () =>
   await assert.rejects(() => loadConfig(configPath), /Имя монитора повторяется/);
 });
 
+test("плейсхолдер {{DOMAIN}} подставляется из переменной DOMAIN", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "uptime-kuma-test-"));
+  const configPath = join(directory, "monitors.json");
+  await writeFile(
+    configPath,
+    JSON.stringify({
+      version: 1,
+      monitors: [
+        { name: "Web", type: "http", url: "https://app.{{DOMAIN}}/" },
+        { name: "DNS", type: "dns", hostname: "app.{{DOMAIN}}" },
+      ],
+    }),
+  );
+
+  const config = await loadConfig(configPath, "example.org");
+
+  assert.equal(config.monitors[0].url, "https://app.example.org/");
+  assert.equal(config.monitors[1].hostname, "app.example.org");
+});
+
+test("{{DOMAIN}} без переменной DOMAIN вызывает ошибку", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "uptime-kuma-test-"));
+  const configPath = join(directory, "monitors.json");
+  await writeFile(
+    configPath,
+    JSON.stringify({
+      version: 1,
+      monitors: [{ name: "Web", type: "http", url: "https://app.{{DOMAIN}}/" }],
+    }),
+  );
+
+  await assert.rejects(
+    () => loadConfig(configPath, ""),
+    /переменная DOMAIN не задана/,
+  );
+});
+
 test("сравнение учитывает только управляемые поля", () => {
   const desired = {
     name: "Traefik",

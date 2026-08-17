@@ -32,7 +32,7 @@ ui:
 endpoints:
   - name: Pi-hole HTTP
     group: Infrastructure
-    url: https://pihole.example.net/admin/
+    url: https://pihole.${DOMAIN}/admin/
     interval: 60s
     client: &https-client
       timeout: 10s
@@ -46,7 +46,7 @@ endpoints:
 
   - name: Traefik
     group: Infrastructure
-    url: https://traefik.example.net/dashboard/
+    url: https://traefik.${DOMAIN}/dashboard/
     interval: 60s
     client: *https-client
     conditions:
@@ -59,7 +59,7 @@ endpoints:
     url: 192.0.2.10
     interval: 60s
     dns:
-      query-name: uptime.example.net
+      query-name: uptime.${DOMAIN}
       query-type: A
     conditions:
       - "[DNS_RCODE] == NOERROR"
@@ -99,7 +99,7 @@ endpoints:
 
   - name: Gatus
     group: Monitoring
-    url: https://uptime.example.net/
+    url: https://uptime.${DOMAIN}/
     interval: 60s
     client: *https-client
     conditions: *https-ok
@@ -107,7 +107,7 @@ endpoints:
 
   - name: Uptime Kuma
     group: Monitoring
-    url: https://kuma.example.net/
+    url: https://kuma.${DOMAIN}/
     interval: 60s
     client: *https-client
     conditions: *https-ok
@@ -115,7 +115,7 @@ endpoints:
 
   - name: Homepage
     group: Monitoring
-    url: https://home.example.net/api/healthcheck
+    url: https://home.${DOMAIN}/api/healthcheck
     interval: 60s
     client: *https-client
     conditions: *https-ok
@@ -123,7 +123,7 @@ endpoints:
 
   - name: Beszel
     group: Monitoring
-    url: https://beszel.example.net/api/health
+    url: https://beszel.${DOMAIN}/api/health
     interval: 60s
     client: *https-client
     conditions: *https-ok
@@ -154,7 +154,7 @@ endpoints:
 
   - name: Jitsi Meet
     group: Applications
-    url: https://meet.example.net/
+    url: https://meet.${DOMAIN}/
     interval: 60s
     client: *https-client
     conditions: *https-ok
@@ -162,7 +162,7 @@ endpoints:
 
   - name: Mermaid Live Editor
     group: Applications
-    url: https://mermaid.example.net/
+    url: https://mermaid.${DOMAIN}/
     interval: 60s
     client: *https-client
     conditions: *https-ok
@@ -170,7 +170,7 @@ endpoints:
 
   - name: Nextcloud
     group: Applications
-    url: https://nextcloud.example.net/status.php
+    url: https://nextcloud.${DOMAIN}/status.php
     interval: 60s
     client: *https-client
     conditions:
@@ -183,7 +183,7 @@ endpoints:
 
   - name: Gitea
     group: Applications
-    url: https://gitea.example.net/api/healthz
+    url: https://gitea.${DOMAIN}/api/healthz
     interval: 60s
     client: *https-client
     conditions:
@@ -194,7 +194,7 @@ endpoints:
 
   - name: code-server
     group: Applications
-    url: https://code.example.net/healthz
+    url: https://code.${DOMAIN}/healthz
     interval: 60s
     client: *https-client
     conditions: *https-ok
@@ -202,7 +202,7 @@ endpoints:
 
   - name: Authentik
     group: Applications
-    url: https://auth.example.net/-/health/ready/
+    url: https://auth.${DOMAIN}/-/health/ready/
     interval: 60s
     client: *https-client
     conditions: *https-ok
@@ -210,7 +210,7 @@ endpoints:
 
   - name: Pocket ID
     group: Applications
-    url: https://pocket-id.example.net/.well-known/openid-configuration
+    url: https://pocket-id.${DOMAIN}/.well-known/openid-configuration
     interval: 60s
     client: *https-client
     conditions: *https-ok
@@ -218,7 +218,7 @@ endpoints:
 
   - name: LocalAI
     group: Applications
-    url: https://localai.example.net/readyz
+    url: https://localai.${DOMAIN}/readyz
     interval: 60s
     client: *https-client
     conditions: *https-ok
@@ -226,7 +226,7 @@ endpoints:
 
   - name: Immich
     group: Applications
-    url: https://immich.example.net/api/server/ping
+    url: https://immich.${DOMAIN}/api/server/ping
     interval: 60s
     client: *https-client
     conditions:
@@ -237,7 +237,7 @@ endpoints:
 
   - name: Dawarich
     group: Applications
-    url: https://dawarich.example.net/api/v1/health
+    url: https://dawarich.${DOMAIN}/api/v1/health
     interval: 60s
     client: *https-client
     conditions:
@@ -248,7 +248,7 @@ endpoints:
 
   - name: Jellyfin
     group: Applications
-    url: https://jellyfin.example.net/health
+    url: https://jellyfin.${DOMAIN}/health
     interval: 60s
     client: *https-client
     conditions:
@@ -259,7 +259,7 @@ endpoints:
 
   - name: Navidrome
     group: Applications
-    url: https://music.example.net/ping
+    url: https://music.${DOMAIN}/ping
     interval: 60s
     client: *https-client
     conditions:
@@ -270,7 +270,7 @@ endpoints:
 
   - name: Stirling PDF
     group: Applications
-    url: https://pdf.example.net/api/v1/info/status
+    url: https://pdf.${DOMAIN}/api/v1/info/status
     interval: 60s
     client: *https-client
     conditions:
@@ -300,7 +300,7 @@ endpoints:
 
   - name: Lute
     group: Applications
-    url: https://lute.example.net/
+    url: https://lute.${DOMAIN}/
     interval: 60s
     client: *https-client
     conditions: *https-ok

@@ -60,7 +60,19 @@ function fail(message) {
   throw new Error(message);
 }
 
-export async function loadConfig(filePath) {
+const DOMAIN_PLACEHOLDER = /\{\{\s*DOMAIN\s*\}\}/g;
+
+function expandDomain(value, domain) {
+  if (typeof value !== "string" || !value.includes("{{DOMAIN}}")) {
+    return value;
+  }
+  if (!domain) {
+    fail("В monitors.json используется {{DOMAIN}}, но переменная DOMAIN не задана.");
+  }
+  return value.replace(DOMAIN_PLACEHOLDER, domain);
+}
+
+export async function loadConfig(filePath, domain = process.env.DOMAIN) {
   const source = await readFile(filePath, "utf8");
   let config;
 
@@ -103,7 +115,10 @@ export async function loadConfig(filePath) {
       fail(`Монитор ${monitor.name}: для TCP-порта требуется целочисленный port.`);
     }
 
-    return { ...DEFAULT_MONITOR, ...monitor };
+    const merged = { ...DEFAULT_MONITOR, ...monitor };
+    merged.url = expandDomain(merged.url, domain);
+    merged.hostname = expandDomain(merged.hostname, domain);
+    return merged;
   });
 
   return { version: config.version, monitors };

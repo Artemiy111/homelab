@@ -15,7 +15,7 @@ services:
 
     labels:
       - traefik.enable=true
-      - traefik.http.routers.structurizr.rule=Host(`structurizr.example.net`)
+      - traefik.http.routers.structurizr.rule=Host(`${STRUCTURIZR_HOST:?set STRUCTURIZR_HOST in structurizr/.env}`)
       - traefik.http.routers.structurizr.entrypoints=websecure
       - traefik.http.routers.structurizr.middlewares=oauth2-proxy@file,secure-headers@file,ratelimit-default@file
       - traefik.http.services.structurizr.loadbalancer.server.port=8080

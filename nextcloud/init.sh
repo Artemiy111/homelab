@@ -14,7 +14,7 @@ mkdir -p \
 traefik_network_cidr="$(traefik_network_cidr)"
 
 write_env_file "$repo_root/nextcloud/.env" <<EOF
-NEXTCLOUD_HOST=nextcloud.example.net
+NEXTCLOUD_HOST=nextcloud.$DOMAIN
 NEXTCLOUD_ADMIN_USER=nextcloud-admin
 NEXTCLOUD_ADMIN_PASSWORD=$(random_secret)
 POSTGRES_DB=nextcloud

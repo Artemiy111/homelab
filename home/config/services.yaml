@@ -1,83 +1,83 @@
 - Системные сервисы:
     - Traefik:
         icon: mdi-router-network
-        href: https://traefik.example.net/dashboard/
+        href: https://traefik.{{HOMEPAGE_VAR_DOMAIN}}/dashboard/
         description: Обратный прокси
     - Pi-hole:
         icon: mdi-dns
-        href: https://pihole.example.net/admin/
+        href: https://pihole.{{HOMEPAGE_VAR_DOMAIN}}/admin/
         description: DNS и блокировка рекламы
     - Uptime Kuma:
         icon: mdi-monitor-eye
-        href: https://kuma.example.net/
+        href: https://kuma.{{HOMEPAGE_VAR_DOMAIN}}/
         description: Мониторинг доступности
     - Beszel:
         icon: mdi-chart-line
-        href: https://beszel.example.net/
+        href: https://beszel.{{HOMEPAGE_VAR_DOMAIN}}/
         description: Метрики хоста и контейнеров
     - WUD:
         icon: mdi-update
-        href: https://wud.example.net/
+        href: https://wud.{{HOMEPAGE_VAR_DOMAIN}}/
         description: Обновления Docker images
     - Cup:
         icon: mdi-cup
-        href: https://cup.example.net/
+        href: https://cup.{{HOMEPAGE_VAR_DOMAIN}}/
         description: Независимая проверка обновлений
 
 - Приложения:
     - Immich:
         icon: mdi-image-multiple
-        href: https://immich.example.net/
+        href: https://immich.{{HOMEPAGE_VAR_DOMAIN}}/
         description: Фото- и видеотека
     - Jellyfin:
         icon: mdi-play-circle
-        href: https://jellyfin.example.net/
+        href: https://jellyfin.{{HOMEPAGE_VAR_DOMAIN}}/
         description: Медиасервер
     - Jitsi Meet:
         icon: mdi-video-account
-        href: https://meet.example.net/
+        href: https://meet.{{HOMEPAGE_VAR_DOMAIN}}/
         description: Видеоконференции
     - Nextcloud:
         icon: mdi-cloud
-        href: https://nextcloud.example.net/
+        href: https://nextcloud.{{HOMEPAGE_VAR_DOMAIN}}/
         description: Файлы и календарь
     - Gitea:
         icon: mdi-source-repository
-        href: https://gitea.example.net/
+        href: https://gitea.{{HOMEPAGE_VAR_DOMAIN}}/
         description: Git-сервис
     - code-server:
         icon: mdi-microsoft-visual-studio-code
-        href: https://code.example.net/
+        href: https://code.{{HOMEPAGE_VAR_DOMAIN}}/
         description: VS Code в браузере
     - Pocket ID:
         icon: mdi-key
-        href: https://pocket-id.example.net/
+        href: https://pocket-id.{{HOMEPAGE_VAR_DOMAIN}}/
         description: Passkey и OpenID Connect
     - Authentik:
         icon: mdi-shield-account
-        href: https://auth.example.net/
+        href: https://auth.{{HOMEPAGE_VAR_DOMAIN}}/
         description: Identity provider и SSO
     - Dawarich:
         icon: mdi-map-marker-path
-        href: https://dawarich.example.net/
+        href: https://dawarich.{{HOMEPAGE_VAR_DOMAIN}}/
         description: История местоположения
     - Stirling PDF:
         icon: mdi-file-pdf-box
-        href: https://pdf.example.net/
+        href: https://pdf.{{HOMEPAGE_VAR_DOMAIN}}/
         description: Операции с PDF
     - Navidrome:
         icon: mdi-music-box
-        href: https://music.example.net/
+        href: https://music.{{HOMEPAGE_VAR_DOMAIN}}/
         description: Музыкальная библиотека
     - Lute:
         icon: mdi-book-open-page-variant
-        href: https://lute.example.net/
+        href: https://lute.{{HOMEPAGE_VAR_DOMAIN}}/
         description: Изучение языков с чтением
 
 - Инструменты:
     - Gatus:
         icon: mdi-heart-pulse
-        href: https://uptime.example.net/
+        href: https://uptime.{{HOMEPAGE_VAR_DOMAIN}}/
         description: Декларативный status page
     - Restic:
         icon: mdi-backup-restore

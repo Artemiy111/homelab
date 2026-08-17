@@ -11,7 +11,7 @@ mkdir -p \
   /storage/apps/beszel/socket
 
 write_env_file "$repo_root/beszel/.env" <<EOF
-BESZEL_HOST=beszel.example.net
+BESZEL_HOST=beszel.$DOMAIN
 BESZEL_AGENT_KEY=
 BESZEL_AGENT_TOKEN=
 EOF

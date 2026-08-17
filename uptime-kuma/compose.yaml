@@ -42,6 +42,7 @@ services:
       - ./sync-monitors.mjs:/app/sync-monitors.mjs:Z,ro
 
     environment:
+      DOMAIN: ${DOMAIN:?set DOMAIN in uptime-kuma/.env}
       UPTIME_KUMA_URL: http://uptime-kuma:3001
       UPTIME_KUMA_USERNAME: ${UPTIME_KUMA_USERNAME:-}
       UPTIME_KUMA_PASSWORD: ${UPTIME_KUMA_PASSWORD:-}

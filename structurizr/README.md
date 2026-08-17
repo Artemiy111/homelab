@@ -17,6 +17,7 @@ runtime-образ на `eclipse-temurin:21-alpine`. Пересборка при
 
 ```sh
 # в structurizr/: обновить тег vYYYY.MM.DD в Dockerfile, затем
+bash init.sh   # создаёт .env (STRUCTURIZR_HOST из общего DOMAIN)
 docker compose build --pull
 docker compose up -d
 ```

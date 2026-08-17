@@ -10,7 +10,8 @@ ensure_dirs 0750 \
   /storage/apps/gatus/data
 
 write_env_file "$repo_root/gatus/.env" <<EOF
-GATUS_HOST=uptime.example.net
+GATUS_HOST=uptime.$DOMAIN
+DOMAIN=$DOMAIN
 NTFY_TOPIC=gatus-$(openssl rand -hex 16)
 # Telegram-бот (@BotFather): заполните токен и ID чата (у группы ID отрицательный)
 TELEGRAM_BOT_TOKEN=

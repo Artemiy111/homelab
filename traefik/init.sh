@@ -19,7 +19,7 @@ password="$(random_secret)"
 hash="$(printf '%s' "$password" | openssl passwd -apr1 -stdin)"
 
 write_env_file "$repo_root/traefik/.env" <<EOF
-TRAEFIK_HOST=traefik.example.net
+TRAEFIK_HOST=traefik.$DOMAIN
 TRAEFIK_DASHBOARD_USERNAME=admin
 TRAEFIK_DASHBOARD_PASSWORD=$password
 TRAEFIK_DASHBOARD_USERS='admin:$hash'

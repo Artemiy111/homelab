@@ -12,6 +12,17 @@
 
 repo_root="${repo_root:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)}"
 
+# Базовый домен homelab — единственный источник правды для имён хостов сервисов.
+# Каждый сервис доступен по адресу <sub>.$DOMAIN. Приоритет значения:
+#   1. переменная окружения DOMAIN;
+#   2. корневой .env (не отслеживается Git, копируется из .env.example);
+#   3. значение по умолчанию ниже (закоммичено).
+if [[ -f "$repo_root/.env" ]]; then
+  # shellcheck disable=SC1090
+  source "$repo_root/.env"
+fi
+DOMAIN="${DOMAIN:-example.net}"
+
 # Случайный секрет из 24 байт (hex).
 random_secret() {
   openssl rand -hex 24

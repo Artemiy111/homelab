@@ -15,7 +15,7 @@ mkdir -p \
   /storage/apps/dawarich/watched
 
 write_env_file "$repo_root/dawarich/.env" <<EOF
-DAWARICH_HOST=dawarich.example.net
+DAWARICH_HOST=dawarich.$DOMAIN
 DAWARICH_VERSION=1.11.0
 POSTGRES_DB=dawarich_production
 POSTGRES_USER=dawarich

@@ -39,13 +39,31 @@
 Удалённый доступ без публикации портов в интернете настраивается через
 [Tailscale](tailscale/README.md).
 
+## Общий домен сервисов
+
+Базовый домен `example.net` задаётся в одном месте и подставляется во
+все адреса вида `<sub>.<DOMAIN>`. Источник правды — `scripts/lib/common.sh`
+(значение по умолчанию закоммичено). Чтобы переопределить домен без коммита в
+Git, скопируйте корневой `.env.example` в `.env` и поправьте `DOMAIN`:
+
+```sh
+cp .env.example .env
+```
+
+`init.sh` каждого сервиса и `scripts/bootstrap-platform.sh` читают `DOMAIN` и
+генерируют конкретные `<SERVICE>_HOST` в локальных `.env` сервисов. Конфиги
+Homepage, Gatus и Uptime Kuma подставляют домен через переменные окружения
+(`{{HOMEPAGE_VAR_DOMAIN}}`, `${DOMAIN}`, `{{DOMAIN}}` соответственно). После
+смены домена заново выполните `bash scripts/bootstrap-platform.sh`.
+
 ## Порядок запуска
 
 1. Установить Docker Engine и плагин Compose.
 2. Оставить SELinux в режиме enforcing, а firewalld — включённым.
 3. Создать общую сеть прокси: `docker network create traefiknet`.
 4. В каталоге каждого сервиса скопировать `.env.example` в `.env` и заменить
-   значения-заглушки.
+   значения-заглушки. Общий домен задаётся один раз — см. раздел
+   «Общий домен сервисов».
 5. Запустить `traefik`, затем `home`, `pihole`, `uptime-kuma`, `beszel`, `3x-ui`,
    `nextcloud`, `jellyfin`, `gitea`, `code-server`, `pocket-id`, `authentik`, `dawarich`,
    `pdf` и `image-updates`.
@@ -79,7 +97,7 @@ docker compose up -d
 ```
 
 Секреты находятся в игнорируемом файле `.env` рядом с Compose-файлом. В Git
-добавляются только файлы `.env.example`.
+добавляются только файлы `.env.example` (включая корневой, задающий `DOMAIN`).
 
 Старые и экспериментальные каталоги приложений сохранены для последующего
 разбора. В частности, `caddy/` не входит в активный стек и не должен запускаться

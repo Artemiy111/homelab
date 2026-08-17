@@ -13,7 +13,7 @@ mkdir -p \
   /storage/apps/pdf/tessdata
 
 write_env_file "$repo_root/pdf/.env" <<EOF
-PDF_HOST=pdf.example.net
+PDF_HOST=pdf.$DOMAIN
 PDF_ADMIN_USERNAME=admin
 PDF_ADMIN_PASSWORD=$(random_secret)
 PDF_DEFAULT_LOCALE=ru-RU

@@ -8,7 +8,7 @@ source "$repo_root/scripts/lib/common.sh"
 mkdir -p /storage/apps/pihole/etc-pihole
 
 write_env_file "$repo_root/pihole/.env" <<EOF
-PIHOLE_HOST=pihole.example.net
+PIHOLE_HOST=pihole.$DOMAIN
 PIHOLE_ADMIN_PASSWORD=$(random_secret)
 EOF
 

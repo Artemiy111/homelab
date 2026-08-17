@@ -16,7 +16,7 @@ if [[ -z "$render_group_id" ]]; then
 fi
 
 write_env_file "$repo_root/jellyfin/.env" <<EOF
-JELLYFIN_HOST=jellyfin.example.net
+JELLYFIN_HOST=jellyfin.$DOMAIN
 JELLYFIN_RENDER_GROUP_ID=$render_group_id
 EOF
 
