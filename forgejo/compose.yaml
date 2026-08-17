@@ -11,7 +11,7 @@ x-forgejo-environment: &forgejo-environment
   FORGEJO__server__SSH_DOMAIN: ${FORGEJO_HOST:?set FORGEJO_HOST in forgejo/.env}
   FORGEJO__server__SSH_PORT: ${FORGEJO_SSH_PORT:-2223}
   FORGEJO__server__LFS_START_SERVER: "true"
-  FORGEJO__security__INSTALL_LOCK: "true"
+  FORGEJO__security__INSTALL_LOCK: "false"
   FORGEJO__security__REVERSE_PROXY_TRUSTED_PROXIES: ${TRAEFIK_NETWORK_CIDR:?set TRAEFIK_NETWORK_CIDR in forgejo/.env}
   FORGEJO__service__DISABLE_REGISTRATION: "true"
   FORGEJO__service__DEFAULT_USER_VISIBILITY: private
