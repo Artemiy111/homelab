@@ -45,9 +45,9 @@ docker exec -it mailserver stalwart-cli recovery-login
 обходит и CSP (`connect-src 'self' https:`), и недоступность `mailserver` вне
 сети Docker.
 
-- `/storage/apps/mailserver/etc` — конфигурация Stalwart (образ монтирует в `/etc/stalwart`)
-- `/storage/apps/mailserver/data` — база Stalwart (каталоги, почта)
-- `/storage/apps/mailserver/mail` — данные Bulwark
+- `$APPS_STORAGE_PATH/mailserver/etc` — конфигурация Stalwart (образ монтирует в `/etc/stalwart`)
+- `$APPS_STORAGE_PATH/mailserver/data` — база Stalwart (каталоги, почта)
+- `$APPS_STORAGE_PATH/mailserver/mail` — данные Bulwark
 
 Каталоги Stalwart монтируются в `/etc/stalwart` и `/var/lib/stalwart` (в образах
 v0.16 это — рабочие пути, а не `/opt/stalwart`). Контейнер Stalwart работает

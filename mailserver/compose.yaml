@@ -9,8 +9,8 @@ services:
       - "587:587"
       - "993:993"
     volumes:
-      - /storage/apps/mailserver/etc:/etc/stalwart:Z
-      - /storage/apps/mailserver/data:/var/lib/stalwart:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/mailserver/etc:/etc/stalwart:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/mailserver/data:/var/lib/stalwart:Z
     environment:
       STALWART_RECOVERY_ADMIN: "${STALWART_ADMIN_USER:?set STALWART_ADMIN_USER in mailserver/.env}:${STALWART_ADMIN_PASS:?set STALWART_ADMIN_PASS in mailserver/.env}"
       STALWART_HOSTNAME: "${MAIL_HOST}"
@@ -33,7 +33,7 @@ services:
     depends_on:
       - mailserver
     volumes:
-      - /storage/apps/mailserver/mail:/app/data:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/mailserver/mail:/app/data:Z
     environment:
       HOSTNAME: "0.0.0.0"
       PORT: "3000"
