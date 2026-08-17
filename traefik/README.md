@@ -22,6 +22,11 @@ cp .env.example .env
 При использовании `scripts/bootstrap-platform.sh` файл создаётся автоматически,
 а случайный пароль сохраняется в `TRAEFIK_DASHBOARD_PASSWORD` внутри `.env`.
 
+`traefik.yaml` в Git не хранится: `bash init.sh` генерирует его из
+`traefik.yaml.tpl`, подставляя домен из `DOMAIN`. При ручной подготовке вместо
+`cp .env.example .env` выполните `bash init.sh` — он создаст и `.env`, и
+`traefik.yaml`.
+
 Для получения сертификата Let's Encrypt создать в <dns-provider> TSIG-ключ зоны
 `example.net` и заполнить в `.env`:
 

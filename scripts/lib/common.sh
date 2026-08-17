@@ -23,6 +23,14 @@ if [[ -f "$repo_root/.env" ]]; then
 fi
 DOMAIN="${DOMAIN:-example.net}"
 
+# Генерирует файл из шаблона, подставляя __DOMAIN__ из $DOMAIN.
+# Используется для статических конфигов, не умеющих читать переменные окружения
+# (Traefik static, dnsmasq, structurizr.properties).
+render_domain_template() {
+  local template="$1" output="$2"
+  sed "s/__DOMAIN__/$DOMAIN/g" "$template" > "$output"
+}
+
 # Случайный секрет из 24 байт (hex).
 random_secret() {
   openssl rand -hex 24

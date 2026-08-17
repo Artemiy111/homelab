@@ -12,4 +12,8 @@ PIHOLE_HOST=pihole.$DOMAIN
 PIHOLE_ADMIN_PASSWORD=$(random_secret)
 EOF
 
+render_domain_template \
+  "$repo_root/pihole/etc-dnsmasq.d/05-homelab.conf.tpl" \
+  "$repo_root/pihole/etc-dnsmasq.d/05-homelab.conf"
+
 compose_config "$repo_root/pihole"

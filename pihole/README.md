@@ -19,6 +19,10 @@ cp .env.example .env
 sudo install -d -m 0750 /storage/apps/pihole/etc-pihole
 ```
 
+`etc-dnsmasq.d/05-homelab.conf` в Git не хранится: `bash init.sh` генерирует
+его из `.tpl`-шаблона, подставляя домен из `DOMAIN`. При ручной подготовке
+используйте `bash init.sh` вместо `cp .env.example .env`.
+
 Внешняя сеть `traefiknet` должна уже существовать. Запустить Pi-hole:
 
 ```sh

@@ -1,2 +1,2 @@
 # В локальной сети направлять зону <dns-provider> и все её поддомены на Traefik.
-address=/example.net/192.0.2.10
+address=/__DOMAIN__/192.0.2.10

@@ -53,8 +53,10 @@ cp .env.example .env
 `init.sh` каждого сервиса и `scripts/bootstrap-platform.sh` читают `DOMAIN` и
 генерируют конкретные `<SERVICE>_HOST` в локальных `.env` сервисов. Конфиги
 Homepage, Gatus и Uptime Kuma подставляют домен через переменные окружения
-(`{{HOMEPAGE_VAR_DOMAIN}}`, `${DOMAIN}`, `{{DOMAIN}}` соответственно). После
-смены домена заново выполните `bash scripts/bootstrap-platform.sh`.
+(`{{HOMEPAGE_VAR_DOMAIN}}`, `${DOMAIN}`, `{{DOMAIN}}` соответственно).
+Статические конфиги, не умеющие читать переменные окружения (Traefik static,
+dnsmasq, structurizr.properties), генерируются `init.sh` из `.tpl`-шаблонов.
+После смены домена заново выполните `bash scripts/bootstrap-platform.sh`.
 
 ## Порядок запуска
 
@@ -129,6 +131,18 @@ python3 scripts/compose-format.py
 Правило `service-keys-order` включает только группировку по смыслу; остальные
 стилевые правила отключены в `.dclintrc`, чтобы не менять то, что не просили.
 Подробный разбор инструментов — в `docs/research/docker-compose-lint.md`.
+
+## Проверка домена
+
+Базовый домен не должен захардкоживаться в конфигах. Проверка:
+
+```sh
+bash scripts/check-domain.sh
+```
+
+Скрипт падает, если `example.net` встречается вне разрешённых мест:
+источник правды (`scripts/lib/common.sh`), шаблоны (`.env.example`, `.tpl`) и
+документация (`.md`, `structurizr/homelab.dsl`).
 
 ## Пакеты хоста
 

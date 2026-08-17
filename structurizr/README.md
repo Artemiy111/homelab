@@ -29,9 +29,10 @@ docker compose up -d
 
 ## Конфигурация
 
-Настройки в `structurizr.properties`, смонтированном в
-`/usr/local/structurizr/structurizr.properties`:
-включён браузерный DSL-редактор и задан базовый URL за Traefik.
+Настройки лежат в `structurizr.properties.tpl`; `bash init.sh` генерирует из
+него `structurizr.properties` (домен из `DOMAIN`), который монтируется в
+`/usr/local/structurizr/structurizr.properties`: включён браузерный DSL-редактор
+и задан базовый URL за Traefik.
 
 > Примечание: в `/storage/apps/structurizr` лежит пустой файл
 > `structurizr.properties` (владелец root) — это артефакт Docker: он создаёт
@@ -50,7 +51,8 @@ basicauth) на роутер `structurizr`.
 него. Это соответствует разделению «в Git / на сервере»:
 
 - **В Git** (`structurizr/`): `homelab.dsl` (модель, представления, стили) и
-  `structurizr.properties` (уже монтируется в каталог данных).
+  `structurizr.properties.tpl` (шаблон, из которого init.sh генерирует
+  монтируемый конфиг).
 - **На сервере** (`/storage/apps/structurizr`, в контейнере
   `/usr/local/structurizr`): управляемые сервером данные воркспейса
   `<id>/workspace.json`, версии `workspace-<timestamp>.json`, превью и картинки.

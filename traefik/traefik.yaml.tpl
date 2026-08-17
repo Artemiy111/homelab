@@ -28,9 +28,9 @@ entryPoints:
       tls:
         certResolver: letsencrypt
         domains:
-          - main: example.net
+          - main: __DOMAIN__
             sans:
-              - "*.example.net"
+              - "*.__DOMAIN__"
 
 certificatesResolvers:
   letsencrypt:

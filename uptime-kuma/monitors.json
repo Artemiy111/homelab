@@ -132,9 +132,9 @@
     },
     {
       "name": "Structurizr",
-      "description": "Пользовательский HTTPS-маршрут Structurizr через локальный DNS, TLS и Traefik.",
+      "description": "Backend Structurizr в Docker-сети; публичный маршрут закрыт forward auth.",
       "type": "http",
-      "url": "https://structurizr.{{DOMAIN}}/",
+      "url": "http://structurizr:8080/",
       "interval": 60,
       "maxretries": 2
     },
@@ -181,19 +181,17 @@
     },
     {
       "name": "WUD",
-      "description": "Health endpoint WUD через локальный DNS, TLS и Traefik; ответ 401 без учётных данных считается нормальным.",
+      "description": "Health endpoint WUD в Docker-сети; публичный маршрут закрыт forward auth.",
       "type": "http",
-      "url": "https://wud.{{DOMAIN}}/health",
-      "accepted_statuscodes": ["401"],
+      "url": "http://wud:3000/health",
       "interval": 60,
       "maxretries": 2
     },
     {
       "name": "Cup",
-      "description": "Пользовательский HTTPS-маршрут Cup; ответ 401 без учётных данных считается нормальным.",
+      "description": "Backend Cup в Docker-сети; публичный маршрут закрыт forward auth.",
       "type": "http",
-      "url": "https://cup.{{DOMAIN}}/",
-      "accepted_statuscodes": ["401"],
+      "url": "http://cup:8000/",
       "interval": 60,
       "maxretries": 2
     },
@@ -217,7 +215,7 @@
       "name": "Pi-hole DNS",
       "description": "Разрешение пользовательского домена через локальный DNS-сервер Pi-hole.",
       "type": "dns",
-      "hostname": "kuma.{{DOMAIN}}",
+      "hostname": "uptime.{{DOMAIN}}",
       "dns_resolve_server": "192.0.2.10",
       "dns_resolve_type": "A",
       "interval": 60,

@@ -29,4 +29,6 @@ RFC2136_TSIG_KEY=replace-with-the-<dns-provider>-tsig-key-name
 RFC2136_TSIG_SECRET=replace-with-the-<dns-provider>-tsig-secret
 EOF
 
+render_domain_template "$repo_root/traefik/traefik.yaml.tpl" "$repo_root/traefik/traefik.yaml"
+
 compose_config "$repo_root/traefik"
