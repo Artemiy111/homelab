@@ -15,8 +15,8 @@ services:
       RFC2136_TSIG_SECRET: ${RFC2136_TSIG_SECRET:?set RFC2136_TSIG_SECRET in traefik/.env}
 
     ports:
-      - "192.0.2.10:80:80"
-      - "192.0.2.10:443:443"
+      - "${SERVER_IP:?set SERVER_IP in traefik/.env}:80:80"
+      - "${SERVER_IP:?set SERVER_IP in traefik/.env}:443:443"
     networks:
       - traefiknet
     extra_hosts:

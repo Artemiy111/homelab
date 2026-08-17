@@ -28,9 +28,9 @@ entryPoints:
       tls:
         certResolver: letsencrypt
         domains:
-          - main: __DOMAIN__
+          - main: ${DOMAIN}
             sans:
-              - "*.__DOMAIN__"
+              - "*.${DOMAIN}"
 
 certificatesResolvers:
   letsencrypt:

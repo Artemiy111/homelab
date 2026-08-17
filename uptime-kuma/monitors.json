@@ -126,7 +126,7 @@
       "name": "Home Assistant",
       "description": "Веб-интерфейс Home Assistant на LAN-порту; HTTPS-маршрут ограничен локальной сетью, поэтому недоступен контейнерам мониторинга.",
       "type": "http",
-      "url": "http://192.0.2.10:8123/",
+      "url": "http://{{SERVER_IP}}:8123/",
       "interval": 60,
       "maxretries": 2
     },
@@ -159,7 +159,7 @@
       "name": "Sure",
       "description": "Веб-интерфейс Sure на опубликованном LAN-порту; сервис пока не подключён к Traefik.",
       "type": "http",
-      "url": "http://192.0.2.10:40060/",
+      "url": "http://{{SERVER_IP}}:40060/",
       "interval": 60,
       "maxretries": 2
     },
@@ -216,7 +216,7 @@
       "description": "Разрешение пользовательского домена через локальный DNS-сервер Pi-hole.",
       "type": "dns",
       "hostname": "uptime.{{DOMAIN}}",
-      "dns_resolve_server": "192.0.2.10",
+      "dns_resolve_server": "{{SERVER_IP}}",
       "dns_resolve_type": "A",
       "interval": 60,
       "maxretries": 2
@@ -225,7 +225,7 @@
       "name": "Gitea SSH",
       "description": "Доступность опубликованного SSH-порта Gitea.",
       "type": "port",
-      "hostname": "192.0.2.10",
+      "hostname": "{{SERVER_IP}}",
       "port": 2222,
       "interval": 60,
       "maxretries": 2
@@ -234,7 +234,7 @@
       "name": "Xray inbound",
       "description": "Доступность опубликованного TCP-входа Xray; UDP тем же монитором не проверяется.",
       "type": "port",
-      "hostname": "192.0.2.10",
+      "hostname": "{{SERVER_IP}}",
       "port": 8443,
       "interval": 60,
       "maxretries": 2

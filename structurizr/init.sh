@@ -9,6 +9,6 @@ write_env_file "$repo_root/structurizr/.env" <<EOF
 STRUCTURIZR_HOST=structurizr.$DOMAIN
 EOF
 
-render_domain_template "$repo_root/structurizr/structurizr.properties.tpl" "$repo_root/structurizr/structurizr.properties"
+render_template "$repo_root/structurizr/structurizr.properties.tpl" "$repo_root/structurizr/structurizr.properties" '\$DOMAIN'
 
 compose_config "$repo_root/structurizr"

@@ -14,8 +14,8 @@ services:
       FTLCONF_webserver_api_password: ${PIHOLE_ADMIN_PASSWORD}
 
     ports:
-      - "192.0.2.10:53:53/tcp"
-      - "192.0.2.10:53:53/udp"
+      - "${SERVER_IP:?set SERVER_IP in pihole/.env}:53:53/tcp"
+      - "${SERVER_IP:?set SERVER_IP in pihole/.env}:53:53/udp"
     networks:
       - default
       - traefiknet

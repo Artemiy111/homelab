@@ -60,7 +60,7 @@ services:
       <<: *gitea-environment
 
     ports:
-      - "192.0.2.10:${GITEA_SSH_PORT:-2222}:22"
+      - "${SERVER_IP:?set SERVER_IP in gitea/.env}:${GITEA_SSH_PORT:-2222}:22"
     networks:
       backend:
       traefiknet:

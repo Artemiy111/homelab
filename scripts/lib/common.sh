@@ -23,12 +23,35 @@ if [[ -f "$repo_root/.env" ]]; then
 fi
 DOMAIN="${DOMAIN:-example.net}"
 
-# Генерирует файл из шаблона, подставляя __DOMAIN__ из $DOMAIN.
-# Используется для статических конфигов, не умеющих читать переменные окружения
-# (Traefik static, dnsmasq, structurizr.properties).
-render_domain_template() {
-  local template="$1" output="$2"
-  sed "s/__DOMAIN__/$DOMAIN/g" "$template" > "$output"
+# LAN IP-адрес сервера, к которому привязываются опубликованные порты (Traefik,
+# Pi-hole, Gitea, 3x-ui, Jitsi) и на который указывают DNS/health-проверки.
+# Приоритет: переменная окружения SERVER_IP → корневой .env → автоопределение.
+detect_server_ip() {
+  local ip
+  ip="$(ip -4 route get 1.1.1.1 2>/dev/null | awk '{ for (i = 1; i <= NF; i++) if ($i == "src") { print $(i + 1); exit } }')"
+  if [[ -n "$ip" ]]; then
+    printf '%s\n' "$ip"
+    return 0
+  fi
+  ip="$(hostname -I 2>/dev/null | awk '{print $1}')"
+  if [[ -n "$ip" ]]; then
+    printf '%s\n' "$ip"
+    return 0
+  fi
+  return 1
+}
+SERVER_IP="${SERVER_IP:-$(detect_server_ip || true)}"
+if [[ -z "$SERVER_IP" ]]; then
+  echo "Внимание: не удалось определить IP-адрес сервера; задайте SERVER_IP в корневом .env." >&2
+fi
+
+# Генерирует файл из шаблона, подставляя перечисленные переменные в стандартном
+# синтаксисе ${VAR} (тот же, что и в Compose). Подставляются только указанные
+# имена, поэтому чужие ${...} (например ${LETSENCRYPT_EMAIL:?...} для Traefik)
+# остаются нетронутыми. По умолчанию подставляется только ${DOMAIN}.
+render_template() {
+  local template="$1" output="$2" vars="${3:-\$DOMAIN}"
+  DOMAIN="$DOMAIN" SERVER_IP="$SERVER_IP" envsubst "$vars" < "$template" > "$output"
 }
 
 # Случайный секрет из 24 байт (hex).

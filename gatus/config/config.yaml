@@ -36,7 +36,7 @@ endpoints:
     interval: 60s
     client: &https-client
       timeout: 10s
-      dns-resolver: tcp://192.0.2.10:53
+      dns-resolver: tcp://${SERVER_IP}:53
     conditions: &https-ok
       - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > 168h"
@@ -56,19 +56,19 @@ endpoints:
 
   - name: Pi-hole DNS
     group: Infrastructure
-    url: 192.0.2.10
+    url: ${SERVER_IP}
     interval: 60s
     dns:
       query-name: uptime.${DOMAIN}
       query-type: A
     conditions:
       - "[DNS_RCODE] == NOERROR"
-      - "[BODY] == 192.0.2.10"
+      - "[BODY] == ${SERVER_IP}"
     alerts: *alerts-all
 
   - name: Gitea SSH
     group: Infrastructure
-    url: tcp://192.0.2.10:2222
+    url: tcp://${SERVER_IP}:2222
     interval: 60s
     conditions: &tcp-connected
       - "[CONNECTED] == true"
@@ -76,7 +76,7 @@ endpoints:
 
   - name: Xray inbound
     group: Infrastructure
-    url: tcp://192.0.2.10:8443
+    url: tcp://${SERVER_IP}:8443
     interval: 60s
     conditions: *tcp-connected
     alerts:
@@ -89,7 +89,7 @@ endpoints:
     interval: 120s
     client:
       timeout: 30s
-      proxy-url: http://192.0.2.10:8440
+      proxy-url: http://${SERVER_IP}:8440
     conditions:
       - "[STATUS] == 200"
       - "[RESPONSE_TIME] < 5000"
@@ -281,7 +281,7 @@ endpoints:
 
   - name: Home Assistant
     group: Applications
-    url: http://192.0.2.10:8123/
+    url: http://${SERVER_IP}:8123/
     interval: 60s
     client:
       timeout: 10s
@@ -315,7 +315,7 @@ endpoints:
 
   - name: Sure
     group: Applications
-    url: http://192.0.2.10:40060/
+    url: http://${SERVER_IP}:40060/
     interval: 60s
     client:
       timeout: 10s

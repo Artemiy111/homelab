@@ -8,6 +8,7 @@ services:
 
     environment:
       DOMAIN: ${DOMAIN:?set DOMAIN in gatus/.env}
+      SERVER_IP: ${SERVER_IP:?set SERVER_IP in gatus/.env}
       NTFY_TOPIC: ${NTFY_TOPIC}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
       TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID}

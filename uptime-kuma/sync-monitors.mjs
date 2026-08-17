@@ -61,6 +61,7 @@ function fail(message) {
 }
 
 const DOMAIN_PLACEHOLDER = /\{\{\s*DOMAIN\s*\}\}/g;
+const SERVER_IP_PLACEHOLDER = /\{\{\s*SERVER_IP\s*\}\}/g;
 
 function expandDomain(value, domain) {
   if (typeof value !== "string" || !value.includes("{{DOMAIN}}")) {
@@ -72,7 +73,17 @@ function expandDomain(value, domain) {
   return value.replace(DOMAIN_PLACEHOLDER, domain);
 }
 
-export async function loadConfig(filePath, domain = process.env.DOMAIN) {
+function expandServerIp(value, serverIp) {
+  if (typeof value !== "string" || !value.includes("{{SERVER_IP}}")) {
+    return value;
+  }
+  if (!serverIp) {
+    fail("В monitors.json используется {{SERVER_IP}}, но переменная SERVER_IP не задана.");
+  }
+  return value.replace(SERVER_IP_PLACEHOLDER, serverIp);
+}
+
+export async function loadConfig(filePath, domain = process.env.DOMAIN, serverIp = process.env.SERVER_IP) {
   const source = await readFile(filePath, "utf8");
   let config;
 
@@ -116,8 +127,9 @@ export async function loadConfig(filePath, domain = process.env.DOMAIN) {
     }
 
     const merged = { ...DEFAULT_MONITOR, ...monitor };
-    merged.url = expandDomain(merged.url, domain);
-    merged.hostname = expandDomain(merged.hostname, domain);
+    merged.url = expandServerIp(expandDomain(merged.url, domain), serverIp);
+    merged.hostname = expandServerIp(expandDomain(merged.hostname, domain), serverIp);
+    merged.dns_resolve_server = expandServerIp(expandDomain(merged.dns_resolve_server, domain), serverIp);
     return merged;
   });
 

@@ -11,6 +11,7 @@ ensure_dirs 0700 \
   /storage/apps/3x-ui/log
 
 write_env_file "$repo_root/3x-ui/.env" <<EOF
+SERVER_IP=$SERVER_IP
 XUI_HOST=xui.$DOMAIN
 XUI_ADMIN_USERNAME=xui-admin
 XUI_ADMIN_PASSWORD=$(random_secret)

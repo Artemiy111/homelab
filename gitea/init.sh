@@ -13,6 +13,7 @@ mkdir -p \
 traefik_network_cidr="$(traefik_network_cidr)"
 
 write_env_file "$repo_root/gitea/.env" <<EOF
+SERVER_IP=$SERVER_IP
 GITEA_HOST=gitea.$DOMAIN
 GITEA_SSH_PORT=2222
 POSTGRES_DB=gitea

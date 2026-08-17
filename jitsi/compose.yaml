@@ -153,7 +153,7 @@ services:
       - prosody
 
     ports:
-      - "${JVB_BIND_ADDRESS:-192.0.2.10}:${JVB_PORT:-10000}:${JVB_PORT:-10000}/udp"
+      - "${JVB_BIND_ADDRESS:?set JVB_BIND_ADDRESS in jitsi/.env}:${JVB_PORT:-10000}:${JVB_PORT:-10000}/udp"
       - "127.0.0.1:${JVB_COLIBRI_PORT:-8080}:8080"
 
     volumes:

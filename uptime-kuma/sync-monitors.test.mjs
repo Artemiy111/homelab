@@ -62,6 +62,34 @@ test("плейсхолдер {{DOMAIN}} подставляется из пере
   assert.equal(config.monitors[1].hostname, "app.example.org");
 });
 
+test("плейсхолдер {{SERVER_IP}} подставляется из переменной SERVER_IP", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "uptime-kuma-test-"));
+  const configPath = join(directory, "monitors.json");
+  await writeFile(
+    configPath,
+    JSON.stringify({
+      version: 1,
+      monitors: [
+        { name: "Home Assistant", type: "http", url: "http://{{SERVER_IP}}:8123/" },
+        { name: "Gitea SSH", type: "port", hostname: "{{SERVER_IP}}", port: 2222 },
+        {
+          name: "Pi-hole DNS",
+          type: "dns",
+          hostname: "uptime.{{DOMAIN}}",
+          dns_resolve_server: "{{SERVER_IP}}",
+        },
+      ],
+    }),
+  );
+
+  const config = await loadConfig(configPath, "example.org", "10.0.0.5");
+
+  assert.equal(config.monitors[0].url, "http://10.0.0.5:8123/");
+  assert.equal(config.monitors[1].hostname, "10.0.0.5");
+  assert.equal(config.monitors[2].hostname, "uptime.example.org");
+  assert.equal(config.monitors[2].dns_resolve_server, "10.0.0.5");
+});
+
 test("{{DOMAIN}} без переменной DOMAIN вызывает ошибку", async () => {
   const directory = await mkdtemp(join(tmpdir(), "uptime-kuma-test-"));
   const configPath = join(directory, "monitors.json");

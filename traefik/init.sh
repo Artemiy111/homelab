@@ -19,6 +19,7 @@ password="$(random_secret)"
 hash="$(printf '%s' "$password" | openssl passwd -apr1 -stdin)"
 
 write_env_file "$repo_root/traefik/.env" <<EOF
+SERVER_IP=$SERVER_IP
 TRAEFIK_HOST=traefik.$DOMAIN
 TRAEFIK_DASHBOARD_USERNAME=admin
 TRAEFIK_DASHBOARD_PASSWORD=$password
@@ -29,6 +30,6 @@ RFC2136_TSIG_KEY=replace-with-the-<dns-provider>-tsig-key-name
 RFC2136_TSIG_SECRET=replace-with-the-<dns-provider>-tsig-secret
 EOF
 
-render_domain_template "$repo_root/traefik/traefik.yaml.tpl" "$repo_root/traefik/traefik.yaml"
+render_template "$repo_root/traefik/traefik.yaml.tpl" "$repo_root/traefik/traefik.yaml" '\$DOMAIN'
 
 compose_config "$repo_root/traefik"

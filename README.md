@@ -55,8 +55,19 @@ cp .env.example .env
 Homepage, Gatus и Uptime Kuma подставляют домен через переменные окружения
 (`{{HOMEPAGE_VAR_DOMAIN}}`, `${DOMAIN}`, `{{DOMAIN}}` соответственно).
 Статические конфиги, не умеющие читать переменные окружения (Traefik static,
-dnsmasq, structurizr.properties), генерируются `init.sh` из `.tpl`-шаблонов.
+dnsmasq, structurizr.properties), генерируются `init.sh` из `.tpl`-шаблонов
+через `envsubst` (плейсхолдеры `${DOMAIN}` / `${SERVER_IP}`).
 После смены домена заново выполните `bash scripts/bootstrap-platform.sh`.
+
+## IP-адрес сервера
+
+LAN-адрес `192.0.2.10`, к которому привязываются опубликованные порты
+(Traefik, Pi-hole, Gitea, 3x-ui, Jitsi) и на который указывают DNS- и
+health-проверки (Gatus, Uptime Kuma), задаётся переменной `SERVER_IP`.
+По умолчанию `scripts/lib/common.sh` определяет его автоматически как
+адрес-источник маршрута по умолчанию (`ip route get 1.1.1.1`). Если нужно
+переопределить (например, несколько сетевых интерфейсов), задайте `SERVER_IP`
+в корневом `.env` или в переменной окружения.
 
 ## Порядок запуска
 
