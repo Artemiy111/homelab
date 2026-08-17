@@ -1,3 +1,5 @@
+name: structurizr
+
 services:
   structurizr:
     build:

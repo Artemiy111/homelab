@@ -1,3 +1,5 @@
+name: mermaid-live-editor
+
 services:
   mermaid-editor:
     image: ghcr.io/mermaid-js/mermaid-live-editor:latest

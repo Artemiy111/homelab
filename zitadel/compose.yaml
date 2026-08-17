@@ -149,6 +149,7 @@ services:
 
   backup-db:
     image: postgres:18-alpine
+    container_name: zitadel-backup-db
 
     depends_on:
       postgres:

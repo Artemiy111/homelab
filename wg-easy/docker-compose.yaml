@@ -1,3 +1,5 @@
+name: wg-easy
+
 volumes:
   etc_wireguard:
 

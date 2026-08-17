@@ -26,6 +26,8 @@ x-gitea-environment: &gitea-environment
 services:
   db:
     image: postgres:18-alpine
+    container_name: gitea-db
+
     volumes:
       - /storage/apps/gitea/postgresql:/var/lib/postgresql:Z
 
@@ -92,6 +94,7 @@ services:
 
   init-admin:
     image: docker.gitea.com/gitea:1.27.1
+    container_name: gitea-init-admin
 
     depends_on:
       app:
@@ -123,6 +126,7 @@ services:
 
   backup-db:
     image: postgres:18-alpine
+    container_name: gitea-backup-db
 
     depends_on:
       db:

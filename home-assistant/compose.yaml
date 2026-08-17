@@ -1,7 +1,9 @@
+name: home-assistant
+
 services:
-  homeassistant:
+  home-assistant:
     image: ghcr.io/home-assistant/home-assistant:stable
-    container_name: homeassistant
+    container_name: home-assistant
     volumes:
       - /storage/apps/home-assistant:/config:Z
       - ./configuration.yaml:/config/configuration.yaml:Z,ro

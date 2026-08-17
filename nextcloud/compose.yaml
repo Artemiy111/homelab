@@ -22,6 +22,8 @@ x-nextcloud-environment: &nextcloud-environment
 services:
   db:
     image: postgres:18-alpine
+    container_name: nextcloud-db
+
     volumes:
       - /storage/apps/nextcloud/postgresql-18:/var/lib/postgresql/18/docker:Z
 
@@ -43,6 +45,7 @@ services:
 
   redis:
     image: redis:8-alpine
+    container_name: nextcloud-redis
 
     volumes:
       - /storage/apps/nextcloud/redis:/data:Z
@@ -60,6 +63,7 @@ services:
 
   app:
     image: nextcloud:34.0.3-apache
+    container_name: nextcloud-app
 
     depends_on:
       db:
@@ -112,6 +116,7 @@ services:
 
   cron:
     image: nextcloud:34.0.3-apache
+    container_name: nextcloud-cron
 
     depends_on:
       app:
@@ -135,6 +140,7 @@ services:
 
   backup-db:
     image: postgres:18-alpine
+    container_name: nextcloud-backup-db
 
     depends_on:
       db:

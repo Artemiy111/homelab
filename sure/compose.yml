@@ -27,6 +27,8 @@
 # https://github.com/we-promise/sure/discussions/categories/general
 #
 
+name: sure
+
 x-db-env: &db_env
   POSTGRES_USER: ${POSTGRES_USER:-sure_user}
   POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sure_password}
@@ -47,6 +49,8 @@ x-rails-env: &rails_env
 services:
   web:
     image: ghcr.io/we-promise/sure:stable
+    container_name: sure-web
+
     depends_on:
       db:
         condition: service_healthy
@@ -67,6 +71,7 @@ services:
 
   worker:
     image: ghcr.io/we-promise/sure:stable
+    container_name: sure-worker
 
     depends_on:
       db:
@@ -87,6 +92,7 @@ services:
 
   db:
     image: postgres:16
+    container_name: sure-db
 
     volumes:
       - /storage/apps/sure/data/postgresql:/var/lib/postgresql/data
@@ -106,6 +112,7 @@ services:
 
   backup:
     image: prodrigestivill/postgres-backup-local
+    container_name: sure-backup
 
     depends_on:
       - db
@@ -132,6 +139,7 @@ services:
 
   redis:
     image: redis:latest
+    container_name: sure-redis
 
     volumes:
       - /storage/apps/sure/data/redis:/data

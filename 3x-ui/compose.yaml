@@ -1,6 +1,10 @@
+name: 3x-ui
+
 services:
   initialize:
     image: ghcr.io/mhsanaei/3x-ui:v3.6.0
+    container_name: 3x-ui-initialize
+
     volumes:
       - /storage/apps/3x-ui/db:/etc/x-ui:Z
 

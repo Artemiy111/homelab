@@ -62,12 +62,12 @@ privileged mode.
 
 ```sh
 docker compose ps
-docker compose exec homeassistant \
+docker compose exec home-assistant \
   python -m homeassistant --script check_config --config /config
 curl --resolve homeassistant.example.net:443:192.0.2.10 \
   -o /dev/null -sS -w '%{http_code}\n' \
   https://homeassistant.example.net/
-docker logs --since=5m homeassistant 2>&1
+docker logs --since=5m home-assistant 2>&1
 ```
 
 Прямой доступ к `http://192.0.2.10:8123` блокируется firewalld; для работы

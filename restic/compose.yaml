@@ -1,3 +1,5 @@
+name: restic
+
 x-restic: &restic
   image: restic/restic:0.19.1
   hostname: homelab
@@ -22,10 +24,14 @@ x-restic: &restic
 
 services:
   init:
+    container_name: restic-init
+
     command: init
     <<: *restic
 
   backup:
+    container_name: restic-backup
+
     command:
       - backup
       - /data
@@ -35,10 +41,14 @@ services:
     <<: *restic
 
   snapshots:
+    container_name: restic-snapshots
+
     command: snapshots
     <<: *restic
 
   forget:
+    container_name: restic-forget
+
     command:
       - forget
       - --keep-daily=7
@@ -48,10 +58,14 @@ services:
     <<: *restic
 
   check:
+    container_name: restic-check
+
     command: check
     <<: *restic
 
   restore:
+    container_name: restic-restore
+
     command:
       - restore
       - latest

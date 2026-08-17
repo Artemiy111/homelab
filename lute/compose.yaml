@@ -1,3 +1,5 @@
+name: lute
+
 services:
   lute:
     image: jzohrab/lute3:latest
