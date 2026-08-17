@@ -50,3 +50,14 @@ labels:
 
 Изменение версии образа и пересоздание контейнера выполняются через Git и
 `docker compose`, а не из интерфейсов WUD или Cup.
+
+## Конфигурация Cup
+
+`cup.json` генерируется `init.sh` из `cup.json.tpl` (сам файл в `.gitignore`,
+в Git только шаблон). Токен Docker Hub хранится исключительно в `.env`
+(переменные `CUP_DOCKERHUB_USERNAME` / `CUP_DOCKERHUB_TOKEN`, PAT с правами
+read-only) и не попадает в репозиторий: `init.sh` собирает из него строку
+`base64(логин:токен)` и подставляет в блок `registries.registry-1.docker.io`.
+Пока токен не задан, блок не рендерится и Cup работает анонимно (лимит
+100 pulls/6h). После изменения токена выполните `bash image-updates/init.sh`
+и `docker compose restart cup`.

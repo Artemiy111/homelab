@@ -4,8 +4,7 @@
   "theme": "blue",
   "images": {
     "exclude": [
-      "structurizr-structurizr",
-      "my-nginx"
+      "structurizr-structurizr"
     ]
-  }
+  }${CUP_DOCKERHUB_REGISTRIES}
 }

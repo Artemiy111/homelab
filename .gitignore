@@ -5,3 +5,4 @@
 traefik/traefik.yaml
 pihole/etc-dnsmasq.d/05-homelab.conf
 structurizr/structurizr.properties
+image-updates/cup.json
