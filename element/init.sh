@@ -4,7 +4,8 @@
 
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-STORAGE_BASE="/storage/apps/element"
+source "$SCRIPT_DIR/../scripts/lib/common.sh"
+STORAGE_BASE="$APPS_STORAGE_PATH/element"
 
 if [ ! -f "$SCRIPT_DIR/.env" ]; then
   echo "ERROR: Create .env from .env.example first" >&2
@@ -47,7 +48,7 @@ if [ -z "${LIVEKIT_API_SECRET:-}" ]; then
 fi
 
 # Create storage directories
-sudo -u artlab mkdir -p \
+ensure_dirs 0700 \
   "$STORAGE_BASE/synapse/data" \
   "$STORAGE_BASE/synapse/config" \
   "$STORAGE_BASE/synapse/media_store" \

@@ -16,7 +16,7 @@ services:
     image: postgres:16-alpine
     container_name: element-db
     volumes:
-      - /storage/apps/element/postgresql-16:/var/lib/postgresql/16/docker:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/element/postgresql-16:/var/lib/postgresql/16/docker:Z
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-synapse}
       POSTGRES_USER: ${POSTGRES_USER:-synapse}
@@ -35,7 +35,7 @@ services:
     image: redis:8-alpine
     container_name: element-redis
     volumes:
-      - /storage/apps/element/redis:/data:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/element/redis:/data:Z
     networks:
       - backend
     command: redis-server --save 60 1 --loglevel warning
@@ -55,8 +55,8 @@ services:
       redis:
         condition: service_healthy
     volumes:
-      - /storage/apps/element/synapse/data:/data:Z
-      - /storage/apps/element/synapse/config/homeserver.yaml:/data/homeserver.yaml:Z,ro
+      - ${APPS_STORAGE_PATH:-/storage/apps}/element/synapse/data:/data:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/element/synapse/config/homeserver.yaml:/data/homeserver.yaml:Z,ro
     environment:
       <<: *synapse-environment
     networks:
@@ -113,7 +113,7 @@ services:
     image: livekit/livekit-server:latest
     container_name: element-livekit
     volumes:
-      - /storage/apps/element/livekit/config.yaml:/etc/livekit/config.yaml:Z,ro
+      - ${APPS_STORAGE_PATH:-/storage/apps}/element/livekit/config.yaml:/etc/livekit/config.yaml:Z,ro
     command: --config /etc/livekit/config.yaml --node-ip ${LIVEKIT_EXTERNAL_IP:?set LIVEKIT_EXTERNAL_IP in element/.env}
     ports:
       - "${LIVEKIT_EXTERNAL_IP}:${LIVEKIT_PORT:-7880}:7880"
@@ -144,7 +144,7 @@ services:
     image: coturn/coturn:latest
     container_name: element-turn
     volumes:
-      - /storage/apps/element/turn/turnserver.conf:/etc/turnserver.conf:Z,ro
+      - ${APPS_STORAGE_PATH:-/storage/apps}/element/turn/turnserver.conf:/etc/turnserver.conf:Z,ro
     network_mode: host
     restart: unless-stopped
     init: true
@@ -155,7 +155,7 @@ services:
     image: matrixdotorg/sygnal:latest
     container_name: element-sygnal
     volumes:
-      - /storage/apps/element/sygnal/sygnal.yaml:/sygnal.yaml:Z,ro
+      - ${APPS_STORAGE_PATH:-/storage/apps}/element/sygnal/sygnal.yaml:/sygnal.yaml:Z,ro
     networks:
       - backend
     restart: unless-stopped
