@@ -2,22 +2,22 @@ name: vault
 
 services:
   vault:
-    image: hashicorp/vault:${VAULT_VERSION:-1.21.4}
+    image: hashicorp/vault:${VAULT_VERSION:-2.0.3}
     container_name: vault
-    cap_add:
-      - IPC_LOCK
     ports:
       - "127.0.0.1:8200:8200"
     volumes:
       - ${APPS_STORAGE_PATH:-/storage/apps}/vault/data:/vault/data:Z
       - ./config:/vault/config:ro
     environment:
+      # Used by the bundled CLI and healthcheck inside the HTTP-only container.
       VAULT_ADDR: "http://127.0.0.1:8200"
-      VAULT_API_ADDR: "http://127.0.0.1:8200"
+      VAULT_API_ADDR: "https://${VAULT_HOST}"
     command: vault server -config=/vault/config/vault.hcl
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "vault", "status"]
+      # `vault status` returns 2 while Vault is correctly running but sealed.
+      test: ["CMD-SHELL", 'vault status >/dev/null 2>&1; status=$$?; [ "$$status" -eq 0 ] || [ "$$status" -eq 2 ]']
       interval: 30s
       timeout: 10s
       retries: 3
@@ -33,6 +33,8 @@ services:
       - traefik.http.routers.vault.entrypoints=websecure
       - traefik.http.routers.vault.service=vault
       - traefik.http.routers.vault.tls.certresolver=letsencrypt
+    networks:
+      - traefiknet
 
 networks:
   traefiknet:

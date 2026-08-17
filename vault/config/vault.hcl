@@ -1,8 +1,9 @@
 ui = true
 disable_mlock = true
 
-storage "file" {
+storage "raft" {
   path = "/vault/data"
+  node_id = "vault-1"
 }
 
 listener "tcp" {
@@ -10,5 +11,4 @@ listener "tcp" {
   tls_disable = "true"
 }
 
-api_addr     = "http://127.0.0.1:8200"
-cluster_addr = "http://127.0.0.1:8201"
+cluster_addr = "http://vault:8201"
