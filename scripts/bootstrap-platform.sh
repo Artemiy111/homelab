@@ -22,6 +22,7 @@ services=(
   nextcloud
   jellyfin
   jitsi
+  talk-hpb
   forgejo
   pocket-id
   authentik

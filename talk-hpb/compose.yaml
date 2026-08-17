@@ -1,0 +1,49 @@
+name: talk-hpb
+
+services:
+  talk:
+    image: ghcr.io/nextcloud-releases/aio-talk:${TALK_IMAGE_VERSION:?set TALK_IMAGE_VERSION in talk-hpb/.env}
+    container_name: talk-hpb
+    read_only: true
+    init: true
+
+    tmpfs:
+      - /conf
+      - /opt/eturnal/run
+      - /var/log/supervisord
+      - /var/run/supervisord
+      - /tmp
+
+    ports:
+      - "${SERVER_IP:?set SERVER_IP in talk-hpb/.env}:${TALK_PORT:-3478}:${TALK_PORT:-3478}/tcp"
+      - "${SERVER_IP:?set SERVER_IP in talk-hpb/.env}:${TALK_PORT:-3478}:${TALK_PORT:-3478}/udp"
+
+    environment:
+      AIO_LOG_LEVEL: warn
+      INTERNAL_SECRET: ${INTERNAL_SECRET:?set INTERNAL_SECRET in talk-hpb/.env}
+      NC_DOMAIN: ${NC_DOMAIN:?set NC_DOMAIN in talk-hpb/.env}
+      SIGNALING_SECRET: ${SIGNALING_SECRET:?set SIGNALING_SECRET in talk-hpb/.env}
+      TALK_HOST: ${TALK_HOST:?set TALK_HOST in talk-hpb/.env}
+      TALK_MAX_STREAM_BITRATE: ${TALK_MAX_STREAM_BITRATE:-4194304}
+      TALK_MAX_SCREEN_BITRATE: ${TALK_MAX_SCREEN_BITRATE:-8388608}
+      TALK_PORT: ${TALK_PORT:-3478}
+      TURN_DOMAIN: ${TURN_DOMAIN:?set TURN_DOMAIN in talk-hpb/.env}
+      TURN_SECRET: ${TURN_SECRET:?set TURN_SECRET in talk-hpb/.env}
+      TZ: ${TZ:?set TZ in talk-hpb/.env}
+
+    networks:
+      - traefiknet
+    restart: unless-stopped
+
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.talk-signaling.rule=Host(`${TALK_HOST}`) && PathPrefix(`/standalone-signaling`)
+      - traefik.http.routers.talk-signaling.entrypoints=websecure
+      - traefik.http.routers.talk-signaling.middlewares=talk-signaling-strip
+      - traefik.http.services.talk-signaling.loadbalancer.server.port=8081
+      - traefik.http.middlewares.talk-signaling-strip.stripprefix.prefixes=/standalone-signaling
+      - traefik.docker.network=traefiknet
+
+networks:
+  traefiknet:
+    external: true
