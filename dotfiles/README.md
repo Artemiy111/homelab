@@ -44,8 +44,8 @@ ln -sf /home/artlab/projects/homelab/dotfiles/.ssh/config ~/.ssh/config
 bash /home/artlab/projects/homelab/scripts/ai-agent-setup.sh
 ```
 
-Скрипт создаёт пользователя, добавляет в группу `docker`, подключает
-симлинки dotfiles и ставит sudoers-правило.
+Скрипт создаёт пользователя, подключает симлинки dotfiles и ставит
+sudoers-правило.
 
 ### Структура
 

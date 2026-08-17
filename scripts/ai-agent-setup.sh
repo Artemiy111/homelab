@@ -19,15 +19,7 @@ else
   echo "Пользователь $AGENT_USER создан."
 fi
 
-# --- 2. Добавление в группу docker ---
-if groups "$AGENT_USER" | grep -qw docker; then
-  echo "$AGENT_USER уже в группе docker."
-else
-  sudo usermod -aG docker "$AGENT_USER"
-  echo "$AGENT_USER добавлен в группу docker."
-fi
-
-# --- 3. Симлинки dotfiles ---
+# --- 2. Симлинки dotfiles ---
 mkdir -p "$AGENT_HOME/.ssh"
 
 for f in .zshrc; do
