@@ -1,8 +1,6 @@
 name: forgejo
 
 x-forgejo-environment: &forgejo-environment
-  USER_UID: "1000"
-  USER_GID: "1000"
   FORGEJO__database__DB_TYPE: postgres
   FORGEJO__database__HOST: db:5432
   FORGEJO__database__NAME: ${POSTGRES_DB:-forgejo}
@@ -55,21 +53,22 @@ services:
       start_period: 20s
 
   app:
-    image: kleen/forgejo:16.0.2
+    image: data.forgejo.org/forgejo/forgejo:16-rootless
     container_name: forgejo
+    user: "1000:1000"
 
     depends_on:
       db:
         condition: service_healthy
 
     volumes:
-      - /storage/apps/forgejo/data:/data:z
+      - /storage/apps/forgejo/data:/var/lib/gitea:z
 
     environment:
       <<: *forgejo-environment
 
     ports:
-      - "${SERVER_IP:?set SERVER_IP in forgejo/.env}:${FORGEJO_SSH_PORT:-2223}:22"
+      - "${SERVER_IP:?set SERVER_IP in forgejo/.env}:${FORGEJO_SSH_PORT:-2223}:2222"
     networks:
       backend:
       traefiknet:
