@@ -5,16 +5,26 @@ set -euo pipefail
 repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$repo_root/scripts/lib/common.sh"
 
+# Configuration input, read by the containers at startup.
 ensure_dirs 0750 \
-  /storage/apps/jitsi/web/crontabs \
-  /storage/apps/jitsi/transcripts \
+  /storage/apps/jitsi/web \
   /storage/apps/jitsi/prosody/config \
   /storage/apps/jitsi/prosody/prosody-plugins-custom \
   /storage/apps/jitsi/jicofo \
   /storage/apps/jitsi/jvb
 
+# Persistent state and runtime files, writable by the container user (uid 1000).
+ensure_dirs 0770 \
+  /storage/apps/jitsi/storage \
+  /storage/apps/jitsi/storage/prosody \
+  /storage/apps/jitsi/storage/web \
+  /storage/apps/jitsi/storage/transcripts \
+  /storage/apps/jitsi/tmp \
+  /storage/apps/jitsi/tmp/web-crontabs \
+  /storage/apps/jitsi/tmp/web-load-test
+
 write_env_file "$repo_root/jitsi/.env" <<EOF
-JITSI_IMAGE_VERSION=stable-10978
+JITSI_IMAGE_VERSION=stable-11146-1
 JITSI_HOST=meet.example.net
 PUBLIC_URL=https://meet.example.net
 TZ=Asia/Yekaterinburg
