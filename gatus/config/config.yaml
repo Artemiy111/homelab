@@ -129,24 +129,27 @@ endpoints:
     conditions: *https-ok
     alerts: *alerts-all
 
+  # Публичные URL этих сервисов закрыты forward auth (oauth2-proxy@file) и для
+  # неавторизованного запроса отдают 302, поэтому проверяем приложения напрямую
+  # в docker-сети (gatus, wud, cup, structurizr — на одной сети traefiknet).
   - name: WUD
     group: Monitoring
-    url: https://wud.example.net/health
+    url: http://wud:3000/health
     interval: 60s
-    client: *https-client
+    client: &docker-client
+      timeout: 10s
     conditions:
-      - "[STATUS] == 401"
-      - "[CERTIFICATE_EXPIRATION] > 168h"
+      - "[STATUS] == 200"
+      - "[BODY] == pat(*uptime*)"
     alerts: *alerts-all
 
   - name: Cup
     group: Monitoring
-    url: https://cup.example.net/
+    url: http://cup:8000/
     interval: 60s
-    client: *https-client
+    client: *docker-client
     conditions:
-      - "[STATUS] == 401"
-      - "[CERTIFICATE_EXPIRATION] > 168h"
+      - "[STATUS] == 200"
     alerts: *alerts-all
 
   - name: Jitsi Meet
@@ -288,10 +291,11 @@ endpoints:
 
   - name: Structurizr
     group: Applications
-    url: https://structurizr.example.net/
+    url: http://structurizr:8080/
     interval: 60s
-    client: *https-client
-    conditions: *https-ok
+    client: *docker-client
+    conditions:
+      - "[STATUS] == 200"
     alerts: *alerts-all
 
   - name: Lute
