@@ -11,13 +11,15 @@ WUD и Cup независимо проверяют образы запущенн
 а Docker API доступен им через отдельный read-only socket proxy, запрещающий
 POST-запросы. Порт proxy и порты приложений на хосте не публикуются.
 
-Интерфейсы защищены общей HTTP Basic-аутентификацией на Traefik. Секреты
-хранятся только в локальном `.env`; файл `.env.example` содержит заглушки.
+Интерфейсы защищены на Traefik через forward auth: middleware `oauth2-proxy@file`
+проверяет сессионную cookie и при её отсутствии отправляет браузер на вход в
+ZITADEL (`oauth2-proxy/README.md`). Отдельные секреты для этих интерфейсов не
+нужны, в `.env` остаются только хосты.
 
 ## Запуск
 
-Первичная подготовка всего homelab создаёт каталог данных, `.env` и случайный
-пароль автоматически:
+Первичная подготовка всего homelab создаёт каталог данных и `.env`
+автоматически:
 
 ```sh
 bash scripts/bootstrap-platform.sh
@@ -28,20 +30,10 @@ bash scripts/bootstrap-platform.sh
 ```sh
 sudo install -d -m 0750 /storage/apps/wud/store
 cp .env.example .env
-password="$(openssl rand -hex 24)"
-hash="$(printf '%s' "$password" | openssl passwd -apr1 -stdin)"
-sed -i "s|^UPDATES_DASHBOARD_PASSWORD=.*|UPDATES_DASHBOARD_PASSWORD=$password|" .env
-sed -i "s|^UPDATES_DASHBOARD_USERS=.*|UPDATES_DASHBOARD_USERS='admin:$hash'|" .env
 chmod 600 .env
 docker compose config --quiet
 docker compose up -d
 docker compose ps
-```
-
-Пароль можно прочитать на сервере без вывода остальных переменных:
-
-```sh
-sed -n 's/^UPDATES_DASHBOARD_PASSWORD=//p' .env
 ```
 
 Проверки выполняются при первом запуске, а затем каждые шесть часов. Чтобы

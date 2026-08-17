@@ -57,9 +57,8 @@ services:
       - traefik.enable=true
       - traefik.http.routers.wud.rule=Host(`${WUD_HOST:?set WUD_HOST in image-updates/.env}`)
       - traefik.http.routers.wud.entrypoints=websecure
-      - traefik.http.routers.wud.middlewares=wud-auth,secure-headers@file,ratelimit-default@file
+      - traefik.http.routers.wud.middlewares=oauth2-proxy@file,secure-headers@file,ratelimit-default@file
       - traefik.http.services.wud.loadbalancer.server.port=3000
-      - traefik.http.middlewares.wud-auth.basicauth.users=${UPDATES_DASHBOARD_USERS:?set UPDATES_DASHBOARD_USERS in image-updates/.env}
       - traefik.docker.network=traefiknet
 
     security_opt:
@@ -89,9 +88,8 @@ services:
       - traefik.enable=true
       - traefik.http.routers.cup.rule=Host(`${CUP_HOST:?set CUP_HOST in image-updates/.env}`)
       - traefik.http.routers.cup.entrypoints=websecure
-      - traefik.http.routers.cup.middlewares=cup-auth,secure-headers@file,ratelimit-default@file
+      - traefik.http.routers.cup.middlewares=oauth2-proxy@file,secure-headers@file,ratelimit-default@file
       - traefik.http.services.cup.loadbalancer.server.port=8000
-      - traefik.http.middlewares.cup-auth.basicauth.users=${UPDATES_DASHBOARD_USERS:?set UPDATES_DASHBOARD_USERS in image-updates/.env}
       - traefik.docker.network=traefiknet
 
     security_opt:
