@@ -1,0 +1,70 @@
+name: mailserver
+
+services:
+  mailserver:
+    image: stalwartlabs/stalwart:v0.16
+    container_name: mailserver
+    ports:
+      - "25:25"
+      - "587:587"
+      - "993:993"
+    volumes:
+      - /storage/apps/mailserver/etc:/etc/stalwart:Z
+      - /storage/apps/mailserver/data:/var/lib/stalwart:Z
+    environment:
+      STALWART_RECOVERY_ADMIN: "${STALWART_ADMIN_USER:?set STALWART_ADMIN_USER in mailserver/.env}:${STALWART_ADMIN_PASS:?set STALWART_ADMIN_PASS in mailserver/.env}"
+      STALWART_HOSTNAME: "${MAIL_HOST}"
+      STALWART_PUBLIC_URL: "https://${MAILSERVER_HOST}"
+    networks:
+      - default
+      - traefiknet
+    restart: unless-stopped
+
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.mailserver.rule=Host(`${MAILSERVER_HOST}`)
+      - traefik.http.routers.mailserver.entrypoints=websecure
+      - traefik.http.services.mailserver.loadbalancer.server.port=8080
+      - traefik.docker.network=traefiknet
+
+  mail:
+    image: ghcr.io/bulwarkmail/webmail:1.8
+    container_name: mail
+    depends_on:
+      - mailserver
+    volumes:
+      - /storage/apps/mailserver/mail:/app/data:Z
+    environment:
+      HOSTNAME: "0.0.0.0"
+      PORT: "3000"
+      JMAP_SERVER_URL: "https://${MAILSERVER_HOST}"
+      SETTINGS_SYNC_ENABLED: "true"
+    networks:
+      - traefiknet
+    restart: unless-stopped
+
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://127.0.0.1:3000/api/health",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.mail.rule=Host(`${MAIL_HOST}`)
+      - traefik.http.routers.mail.entrypoints=websecure
+      - traefik.http.services.mail.loadbalancer.server.port=3000
+      - traefik.docker.network=traefiknet
+
+networks:
+  traefiknet:
+    external: true
