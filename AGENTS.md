@@ -20,7 +20,7 @@ This is a single-context repository. See `docs/agents/domain.md`.
 
 Краткая шпаргалка:
 
-- Подключение: `ssh homelab -l ai-agent`
-- Read-only проверки: `ssh homelab -l ai-agent '...'`
-- Запись/запуск скриптов: `ssh homelab -l ai-agent 'sudo -u artlab bash -lc "..."'
+- Подключение: `ssh homelab-agent`
+- Read-only проверки: `ssh homelab-agent '...'`
+- Запись/запуск скриптов: `ssh homelab-agent 'sudo -u artlab bash -lc "..."'`
 - Репозиторий на сервере: `/home/artlab/projects/homelab`
