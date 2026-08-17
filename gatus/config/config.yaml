@@ -181,9 +181,9 @@ endpoints:
       - "[CERTIFICATE_EXPIRATION] > 168h"
     alerts: *alerts-all
 
-  - name: Gitea
+  - name: Forgejo
     group: Applications
-    url: https://gitea.${DOMAIN}/api/healthz
+    url: https://forgejo.${DOMAIN}/api/healthz
     interval: 60s
     client: *https-client
     conditions:

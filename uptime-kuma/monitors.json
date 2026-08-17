@@ -43,10 +43,10 @@
       "maxretries": 2
     },
     {
-      "name": "Gitea",
-      "description": "Публичный health endpoint Gitea через локальный DNS, TLS и Traefik; также проверяет подключение к PostgreSQL.",
+      "name": "Forgejo",
+      "description": "Публичный health endpoint Forgejo через локальный DNS, TLS и Traefik; также проверяет подключение к PostgreSQL.",
       "type": "http",
-      "url": "https://gitea.{{DOMAIN}}/api/healthz",
+      "url": "https://forgejo.{{DOMAIN}}/api/healthz",
       "interval": 60,
       "maxretries": 2
     },

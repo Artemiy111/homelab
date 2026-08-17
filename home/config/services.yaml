@@ -41,9 +41,9 @@
         icon: mdi-cloud
         href: https://nextcloud.{{HOMEPAGE_VAR_DOMAIN}}/
         description: Файлы и календарь
-    - Gitea:
+    - Forgejo:
         icon: mdi-source-repository
-        href: https://gitea.{{HOMEPAGE_VAR_DOMAIN}}/
+        href: https://forgejo.{{HOMEPAGE_VAR_DOMAIN}}/
         description: Git-сервис
     - code-server:
         icon: mdi-microsoft-visual-studio-code

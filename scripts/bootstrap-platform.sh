@@ -22,7 +22,7 @@ services=(
   nextcloud
   jellyfin
   jitsi
-  gitea
+  forgejo
   pocket-id
   authentik
   zitadel

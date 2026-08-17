@@ -117,7 +117,7 @@ workspace {
                 tags "files"
             }
 
-            gitea = softwareSystem "Gitea" "Приватный Git-сервис: web + SSH (:2222) (gitea.example.net)" {
+            forgejo = softwareSystem "Forgejo" "Приватный Git-сервис: web + SSH (:222) (forgejo.example.net)" {
                 tags "files"
             }
 
@@ -185,7 +185,7 @@ workspace {
         }
 
         owner -> traefik "HTTPS-запросы (LAN / Tailscale)" "HTTPS"
-        owner -> gitea "Git over SSH (:2222)" "SSH"
+        owner -> forgejo "Git over SSH (:222)" "SSH"
         owner -> xui "Xray-клиенты (TCP/UDP :8443)" "TCP/UDP"
         owner -> jitsi "медиа-потоки (UDP :10000)" "UDP"
         owner -> sure "HTTPS (LAN :40060)" "HTTPS"
@@ -224,7 +224,7 @@ workspace {
         traefik -> nextcloud "маршрутизирует Host(nextcloud.*)" "HTTPS" {
             tags "http"
         }
-        traefik -> gitea "маршрутизирует Host(gitea.*)" "HTTPS" {
+        traefik -> forgejo "маршрутизирует Host(forgejo.*)" "HTTPS" {
             tags "http"
         }
         traefik -> codeserver "маршрутизирует Host(code.*)" "HTTPS" {

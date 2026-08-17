@@ -2,7 +2,7 @@
 
 Forgejo — лёгкая self-hosted Git-платформа (форк Gitea, лицензия GPL-3.0+,
 управление Codeberg e.V.). Веб-интерфейс доступен через Traefik по адресу
-`https://forgejo.example.net/`, Git over SSH — на порту `2223`.
+`https://forgejo.example.net/`, Git over SSH — на порту `222`.
 PostgreSQL и HTTP-порт контейнера на хост не публикуются.
 
 Самостоятельная регистрация отключена после первоначальной настройки, новые
@@ -48,11 +48,11 @@ sed -n '/^POSTGRES_PASSWORD=/p' .env
 docker compose up -d
 ```
 
-Чтобы SSH был доступен клиентам, разрешите порт `2223` в активной зоне
+Чтобы SSH был доступен клиентам, разрешите порт `222` в активной зоне
 firewalld (команда требует root):
 
 ```sh
-sudo firewall-cmd --permanent --add-port=2223/tcp
+sudo firewall-cmd --permanent --add-port=222/tcp
 sudo firewall-cmd --reload
 ```
 
@@ -65,7 +65,7 @@ sudo firewall-cmd --reload
 клонировать так:
 
 ```sh
-git clone ssh://git@forgejo.example.net:2223/OWNER/REPOSITORY.git
+git clone ssh://git@forgejo.example.net:222/OWNER/REPOSITORY.git
 ```
 
 При создании дополнительных пользователей используйте административную панель.
@@ -79,7 +79,7 @@ docker compose ps
 docker compose exec --user git app forgejo doctor check --all
 curl --resolve forgejo.example.net:443:192.0.2.10 \
   -fsS https://forgejo.example.net/api/healthz
-ssh -T -p 2223 git@192.0.2.10
+ssh -T -p 222 git@192.0.2.10
 ```
 
 Health endpoint должен вернуть JSON со `"status":"pass"`. Первая SSH-проверка
