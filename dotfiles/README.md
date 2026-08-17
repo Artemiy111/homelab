@@ -54,7 +54,7 @@ dotfiles/ai-agent/
 ├── .zshrc              # Минимальный конфиг zsh (prompt с префиксом ai-agent)
 ├── .ssh/
 │   └── authorized_keys # Restrictions: forwarding запрещён
-└── sudoers.d-ai-agent  # NOPASSWD: sudo -u artlab -c "*"
+└── sudoers.d-ai-agent  # NOPASSWD: sudo -u artlab (runas artlab)
 ```
 
 ### Модель доступа
