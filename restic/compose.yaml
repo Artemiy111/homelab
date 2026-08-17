@@ -11,11 +11,11 @@ x-restic: &restic
     NICE: "19"
     IONICE_CLASS: "2"
   volumes:
-    - ${BACKUP_SOURCE:-/storage/apps}:/data:ro
+    - ${BACKUP_SOURCE:-${APPS_STORAGE_PATH:-/storage/apps}}:/data:ro
     - ${CONFIG_SOURCE:-/home/artlab/projects/homelab}:/config:ro
     - ${RESTIC_REPOSITORY_PATH:-/storage/backups/restic}:/repository
-    - /storage/apps/restic/cache:/cache
-    - /storage/apps/restic/restore:/restore
+    - ${APPS_STORAGE_PATH:-/storage/apps}/restic/cache:/cache
+    - ${APPS_STORAGE_PATH:-/storage/apps}/restic/restore:/restore
     - ./excludes.txt:/etc/restic/excludes.txt:ro
   security_opt:
     - label=disable

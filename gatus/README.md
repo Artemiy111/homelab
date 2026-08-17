@@ -2,7 +2,7 @@
 
 Gatus — основной декларативный монитор доступности homelab. Проверки, условия
 успеха и внешний вид status page задаются в `config/config.yaml` и хранятся в
-Git. История проверок сохраняется в SQLite под `/storage/apps/gatus/data`.
+Git. История проверок сохраняется в SQLite под `$APPS_STORAGE_PATH/gatus/data`.
 
 Панель доступна по адресу `https://uptime.example.net/`. Сохранённая
 Uptime Kuma продолжает работать отдельно на
@@ -12,7 +12,7 @@ Uptime Kuma продолжает работать отдельно на
 
 ```sh
 cp .env.example .env
-sudo install -d -m 0750 /storage/apps/gatus/data
+sudo install -d -m 0750 ${APPS_STORAGE_PATH:-/storage/apps}/gatus/data
 docker compose config --quiet
 docker compose up -d
 ```

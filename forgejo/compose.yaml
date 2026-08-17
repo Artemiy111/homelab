@@ -34,7 +34,7 @@ services:
     container_name: forgejo-db
 
     volumes:
-      - /storage/apps/forgejo/postgresql:/var/lib/postgresql:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/forgejo/postgresql:/var/lib/postgresql:Z
 
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-forgejo}
@@ -62,7 +62,7 @@ services:
         condition: service_healthy
 
     volumes:
-      - /storage/apps/forgejo/data:/var/lib/gitea:z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/forgejo/data:/var/lib/gitea:z
 
     environment:
       <<: *forgejo-environment
@@ -107,7 +107,7 @@ services:
         condition: service_healthy
 
     volumes:
-      - /storage/apps/forgejo/backups:/backups:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/forgejo/backups:/backups:Z
 
     environment:
       PGHOST: db

@@ -23,7 +23,7 @@ services:
     image: redis:7.4-alpine
     container_name: dawarich-redis
     volumes:
-      - /storage/apps/dawarich/redis:/data:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/dawarich/redis:/data:Z
 
     networks:
       - backend
@@ -51,8 +51,8 @@ services:
     container_name: dawarich-db
 
     volumes:
-      - /storage/apps/dawarich/postgresql:/var/lib/postgresql/data:z
-      - /storage/apps/dawarich/shared:/var/shared:z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/dawarich/postgresql:/var/lib/postgresql/data:z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/dawarich/shared:/var/shared:z
 
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-dawarich}
@@ -84,10 +84,10 @@ services:
         restart: true
 
     volumes:
-      - /storage/apps/dawarich/public:/var/app/public:z
-      - /storage/apps/dawarich/watched:/var/app/tmp/imports/watched:z
-      - /storage/apps/dawarich/storage:/var/app/storage:z
-      - /storage/apps/dawarich/postgresql:/dawarich_db_data:z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/dawarich/public:/var/app/public:z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/dawarich/watched:/var/app/tmp/imports/watched:z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/dawarich/storage:/var/app/storage:z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/dawarich/postgresql:/dawarich_db_data:z
 
     environment:
       <<: *dawarich-environment
@@ -152,9 +152,9 @@ services:
         restart: true
 
     volumes:
-      - /storage/apps/dawarich/public:/var/app/public:z
-      - /storage/apps/dawarich/watched:/var/app/tmp/imports/watched:z
-      - /storage/apps/dawarich/storage:/var/app/storage:z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/dawarich/public:/var/app/public:z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/dawarich/watched:/var/app/tmp/imports/watched:z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/dawarich/storage:/var/app/storage:z
 
     environment:
       <<: *dawarich-environment
@@ -189,7 +189,7 @@ services:
         condition: service_healthy
 
     volumes:
-      - /storage/apps/dawarich/backups:/backups:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/dawarich/backups:/backups:Z
 
     environment:
       PGHOST: db

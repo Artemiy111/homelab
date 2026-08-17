@@ -7,7 +7,7 @@ PostgreSQL и отдельный контейнер Login V2 (Next.js). Дост
 
 ## Состав
 
-- `postgres` — PostgreSQL, данные в `/storage/apps/zitadel/postgresql`.
+- `postgres` — PostgreSQL, данные в `$APPS_STORAGE_PATH/zitadel/postgresql`.
 - `zitadel` — API + консоль (gRPC/REST на 8080); пишет bootstrap-PAT для Login V2.
 - `login` — Login V2 (`/ui/v2/login`, порт 3000); читает тот же bootstrap-том.
 - `backup-db` (profile `tools`) — согласованный `pg_dump` перед Restic.
@@ -21,7 +21,7 @@ PostgreSQL и отдельный контейнер Login V2 (Next.js). Дост
 
 `scripts/bootstrap-platform.sh` создаёт `zitadel/.env` со случайными
 `POSTGRES_PASSWORD`, `ADMIN_PASSWORD` и `ZITADEL_MASTERKEY` (админ-пароль сразу
-удовлетворяет политике сложности), а также каталоги `/storage/apps/zitadel/*`.
+удовлетворяет политике сложности), а также каталоги `$APPS_STORAGE_PATH/zitadel/*`.
 Либо вручную:
 
 ```sh
@@ -71,7 +71,7 @@ cd /home/artlab/projects/homelab/zitadel
 docker compose --profile tools run --rm backup-db
 ```
 
-Restic сохраняет `/storage/apps/zitadel` и локальный `zitadel/.env`.
+Restic сохраняет `$APPS_STORAGE_PATH/zitadel` и локальный `zitadel/.env`.
 
 ## Обновление
 

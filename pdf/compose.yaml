@@ -5,11 +5,11 @@ services:
     image: docker.stirlingpdf.com/stirlingtools/stirling-pdf:latest@sha256:3b3670fce70b396ec56ba380a3cc7858e0abf83fe13f31c88f7737847763a396
     container_name: stirling-pdf
     volumes:
-      - /storage/apps/pdf/tessdata:/usr/share/tessdata:Z
-      - /storage/apps/pdf/configs:/configs:Z
-      - /storage/apps/pdf/logs:/logs:Z
-      - /storage/apps/pdf/pipeline:/pipeline:Z
-      - /storage/apps/pdf/customFiles:/customFiles:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/pdf/tessdata:/usr/share/tessdata:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/pdf/configs:/configs:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/pdf/logs:/logs:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/pdf/pipeline:/pipeline:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/pdf/customFiles:/customFiles:Z
 
     environment:
       DISABLE_ADDITIONAL_FEATURES: "false"

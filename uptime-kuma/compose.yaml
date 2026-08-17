@@ -5,7 +5,7 @@ services:
     image: louislam/uptime-kuma:2
     container_name: uptime-kuma
     volumes:
-      - /storage/apps/uptime-kuma/data:/app/data:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/uptime-kuma/data:/app/data:Z
 
     networks:
       - traefiknet

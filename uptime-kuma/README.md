@@ -6,7 +6,7 @@
 
 ```sh
 cp .env.example .env
-sudo install -d -m 0750 /storage/apps/uptime-kuma/data
+sudo install -d -m 0750 ${APPS_STORAGE_PATH:-/storage/apps}/uptime-kuma/data
 docker compose up -d
 ```
 

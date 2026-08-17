@@ -5,7 +5,7 @@ services:
     image: deluan/navidrome:0.63.1
     container_name: navidrome
     volumes:
-      - /storage/apps/navidrome/data:/data:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/navidrome/data:/data:Z
       - /storage/media/music:/music:z,ro
 
     environment:

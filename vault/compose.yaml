@@ -9,7 +9,7 @@ services:
     ports:
       - "127.0.0.1:8200:8200"
     volumes:
-      - /storage/apps/vault/data:/vault/data:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/vault/data:/vault/data:Z
       - ./config:/vault/config:ro
     environment:
       VAULT_ADDR: "http://127.0.0.1:8200"

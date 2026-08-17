@@ -31,7 +31,7 @@ services:
       - docker-socket-proxy
 
     volumes:
-      - /storage/apps/wud/store:/store:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/wud/store:/store:Z
 
     environment:
       TZ: ${TZ:?set TZ in image-updates/.env}

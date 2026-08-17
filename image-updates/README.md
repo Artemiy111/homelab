@@ -28,7 +28,7 @@ bash scripts/bootstrap-platform.sh
 Для ручной подготовки только этого проекта:
 
 ```sh
-sudo install -d -m 0750 /storage/apps/wud/store
+sudo install -d -m 0750 ${APPS_STORAGE_PATH:-/storage/apps}/wud/store
 cp .env.example .env
 chmod 600 .env
 docker compose config --quiet

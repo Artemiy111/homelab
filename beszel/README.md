@@ -5,7 +5,7 @@ Beszel собирает метрики хоста и Docker-контейнеро
 `https://beszel.example.net/`; порты Hub и Agent на хосте не
 публикуются.
 
-Постоянные данные находятся в `/storage/apps/beszel`. Локальный Agent использует
+Постоянные данные находятся в `$APPS_STORAGE_PATH/beszel`. Локальный Agent использует
 Unix-сокет для связи с Hub и подключает Docker socket с флагом `ro`. Из-за
 `network_mode: host` Agent также видит сетевые интерфейсы хоста.
 
@@ -15,9 +15,9 @@ Unix-сокет для связи с Hub и подключает Docker socket �
 
 ```sh
 sudo install -d -m 0750 \
-  /storage/apps/beszel/data \
-  /storage/apps/beszel/agent \
-  /storage/apps/beszel/socket
+  ${APPS_STORAGE_PATH:-/storage/apps}/beszel/data \
+  ${APPS_STORAGE_PATH:-/storage/apps}/beszel/agent \
+  ${APPS_STORAGE_PATH:-/storage/apps}/beszel/socket
 cp .env.example .env
 chmod 600 .env
 docker compose config --quiet

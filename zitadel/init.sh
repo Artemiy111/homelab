@@ -6,15 +6,16 @@ repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$repo_root/scripts/lib/common.sh"
 
 ensure_dirs 0700 \
-  /storage/apps/zitadel \
-  /storage/apps/zitadel/bootstrap \
-  /storage/apps/zitadel/backups
+  "$APPS_STORAGE_PATH"/zitadel \
+  "$APPS_STORAGE_PATH"/zitadel/bootstrap \
+  "$APPS_STORAGE_PATH"/zitadel/backups
 
 # postgres:18 монтируется в /var/lib/postgresql и повторно входит под UID 70,
 # поэтому каталог данных должен оставаться проходимым (0755, а не 0700).
-ensure_dirs 0755 /storage/apps/zitadel/postgresql
+ensure_dirs 0755 "$APPS_STORAGE_PATH"/zitadel/postgresql
 
 write_env_file "$repo_root/zitadel/.env" <<EOF
+APPS_STORAGE_PATH=$APPS_STORAGE_PATH
 ZITADEL_HOST=id.$DOMAIN
 ZITADEL_VERSION=v4.17.1
 POSTGRES_DB=zitadel

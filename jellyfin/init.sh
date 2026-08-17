@@ -6,8 +6,8 @@ repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$repo_root/scripts/lib/common.sh"
 
 mkdir -p \
-  /storage/apps/jellyfin/config \
-  /storage/apps/jellyfin/cache
+  "$APPS_STORAGE_PATH"/jellyfin/config \
+  "$APPS_STORAGE_PATH"/jellyfin/cache
 
 render_group_id="$(getent group render | cut -d: -f3)"
 if [[ -z "$render_group_id" ]]; then
@@ -16,6 +16,7 @@ if [[ -z "$render_group_id" ]]; then
 fi
 
 write_env_file "$repo_root/jellyfin/.env" <<EOF
+APPS_STORAGE_PATH=$APPS_STORAGE_PATH
 JELLYFIN_HOST=jellyfin.$DOMAIN
 JELLYFIN_RENDER_GROUP_ID=$render_group_id
 EOF

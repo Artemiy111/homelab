@@ -7,7 +7,7 @@ Dawarich хранит и визуализирует историю местоп�
 
 Образ Dawarich закреплён на версии `1.11.0`: проект активно развивается и не
 рекомендует автоматические обновления. Постоянные данные находятся в
-`/storage/apps/dawarich` и входят в общий Restic snapshot.
+`$APPS_STORAGE_PATH/dawarich` и входят в общий Restic snapshot.
 
 ## Первый запуск
 
@@ -52,7 +52,7 @@ Health endpoint должен вернуть JSON со `"status":"ok"`.
 cd /home/artlab/projects/homelab/dawarich
 docker compose down
 docker run --rm \
-  -v /storage/apps/dawarich:/data:Z \
+  -v ${APPS_STORAGE_PATH:-/storage/apps}/dawarich:/data:Z \
   alpine:3.22 \
   sh -ec 'find /data -mindepth 1 -delete'
 cd ..
@@ -81,7 +81,7 @@ cd ../dawarich
 docker compose start app sidekiq
 ```
 
-Дамп сохраняется в `/storage/apps/dawarich/backups/dawarich.dump`. Restic
+Дамп сохраняется в `$APPS_STORAGE_PATH/dawarich/backups/dawarich.dump`. Restic
 repository находится на том же физическом диске и не защищает от его поломки
 или потери. Исходные файлы импорта не следует удалять после загрузки в Dawarich.
 

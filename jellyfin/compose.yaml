@@ -5,8 +5,8 @@ services:
     image: jellyfin/jellyfin:10
     container_name: jellyfin
     volumes:
-      - /storage/apps/jellyfin/config:/config:Z
-      - /storage/apps/jellyfin/cache:/cache:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/jellyfin/config:/config:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/jellyfin/cache:/cache:Z
       - /storage/media:/media:z,ro
 
     environment:

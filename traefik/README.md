@@ -39,7 +39,7 @@ RFC2136_TSIG_SECRET=секрет-из-<dns-provider>
 
 TSIG-секрет не добавлять в Git. Он используется Traefik только для временного
 создания TXT-записей DNS-01. Сертификаты и данные ACME сохраняются в
-`/storage/apps/traefik/letsencrypt/acme.json` с правами `0600`.
+`$APPS_STORAGE_PATH/traefik/letsencrypt/acme.json` с правами `0600`.
 
 Создать учётные данные панели. В `.env` хеш необходимо оставить в одинарных
 кавычках, чтобы знаки доллара воспринимались буквально:

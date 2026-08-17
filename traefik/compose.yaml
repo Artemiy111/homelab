@@ -6,7 +6,7 @@ services:
     container_name: traefik
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - /storage/apps/traefik/letsencrypt:/letsencrypt:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/traefik/letsencrypt:/letsencrypt:Z
       - ./traefik.yaml:/etc/traefik/traefik.yaml:Z,ro
       - ./dynamic:/etc/traefik/dynamic:ro
 

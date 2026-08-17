@@ -26,7 +26,7 @@ workspace {
             tags "external"
         }
 
-        persistentStorage = softwareSystem "Persistent storage" "/storage/apps — данные контейнеров на диске хоста" {
+        persistentStorage = softwareSystem "Persistent storage" "$APPS_STORAGE_PATH — данные контейнеров на диске хоста (переменная из корневого .env)" {
             tags "external"
         }
 
@@ -91,7 +91,7 @@ workspace {
                 tags "monitoring"
             }
 
-            restic = softwareSystem "Restic" "CLI-бэкапы /storage/apps и конфига в зашифрованный локальный репозиторий" {
+            restic = softwareSystem "Restic" "CLI-бэкапы $APPS_STORAGE_PATH и конфига в зашифрованный локальный репозиторий" {
                 tags "monitoring"
             }
         }
@@ -283,7 +283,7 @@ workspace {
         spotdl -> spotify "запрашивает метаданные треков" "Web API"
         spotdl -> youtube "скачивает аудио" "yt-dlp"
 
-        restic -> persistentStorage "бэкапит /storage/apps и конфиг репозитория" "host bind mount"
+        restic -> persistentStorage "бэкапит $APPS_STORAGE_PATH и конфиг репозитория" "host bind mount"
         restic -> resticRepo "создаёт шифрованные снимки" "Restic"
     }
 

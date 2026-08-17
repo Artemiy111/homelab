@@ -13,11 +13,11 @@ services:
       - jvb
 
     volumes:
-      - /storage/apps/jitsi/web:/config:Z
-      - /storage/apps/jitsi/storage/web:/storage:Z
-      - /storage/apps/jitsi/storage/transcripts:/usr/share/jitsi-meet/transcripts:ro,z
-      - /storage/apps/jitsi/tmp/web-crontabs:/var/spool/cron/crontabs:Z
-      - /storage/apps/jitsi/tmp/web-load-test:/usr/share/jitsi-meet/load-test:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/jitsi/web:/config:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/jitsi/storage/web:/storage:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/jitsi/storage/transcripts:/usr/share/jitsi-meet/transcripts:ro,z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/jitsi/tmp/web-crontabs:/var/spool/cron/crontabs:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/jitsi/tmp/web-load-test:/usr/share/jitsi-meet/load-test:Z
 
     environment:
       DISABLE_HTTPS: "1"
@@ -72,9 +72,9 @@ services:
       - "5280"
 
     volumes:
-      - /storage/apps/jitsi/prosody/config:/config:Z
-      - /storage/apps/jitsi/prosody/prosody-plugins-custom:/prosody-plugins-custom:Z
-      - /storage/apps/jitsi/storage/prosody:/var/lib/prosody:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/jitsi/prosody/config:/config:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/jitsi/prosody/prosody-plugins-custom:/prosody-plugins-custom:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/jitsi/storage/prosody:/var/lib/prosody:Z
 
     environment:
       AUTH_TYPE: ${AUTH_TYPE:-internal}
@@ -117,7 +117,7 @@ services:
       - "127.0.0.1:${JICOFO_REST_PORT:-8888}:8888"
 
     volumes:
-      - /storage/apps/jitsi/jicofo:/config:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/jitsi/jicofo:/config:Z
 
     environment:
       AUTH_TYPE: ${AUTH_TYPE:-internal}
@@ -157,7 +157,7 @@ services:
       - "127.0.0.1:${JVB_COLIBRI_PORT:-8080}:8080"
 
     volumes:
-      - /storage/apps/jitsi/jvb:/config:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/jitsi/jvb:/config:Z
 
     environment:
       COLIBRI_REST_ENABLED: "true"

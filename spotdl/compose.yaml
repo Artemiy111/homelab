@@ -5,7 +5,7 @@ services:
     image: spotdl/spotify-downloader:v4.5.2
     container_name: spotdl
     volumes:
-      - /storage/apps/spotdl/config:/config:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/spotdl/config:/config:Z
       - /storage/media/music:/music:z
 
     environment:

@@ -4,8 +4,8 @@ Authentik — отдельный identity provider, работающий пар�
 Интерфейс доступен только через Traefik по адресу
 `https://auth.example.net/`; порты контейнеров на хосте не публикуются.
 
-Данные приложения хранятся в `/storage/apps/authentik/data`, PostgreSQL — в
-`/storage/apps/authentik/postgresql`. Контейнер worker намеренно не получает
+Данные приложения хранятся в `$APPS_STORAGE_PATH/authentik/data`, PostgreSQL — в
+`$APPS_STORAGE_PATH/authentik/postgresql`. Контейнер worker намеренно не получает
 Docker socket: при необходимости proxy outposts нужно разворачивать вручную.
 
 ## Первый запуск
@@ -78,7 +78,7 @@ cd /home/artlab/projects/homelab/authentik
 docker compose --profile tools run --rm backup-db
 ```
 
-Restic сохраняет `/storage/apps/authentik` и локальный `authentik/.env` из
+Restic сохраняет `$APPS_STORAGE_PATH/authentik` и локальный `authentik/.env` из
 рабочей копии. Для восстановления сначала восстановите snapshot в отдельный
 каталог и проверьте содержимое; не заменяйте работающие данные без отдельного
 backup.

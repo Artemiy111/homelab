@@ -6,7 +6,7 @@ services:
     container_name: 3x-ui-initialize
 
     volumes:
-      - /storage/apps/3x-ui/db:/etc/x-ui:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/3x-ui/db:/etc/x-ui:Z
 
     environment:
       XUI_ADMIN_USERNAME: ${XUI_ADMIN_USERNAME:?set XUI_ADMIN_USERNAME in 3x-ui/.env}
@@ -35,8 +35,8 @@ services:
         condition: service_completed_successfully
 
     volumes:
-      - /storage/apps/3x-ui/db:/etc/x-ui:Z
-      - /storage/apps/3x-ui/log:/var/log/x-ui:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/3x-ui/db:/etc/x-ui:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/3x-ui/log:/var/log/x-ui:Z
 
     environment:
       TZ: ${TZ:?set TZ in 3x-ui/.env}

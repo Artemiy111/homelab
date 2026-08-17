@@ -5,9 +5,10 @@ set -euo pipefail
 repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$repo_root/scripts/lib/common.sh"
 
-mkdir -p /storage/apps/pihole/etc-pihole
+mkdir -p "$APPS_STORAGE_PATH"/pihole/etc-pihole
 
 write_env_file "$repo_root/pihole/.env" <<EOF
+APPS_STORAGE_PATH=$APPS_STORAGE_PATH
 SERVER_IP=$SERVER_IP
 TZ=$TZ
 PIHOLE_HOST=pihole.$DOMAIN

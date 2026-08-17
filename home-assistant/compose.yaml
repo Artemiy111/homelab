@@ -5,7 +5,7 @@ services:
     image: ghcr.io/home-assistant/home-assistant:stable
     container_name: home-assistant
     volumes:
-      - /storage/apps/home-assistant:/config:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/home-assistant:/config:Z
       - ./configuration.yaml:/config/configuration.yaml:Z,ro
       - /etc/localtime:/etc/localtime:ro
 

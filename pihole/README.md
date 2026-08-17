@@ -16,7 +16,7 @@ sudo ss -lntup | grep ':53 '
 
 ```sh
 cp .env.example .env
-sudo install -d -m 0750 /storage/apps/pihole/etc-pihole
+sudo install -d -m 0750 ${APPS_STORAGE_PATH:-/storage/apps}/pihole/etc-pihole
 ```
 
 `etc-dnsmasq.d/05-homelab.conf` в Git не хранится: `bash init.sh` генерирует

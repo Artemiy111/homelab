@@ -6,8 +6,8 @@
 публикуется.
 
 Образ закреплён на версии `4.132.0`. Постоянные данные находятся в
-`/storage/apps/code-server`: настройки и расширения — в `home`, рабочие
-проекты — в `workspace`. Каталог `/storage/apps` входит в общий Restic
+`$APPS_STORAGE_PATH/code-server`: настройки и расширения — в `home`, рабочие
+проекты — в `workspace`. Каталог `$APPS_STORAGE_PATH` входит в общий Restic
 snapshot.
 
 ## Запуск

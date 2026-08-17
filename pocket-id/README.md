@@ -5,7 +5,7 @@ passkey. Интерфейс и OIDC endpoints доступны через Traefi
 `https://pocket-id.example.net/`; порт контейнера на хосте не публикуется.
 
 Сервис использует SQLite и хранит базу, ключи подписи и загруженные файлы в
-`/storage/apps/pocket-id/data`. Контейнер запускается без root, с read-only root
+`$APPS_STORAGE_PATH/pocket-id/data`. Контейнер запускается без root, с read-only root
 filesystem и принимает proxy headers только от CIDR сети `traefiknet`.
 Незашифрованные callback URL запрещены, кроме loopback URL, которые Pocket ID
 разрешает для локальных клиентов.
@@ -67,7 +67,7 @@ cd ../pocket-id
 docker compose start pocket-id
 ```
 
-Restic сохраняет и `/storage/apps/pocket-id/data`, и локальный `.env` из рабочей
+Restic сохраняет и `$APPS_STORAGE_PATH/pocket-id/data`, и локальный `.env` из рабочей
 копии репозитория. Локальный Restic repository находится на том же физическом
 диске и не защищает от его поломки или потери.
 

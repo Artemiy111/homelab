@@ -5,8 +5,8 @@ services:
     image: henrygd/beszel:0.18.7@sha256:a849ad80814b6a1a3be665304dcace5d4854b3bed7bde4dd1227e8ce1b82d477
     container_name: beszel
     volumes:
-      - /storage/apps/beszel/data:/beszel_data:Z
-      - /storage/apps/beszel/socket:/beszel_socket:z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/beszel/data:/beszel_data:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/beszel/socket:/beszel_socket:z
 
     environment:
       APP_URL: https://${BESZEL_HOST}
@@ -45,8 +45,8 @@ services:
         condition: service_healthy
 
     volumes:
-      - /storage/apps/beszel/agent:/var/lib/beszel-agent:Z
-      - /storage/apps/beszel/socket:/beszel_socket:z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/beszel/agent:/var/lib/beszel-agent:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/beszel/socket:/beszel_socket:z
       - /var/run/docker.sock:/var/run/docker.sock:ro
 
     environment:

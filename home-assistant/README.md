@@ -21,12 +21,12 @@ MAC-адресов сетью и не позволяет контейнеру н
 ```sh
 cp .env.example .env
 chmod 0600 .env
-mkdir -p /storage/apps/home-assistant
+mkdir -p ${APPS_STORAGE_PATH:-/storage/apps}/home-assistant
 docker run --rm \
   --cap-drop ALL \
   --cap-add CHOWN \
   --security-opt no-new-privileges:true \
-  -v /storage/apps/home-assistant:/config:Z \
+  -v ${APPS_STORAGE_PATH:-/storage/apps}/home-assistant:/config:Z \
   alpine:3.23 \
   sh -ec 'chown 0:0 /config; chmod 0700 /config;
     test -e /config/automations.yaml || printf "[]\n" > /config/automations.yaml;
@@ -38,7 +38,7 @@ docker compose ps
 ```
 
 После запуска завершите onboarding в веб-интерфейсе. Постоянные данные находятся
-в `/storage/apps/home-assistant` и входят в общий Restic snapshot.
+в `$APPS_STORAGE_PATH/home-assistant` и входят в общий Restic snapshot.
 
 ## Привилегии
 

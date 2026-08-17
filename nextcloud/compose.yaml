@@ -25,7 +25,7 @@ services:
     container_name: nextcloud-db
 
     volumes:
-      - /storage/apps/nextcloud/postgresql-18:/var/lib/postgresql/18/docker:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/nextcloud/postgresql-18:/var/lib/postgresql/18/docker:Z
 
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-nextcloud}
@@ -48,7 +48,7 @@ services:
     container_name: nextcloud-redis
 
     volumes:
-      - /storage/apps/nextcloud/redis:/data:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/nextcloud/redis:/data:Z
 
     networks:
       - backend
@@ -72,7 +72,7 @@ services:
         condition: service_healthy
 
     volumes:
-      - /storage/apps/nextcloud/html:/var/www/html:z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/nextcloud/html:/var/www/html:z
 
     environment:
       <<: *nextcloud-environment
@@ -123,7 +123,7 @@ services:
         condition: service_healthy
 
     volumes:
-      - /storage/apps/nextcloud/html:/var/www/html:z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/nextcloud/html:/var/www/html:z
 
     environment:
       <<: *nextcloud-environment
@@ -147,7 +147,7 @@ services:
         condition: service_healthy
 
     volumes:
-      - /storage/apps/nextcloud/backups:/backups:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/nextcloud/backups:/backups:Z
 
     environment:
       PGHOST: db

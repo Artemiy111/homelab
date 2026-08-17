@@ -6,13 +6,14 @@ repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$repo_root/scripts/lib/common.sh"
 
 mkdir -p \
-  /storage/apps/forgejo/backups \
-  /storage/apps/forgejo/data \
-  /storage/apps/forgejo/postgresql
+  "$APPS_STORAGE_PATH"/forgejo/backups \
+  "$APPS_STORAGE_PATH"/forgejo/data \
+  "$APPS_STORAGE_PATH"/forgejo/postgresql
 
 traefik_network_cidr="$(traefik_network_cidr)"
 
 write_env_file "$repo_root/forgejo/.env" <<EOF
+APPS_STORAGE_PATH=$APPS_STORAGE_PATH
 SERVER_IP=$SERVER_IP
 FORGEJO_HOST=forgejo.$DOMAIN
 FORGEJO_SSH_PORT=2222

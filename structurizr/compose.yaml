@@ -7,7 +7,7 @@ services:
     container_name: structurizr
 
     volumes:
-      - /storage/apps/structurizr:/usr/local/structurizr:Z,rw
+      - ${APPS_STORAGE_PATH:-/storage/apps}/structurizr:/usr/local/structurizr:Z,rw
       - ./structurizr.properties:/usr/local/structurizr/structurizr.properties:Z,ro
 
     networks:

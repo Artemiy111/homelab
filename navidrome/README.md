@@ -14,7 +14,7 @@ Navidrome индексирует локальную музыкальную би�
 На сервере один раз создайте постоянные каталоги и локальный файл окружения:
 
 ```sh
-mkdir -p /storage/apps/navidrome/data /storage/media/music
+mkdir -p ${APPS_STORAGE_PATH:-/storage/apps}/navidrome/data /storage/media/music
 cd /home/artlab/projects/homelab/navidrome
 cp .env.example .env
 chmod 600 .env

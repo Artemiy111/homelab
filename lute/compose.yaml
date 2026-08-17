@@ -5,8 +5,8 @@ services:
     image: jzohrab/lute3:latest
     container_name: lute
     volumes:
-      - /storage/apps/lute/data/data:/lute_data
-      - /storage/apps/lute/data/backups:/lute_backup
+      - ${APPS_STORAGE_PATH:-/storage/apps}/lute/data/data:/lute_data
+      - ${APPS_STORAGE_PATH:-/storage/apps}/lute/data/backups:/lute_backup
 
     networks:
       - traefiknet

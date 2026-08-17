@@ -5,7 +5,7 @@ services:
     image: pihole/pihole:latest
     container_name: pihole
     volumes:
-      - /storage/apps/pihole/etc-pihole:/etc/pihole:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/pihole/etc-pihole:/etc/pihole:Z
       - ./etc-dnsmasq.d/05-homelab.conf:/etc/dnsmasq.d/05-homelab.conf:Z,ro
 
     environment:

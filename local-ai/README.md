@@ -20,17 +20,17 @@ cp .env.example .env
 openssl rand -hex 32
 chmod 0600 .env
 install -d -m 0750 \
-  /storage/apps/local-ai/models \
-  /storage/apps/local-ai/backends \
-  /storage/apps/local-ai/configuration \
-  /storage/apps/local-ai/data
+  ${APPS_STORAGE_PATH:-/storage/apps}/local-ai/models \
+  ${APPS_STORAGE_PATH:-/storage/apps}/local-ai/backends \
+  ${APPS_STORAGE_PATH:-/storage/apps}/local-ai/configuration \
+  ${APPS_STORAGE_PATH:-/storage/apps}/local-ai/data
 docker compose config --quiet
 docker compose up -d
 ```
 
 Put the generated value in `LOCALAI_API_KEY`. The persistent directories must
 be owned by UID/GID `1000:1000`. Existing models under
-`/storage/apps/local-ai/models` are retained.
+`$APPS_STORAGE_PATH/local-ai/models` are retained.
 
 The root filesystem is read-only. Only `/models`, `/backends`,
 `/configuration`, `/data`, and the memory-backed `/tmp` are writable. The

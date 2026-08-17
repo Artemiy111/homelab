@@ -6,15 +6,16 @@ repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$repo_root/scripts/lib/common.sh"
 
 mkdir -p \
-  /storage/apps/dawarich/backups \
-  /storage/apps/dawarich/postgresql \
-  /storage/apps/dawarich/public \
-  /storage/apps/dawarich/redis \
-  /storage/apps/dawarich/shared \
-  /storage/apps/dawarich/storage \
-  /storage/apps/dawarich/watched
+  "$APPS_STORAGE_PATH"/dawarich/backups \
+  "$APPS_STORAGE_PATH"/dawarich/postgresql \
+  "$APPS_STORAGE_PATH"/dawarich/public \
+  "$APPS_STORAGE_PATH"/dawarich/redis \
+  "$APPS_STORAGE_PATH"/dawarich/shared \
+  "$APPS_STORAGE_PATH"/dawarich/storage \
+  "$APPS_STORAGE_PATH"/dawarich/watched
 
 write_env_file "$repo_root/dawarich/.env" <<EOF
+APPS_STORAGE_PATH=$APPS_STORAGE_PATH
 DAWARICH_HOST=dawarich.$DOMAIN
 DAWARICH_VERSION=1.11.0
 POSTGRES_DB=dawarich_production

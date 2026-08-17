@@ -1,11 +1,11 @@
 # Restic
 
-Restic создаёт зашифрованные дедуплицированные снимки `/storage/apps` и рабочей
+Restic создаёт зашифрованные дедуплицированные снимки `$APPS_STORAGE_PATH` и рабочей
 копии конфигурационного репозитория. В копию входят локальные `.env`, но не
 входит `.git`. Сейчас репозиторий Restic по умолчанию находится в
 `/storage/backups/restic` на том же диске сервера.
 
-Каталог `/storage/apps/local-ai/models` исключён: модели занимают около 203 ГБ,
+Каталог `$APPS_STORAGE_PATH/local-ai/models` исключён: модели занимают около 203 ГБ,
 могут быть загружены повторно и не должны дублироваться на том же диске.
 
 > Это защищает от случайного удаления и неудачного обновления приложения, но не
@@ -18,7 +18,7 @@ Restic создаёт зашифрованные дедуплицированн�
 ```sh
 cp .env.example .env
 chmod 600 .env
-sudo install -d -m 0700 /storage/backups/restic /storage/apps/restic/cache
+sudo install -d -m 0700 /storage/backups/restic ${APPS_STORAGE_PATH:-/storage/apps}/restic/cache
 docker compose run --rm init
 ```
 
@@ -43,7 +43,7 @@ docker compose run --rm check
 docker compose run --rm restore
 ```
 
-Восстановление по умолчанию выполняется в `/storage/apps/restic/restore` и не
+Восстановление по умолчанию выполняется в `$APPS_STORAGE_PATH/restic/restore` и не
 перезаписывает рабочие данные.
 
 Резервную копию следует создавать перед каждым обновлением приложения. После

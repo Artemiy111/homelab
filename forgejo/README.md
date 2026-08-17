@@ -101,9 +101,9 @@ cd ../forgejo
 docker compose start app
 ```
 
-Дамп PostgreSQL сохраняется в `/storage/apps/forgejo/backups/forgejo.dump`, а
+Дамп PostgreSQL сохраняется в `$APPS_STORAGE_PATH/forgejo/backups/forgejo.dump`, а
 репозитории, LFS-объекты, вложения, конфигурация и SSH-ключи — в
-`/storage/apps/forgejo/data`. Оба каталога входят в общий Restic snapshot. Локальный
+`$APPS_STORAGE_PATH/forgejo/data`. Оба каталога входят в общий Restic snapshot. Локальный
 Restic repository находится на том же физическом диске и не защищает от его
 поломки или потери.
 

@@ -12,7 +12,7 @@ PostgreSQL и Redis на хост не публикуются.
 - `cron` — рекомендуемый Nextcloud планировщик фоновых заданий;
 - `backup-db` — одноразовый дамп PostgreSQL перед Restic backup.
 
-Постоянное состояние находится в `/storage/apps/nextcloud`. Каталог `html`
+Постоянное состояние находится в `$APPS_STORAGE_PATH/nextcloud`. Каталог `html`
 разделяется контейнерами `app` и `cron`; SELinux для него использует shared-label
 `z`. Остальные bind mounts используют private-label `Z`.
 
@@ -79,10 +79,10 @@ SMTP намеренно не задаётся в Compose: его следует 
 
 ```sh
 docker compose --profile tools run --rm backup-db
-ls -lh /storage/apps/nextcloud/backups/nextcloud.dump
+ls -lh ${APPS_STORAGE_PATH:-/storage/apps}/nextcloud/backups/nextcloud.dump
 ```
 
-После этого запускать `restic/backup`. Restic уже читает весь `/storage/apps`,
+После этого запускать `restic/backup`. Restic уже читает весь `$APPS_STORAGE_PATH`,
 поэтому в снимок попадут дамп, пользовательские файлы, конфигурация и приложения.
 Restic repository находится на том же физическом диске и не защищает от его
 поломки или потери.

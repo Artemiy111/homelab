@@ -19,7 +19,7 @@
 На сервере один раз создайте доступные для записи каталоги:
 
 ```sh
-mkdir -p /storage/apps/spotdl/config /storage/media/music
+mkdir -p ${APPS_STORAGE_PATH:-/storage/apps}/spotdl/config /storage/media/music
 cd /home/artlab/projects/homelab/spotdl
 docker compose --profile tools config --quiet
 ```

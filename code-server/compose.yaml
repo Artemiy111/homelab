@@ -5,8 +5,8 @@ services:
     image: codercom/code-server:4.132.0
     container_name: code-server
     volumes:
-      - /storage/apps/code-server/home:/home/coder:Z
-      - /storage/apps/code-server/workspace:/home/coder/project:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/code-server/home:/home/coder:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/code-server/workspace:/home/coder/project:Z
 
     environment:
       DOCKER_USER: ${CODE_SERVER_USER:-artlab}

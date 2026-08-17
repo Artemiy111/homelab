@@ -4,7 +4,7 @@ Lute — веб-приложение для чтения и изучения и�
 Utilities for Tracking Exposure). Контейнер доступен только через Traefik по
 адресу `https://lute.example.net/`; порт приложения напрямую на хост не
 публикуется. Внутри контейнера приложение слушает порт `5001`. Постоянные данные
-находятся в `/storage/apps/lute/data`.
+находятся в `$APPS_STORAGE_PATH/lute/data`.
 
 ## Запуск
 
@@ -13,7 +13,7 @@ Utilities for Tracking Exposure). Контейнер доступен тольк
 ```sh
 cp .env.example .env
 chmod 600 .env
-install -d /storage/apps/lute/data/data /storage/apps/lute/data/backups
+install -d ${APPS_STORAGE_PATH:-/storage/apps}/lute/data/data ${APPS_STORAGE_PATH:-/storage/apps}/lute/data/backups
 docker compose config --quiet
 docker compose up -d
 docker compose ps
@@ -31,7 +31,7 @@ docker compose ps
 
 При этом применяется «точечное» деление привилегий: `cap_drop: ALL` с возвратом
 единственной нужной capability — `CAP_DAC_OVERRIDE`. Она требуется, потому что
-хостовый каталог данных `/storage/apps/lute/data` принадлежит uid 1000, а
+хостовый каталог данных `$APPS_STORAGE_PATH/lute/data` принадлежит uid 1000, а
 контейнер-root без `CAP_DAC_OVERRIDE` не может в него писать
 (`sqlite3.OperationalError: attempt to write a readonly database`). Остальные
 capability сброшены, понижая поверхность атаки по сравнению с исходным запуском от

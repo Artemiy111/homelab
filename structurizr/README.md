@@ -3,7 +3,7 @@
 Structurizr vNext (open-core) — инструмент для диаграмм C4. Контейнер доступен
 через Traefik по адресу `https://structurizr.example.net/`; порт
 приложения напрямую на хост не публикуется. Постоянные данные находятся в
-`/storage/apps/structurizr`, смонтированном в `/usr/local/structurizr`.
+`$APPS_STORAGE_PATH/structurizr`, смонтированном в `/usr/local/structurizr`.
 
 ## Образ
 
@@ -23,7 +23,7 @@ docker compose up -d
 ```
 
 Контейнер запускается от `user: "1000:1000"` — совпадает с владельцем
-`/storage/apps/structurizr` на хосте (artlab), поэтому привилегии root не нужны
+`$APPS_STORAGE_PATH/structurizr` на хосте (artlab), поэтому привилегии root не нужны
 (в отличие от старого on-premises-образа). PNG/SVG-экспорт через Playwright в
 этой сборке недоступен (нужен тег `-playwright`).
 
@@ -34,7 +34,7 @@ docker compose up -d
 `/usr/local/structurizr/structurizr.properties`: включён браузерный DSL-редактор
 и задан базовый URL за Traefik.
 
-> Примечание: в `/storage/apps/structurizr` лежит пустой файл
+> Примечание: в `$APPS_STORAGE_PATH/structurizr` лежит пустой файл
 > `structurizr.properties` (владелец root) — это артефакт Docker: он создаёт
 > файл-заготовку как точку монтирования внутри volume. Рабочий конфиг приходит
 > из репозитория; пустой файл можно игнорировать, но не удалять, пока
@@ -53,7 +53,7 @@ basicauth) на роутер `structurizr`.
 - **В Git** (`structurizr/`): `homelab.dsl` (модель, представления, стили) и
   `structurizr.properties.tpl` (шаблон, из которого init.sh генерирует
   монтируемый конфиг).
-- **На сервере** (`/storage/apps/structurizr`, в контейнере
+- **На сервере** (`$APPS_STORAGE_PATH/structurizr`, в контейнере
   `/usr/local/structurizr`): управляемые сервером данные воркспейса
   `<id>/workspace.json`, версии `workspace-<timestamp>.json`, превью и картинки.
   Сервер хранит их в своём формате, поэтому эти файлы вручную не редактируются.

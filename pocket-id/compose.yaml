@@ -5,7 +5,7 @@ services:
     image: ghcr.io/pocket-id/pocket-id:v2.13.0-distroless@sha256:ccb590169770feb5b23ba16d49386514a2c26a77e95bb687b442ae09f17c15da
     container_name: pocket-id
     volumes:
-      - /storage/apps/pocket-id/data:/app/data:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/pocket-id/data:/app/data:Z
 
     environment:
       APP_URL: https://${POCKET_ID_HOST:?set POCKET_ID_HOST in pocket-id/.env}

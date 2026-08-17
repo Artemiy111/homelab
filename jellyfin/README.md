@@ -1,6 +1,6 @@
 # Jellyfin
 
-Jellyfin хранит конфигурацию в `/storage/apps/jellyfin`, читает общую медиатеку
+Jellyfin хранит конфигурацию в `$APPS_STORAGE_PATH/jellyfin`, читает общую медиатеку
 из `/storage/media` и доступен через Traefik по адресу
 `https://jellyfin.example.net/`. Порты контейнера на хосте не
 публикуются; локальный DNS уже направляет все поддомены зоны на Traefik.
@@ -17,7 +17,7 @@ Jellyfin хранит конфигурацию в `/storage/apps/jellyfin`, чи
 cd /home/artlab/projects/homelab/jellyfin
 cp .env.example .env
 chmod 600 .env
-mkdir -p /storage/apps/jellyfin/config /storage/apps/jellyfin/cache /storage/media
+mkdir -p ${APPS_STORAGE_PATH:-/storage/apps}/jellyfin/config ${APPS_STORAGE_PATH:-/storage/apps}/jellyfin/cache /storage/media
 docker compose config --quiet
 docker compose pull
 docker compose up -d

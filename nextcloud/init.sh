@@ -6,14 +6,15 @@ repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$repo_root/scripts/lib/common.sh"
 
 mkdir -p \
-  /storage/apps/nextcloud/backups \
-  /storage/apps/nextcloud/html \
-  /storage/apps/nextcloud/postgresql \
-  /storage/apps/nextcloud/redis
+  "$APPS_STORAGE_PATH"/nextcloud/backups \
+  "$APPS_STORAGE_PATH"/nextcloud/html \
+  "$APPS_STORAGE_PATH"/nextcloud/postgresql \
+  "$APPS_STORAGE_PATH"/nextcloud/redis
 
 traefik_network_cidr="$(traefik_network_cidr)"
 
 write_env_file "$repo_root/nextcloud/.env" <<EOF
+APPS_STORAGE_PATH=$APPS_STORAGE_PATH
 NEXTCLOUD_HOST=nextcloud.$DOMAIN
 NEXTCLOUD_ADMIN_USER=nextcloud-admin
 NEXTCLOUD_ADMIN_PASSWORD=$(random_secret)

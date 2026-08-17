@@ -4,7 +4,7 @@ Stirling PDF — веб-сервис для операций с PDF. Он дос
 адресу `https://pdf.example.net/`; порты контейнера на хост не
 публикуются.
 
-Постоянные данные находятся в `/storage/apps/pdf`. Каталог `/configs` содержит
+Постоянные данные находятся в `$APPS_STORAGE_PATH/pdf`. Каталог `/configs` содержит
 настройки и базу пользователей, поэтому его необходимо включать в резервные
 копии. Для первого входа используются `PDF_ADMIN_USERNAME` и
 `PDF_ADMIN_PASSWORD` из локального `.env`; после входа пароль следует сменить в
@@ -15,7 +15,7 @@ Stirling PDF — веб-сервис для операций с PDF. Он дос
 ```sh
 cp .env.example .env
 chmod 600 .env
-install -d /storage/apps/pdf/{configs,customFiles,logs,pipeline,tessdata}
+install -d ${APPS_STORAGE_PATH:-/storage/apps}/pdf/{configs,customFiles,logs,pipeline,tessdata}
 docker compose config --quiet
 docker compose up -d
 ```
@@ -28,7 +28,7 @@ curl -fsS https://pdf.example.net/api/v1/info/status
 ```
 
 Образ содержит стандартные OCR-языки. Дополнительные `.traineddata` можно
-положить в `/storage/apps/pdf/tessdata`.
+положить в `$APPS_STORAGE_PATH/pdf/tessdata`.
 
 ## Безопасность
 

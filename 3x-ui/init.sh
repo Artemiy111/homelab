@@ -6,11 +6,12 @@ repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$repo_root/scripts/lib/common.sh"
 
 ensure_dirs 0700 \
-  /storage/apps/3x-ui \
-  /storage/apps/3x-ui/db \
-  /storage/apps/3x-ui/log
+  "$APPS_STORAGE_PATH"/3x-ui \
+  "$APPS_STORAGE_PATH"/3x-ui/db \
+  "$APPS_STORAGE_PATH"/3x-ui/log
 
 write_env_file "$repo_root/3x-ui/.env" <<EOF
+APPS_STORAGE_PATH=$APPS_STORAGE_PATH
 SERVER_IP=$SERVER_IP
 TZ=$TZ
 XUI_HOST=xui.$DOMAIN

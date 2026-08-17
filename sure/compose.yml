@@ -58,7 +58,7 @@ services:
         condition: service_healthy
 
     volumes:
-      - /storage/apps/sure/data/app:/rails/storage
+      - ${APPS_STORAGE_PATH:-/storage/apps}/sure/data/app:/rails/storage
 
     environment:
       <<: *rails_env
@@ -80,7 +80,7 @@ services:
         condition: service_healthy
 
     volumes:
-      - /storage/apps/sure/data/app:/rails/storage
+      - ${APPS_STORAGE_PATH:-/storage/apps}/sure/data/app:/rails/storage
 
     environment:
       <<: *rails_env
@@ -95,7 +95,7 @@ services:
     container_name: sure-db
 
     volumes:
-      - /storage/apps/sure/data/postgresql:/var/lib/postgresql/data
+      - ${APPS_STORAGE_PATH:-/storage/apps}/sure/data/postgresql:/var/lib/postgresql/data
 
     environment:
       <<: *db_env
@@ -118,7 +118,7 @@ services:
       - db
 
     volumes:
-      - /storage/apps/sure/data/backups:/backups # Change this path to your desired backup location on the host machine
+      - ${APPS_STORAGE_PATH:-/storage/apps}/sure/data/backups:/backups # Change this path to your desired backup location on the host machine
 
     environment:
       - POSTGRES_HOST=db
@@ -142,7 +142,7 @@ services:
     container_name: sure-redis
 
     volumes:
-      - /storage/apps/sure/data/redis:/data
+      - ${APPS_STORAGE_PATH:-/storage/apps}/sure/data/redis:/data
 
     networks:
       - sure_net

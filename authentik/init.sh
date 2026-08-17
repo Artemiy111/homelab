@@ -6,14 +6,15 @@ repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$repo_root/scripts/lib/common.sh"
 
 ensure_dirs 0700 \
-  /storage/apps/authentik \
-  /storage/apps/authentik/backups \
-  /storage/apps/authentik/data \
-  /storage/apps/authentik/postgresql
+  "$APPS_STORAGE_PATH"/authentik \
+  "$APPS_STORAGE_PATH"/authentik/backups \
+  "$APPS_STORAGE_PATH"/authentik/data \
+  "$APPS_STORAGE_PATH"/authentik/postgresql
 
 traefik_network_cidr="$(traefik_network_cidr)"
 
 write_env_file "$repo_root/authentik/.env" <<EOF
+APPS_STORAGE_PATH=$APPS_STORAGE_PATH
 AUTHENTIK_HOST=auth.$DOMAIN
 AUTHENTIK_POSTGRESQL_DATABASE=authentik
 AUTHENTIK_POSTGRESQL_USER=authentik

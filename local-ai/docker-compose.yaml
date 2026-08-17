@@ -6,10 +6,10 @@ services:
     container_name: local-ai-api
 
     volumes:
-      - /storage/apps/local-ai/models:/models:Z
-      - /storage/apps/local-ai/backends:/backends:Z
-      - /storage/apps/local-ai/configuration:/configuration:Z
-      - /storage/apps/local-ai/data:/data:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/local-ai/models:/models:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/local-ai/backends:/backends:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/local-ai/configuration:/configuration:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/local-ai/data:/data:Z
 
     environment:
       HOME: /tmp/localai

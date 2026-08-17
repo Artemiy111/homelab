@@ -16,7 +16,7 @@ services:
     image: postgres:18-alpine
     container_name: authentik-postgresql
     volumes:
-      - /storage/apps/authentik/postgresql:/var/lib/postgresql:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/authentik/postgresql:/var/lib/postgresql:Z
 
     environment:
       POSTGRES_DB: ${AUTHENTIK_POSTGRESQL_DATABASE:-authentik}
@@ -47,7 +47,7 @@ services:
         condition: service_healthy
 
     volumes:
-      - /storage/apps/authentik/data:/data:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/authentik/data:/data:Z
     environment: *authentik-environment
 
     networks:
@@ -91,7 +91,7 @@ services:
         condition: service_healthy
 
     volumes:
-      - /storage/apps/authentik/data:/data:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/authentik/data:/data:Z
     environment: *authentik-environment
 
     networks:
@@ -120,7 +120,7 @@ services:
         condition: service_healthy
 
     volumes:
-      - /storage/apps/authentik/backups:/backups:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/authentik/backups:/backups:Z
 
     environment:
       PGHOST: postgresql

@@ -5,7 +5,7 @@ services:
     image: postgres:14-alpine
     container_name: infisical-postgres
     volumes:
-      - /storage/apps/infisical/postgresql:/var/lib/postgresql:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/infisical/postgresql:/var/lib/postgresql:Z
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-infisical}
       POSTGRES_USER: ${POSTGRES_USER:-infisical}
@@ -27,7 +27,7 @@ services:
     image: redis:7-alpine
     container_name: infisical-redis
     volumes:
-      - /storage/apps/infisical/redis:/data:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/infisical/redis:/data:Z
     networks:
       - backend
     restart: unless-stopped

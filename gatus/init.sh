@@ -6,10 +6,11 @@ repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$repo_root/scripts/lib/common.sh"
 
 ensure_dirs 0750 \
-  /storage/apps/gatus \
-  /storage/apps/gatus/data
+  "$APPS_STORAGE_PATH"/gatus \
+  "$APPS_STORAGE_PATH"/gatus/data
 
 write_env_file "$repo_root/gatus/.env" <<EOF
+APPS_STORAGE_PATH=$APPS_STORAGE_PATH
 SERVER_IP=$SERVER_IP
 GATUS_HOST=uptime.$DOMAIN
 DOMAIN=$DOMAIN

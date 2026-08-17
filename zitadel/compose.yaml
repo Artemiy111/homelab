@@ -6,7 +6,7 @@ services:
     container_name: zitadel-postgres
 
     volumes:
-      - /storage/apps/zitadel/postgresql:/var/lib/postgresql:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/zitadel/postgresql:/var/lib/postgresql:Z
 
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-zitadel}
@@ -63,7 +63,7 @@ services:
       ZITADEL_SAML_DEFAULTLOGINURLV2: https://${ZITADEL_HOST}/ui/v2/login/login?samlRequest=
 
     volumes:
-      - /storage/apps/zitadel/bootstrap:/zitadel/bootstrap:rw
+      - ${APPS_STORAGE_PATH:-/storage/apps}/zitadel/bootstrap:/zitadel/bootstrap:rw
 
     networks:
       - backend
@@ -114,7 +114,7 @@ services:
       CUSTOM_REQUEST_HEADERS: Host:${ZITADEL_HOST},X-Forwarded-Proto:https
 
     volumes:
-      - /storage/apps/zitadel/bootstrap:/zitadel/bootstrap:ro
+      - ${APPS_STORAGE_PATH:-/storage/apps}/zitadel/bootstrap:/zitadel/bootstrap:ro
 
     networks:
       - backend
@@ -156,7 +156,7 @@ services:
         condition: service_healthy
 
     volumes:
-      - /storage/apps/zitadel/backups:/backups:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/zitadel/backups:/backups:Z
 
     environment:
       PGHOST: postgres

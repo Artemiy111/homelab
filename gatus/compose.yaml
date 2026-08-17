@@ -6,7 +6,7 @@ services:
     container_name: gatus
     volumes:
       - ./config:/config:Z,ro
-      - /storage/apps/gatus/data:/data:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/gatus/data:/data:Z
 
     environment:
       DOMAIN: ${DOMAIN:?set DOMAIN in gatus/.env}
