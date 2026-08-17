@@ -117,7 +117,7 @@ workspace {
                 tags "files"
             }
 
-            forgejo = softwareSystem "Forgejo" "Приватный Git-сервис: web + SSH (:222) (forgejo.example.net)" {
+            forgejo = softwareSystem "Forgejo" "Приватный Git-сервис: web + SSH (:2222) (forgejo.example.net)" {
                 tags "files"
             }
 
@@ -185,7 +185,7 @@ workspace {
         }
 
         owner -> traefik "HTTPS-запросы (LAN / Tailscale)" "HTTPS"
-        owner -> forgejo "Git over SSH (:222)" "SSH"
+        owner -> forgejo "Git over SSH (:2222)" "SSH"
         owner -> xui "Xray-клиенты (TCP/UDP :8443)" "TCP/UDP"
         owner -> jitsi "медиа-потоки (UDP :10000)" "UDP"
         owner -> sure "HTTPS (LAN :40060)" "HTTPS"

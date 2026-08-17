@@ -9,7 +9,7 @@ x-forgejo-environment: &forgejo-environment
   FORGEJO__server__DOMAIN: ${FORGEJO_HOST:?set FORGEJO_HOST in forgejo/.env}
   FORGEJO__server__ROOT_URL: https://${FORGEJO_HOST:?set FORGEJO_HOST in forgejo/.env}/
   FORGEJO__server__SSH_DOMAIN: ${FORGEJO_HOST:?set FORGEJO_HOST in forgejo/.env}
-  FORGEJO__server__SSH_PORT: ${FORGEJO_SSH_PORT:-222}
+  FORGEJO__server__SSH_PORT: ${FORGEJO_SSH_PORT:-2222}
   FORGEJO__server__LFS_START_SERVER: "true"
   # INSTALL_LOCK управляется веб-мастером — не переопределять через env
   FORGEJO__security__REVERSE_PROXY_TRUSTED_PROXIES: ${TRAEFIK_NETWORK_CIDR:?set TRAEFIK_NETWORK_CIDR in forgejo/.env}
@@ -68,7 +68,7 @@ services:
       <<: *forgejo-environment
 
     ports:
-      - "${SERVER_IP:?set SERVER_IP in forgejo/.env}:${FORGEJO_SSH_PORT:-222}:2222"
+      - "${SERVER_IP:?set SERVER_IP in forgejo/.env}:${FORGEJO_SSH_PORT:-2222}:2222"
     networks:
       backend:
       traefiknet:

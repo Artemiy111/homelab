@@ -15,7 +15,7 @@ traefik_network_cidr="$(traefik_network_cidr)"
 write_env_file "$repo_root/forgejo/.env" <<EOF
 SERVER_IP=$SERVER_IP
 FORGEJO_HOST=forgejo.$DOMAIN
-FORGEJO_SSH_PORT=222
+FORGEJO_SSH_PORT=2222
 POSTGRES_DB=forgejo
 POSTGRES_USER=forgejo
 POSTGRES_PASSWORD=$(random_secret)
