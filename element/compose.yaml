@@ -1,0 +1,170 @@
+name: element
+
+x-synapse-environment: &synapse-environment
+  SYNAPSE_SERVER_NAME: ${SYNAPSE_SERVER_NAME:?set SYNAPSE_SERVER_NAME in element/.env}
+  SYNAPSE_REPORT_STATS: "no"
+  SYNAPSE_CONFIG_DIR: /data
+  SYNAPSE_CONFIG_FILE: /data/homeserver.yaml
+  POSTGRES_HOST: db
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: ${POSTGRES_DB:-synapse}
+  POSTGRES_USER: ${POSTGRES_USER:-synapse}
+  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in element/.env}
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: element-db
+    volumes:
+      - /storage/apps/element/postgresql-16:/var/lib/postgresql/16/docker:Z
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-synapse}
+      POSTGRES_USER: ${POSTGRES_USER:-synapse}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in element/.env}
+    networks:
+      - backend
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  redis:
+    image: redis:8-alpine
+    container_name: element-redis
+    volumes:
+      - /storage/apps/element/redis:/data:Z
+    networks:
+      - backend
+    command: redis-server --save 60 1 --loglevel warning
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  synapse:
+    image: matrixdotorg/synapse:latest
+    container_name: element-synapse
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - /storage/apps/element/synapse/data:/data:Z
+      - /storage/apps/element/synapse/config/homeserver.yaml:/data/homeserver.yaml:Z,ro
+    environment:
+      <<: *synapse-environment
+    networks:
+      backend:
+      traefiknet:
+        aliases:
+          - synapse
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8080/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 2m
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefiknet
+      - traefik.http.routers.synapse.rule=Host(`${SYNAPSE_HOST}`) && PathPrefix(`/_matrix`)
+      - traefik.http.routers.synapse.entrypoints=websecure
+      - traefik.http.services.synapse.loadbalancer.server.port=8080
+      - traefik.http.routers.synapse-federation.rule=Host(`${SYNAPSE_HOST}`)
+      - traefik.http.routers.synapse-federation.entrypoints=websecure
+      - traefik.http.routers.synapse-federation.service=synapse
+      - traefik.http.routers.synapse-federation.priority=1
+    init: true
+    security_opt:
+      - no-new-privileges:true
+
+  element-web:
+    image: vectorim/element-web:latest
+    container_name: element-web
+    volumes:
+      - ./element-web/config.json:/app/config.json:Z,ro
+    networks:
+      - traefiknet
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8080/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefiknet
+      - traefik.http.routers.element-web.rule=Host(`${ELEMENT_HOST}`)
+      - traefik.http.routers.element-web.entrypoints=websecure
+      - traefik.http.services.element-web.loadbalancer.server.port=8080
+    init: true
+    security_opt:
+      - no-new-privileges:true
+
+  livekit:
+    image: livekit/livekit-server:latest
+    container_name: element-livekit
+    volumes:
+      - /storage/apps/element/livekit/config.yaml:/etc/livekit/config.yaml:Z,ro
+    command: --config /etc/livekit/config.yaml --node-ip ${LIVEKIT_EXTERNAL_IP:?set LIVEKIT_EXTERNAL_IP in element/.env}
+    ports:
+      - "${LIVEKIT_EXTERNAL_IP}:${LIVEKIT_PORT:-7880}:7880"
+      - "${LIVEKIT_EXTERNAL_IP}:${LIVEKIT_RTC_PORT:-7881}:7881"
+    networks:
+      backend:
+      traefiknet:
+        aliases:
+          - livekit
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:7880 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefiknet
+      - traefik.http.routers.livekit.rule=Host(`${LIVEKIT_HOST}`)
+      - traefik.http.routers.livekit.entrypoints=websecure
+      - traefik.http.services.livekit.loadbalancer.server.port=7880
+    init: true
+    security_opt:
+      - no-new-privileges:true
+
+  turn:
+    image: coturn/coturn:latest
+    container_name: element-turn
+    volumes:
+      - /storage/apps/element/turn/turnserver.conf:/etc/turnserver.conf:Z,ro
+    network_mode: host
+    restart: unless-stopped
+    init: true
+    security_opt:
+      - no-new-privileges:true
+
+  sygnal:
+    image: matrixdotorg/sygnal:latest
+    container_name: element-sygnal
+    volumes:
+      - /storage/apps/element/sygnal/sygnal.yaml:/sygnal.yaml:Z,ro
+    networks:
+      - backend
+    restart: unless-stopped
+    init: true
+    security_opt:
+      - no-new-privileges:true
+
+networks:
+  backend:
+    internal: true
+  traefiknet:
+    external: true

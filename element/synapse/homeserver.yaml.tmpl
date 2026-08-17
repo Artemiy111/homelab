@@ -1,0 +1,87 @@
+server_name: "example.net"
+report_stats: false
+pid_file: /data/homeserver.pid
+listeners:
+  - port: 8080
+    tls: false
+    type: http
+    bind_addresses:
+      - 0.0.0.0
+    resources:
+      - names: [client, federation]
+        compress: true
+
+database:
+  name: psycopg2
+  args:
+    user: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+    database: ${POSTGRES_DB}
+    host: db
+    cp_min: 5
+    cp_max: 10
+
+redis:
+  enabled: true
+  host: redis
+  port: 6379
+
+media_store_path: /data/media_store
+upload_size: 104857600
+
+url_preview_enabled: true
+url_preview_ip_range_blacklist:
+  - 127.0.0.0/8
+  - 10.0.0.0/8
+  - 172.16.0.0/12
+  - 192.0.2.10/16
+
+enable_registration: false
+enable_registration_without_verification: false
+
+bcrypt_rounds: 12
+
+password_config:
+  enabled: true
+  min_length: 8
+
+rc_message:
+  per_second: 0.2
+  burst_count: 10
+
+rc_login:
+  address:
+    per_second: 0.17
+    burst_count: 5
+  account:
+    per_second: 0.17
+    burst_count: 5
+  failed_login:
+    per_second: 0.17
+    burst_count: 5
+
+max_upload_size: 104857600
+max_image_pixels: 26214400
+max_spider_size: 1048576
+
+federation:
+  client_maximum_delay: 0
+
+presence:
+  enabled: true
+
+retention:
+  enabled: false
+
+push:
+  enabled: true
+
+pushers:
+  - app_id: "org.matrix.synapse"
+    pushkey: ""
+    kind: "http"
+    app_display_name: "Sygnal"
+    device_display_name: "Sygnal HTTP"
+    url: "http://sygnal:5000/_matrix/push/v1/notify"
+    format: "event_id_only"
+    data: {}
