@@ -14,18 +14,23 @@ Tailscale к `192.0.2.10/24`, как описано в [`../tailscale/README.md`
 
 ```sh
 cd /home/artlab/projects/homelab/jitsi
-./bootstrap.sh
+./init.sh
 docker compose pull
 docker compose up -d
 docker compose ps
 ```
 
-`bootstrap.sh` создаёт каталоги в `/storage/apps/jitsi` и игнорируемый `.env` с
-правами `0600`. Повторный запуск не перезаписывает существующие секреты.
+`init.sh` создаёт каталоги в `/storage/apps/jitsi` и игнорируемый `.env` с
+правами `0600`. Повторный запуск не перезаписывает существующие секреты. Jitsi
+также входит в общий оркестратор инициализации:
+
+```sh
+bash scripts/bootstrap-platform.sh
+```
 
 Версия `stable-10978` закреплена для всех четырёх образов. При обновлении менять
-`JITSI_IMAGE_VERSION` нужно одновременно в `.env.example`, `bootstrap.sh` и
-серверном `.env`, а затем заново проверить звонок между двумя устройствами.
+`JITSI_IMAGE_VERSION` нужно одновременно в `.env.example`, `init.sh` и серверном
+`.env`, а затем заново проверить звонок между двумя устройствами.
 
 ## Учётная запись организатора
 
