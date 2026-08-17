@@ -32,7 +32,7 @@ services:
       RESOLUTION_MIN: ${RESOLUTION_MIN:-180}
       RESOLUTION_WIDTH: ${RESOLUTION_WIDTH:-1920}
       RESOLUTION_WIDTH_MIN: ${RESOLUTION_WIDTH_MIN:-320}
-      TZ: ${TZ:-Asia/Yekaterinburg}
+      TZ: ${TZ:?set TZ in jitsi/.env}
       VIDEOQUALITY_BITRATE_AV1_FULL: ${VIDEOQUALITY_BITRATE_AV1_FULL:-2500000}
       VIDEOQUALITY_BITRATE_H264_FULL: ${VIDEOQUALITY_BITRATE_H264_FULL:-3500000}
       VIDEOQUALITY_BITRATE_VP8_FULL: ${VIDEOQUALITY_BITRATE_VP8_FULL:-3500000}
@@ -87,7 +87,7 @@ services:
       JICOFO_COMPONENT_SECRET: ${JICOFO_COMPONENT_SECRET:?set JICOFO_COMPONENT_SECRET in jitsi/.env}
       JVB_AUTH_PASSWORD: ${JVB_AUTH_PASSWORD:?set JVB_AUTH_PASSWORD in jitsi/.env}
       JVB_AUTH_USER: jvb
-      TZ: ${TZ:-Asia/Yekaterinburg}
+      TZ: ${TZ:?set TZ in jitsi/.env}
       XMPP_AUTH_DOMAIN: auth.meet.jitsi
       XMPP_DOMAIN: meet.jitsi
       XMPP_GUEST_DOMAIN: guest.meet.jitsi
@@ -129,7 +129,7 @@ services:
       JICOFO_COMPONENT_SECRET: ${JICOFO_COMPONENT_SECRET:?set JICOFO_COMPONENT_SECRET in jitsi/.env}
       JICOFO_ENABLE_BRIDGE_HEALTH_CHECKS: "1"
       SENTRY_DSN: ""
-      TZ: ${TZ:-Asia/Yekaterinburg}
+      TZ: ${TZ:?set TZ in jitsi/.env}
       XMPP_AUTH_DOMAIN: auth.meet.jitsi
       XMPP_DOMAIN: meet.jitsi
       XMPP_INTERNAL_MUC_DOMAIN: internal-muc.meet.jitsi
@@ -169,7 +169,7 @@ services:
       JVB_PORT: ${JVB_PORT:-10000}
       PUBLIC_URL: ${PUBLIC_URL:?set PUBLIC_URL in jitsi/.env}
       SENTRY_DSN: ""
-      TZ: ${TZ:-Asia/Yekaterinburg}
+      TZ: ${TZ:?set TZ in jitsi/.env}
       XMPP_AUTH_DOMAIN: auth.meet.jitsi
       XMPP_INTERNAL_MUC_DOMAIN: internal-muc.meet.jitsi
       XMPP_SERVER: prosody

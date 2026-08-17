@@ -7,7 +7,7 @@ services:
       - ./etc-dnsmasq.d/05-homelab.conf:/etc/dnsmasq.d/05-homelab.conf:Z,ro
 
     environment:
-      TZ: Asia/Yekaterinburg
+      TZ: ${TZ:?set TZ in pihole/.env}
       FTLCONF_dns_listeningMode: ALL
       FTLCONF_dns_upstreams: 1.1.1.1;1.0.0.1
       FTLCONF_misc_etc_dnsmasq_d: "true"

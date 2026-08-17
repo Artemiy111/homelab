@@ -35,7 +35,7 @@ entryPoints:
 certificatesResolvers:
   letsencrypt:
     acme:
-      email: ${LETSENCRYPT_EMAIL:?set LETSENCRYPT_EMAIL in traefik/.env}
+      email: ${LETSENCRYPT_EMAIL}
       storage: /letsencrypt/acme.json
       dnsChallenge:
         provider: rfc2136

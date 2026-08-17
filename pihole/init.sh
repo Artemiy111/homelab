@@ -9,6 +9,7 @@ mkdir -p /storage/apps/pihole/etc-pihole
 
 write_env_file "$repo_root/pihole/.env" <<EOF
 SERVER_IP=$SERVER_IP
+TZ=$TZ
 PIHOLE_HOST=pihole.$DOMAIN
 PIHOLE_ADMIN_PASSWORD=$(random_secret)
 EOF

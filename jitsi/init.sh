@@ -27,7 +27,7 @@ write_env_file "$repo_root/jitsi/.env" <<EOF
 JITSI_IMAGE_VERSION=stable-11146-1
 JITSI_HOST=meet.$DOMAIN
 PUBLIC_URL=https://meet.$DOMAIN
-TZ=Asia/Yekaterinburg
+TZ=$TZ
 RESOLUTION=1080
 RESOLUTION_MIN=180
 RESOLUTION_WIDTH=1920

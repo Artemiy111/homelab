@@ -21,7 +21,7 @@ x-gitea-environment: &gitea-environment
   GITEA__openid__ENABLE_OPENID_SIGNIN: "false"
   GITEA__openid__ENABLE_OPENID_SIGNUP: "false"
   GITEA__actions__ENABLED: "false"
-  TZ: ${TZ:-Asia/Yekaterinburg}
+  TZ: ${TZ:?set TZ in gitea/.env}
 
 services:
   db:

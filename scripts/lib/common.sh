@@ -22,6 +22,7 @@ if [[ -f "$repo_root/.env" ]]; then
   source "$repo_root/.env"
 fi
 DOMAIN="${DOMAIN:-example.net}"
+export DOMAIN
 
 # LAN IP-адрес сервера, к которому привязываются опубликованные порты (Traefik,
 # Pi-hole, Gitea, 3x-ui, Jitsi) и на который указывают DNS/health-проверки.
@@ -41,17 +42,23 @@ detect_server_ip() {
   return 1
 }
 SERVER_IP="${SERVER_IP:-$(detect_server_ip || true)}"
+export SERVER_IP
 if [[ -z "$SERVER_IP" ]]; then
   echo "Внимание: не удалось определить IP-адрес сервера; задайте SERVER_IP в корневом .env." >&2
 fi
 
+# Часовой пояс контейнеров — единый источник правды (как DOMAIN/SERVER_IP).
+# Приоритет: переменная окружения TZ → корневой .env → значение ниже.
+TZ="${TZ:-Asia/Yekaterinburg}"
+
 # Генерирует файл из шаблона, подставляя перечисленные переменные в стандартном
-# синтаксисе ${VAR} (тот же, что и в Compose). Подставляются только указанные
-# имена, поэтому чужие ${...} (например ${LETSENCRYPT_EMAIL:?...} для Traefik)
-# остаются нетронутыми. По умолчанию подставляется только ${DOMAIN}.
+# синтаксисе ${VAR} (тот же, что и в Compose) через envsubst. Подставляются только
+# указанные имена, поэтому чужие ${...} остаются нетронутыми. DOMAIN и SERVER_IP
+# экспортируются из common.sh; прочие переменные (например LETSENCRYPT_EMAIL)
+# экспортирует вызывающий скрипт. По умолчанию подставляется только ${DOMAIN}.
 render_template() {
   local template="$1" output="$2" vars="${3:-\$DOMAIN}"
-  DOMAIN="$DOMAIN" SERVER_IP="$SERVER_IP" envsubst "$vars" < "$template" > "$output"
+  envsubst "$vars" < "$template" > "$output"
 }
 
 # Случайный секрет из 24 байт (hex).

@@ -10,7 +10,7 @@ x-dawarich-environment: &dawarich-environment
   DATABASE_NAME: ${POSTGRES_DB:-dawarich_production}
   APPLICATION_HOSTS: ${DAWARICH_HOST:?set DAWARICH_HOST in dawarich/.env}
   APPLICATION_PROTOCOL: https
-  TIME_ZONE: ${TZ:-Asia/Yekaterinburg}
+  TIME_ZONE: ${TZ:?set TZ in dawarich/.env}
   SECRET_KEY_BASE: ${SECRET_KEY_BASE:?set SECRET_KEY_BASE in dawarich/.env}
   RAILS_LOG_TO_STDOUT: "true"
   SELF_HOSTED: "true"

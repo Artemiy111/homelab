@@ -17,7 +17,7 @@ x-nextcloud-environment: &nextcloud-environment
   NEXTCLOUD_INIT_HTACCESS: "true"
   PHP_MEMORY_LIMIT: 512M
   PHP_UPLOAD_LIMIT: 16G
-  TZ: ${TZ:-Asia/Yekaterinburg}
+  TZ: ${TZ:?set TZ in nextcloud/.env}
 
 services:
   db:

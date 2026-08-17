@@ -23,7 +23,7 @@ GITEA_ADMIN_USERNAME=gitea-admin
 GITEA_ADMIN_PASSWORD=$(random_secret)
 GITEA_ADMIN_EMAIL=gitea-admin@example.invalid
 TRAEFIK_NETWORK_CIDR=$traefik_network_cidr
-TZ=Asia/Yekaterinburg
+TZ=$TZ
 EOF
 
 compose_config "$repo_root/gitea"

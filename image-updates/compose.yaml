@@ -34,7 +34,7 @@ services:
       - /storage/apps/wud/store:/store:Z
 
     environment:
-      TZ: Asia/Yekaterinburg
+      TZ: ${TZ:?set TZ in image-updates/.env}
       WUD_SERVER_FEATURE_DELETE: false
       WUD_WATCHER_LOCAL_CRON: "0 */6 * * *"
       WUD_WATCHER_LOCAL_HOST: docker-socket-proxy
@@ -76,7 +76,7 @@ services:
 
     environment:
       CUP_SOCKET: tcp://docker-socket-proxy:2375
-      TZ: Asia/Yekaterinburg
+      TZ: ${TZ:?set TZ in image-updates/.env}
 
     networks:
       - docker-api

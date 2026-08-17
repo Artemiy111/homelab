@@ -21,7 +21,7 @@ POSTGRES_DB=nextcloud
 POSTGRES_USER=nextcloud
 POSTGRES_PASSWORD=$(random_secret)
 TRAEFIK_NETWORK_CIDR=$traefik_network_cidr
-TZ=Asia/Yekaterinburg
+TZ=$TZ
 EOF
 
 compose_config "$repo_root/nextcloud"
