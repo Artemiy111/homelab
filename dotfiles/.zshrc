@@ -20,7 +20,6 @@ setopt SHARE_HISTORY
 setopt HIST_IGNORE_DUPS
 
 # --- Удобное поведение ---
-setopt AUTO_CD
 setopt INTERACTIVE_COMMENTS
 setopt NO_BEEP
 setopt EXTENDED_GLOB
