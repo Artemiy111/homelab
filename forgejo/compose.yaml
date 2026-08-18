@@ -19,6 +19,7 @@ x-forgejo-environment: &forgejo-environment
   FORGEJO__openid__ENABLE_OPENID_SIGNIN: "false"
   FORGEJO__openid__ENABLE_OPENID_SIGNUP: "false"
   FORGEJO__actions__ENABLED: "false"
+  FORGEJO__i18n__DEFAULT_LOCALE: ${FORGEJO_DEFAULT_LOCALE:?set FORGEJO_DEFAULT_LOCALE in forgejo/.env}
   # === После регистрации WebAuthn-ключа ===
   # 1. Включить WebAuthn:
   # FORGEJO__webauthn__ENABLED: "true"

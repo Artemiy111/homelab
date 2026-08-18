@@ -14,10 +14,10 @@ x-synapse-environment: &synapse-environment
 
 services:
   db:
-    image: postgres:18-alpine
+    image: postgres:16-alpine
     container_name: element-db
     volumes:
-      - ${APPS_STORAGE_PATH:-/storage/apps}/element/postgresql:/var/lib/postgresql:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/element/postgresql-16:/var/lib/postgresql/16/docker:Z
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-synapse}
       POSTGRES_USER: ${POSTGRES_USER:-synapse}
@@ -35,7 +35,7 @@ services:
       start_period: 20s
 
   redis:
-    image: redis:8.10-alpine
+    image: redis:8-alpine
     container_name: element-redis
     volumes:
       - ${APPS_STORAGE_PATH:-/storage/apps}/element/redis:/data:Z
@@ -52,7 +52,7 @@ services:
       retries: 10
 
   synapse:
-    image: matrixdotorg/synapse:v1.159.0
+    image: matrixdotorg/synapse:latest
     container_name: element-synapse
     depends_on:
       db:
@@ -82,15 +82,12 @@ services:
       - traefik.http.routers.synapse.rule=Host(`${SYNAPSE_HOST}`) && PathPrefix(`/_matrix`)
       - traefik.http.routers.synapse.entrypoints=websecure
       - traefik.http.services.synapse.loadbalancer.server.port=8080
-      - traefik.http.routers.synapse-well-known.rule=Host(`${SYNAPSE_SERVER_NAME}`) && Path(`/.well-known/matrix/client`)
-      - traefik.http.routers.synapse-well-known.entrypoints=websecure
-      - traefik.http.routers.synapse-well-known.service=synapse
     init: true
     security_opt:
       - no-new-privileges:true
 
   element-web:
-    image: vectorim/element-web:v1.12.26
+    image: vectorim/element-web:latest
     container_name: element-web
     volumes:
       - ./element-web/config.json:/app/config.json:Z,ro
@@ -116,7 +113,7 @@ services:
       - no-new-privileges:true
 
   livekit:
-    image: livekit/livekit-server:v1.13.5
+    image: livekit/livekit-server:latest
     container_name: element-livekit
     volumes:
       - ${APPS_STORAGE_PATH:-/storage/apps}/element/livekit/config.yaml:/etc/livekit/config.yaml:Z,ro
@@ -177,7 +174,7 @@ services:
       - no-new-privileges:true
 
   turn:
-    image: coturn/coturn:4.17
+    image: coturn/coturn:latest
     container_name: element-turn
     volumes:
       - ${APPS_STORAGE_PATH:-/storage/apps}/element/turn/turnserver.conf:/etc/turnserver.conf:Z,ro
@@ -190,7 +187,7 @@ services:
       - no-new-privileges:true
 
   sygnal:
-    image: matrixdotorg/sygnal:v0.17.0
+    image: matrixdotorg/sygnal:latest
     container_name: element-sygnal
     profiles: [push]
     volumes:
