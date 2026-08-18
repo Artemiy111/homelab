@@ -7,6 +7,15 @@ services:
     read_only: true
     init: true
 
+    # /start.sh генерирует /conf/eturnal.yml с relay_ipv4_addr = IP контейнера
+    # (недостижим из LAN), поэтому патчим его на LAN-IP сервера, сужаем диапазон
+    # relay-портов (чтобы публиковать только его) и добавляем LAN-подсеть
+    # в whitelist_peers (иначе eturnal откажет в релее на адреса клиентов).
+    command: >-
+      /bin/sh -c "sed -i -e 's|^  relay_ipv4_addr: \"[0-9.]*\"|  relay_ipv4_addr: \"${SERVER_IP}\"\n  relay_min_port: ${TALK_RELAY_MIN_PORT:-20000}\n  relay_max_port: ${TALK_RELAY_MAX_PORT:-20499}|'
+      -e 's|^  whitelist_peers:|  whitelist_peers:\n  - \"${TALK_RELAY_NETWORK:-192.0.2.10/24}\"|' /conf/eturnal.yml
+      && exec supervisord -c /supervisord.conf"
+
     tmpfs:
       - /conf
       - /opt/eturnal/run
@@ -17,6 +26,10 @@ services:
     ports:
       - "${SERVER_IP:?set SERVER_IP in talk-hpb/.env}:${TALK_PORT:-3478}:${TALK_PORT:-3478}/tcp"
       - "${SERVER_IP:?set SERVER_IP in talk-hpb/.env}:${TALK_PORT:-3478}:${TALK_PORT:-3478}/udp"
+      # TURN relay-порты eturnal: диапазон должен совпадать с TALK_RELAY_MIN/MAX_PORT
+      # из command выше — на каждый медиа-аллокацию тратится один порт.
+      - "${SERVER_IP:?set SERVER_IP in talk-hpb/.env}:${TALK_RELAY_MIN_PORT:-20000}-${TALK_RELAY_MAX_PORT:-20499}:${TALK_RELAY_MIN_PORT:-20000}-${TALK_RELAY_MAX_PORT:-20499}/udp"
+      - "${SERVER_IP:?set SERVER_IP in talk-hpb/.env}:${TALK_RELAY_MIN_PORT:-20000}-${TALK_RELAY_MAX_PORT:-20499}:${TALK_RELAY_MIN_PORT:-20000}-${TALK_RELAY_MAX_PORT:-20499}/tcp"
 
     environment:
       AIO_LOG_LEVEL: warn
