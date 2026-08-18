@@ -13,6 +13,7 @@
 | Pi-hole | Локальный DNS и блокировка рекламы | `https://pihole.example.net/admin/` |
 | Uptime Kuma | Мониторинг доступности | `https://uptime.example.net/` |
 | Beszel | Метрики хоста и Docker-контейнеров | `https://beszel.example.net/` |
+| Arcane | Управление Docker (контейнеры, образы, сети, тома) | `https://arcane.example.net/` |
 | WUD | Отслеживание обновлений Docker images | `https://wud.example.net/` |
 | Cup | Лёгкая независимая проверка обновлений Docker images | `https://cup.example.net/` |
 | 3x-ui | Управление личным Xray-прокси | `https://xui.example.net/<секретный-путь>/` |
@@ -83,7 +84,7 @@ health-проверки (Gatus, Uptime Kuma), задаётся переменн�
 4. В каталоге каждого сервиса скопировать `.env.example` в `.env` и заменить
    значения-заглушки. Общий домен задаётся один раз — см. раздел
    «Общий домен сервисов».
-5. Запустить `traefik`, затем `home`, `pihole`, `uptime-kuma`, `beszel`, `3x-ui`,
+5. Запустить `traefik`, затем `home`, `pihole`, `uptime-kuma`, `beszel`, `arcane`, `3x-ui`,
    `nextcloud`, `jellyfin`, `forgejo`, `code-server`, `pocket-id`, `authentik`, `dawarich`,
    `pdf` и `image-updates`.
 6. Настроить DHCP-сервер роутера так, чтобы он выдавал `192.0.2.10` как DNS.

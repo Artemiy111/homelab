@@ -30,6 +30,7 @@ services=(
   oauth2-proxy
   dawarich
   beszel
+  arcane
   image-updates
   restic
   pdf

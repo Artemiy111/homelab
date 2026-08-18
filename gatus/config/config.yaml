@@ -129,6 +129,14 @@ endpoints:
     conditions: *https-ok
     alerts: *alerts-all
 
+  - name: Arcane
+    group: Monitoring
+    url: https://arcane.${DOMAIN}/api/health
+    interval: 60s
+    client: *https-client
+    conditions: *https-ok
+    alerts: *alerts-all
+
   # Публичные URL этих сервисов закрыты forward auth (oauth2-proxy@file) и для
   # неавторизованного запроса отдают 302, поэтому проверяем приложения напрямую
   # в docker-сети (gatus, wud, cup, structurizr — на одной сети traefiknet).

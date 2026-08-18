@@ -1,0 +1,81 @@
+name: arcane
+
+services:
+  docker-socket-proxy:
+    image: ghcr.io/tecnativa/docker-socket-proxy:v0.5.0@sha256:1f5038b54f06c3e18422902cf00ba21803d1c97805aae032e5e6673d532d3459
+    container_name: arcane-docker-proxy
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+    environment:
+      CONTAINERS: 1
+      DISTRIBUTION: 1
+      EVENTS: 1
+      EXEC: 1
+      IMAGES: 1
+      INFO: 1
+      NETWORKS: 1
+      PING: 1
+      POST: 1
+      VERSION: 1
+      VOLUMES: 1
+
+    networks:
+      - docker-api
+    restart: unless-stopped
+
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+  arcane:
+    image: ghcr.io/getarcaneapp/manager:v2.8.0@sha256:0d1a113517c1a8eb1cafb8829940eb418f2c4003032e19251e7bec5e3e4a57ee
+    container_name: arcane
+
+    depends_on:
+      - docker-socket-proxy
+
+    volumes:
+      - ${APPS_STORAGE_PATH:-/storage/apps}/arcane/data:/app/data:Z
+
+    environment:
+      APP_URL: https://${ARCANE_HOST:?set ARCANE_HOST in arcane/.env}
+      DOCKER_HOST: tcp://docker-socket-proxy:2375
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:?set ENCRYPTION_KEY in arcane/.env}
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in arcane/.env}
+      PUID: 1000
+      PGID: 1000
+
+    networks:
+      - docker-api
+      - traefiknet
+    restart: unless-stopped
+
+    healthcheck:
+      test: [ "CMD", "./arcane", "health", "--timeout", "2s" ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.arcane.rule=Host(`${ARCANE_HOST}`)
+      - traefik.http.routers.arcane.entrypoints=websecure
+      - traefik.http.routers.arcane.middlewares=arcane-security
+      - traefik.http.services.arcane.loadbalancer.server.port=3552
+      - traefik.http.middlewares.arcane-security.headers.stsSeconds=15552000
+      - traefik.http.middlewares.arcane-security.headers.stsIncludeSubdomains=true
+      - traefik.http.middlewares.arcane-security.headers.contentTypeNosniff=true
+      - traefik.http.middlewares.arcane-security.headers.referrerPolicy=no-referrer
+      - traefik.docker.network=traefiknet
+
+    security_opt:
+      - no-new-privileges:true
+
+networks:
+  docker-api:
+    internal: true
+  traefiknet:
+    external: true

@@ -15,6 +15,10 @@
         icon: mdi-chart-line
         href: https://beszel.{{HOMEPAGE_VAR_DOMAIN}}/
         description: Метрики хоста и контейнеров
+    - Arcane:
+        icon: mdi-docker
+        href: https://arcane.{{HOMEPAGE_VAR_DOMAIN}}/
+        description: Управление Docker
     - WUD:
         icon: mdi-update
         href: https://wud.{{HOMEPAGE_VAR_DOMAIN}}/

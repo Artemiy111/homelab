@@ -87,6 +87,14 @@ workspace {
                 tags "monitoring"
             }
 
+            arcane = softwareSystem "Arcane" "Управление Docker: контейнеры, образы, сети, тома (arcane.example.net)" {
+                tags "monitoring"
+            }
+
+            arcaneproxy = softwareSystem "Docker Socket Proxy (Arcane)" "Ограниченный прокси docker.sock для Arcane (ro mount, POST включён)" {
+                tags "monitoring"
+            }
+
             socketproxy = softwareSystem "Docker Socket Proxy" "Ограниченный прокси docker.sock (read-only, без POST)" {
                 tags "monitoring"
             }
@@ -212,6 +220,9 @@ workspace {
         traefik -> cup "маршрутизирует Host(cup.*)" "HTTPS" {
             tags "http"
         }
+        traefik -> arcane "маршрутизирует Host(arcane.*)" "HTTPS" {
+            tags "http"
+        }
         traefik -> pocketid "маршрутизирует Host(id.*)" "HTTPS" {
             tags "http"
         }
@@ -273,8 +284,10 @@ workspace {
         dockerEngine -> traefik "docker.sock (ro) — discovery сервисов" "docker.sock (ro)"
         dockerEngine -> beszel "docker.sock (ro) — метрики контейнеров" "docker.sock (ro)"
         dockerEngine -> socketproxy "docker.sock (ro, без POST)" "docker.sock (ro)"
+        dockerEngine -> arcaneproxy "docker.sock (ro, POST включён)" "docker.sock (ro)"
         socketproxy -> wud "список образов и тегов (TCP :2375)" "TCP :2375"
         socketproxy -> cup "список образов и тегов (TCP :2375)" "TCP :2375"
+        arcaneproxy -> arcane "API Docker (TCP :2375)" "TCP :2375"
 
         jellyfin -> mediaLibrary "читает /storage/media" "host bind mount"
         navidrome -> mediaLibrary "читает /storage/media/music" "host bind mount"
