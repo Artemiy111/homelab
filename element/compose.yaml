@@ -118,6 +118,7 @@ services:
     ports:
       - "${LIVEKIT_EXTERNAL_IP}:${LIVEKIT_PORT:-7880}:7880"
       - "${LIVEKIT_EXTERNAL_IP}:${LIVEKIT_RTC_PORT:-7881}:7881"
+      - "${LIVEKIT_EXTERNAL_IP}:${LIVEKIT_RTC_PORT_MIN:-50000}-${LIVEKIT_RTC_PORT_MAX:-50499}:${LIVEKIT_RTC_PORT_MIN:-50000}-${LIVEKIT_RTC_PORT_MAX:-50499}/udp"
     networks:
       backend:
       traefiknet:
@@ -133,9 +134,35 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=traefiknet
-      - traefik.http.routers.livekit.rule=Host(`${LIVEKIT_HOST}`)
+      - traefik.http.routers.livekit.rule=Host(`${LIVEKIT_HOST}`) && PathPrefix(`/livekit/sfu`)
       - traefik.http.routers.livekit.entrypoints=websecure
+      - traefik.http.routers.livekit.middlewares=livekit-sfu-strip
+      - traefik.http.middlewares.livekit-sfu-strip.stripprefix.prefixes=/livekit/sfu
       - traefik.http.services.livekit.loadbalancer.server.port=7880
+    init: true
+    security_opt:
+      - no-new-privileges:true
+
+  matrix-rtc-auth:
+    image: ghcr.io/element-hq/lk-jwt-service:0.4.4
+    container_name: element-matrix-rtc-auth
+    environment:
+      LIVEKIT_JWT_PORT: "8080"
+      LIVEKIT_URL: wss://${LIVEKIT_HOST:?set LIVEKIT_HOST in element/.env}/livekit/sfu
+      LIVEKIT_KEY: ${LIVEKIT_API_KEY:?set LIVEKIT_API_KEY in element/.env}
+      LIVEKIT_SECRET: ${LIVEKIT_API_SECRET:?set LIVEKIT_API_SECRET in element/.env}
+      LIVEKIT_FULL_ACCESS_HOMESERVERS: ${SYNAPSE_SERVER_NAME:?set SYNAPSE_SERVER_NAME in element/.env}
+    networks:
+      - traefiknet
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefiknet
+      - traefik.http.routers.matrix-rtc-auth.rule=Host(`${LIVEKIT_HOST}`) && PathPrefix(`/livekit/jwt`)
+      - traefik.http.routers.matrix-rtc-auth.entrypoints=websecure
+      - traefik.http.routers.matrix-rtc-auth.middlewares=matrix-rtc-auth-strip
+      - traefik.http.middlewares.matrix-rtc-auth-strip.stripprefix.prefixes=/livekit/jwt
+      - traefik.http.services.matrix-rtc-auth.loadbalancer.server.port=8080
     init: true
     security_opt:
       - no-new-privileges:true

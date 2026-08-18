@@ -35,6 +35,25 @@ ensure_secret POSTGRES_PASSWORD
 ensure_secret TURN_PASSWORD
 ensure_secret TURN_SECRET
 
+ensure_default() {
+  local var_name="$1" default_value="$2"
+  if [[ -z "${!var_name:-}" ]]; then
+    echo "${var_name}=${default_value}" >> "$SCRIPT_DIR/.env"
+    printf -v "$var_name" '%s' "$default_value"
+    export "$var_name"
+    echo "[init] Set ${var_name}=${default_value}"
+  fi
+}
+
+# Keep Element Call media ports separate from Nextcloud Talk (3478 and
+# 20000-20499) and from each other. Existing .env files acquire these defaults
+# on their next init without changing any secret.
+ensure_default LIVEKIT_RTC_PORT_MIN 50000
+ensure_default LIVEKIT_RTC_PORT_MAX 50499
+ensure_default TURN_PORT 3479
+ensure_default TURN_RELAY_MIN_PORT 21000
+ensure_default TURN_RELAY_MAX_PORT 21499
+
 # LiveKit keys need different lengths
 if [ -z "${LIVEKIT_API_KEY:-}" ]; then
   LIVEKIT_API_KEY=$(openssl rand -hex 16)

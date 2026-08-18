@@ -46,8 +46,8 @@ password_config:
   min_length: 8
 
 rc_message:
-  per_second: 0.2
-  burst_count: 10
+  per_second: 0.5
+  burst_count: 30
 
 rc_login:
   address:
@@ -59,6 +59,28 @@ rc_login:
   failed_login:
     per_second: 0.17
     burst_count: 5
+
+rc_delayed_event_mgmt:
+  per_second: 1
+  burst_count: 20
+
+experimental_features:
+  msc3266_enabled: true
+  msc4143_enabled: true
+  msc4222_enabled: true
+
+max_event_delay_duration: 24h
+
+turn_uris:
+  - turn:${SYNAPSE_HOST}:${TURN_PORT}?transport=udp
+  - turn:${SYNAPSE_HOST}:${TURN_PORT}?transport=tcp
+turn_shared_secret: ${TURN_SECRET}
+turn_user_lifetime: 1h
+
+matrix_rtc:
+  transports:
+    - type: livekit
+      livekit_service_url: https://${LIVEKIT_HOST}/livekit/jwt
 
 max_upload_size: 104857600
 max_image_pixels: 26214400
