@@ -182,6 +182,7 @@ services:
   sygnal:
     image: matrixdotorg/sygnal:latest
     container_name: element-sygnal
+    profiles: [push]
     volumes:
       - ${APPS_STORAGE_PATH:-/storage/apps}/element/sygnal/sygnal.yaml:/sygnal.yaml:Z,ro
     networks:
