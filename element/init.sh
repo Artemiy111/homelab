@@ -94,6 +94,17 @@ envsubst < "$SCRIPT_DIR/turn/turnserver.conf.tmpl" > "$STORAGE_BASE/turn/turnser
 echo "[init] Generated turn/turnserver.conf"
 
 envsubst < "$SCRIPT_DIR/sygnal/sygnal.yaml.tmpl" > "$STORAGE_BASE/sygnal/sygnal.yaml"
+if [[ -n "${FCM_SERVER_KEY:-}" ]]; then
+  cat >> "$STORAGE_BASE/sygnal/sygnal.yaml" <<EOF
+
+apps:
+  "io.element":
+    type: gcm
+    api_key: "${FCM_SERVER_KEY}"
+EOF
+else
+  printf '\napps: {}\n' >> "$STORAGE_BASE/sygnal/sygnal.yaml"
+fi
 echo "[init] Generated sygnal/sygnal.yaml"
 
 echo ""
