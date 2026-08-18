@@ -81,6 +81,11 @@ docker compose ps
 генерирует конфигурации в `$APPS_STORAGE_PATH/element` и сохраняет timezone
 `Asia/Yekaterinburg`.
 
+PostgreSQL хранит данные в
+`$APPS_STORAGE_PATH/element/postgresql-16`, примонтированном в штатный каталог
+образа `/var/lib/postgresql/data`. Не удаляйте этот каталог при обновлении
+контейнеров.
+
 Push-уведомления Sygnal не запускаются по умолчанию: для этого необходимы
 реальные FCM credentials. После их настройки сервис запускается явно:
 

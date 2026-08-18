@@ -17,7 +17,7 @@ services:
     image: postgres:16-alpine
     container_name: element-db
     volumes:
-      - ${APPS_STORAGE_PATH:-/storage/apps}/element/postgresql-16:/var/lib/postgresql/16/docker:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/element/postgresql-16:/var/lib/postgresql/data:Z
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-synapse}
       POSTGRES_USER: ${POSTGRES_USER:-synapse}
