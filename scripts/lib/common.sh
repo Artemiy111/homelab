@@ -24,11 +24,6 @@ fi
 DOMAIN="${DOMAIN:-example.net}"
 export DOMAIN
 
-# Язык по умолчанию для приложений — единый источник правды для локалей.
-# Приоритет: переменная окружения DEFAULT_LOCALE → корневой .env → ru.
-DEFAULT_LOCALE="${DEFAULT_LOCALE:-ru}"
-export DEFAULT_LOCALE
-
 # Каталог данных приложений на хосте — единый источник правды для bind mounts
 # в Compose и каталогов, создаваемых init.sh. Приоритет: переменная окружения
 # APPS_STORAGE_PATH → корневой .env → /storage/apps.

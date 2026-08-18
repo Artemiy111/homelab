@@ -27,6 +27,14 @@
         icon: mdi-cup
         href: https://cup.{{HOMEPAGE_VAR_DOMAIN}}/
         description: Независимая проверка обновлений
+    - 3x-ui:
+        icon: mdi-vpn
+        href: https://xui.{{HOMEPAGE_VAR_DOMAIN}}/
+        description: Личный Xray-прокси
+    - Talk HPB:
+        icon: mdi-phone-in-talk
+        href: https://talk-signaling.{{HOMEPAGE_VAR_DOMAIN}}/
+        description: Signaling для Nextcloud Talk
 
 - Приложения:
     - Immich:
@@ -61,6 +69,34 @@
         icon: mdi-shield-account
         href: https://auth.{{HOMEPAGE_VAR_DOMAIN}}/
         description: Identity provider и SSO
+    - Zitadel:
+        icon: mdi-shield-lock
+        href: https://id.{{HOMEPAGE_VAR_DOMAIN}}/
+        description: Identity provider и SSO (основной)
+    - Element:
+        icon: mdi-message-alert
+        href: https://element.{{HOMEPAGE_VAR_DOMAIN}}/
+        description: Matrix-чат
+    - Home Assistant:
+        icon: mdi-home-assistant
+        href: https://homeassistant.{{HOMEPAGE_VAR_DOMAIN}}/
+        description: Автоматизация дома
+    - Infisical:
+        icon: mdi-key-variant
+        href: https://infisical.{{HOMEPAGE_VAR_DOMAIN}}/
+        description: Управление секретами
+    - Vault:
+        icon: mdi-safe-square
+        href: https://vault.{{HOMEPAGE_VAR_DOMAIN}}/
+        description: HashiCorp Vault
+    - LocalAI:
+        icon: mdi-robot
+        href: https://localai.{{HOMEPAGE_VAR_DOMAIN}}/
+        description: Локальный AI
+    - Mailserver:
+        icon: mdi-email
+        href: https://mailserver.{{HOMEPAGE_VAR_DOMAIN}}/
+        description: Почтовый сервер
     - Dawarich:
         icon: mdi-map-marker-path
         href: https://dawarich.{{HOMEPAGE_VAR_DOMAIN}}/
@@ -87,3 +123,15 @@
         icon: mdi-backup-restore
         href: https://restic.net/
         description: Зашифрованные резервные копии
+    - Mermaid Live Editor:
+        icon: mdi-chart-sankey
+        href: https://mermaid.{{HOMEPAGE_VAR_DOMAIN}}/
+        description: Редактор диаграмм
+    - Structurizr:
+        icon: mdi-sitemap
+        href: https://structurizr.{{HOMEPAGE_VAR_DOMAIN}}/
+        description: Архитектурные диаграммы
+    - Postgres:
+        icon: mdi-database
+        href: https://postgres.{{HOMEPAGE_VAR_DOMAIN}}/
+        description: Веб-админ PostgreSQL
