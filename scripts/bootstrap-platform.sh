@@ -32,6 +32,7 @@ services=(
   beszel
   arcane
   image-updates
+  infisical
   restic
   pdf
   home

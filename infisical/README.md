@@ -9,24 +9,37 @@ Open-source secrets management platform (MIT CE). Хранение, ротаци
 - **Redis 7** — кэш и очереди задач
 - **Infisical backend** — API + Web UI (порт 8080)
 
-## Запуск
+## Первый запуск
 
-1. Скопировать `.env.example` в `.env` и сгенерировать ключи:
-
-```sh
-ENCRYPTION_KEY=$(openssl rand -hex 16)
-AUTH_SECRET=$(openssl rand -base64 32)
-POSTGRES_PASSWORD=$(openssl rand -hex 24)
-```
-
-2. Запустить:
+`init.sh` создаёт каталоги данных, формирует локальный `infisical/.env`
+(пароль PostgreSQL, `ENCRYPTION_KEY`, `AUTH_SECRET` и `TRUSTED_PROXY_CIDRS`)
+и проверяет Compose-конфигурацию. Секреты не попадают в Git. См. также
+`scripts/bootstrap-platform.sh`.
 
 ```sh
+cd /home/artlab/projects/homelab
+bash infisical/init.sh
+cd infisical
 docker compose up -d
+docker compose ps
 ```
 
-3. Открыть `https://infisical.example.net` и создать
-   первого пользователя (он становится администратором).
+Затем откройте `https://infisical.example.net` и создайте первого
+пользователя (он становится администратором).
+
+`ENCRYPTION_KEY` шифрует хранимые секреты. Его потеря сделает зашифрованные
+данные недоступными, поэтому `.env` должен входить в защищённую копию
+конфигурации сервера.
+
+## Проверка
+
+```sh
+docker compose ps
+curl --resolve infisical.example.net:443:192.0.2.10 \
+  -fsS https://infisical.example.net/api/status
+```
+
+`/api/status` должен вернуть JSON с `"message":"Ok"` и HTTP 200.
 
 ## CLI
 
