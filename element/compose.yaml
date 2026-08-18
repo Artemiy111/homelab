@@ -14,10 +14,10 @@ x-synapse-environment: &synapse-environment
 
 services:
   db:
-    image: postgres:16-alpine
+    image: postgres:18-alpine@sha256:d3e1620b530c944afa6e887d22eb899824da68e19c52024bf98f5220c88a65b2
     container_name: element-db
     volumes:
-      - ${APPS_STORAGE_PATH:-/storage/apps}/element/postgresql-16:/var/lib/postgresql/data:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/element/postgresql-18:/var/lib/postgresql/data:Z
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-synapse}
       POSTGRES_USER: ${POSTGRES_USER:-synapse}
