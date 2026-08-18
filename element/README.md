@@ -22,6 +22,10 @@ MatrixRTC authorization service.
 `/.well-known/matrix/client`. В нём объявлен LiveKit MatrixRTC focus — именно
 так Element обнаруживает сервер звонков.
 
+Там же публикуется Matrix Federation delegation на HTTPS-порт `443`; он нужен
+MatrixRTC authorization service, чтобы проверить OpenID-токен пользователя у
+Synapse.
+
 ## Сеть
 
 Talk и Element работают одновременно и не конкурируют за порты.
