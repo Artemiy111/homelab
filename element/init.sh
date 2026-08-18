@@ -17,6 +17,15 @@ set -a
 source "$SCRIPT_DIR/.env"
 set +a
 
+# Element originally used the Moscow timezone. Keep the homelab-wide default
+# consistent for existing installations as well as newly generated .env files.
+if [[ "${TZ:-}" == "Europe/Moscow" ]]; then
+  sed -i 's/^TZ=Europe\/Moscow$/TZ=Asia\/Yekaterinburg/' "$SCRIPT_DIR/.env"
+  TZ=Asia/Yekaterinburg
+  export TZ
+  echo "[init] Migrated TZ to Asia/Yekaterinburg"
+fi
+
 # Generate secrets if empty
 ensure_secret() {
   local var_name="$1"

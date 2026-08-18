@@ -10,6 +10,7 @@ x-synapse-environment: &synapse-environment
   POSTGRES_DB: ${POSTGRES_DB:-synapse}
   POSTGRES_USER: ${POSTGRES_USER:-synapse}
   POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in element/.env}
+  TZ: ${TZ:-Asia/Yekaterinburg}
 
 services:
   db:
@@ -22,6 +23,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-synapse}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in element/.env}
       POSTGRES_INITDB_ARGS: --encoding=UTF8 --locale=C
+      TZ: ${TZ:-Asia/Yekaterinburg}
     networks:
       - backend
     restart: unless-stopped
@@ -40,6 +42,8 @@ services:
     networks:
       - backend
     command: redis-server --save 60 1 --loglevel warning
+    environment:
+      TZ: ${TZ:-Asia/Yekaterinburg}
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
@@ -87,6 +91,8 @@ services:
     container_name: element-web
     volumes:
       - ./element-web/config.json:/app/config.json:Z,ro
+    environment:
+      TZ: ${TZ:-Asia/Yekaterinburg}
     networks:
       - traefiknet
     restart: unless-stopped
@@ -112,6 +118,8 @@ services:
     volumes:
       - ${APPS_STORAGE_PATH:-/storage/apps}/element/livekit/config.yaml:/etc/livekit/config.yaml:Z,ro
     command: --config /etc/livekit/config.yaml --node-ip ${LIVEKIT_EXTERNAL_IP:?set LIVEKIT_EXTERNAL_IP in element/.env}
+    environment:
+      TZ: ${TZ:-Asia/Yekaterinburg}
     ports:
       - "${LIVEKIT_EXTERNAL_IP}:${LIVEKIT_PORT:-7880}:7880"
       - "${LIVEKIT_EXTERNAL_IP}:${LIVEKIT_RTC_PORT:-7881}:7881"
@@ -149,6 +157,7 @@ services:
       LIVEKIT_KEY: ${LIVEKIT_API_KEY:?set LIVEKIT_API_KEY in element/.env}
       LIVEKIT_SECRET: ${LIVEKIT_API_SECRET:?set LIVEKIT_API_SECRET in element/.env}
       LIVEKIT_FULL_ACCESS_HOMESERVERS: ${SYNAPSE_SERVER_NAME:?set SYNAPSE_SERVER_NAME in element/.env}
+      TZ: ${TZ:-Asia/Yekaterinburg}
     networks:
       - traefiknet
     restart: unless-stopped
@@ -170,6 +179,8 @@ services:
     volumes:
       - ${APPS_STORAGE_PATH:-/storage/apps}/element/turn/turnserver.conf:/etc/turnserver.conf:Z,ro
     network_mode: host
+    environment:
+      TZ: ${TZ:-Asia/Yekaterinburg}
     restart: unless-stopped
     init: true
     security_opt:
@@ -181,6 +192,8 @@ services:
     profiles: [push]
     volumes:
       - ${APPS_STORAGE_PATH:-/storage/apps}/element/sygnal/sygnal.yaml:/sygnal.yaml:Z,ro
+    environment:
+      TZ: ${TZ:-Asia/Yekaterinburg}
     networks:
       - backend
     restart: unless-stopped
