@@ -78,10 +78,6 @@ services:
       - traefik.http.routers.synapse.rule=Host(`${SYNAPSE_HOST}`) && PathPrefix(`/_matrix`)
       - traefik.http.routers.synapse.entrypoints=websecure
       - traefik.http.services.synapse.loadbalancer.server.port=8080
-      - traefik.http.routers.synapse-federation.rule=Host(`${SYNAPSE_HOST}`)
-      - traefik.http.routers.synapse-federation.entrypoints=websecure
-      - traefik.http.routers.synapse-federation.service=synapse
-      - traefik.http.routers.synapse-federation.priority=1
     init: true
     security_opt:
       - no-new-privileges:true
@@ -95,7 +91,7 @@ services:
       - traefiknet
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/ >/dev/null || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:80/ >/dev/null || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -105,7 +101,7 @@ services:
       - traefik.docker.network=traefiknet
       - traefik.http.routers.element-web.rule=Host(`${ELEMENT_HOST}`)
       - traefik.http.routers.element-web.entrypoints=websecure
-      - traefik.http.services.element-web.loadbalancer.server.port=8080
+      - traefik.http.services.element-web.loadbalancer.server.port=80
     init: true
     security_opt:
       - no-new-privileges:true
