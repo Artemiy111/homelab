@@ -39,15 +39,12 @@ LiveKit рекламирует LAN-адрес сервера (`192.0.2.10`), а 
 создайте первого администратора интерактивно:
 
 ```sh
-docker exec -it element-synapse register_new_matrix_user \
-  -c /data/homeserver.yaml \
-  -u YOUR_LOGIN \
-  -a \
-  http://localhost:8008
+bash create-admin.sh
 ```
 
-Команда запросит пароль. Пользователь войдёт в Element с логином `YOUR_LOGIN`
-и этим паролем; Matrix ID будет `@YOUR_LOGIN:example.net`.
+Скрипт запросит логин, затем пароль. Логин можно передать сразу: `bash
+create-admin.sh YOUR_LOGIN`. Пользователь войдёт в Element с этим логином и
+паролем; Matrix ID будет `@YOUR_LOGIN:example.net`.
 
 Для обычного пользователя вместо `-a` используйте `--no-admin`.
 
