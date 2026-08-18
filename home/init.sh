@@ -10,4 +10,7 @@ HOMEPAGE_HOST=home.$DOMAIN
 DOMAIN=$DOMAIN
 EOF
 
+render_template "$repo_root/home/config/settings.yaml.tpl" \
+  "$repo_root/home/config/settings.yaml" '\$DEFAULT_LOCALE'
+
 compose_config "$repo_root/home"
