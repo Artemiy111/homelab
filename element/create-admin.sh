@@ -19,4 +19,4 @@ exec docker exec -it element-synapse register_new_matrix_user \
   -c /data/homeserver.yaml \
   -u "$username" \
   -a \
-  http://localhost:8008
+  http://localhost:8080
