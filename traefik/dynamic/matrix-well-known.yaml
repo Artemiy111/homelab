@@ -1,0 +1,13 @@
+http:
+  routers:
+    matrix-client-well-known:
+      rule: Host(`example.net`) && Path(`/.well-known/matrix/client`)
+      entryPoints:
+        - websecure
+      service: matrix-client-well-known
+
+  services:
+    matrix-client-well-known:
+      loadBalancer:
+        servers:
+          - url: http://synapse:8080
