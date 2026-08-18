@@ -82,6 +82,9 @@ services:
       - traefik.http.routers.synapse.rule=Host(`${SYNAPSE_HOST}`) && PathPrefix(`/_matrix`)
       - traefik.http.routers.synapse.entrypoints=websecure
       - traefik.http.services.synapse.loadbalancer.server.port=8080
+      - traefik.http.routers.synapse-well-known.rule=Host(`${SYNAPSE_SERVER_NAME}`) && Path(`/.well-known/matrix/client`)
+      - traefik.http.routers.synapse-well-known.entrypoints=websecure
+      - traefik.http.routers.synapse-well-known.service=synapse
     init: true
     security_opt:
       - no-new-privileges:true

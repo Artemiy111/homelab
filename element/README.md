@@ -18,6 +18,10 @@ Traefik маршрутизирует HTTP(S): корень домена ведё
 `/_matrix` — в Synapse, `/livekit/sfu` — в LiveKit, `/livekit/jwt` — в
 MatrixRTC authorization service.
 
+Для домена Matrix ID (`example.net`) Synapse также публикует
+`/.well-known/matrix/client`. В нём объявлен LiveKit MatrixRTC focus — именно
+так Element обнаруживает сервер звонков.
+
 ## Сеть
 
 Talk и Element работают одновременно и не конкурируют за порты.
