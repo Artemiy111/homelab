@@ -21,6 +21,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-synapse}
       POSTGRES_USER: ${POSTGRES_USER:-synapse}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in element/.env}
+      POSTGRES_INITDB_ARGS: --encoding=UTF8 --locale=C
     networks:
       - backend
     restart: unless-stopped
