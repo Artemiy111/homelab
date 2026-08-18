@@ -77,7 +77,7 @@ sudo firewall-cmd --permanent --add-port=3478/udp
 sudo firewall-cmd --reload
 ```
 
-Сигнальный порт `8081` наружу не публикуется — только через Traefik на 443.
+Сигнальный порт `8081` наружу не публикуется — только через Traefик на 443.
 
 ## Проверка
 
@@ -96,7 +96,7 @@ docker compose logs --since=5m
 
 ## Сетевая модель
 
-- TCP `443` завершается на Traefik и ведёт на `8081` с префиксом
+- TCP `443` завершается на Traefик и ведёт на `8081` с префиксом
   `/standalone-signaling`.
 - UDP/TCP `3478` привязан к `192.0.2.10` и передаётся eturnal (TURN+STUN).
 - TURN relay: `/start.sh` генерирует `relay_ipv4_addr` из `hostname -i` — это
@@ -108,6 +108,12 @@ docker compose logs --since=5m
   соединениями) и в `whitelist_peers` добавляется `TALK_RELAY_NETWORK`
   (`192.0.2.10/24`). Тот же диапазон портов публикуется в compose (udp+tcp) —
   без этого клиенты не смогут достучаться до relay-адреса.
+- Janus TURN: после генерации конфига `/start.sh` патчим `janus.jcfg`,
+  заменяя `turn_server` на `127.0.0.1`, чтобы Janus обращался к eturnal
+  напрямую (localhost), а не через внешний домен. Это устраняет «hairpin NAT»
+  (трафик идёт из контейнера наружу и обратно), что снижает задержку и
+  предотвращает потерю пакетов (симптомы: `No packet received on substream`,
+  fallback на низкое качество).
 - Janus принимает медиа изнутри (через тот же eturnal); для внешних участников
   необходим проброс `3478/udp` и relay-диапазона на роутере.
 
@@ -115,6 +121,17 @@ SELinux и firewalld не отключать.
 
 При изменении `TALK_RELAY_MIN/MAX_PORT` синхронно менять публикуемый диапазон
 в `compose.yaml` (`ports`).
+
+## Качество видео
+
+Максимальный битрейт медиапотока настраивается переменными `TALK_MAX_STREAM_BITRATE`
+(видео) и `TALK_MAX_SCREEN_BITRATE` (шаринг экрана). Текущие значения:
+- Видео: 15 Мбит/с — достаточно для 1440p@30fps с запасом.
+- Экран: 25 Мбит/с — для高质量 шаринга.
+
+Оба значения задаются в `.env` и применяются как в signaling server
+(`maxstreambitrate` / `maxscreenbitrate` в `signaling.conf`), так и в Janus MCU.
+Изменять синхронно в `init.sh`, `.env.example` и серверном `.env`.
 
 ## Обновление
 
