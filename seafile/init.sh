@@ -28,6 +28,14 @@ SEAFILE_MYSQL_DB_PASSWORD=$(random_secret)
 SEAFILE_MYSQL_DB_CCNET_DB_NAME=ccnet_db
 SEAFILE_MYSQL_DB_SEAFILE_DB_NAME=seafile_db
 SEAFILE_MYSQL_DB_SEAHUB_DB_NAME=seahub_db
+JWT_PRIVATE_KEY=$(openssl rand -hex 32)
 EOF
+
+seafile_env="$repo_root/seafile/.env"
+if ! grep -q '^JWT_PRIVATE_KEY=' "$seafile_env"; then
+  printf 'JWT_PRIVATE_KEY=%s\n' "$(openssl rand -hex 32)" >>"$seafile_env"
+  chmod 600 "$seafile_env"
+  echo "Добавлен JWT_PRIVATE_KEY в $seafile_env"
+fi
 
 compose_config "$repo_root/seafile"
