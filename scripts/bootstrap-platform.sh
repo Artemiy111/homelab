@@ -16,7 +16,7 @@ docker network inspect traefiknet >/dev/null 2>&1 || docker network create traef
 
 services=(
   traefik
-  pihole
+  technitium
   uptime-kuma
   3x-ui
   nextcloud

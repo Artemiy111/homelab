@@ -2,10 +2,10 @@
   "version": 1,
   "monitors": [
     {
-      "name": "Pi-hole HTTP",
-      "description": "Пользовательский HTTPS-маршрут Pi-hole: локальный DNS, TLS, Traefik и веб-приложение.",
+      "name": "Technitium HTTP",
+      "description": "Пользовательский HTTPS-маршрут Technitium DNS: локальный DNS, TLS, Traefik и веб-панель.",
       "type": "http",
-      "url": "https://pihole.{{DOMAIN}}/admin/",
+      "url": "https://dns.{{DOMAIN}}/",
       "interval": 60,
       "maxretries": 2
     },
@@ -220,8 +220,8 @@
       "maxretries": 2
     },
     {
-      "name": "Pi-hole DNS",
-      "description": "Разрешение пользовательского домена через локальный DNS-сервер Pi-hole.",
+      "name": "Technitium DNS",
+      "description": "Разрешение пользовательского домена через локальный DNS-сервер Technitium.",
       "type": "dns",
       "hostname": "uptime.{{DOMAIN}}",
       "dns_resolve_server": "{{SERVER_IP}}",

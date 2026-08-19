@@ -14,7 +14,7 @@ workspace {
             tags "external"
         }
 
-        cloudflare = softwareSystem "Cloudflare DNS" "Публичные резолверы 1.1.1.1 / 1.0.0.1 — апстримы Pi-hole" {
+        cloudflare = softwareSystem "Cloudflare DNS" "Публичные резолверы 1.1.1.1 / 1.0.0.1 — апстримы Technitium DNS" {
             tags "external"
         }
 
@@ -52,7 +52,7 @@ workspace {
                 tags "infra"
             }
 
-            pihole = softwareSystem "Pi-hole" "Локальный DNS и блокировка рекламы; слушает :53, резолвит зону <dns-provider> в 192.0.2.10" {
+            technitium = softwareSystem "Technitium DNS" "Полноценный DNS-сервер; слушает :53 (DNS) и :5300 (веб-панель), рекурсия + блокировка" {
                 tags "infra"
             }
 
@@ -202,7 +202,7 @@ workspace {
         traefik -> homepage "маршрутизирует Host(home.*)" "HTTPS" {
             tags "http"
         }
-        traefik -> pihole "маршрутизирует Host(pihole.*)" "HTTPS" {
+        traefik -> technitium "маршрутизирует Host(dns.*)" "HTTPS" {
             tags "http"
         }
         traefik -> uptime "маршрутизирует Host(kuma.*)" "HTTPS" {
@@ -277,8 +277,8 @@ workspace {
 
         traefik -> letsencrypt "получает сертификаты (ACME DNS-01)" "ACME DNS-01"
         letsencrypt -> dns_provider "публикует TXT-записи _acme-challenge через TSIG" "DNS (TSIG)"
-        pihole -> cloudflare "рекурсивные DNS-запросы" "DNS"
-        tailscale -> pihole "DNS для зоны <dns-provider> через tailnet" "DNS"
+        technitium -> cloudflare "рекурсивные DNS-запросы" "DNS"
+        tailscale -> technitium "DNS для зоны example.com через tailnet" "DNS"
         tailscale -> tailscaleSaaS "координация tailnet (WireGuard)" "WireGuard"
 
         dockerEngine -> traefik "docker.sock (ro) — discovery сервисов" "docker.sock (ro)"

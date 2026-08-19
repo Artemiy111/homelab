@@ -36,7 +36,7 @@ APPS_STORAGE_PATH="${APPS_STORAGE_PATH:-/storage/apps}"
 export APPS_STORAGE_PATH
 
 # LAN IP-адрес сервера, к которому привязываются опубликованные порты (Traefik,
-# Pi-hole, Gitea, 3x-ui, Jitsi) и на который указывают DNS/health-проверки.
+# Technitium DNS, Gitea, 3x-ui, Jitsi) и на который указывают DNS/health-проверки.
 # Приоритет: переменная окружения SERVER_IP → корневой .env → автоопределение.
 detect_server_ip() {
   local ip
