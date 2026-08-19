@@ -19,7 +19,7 @@ docker compose up -d
 
 Gatus подключён к `traefiknet`, поэтому может проверять как пользовательские
 HTTPS-маршруты, так и отдельно выбранные Docker backend. HTTPS-проверки явно
-используют Technitium DNS `192.0.2.10` как DNS resolver и тем самым охватывают DNS,
+используют Pi-hole `192.0.2.10` как DNS resolver и тем самым охватывают DNS,
 TLS, Traefik и приложение одной проверкой.
 
 ## Уведомления через ntfy

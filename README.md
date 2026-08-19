@@ -10,7 +10,7 @@
 | --- | --- | --- |
 | Traefik | Обратный прокси и обнаружение сервисов | `https://traefik.example.com/dashboard/` |
 | Homepage | Стартовая страница сервисов homelab | `https://home.example.com/` |
-| Technitium DNS | Локальный DNS-сервер и блокировка рекламы | `https://dns.example.com/` |
+| Pi-hole | Локальный DNS и блокировка рекламы | `https://pihole.example.com/admin/` |
 | Uptime Kuma | Мониторинг доступности | `https://uptime.example.com/` |
 | Beszel | Метрики хоста и Docker-контейнеров | `https://beszel.example.com/` |
 | Arcane | Управление Docker (контейнеры, образы, сети, тома) | `https://arcane.example.com/` |
@@ -21,7 +21,7 @@
 | Jellyfin | Домашний медиасервер | `https://jellyfin.example.com/` |
 | Jitsi Meet | Приватные видеоконференции | `https://meet.example.com/` |
 | Nextcloud | Файлы, синхронизация, календарь и контакты | `https://nextcloud.example.com/` |
-| Seafile | Файловая синхронизация и обмен файлами | `https://seafile.example.com/` |
+| Seafile | Файловая синхронизация, обмен файлами и редактирование DOCX/XLSX | `https://seafile.example.com/` |
 | Forgejo | Приватный Git-сервис | `https://forgejo.example.com/` |
 | code-server | VS Code в браузере | `https://code.example.com/` |
 | Pocket ID | Passkey-аутентификация и OpenID Connect | `https://pocket-id.example.com/` |
@@ -33,8 +33,8 @@
 | Tailscale | Удалённый доступ и маршрут в домашнюю сеть | Tailnet |
 
 Сервисы работают только в локальной сети и используют HTTPS. Не следует
-пробрасывать на роутере порты 53, 80 и 443. Для локальных клиентов Technitium
-DNS разрешает зону <dns-provider> и все её поддомены в `192.0.2.10`. Публичный DNS,
+пробрасывать на роутере порты 53, 80 и 443. Для локальных клиентов Pi-hole
+разрешает зону <dns-provider> и все её поддомены в `192.0.2.10`. Публичный DNS,
 динамическое обновление адреса и публикация сервисов не требуются: удалённый
 доступ проходит через Tailscale.
 
@@ -57,14 +57,14 @@ cp .env.example .env
 Homepage, Gatus и Uptime Kuma подставляют домен через переменные окружения
 (`{{HOMEPAGE_VAR_DOMAIN}}`, `${DOMAIN}`, `{{DOMAIN}}` соответственно).
 Статические конфиги, не умеющие читать переменные окружения (Traefik static,
-structurizr.properties), генерируются `init.sh` из `.tpl`-шаблонов
+dnsmasq, structurizr.properties), генерируются `init.sh` из `.tpl`-шаблонов
 через `envsubst` (плейсхолдеры `${DOMAIN}` / `${SERVER_IP}`).
 После смены домена заново выполните `bash scripts/bootstrap-platform.sh`.
 
 ## IP-адрес сервера
 
 LAN-адрес `192.0.2.10`, к которому привязываются опубликованные порты
-(Traefik, Technitium DNS, Gitea, 3x-ui, Jitsi) и на который указывают DNS- и
+(Traefik, Pi-hole, Gitea, 3x-ui, Jitsi) и на который указывают DNS- и
 health-проверки (Gatus, Uptime Kuma), задаётся переменной `SERVER_IP`.
 По умолчанию `scripts/lib/common.sh` определяет его автоматически как
 адрес-источник маршрута по умолчанию (`ip route get 1.1.1.1`). Если нужно
@@ -85,7 +85,7 @@ health-проверки (Gatus, Uptime Kuma), задаётся переменн�
 4. В каталоге каждого сервиса скопировать `.env.example` в `.env` и заменить
    значения-заглушки. Общий домен задаётся один раз — см. раздел
    «Общий домен сервисов».
-5. Запустить `traefik`, затем `home`, `technitium`, `uptime-kuma`, `beszel`, `arcane`, `3x-ui`,
+5. Запустить `traefik`, затем `home`, `pihole`, `uptime-kuma`, `beszel`, `arcane`, `3x-ui`,
    `nextcloud`, `seafile`, `jellyfin`, `forgejo`, `code-server`, `pocket-id`, `authentik`,
    `dawarich`, `pdf` и `image-updates`.
 6. Настроить DHCP-сервер роутера так, чтобы он выдавал `192.0.2.10` как DNS.

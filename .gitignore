@@ -3,7 +3,7 @@
 
 # Генерируются init.sh из *.tpl-шаблонов (домен подставляется из DOMAIN).
 traefik/traefik.yaml
-
+pihole/etc-dnsmasq.d/05-homelab.conf
 structurizr/structurizr.properties
 image-updates/cup.json
 home/config/settings.yaml

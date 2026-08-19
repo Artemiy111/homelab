@@ -30,9 +30,9 @@ ui:
   default-sort-by: group
 
 endpoints:
-  - name: Technitium HTTP
+  - name: Pi-hole HTTP
     group: Infrastructure
-    url: https://dns.${DOMAIN}/
+    url: https://pihole.${DOMAIN}/admin/
     interval: 60s
     client: &https-client
       timeout: 10s
@@ -54,7 +54,7 @@ endpoints:
       - "[CERTIFICATE_EXPIRATION] > 168h"
     alerts: *alerts-all
 
-  - name: Technitium DNS
+  - name: Pi-hole DNS
     group: Infrastructure
     url: ${SERVER_IP}
     interval: 60s
