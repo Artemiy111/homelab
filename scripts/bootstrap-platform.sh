@@ -20,6 +20,7 @@ services=(
   uptime-kuma
   3x-ui
   nextcloud
+  seafile
   jellyfin
   jitsi
   talk-hpb
