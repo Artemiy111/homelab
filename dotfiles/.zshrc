@@ -28,6 +28,16 @@ setopt EXTENDED_GLOB
 autoload -Uz compinit
 compinit
 zstyle ':completion:*' menu select
+zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
+
+# Fish-like autosuggestions (нужен плагин zsh-autosuggestions)
+# git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
+if [[ -f "$HOME/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh" ]]; then
+  source "$HOME/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh"
+  ZSH_AUTOSUGGEST_STRATEGY=(history completion)
+  ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=#666"
+  bindkey '^ ' autosuggest-accept   # Ctrl+Space — принять подсказку
+fi
 
 # --- Git-ветка в подсказке ---
 autoload -Uz vcs_info
