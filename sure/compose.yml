@@ -1,54 +1,30 @@
-# ===========================================================================
-# Example Docker Compose file
-# ===========================================================================
-#
-# Purpose:
-# --------
-#
-# This file is an example Docker Compose configuration for self hosting
-# Sure on your local machine or on a cloud VPS.
-#
-# The configuration below is a "standard" setup that works out of the box,
-# but if you're running this outside of a local network, it is recommended
-# to set the environment variables for extra security.
-#
-# Setup:
-# ------
-#
-# To run this, you should read the setup guide:
-#
-# https://github.com/we-promise/sure/blob/main/docs/hosting/docker.md
-#
-# Troubleshooting:
-# ----------------
-#
-# If you run into problems, you should open a Discussion here:
-#
-# https://github.com/we-promise/sure/discussions/categories/general
-#
-
 name: sure
 
 x-db-env: &db_env
-  POSTGRES_USER: ${POSTGRES_USER:-sure_user}
-  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sure_password}
+  POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER in sure/.env}
+  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in sure/.env}
   POSTGRES_DB: ${POSTGRES_DB:-sure_production}
 
 x-rails-env: &rails_env
   <<: *db_env
-  SECRET_KEY_BASE: ${SECRET_KEY_BASE:-a7523c3d0ae56415046ad8abae168d71074a79534a7062258f8d1d51ac2f76d3c3bc86d86b6b0b307df30d9a6a90a2066a3fa9e67c5e6f374dbd7dd4e0778e13}
+  SECRET_KEY_BASE: ${SECRET_KEY_BASE:?set SECRET_KEY_BASE in sure/.env}
   SELF_HOSTED: "true"
   RAILS_FORCE_SSL: "false"
-  RAILS_ASSUME_SSL: "false"
+  RAILS_ASSUME_SSL: "true"
   DB_HOST: db
   DB_PORT: 5432
   REDIS_URL: redis://redis:6379/1
-  # NOTE: enabling OpenAI will incur costs when you use AI-related features in the app (chat, rules).  Make sure you have set appropriate spend limits on your account before adding this.
-  OPENAI_ACCESS_TOKEN: ${OPENAI_ACCESS_TOKEN}
+  OPENAI_ACCESS_TOKEN: ${OPENAI_ACCESS_TOKEN:-}
+  OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o}
+  OPENAI_URI_BASE: ${OPENAI_URI_BASE:-https://localai.example.com/v1}
+  LLM_CONTEXT_WINDOW: ${LLM_CONTEXT_WINDOW:-8192}
+  OPENAI_REQUEST_TIMEOUT: ${OPENAI_REQUEST_TIMEOUT:-300}
+  ASSISTANT_MAX_TOOL_CALL_ITERATIONS: ${ASSISTANT_MAX_TOOL_CALL_ITERATIONS:-2}
+  AI_RESPONSE_TIMEOUT: ${AI_RESPONSE_TIMEOUT:-1200}
 
 services:
   web:
-    image: ghcr.io/we-promise/sure:stable
+    image: ghcr.io/we-promise/sure:0.7.3
     container_name: sure-web
 
     depends_on:
@@ -63,14 +39,24 @@ services:
     environment:
       <<: *rails_env
 
-    ports:
-      - ${PORT:-40060}:3000
     networks:
-      - sure_net
+      - backend
+      - traefiknet
     restart: unless-stopped
+    init: true
+    security_opt:
+      - no-new-privileges:true
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefiknet
+      - traefik.http.services.sure.loadbalancer.server.port=3000
+      - traefik.http.routers.sure.rule=Host(`${SURE_HOST}`)
+      - traefik.http.routers.sure.entrypoints=websecure
+      - traefik.http.routers.sure.service=sure
+      - traefik.http.routers.sure.tls.certresolver=letsencrypt
 
   worker:
-    image: ghcr.io/we-promise/sure:stable
+    image: ghcr.io/we-promise/sure:0.7.3
     container_name: sure-worker
 
     depends_on:
@@ -86,29 +72,36 @@ services:
       <<: *rails_env
 
     networks:
-      - sure_net
+      - backend
     command: bundle exec sidekiq
     restart: unless-stopped
+    init: true
+    security_opt:
+      - no-new-privileges:true
 
   db:
     image: postgres:16
     container_name: sure-db
 
     volumes:
-      - ${APPS_STORAGE_PATH:-/storage/apps}/sure/data/postgresql:/var/lib/postgresql/data
+      - ${APPS_STORAGE_PATH:-/storage/apps}/sure/data/postgresql:/var/lib/postgresql/data:Z
 
     environment:
       <<: *db_env
 
     networks:
-      - sure_net
+      - backend
     restart: unless-stopped
+    init: true
+    security_opt:
+      - no-new-privileges:true
 
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB" ]
-      interval: 5s
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 20s
 
   backup:
     image: prodrigestivill/postgres-backup-local
@@ -118,42 +111,50 @@ services:
       - db
 
     volumes:
-      - ${APPS_STORAGE_PATH:-/storage/apps}/sure/data/backups:/backups # Change this path to your desired backup location on the host machine
+      - ${APPS_STORAGE_PATH:-/storage/apps}/sure/data/backups:/backups
 
     environment:
       - POSTGRES_HOST=db
       - POSTGRES_DB=${POSTGRES_DB:-sure_production}
-      - POSTGRES_USER=${POSTGRES_USER:-sure_user}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-sure_password}
-      - SCHEDULE=@daily # Runs once a day at midnight
-      - BACKUP_KEEP_DAYS=7 # Keeps the last 7 days of backups
-      - BACKUP_KEEP_WEEKS=4 # Keeps 4 weekly backups
-      - BACKUP_KEEP_MONTHS=6 # Keeps 6 monthly backups
+      - POSTGRES_USER=${POSTGRES_USER:?set POSTGRES_USER in sure/.env}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in sure/.env}
+      - SCHEDULE=@daily
+      - BACKUP_KEEP_DAYS=7
+      - BACKUP_KEEP_WEEKS=4
+      - BACKUP_KEEP_MONTHS=6
 
     networks:
-      - sure_net
+      - backend
     restart: unless-stopped
+    init: true
+    security_opt:
+      - no-new-privileges:true
 
     profiles:
       - backup
 
   redis:
-    image: redis:latest
+    image: redis:8-alpine
     container_name: sure-redis
 
     volumes:
-      - ${APPS_STORAGE_PATH:-/storage/apps}/sure/data/redis:/data
+      - ${APPS_STORAGE_PATH:-/storage/apps}/sure/data/redis:/data:Z
 
     networks:
-      - sure_net
+      - backend
     restart: unless-stopped
+    init: true
+    security_opt:
+      - no-new-privileges:true
 
     healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
-      interval: 5s
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
 
 networks:
-  sure_net:
-    driver: bridge
+  backend:
+    internal: true
+  traefiknet:
+    external: true
