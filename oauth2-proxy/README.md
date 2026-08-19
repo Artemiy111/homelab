@@ -18,14 +18,14 @@ Forward auth перед приложениями без своей автори�
 - Роутер защищаемого сервиса добавляет этот middleware; сейчас подключён к
   Structurizr (`structurizr/compose.yaml`) и к WUD/Cup
   (`image-updates/compose.yaml`).
-- Публичный host `oauth.example.net` нужен для OIDC callback; cookie
-  общий (`cookie-domain=.example.net`), поэтому повторный вход в другие
+- Публичный host `oauth.example.com` нужен для OIDC callback; cookie
+  общий (`cookie-domain=.example.com`), поэтому повторный вход в другие
   сервисы не требуется.
 
 ## Настройка
 
 1. В ZITADEL создать OIDC-приложение с redirect URI
-   `https://oauth.example.net/oauth2/callback`.
+   `https://oauth.example.com/oauth2/callback`.
 2. `scripts/bootstrap-platform.sh` создаёт `oauth2-proxy/.env` со случайным
    `OAUTH2_PROXY_COOKIE_SECRET`; осталось вписать client_id и client_secret
    из шага 1.

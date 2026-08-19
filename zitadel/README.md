@@ -2,7 +2,7 @@
 
 Zitadel — основной IdP homelab (Authentik оставлен для сравнения). Один Go-бинар (API + консоль),
 PostgreSQL и отдельный контейнер Login V2 (Next.js). Доступен через Traefik по
-`https://id.example.net/`; консоль — `/ui/console`, вход — `/ui/v2/login`.
+`https://id.example.com/`; консоль — `/ui/console`, вход — `/ui/v2/login`.
 Порты контейнеров на хосте не публикуются.
 
 ## Состав
@@ -33,7 +33,7 @@ docker compose up -d
 docker compose ps
 ```
 
-Админ логинится как `admin@zitadel.id.example.net` (org по умолчанию —
+Админ логинится как `admin@zitadel.id.example.com` (org по умолчанию —
 `zitadel`). Первый вход заставит сменить пароль. Если старт падает с ошибкой
 password complexity — пароль не прошёл политику; миграция применяется частично,
 поэтому `docker compose down -v`, поправить пароль и поднять заново.
@@ -61,7 +61,7 @@ ZITADEL_PAT=... ./scripts/zitadel-passkey-link.sh
 Для forward auth (см. `oauth2-proxy/`) создать в консоли ZITADEL приложение:
 
 - Type: Web;
-- Redirect URI: `https://oauth.example.net/oauth2/callback`;
+- Redirect URI: `https://oauth.example.com/oauth2/callback`;
 - client_id и client_secret скопировать в `oauth2-proxy/.env`.
 
 ## Резервное копирование

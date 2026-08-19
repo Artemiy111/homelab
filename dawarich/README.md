@@ -1,7 +1,7 @@
 # Dawarich
 
 Dawarich хранит и визуализирует историю местоположений. Веб-интерфейс доступен
-через Traefik по адресу `https://dawarich.example.net/`; порты
+через Traefik по адресу `https://dawarich.example.com/`; порты
 приложения, PostgreSQL и Redis на хост не публикуются. Локальный wildcard DNS уже
 направляет этот адрес на Traefik.
 
@@ -34,8 +34,8 @@ email и пароль в настройках аккаунта.
 docker compose ps
 docker compose exec app wget --header='X-Forwarded-Proto: https' -qO- \
   http://127.0.0.1:3000/api/v1/health
-curl --resolve dawarich.example.net:443:192.0.2.10 \
-  -fsS https://dawarich.example.net/api/v1/health
+curl --resolve dawarich.example.com:443:192.0.2.10 \
+  -fsS https://dawarich.example.com/api/v1/health
 ```
 
 Health endpoint должен вернуть JSON со `"status":"ok"`.

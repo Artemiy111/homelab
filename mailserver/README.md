@@ -7,8 +7,8 @@
 - SMTP: `25` (приём), `587` (submission)
 - IMAP: `993`
 - JMAP / API Stalwart: порт `8080`, за Traefik на
-  `https://mailserver.example.net/`
-- Веб-почта Bulwark: `https://mail.example.net/`
+  `https://mailserver.example.com/`
+- Веб-почта Bulwark: `https://mail.example.com/`
 
 ## Запуск
 

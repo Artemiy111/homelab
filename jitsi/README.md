@@ -1,7 +1,7 @@
 # Jitsi Meet
 
 Приватный сервер видеоконференций доступен по адресу
-`https://meet.example.net/`. Веб-интерфейс проходит через Traefik,
+`https://meet.example.com/`. Веб-интерфейс проходит через Traefik,
 а Jitsi Videobridge принимает медиатрафик на `192.0.2.10:10000/udp`.
 
 Сервис рассчитан на клиентов домашней сети и tailnet. Публичный DNS и порты на
@@ -76,10 +76,10 @@ docker compose exec prosody prosodyctl --config /run/prosody/config/prosody.cfg.
 ## Проверка
 
 ```sh
-dig +short @192.0.2.10 meet.example.net A
-curl --resolve meet.example.net:443:192.0.2.10 \
+dig +short @192.0.2.10 meet.example.com A
+curl --resolve meet.example.com:443:192.0.2.10 \
   -o /dev/null -sS -w '%{http_code}\n' \
-  https://meet.example.net/
+  https://meet.example.com/
 docker compose ps
 docker compose logs --since=5m
 ```

@@ -21,7 +21,7 @@ if [[ -f "$repo_root/.env" ]]; then
   # shellcheck disable=SC1090
   source "$repo_root/.env"
 fi
-DOMAIN="${DOMAIN:-example.net}"
+DOMAIN="${DOMAIN:-example.com}"
 export DOMAIN
 
 # Язык по умолчанию для приложений — единый источник правды для локалей.

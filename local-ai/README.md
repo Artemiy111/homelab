@@ -1,7 +1,7 @@
 # LocalAI
 
 LocalAI provides an OpenAI-compatible API at
-`https://localai.example.net`. Traefik is the only ingress: the
+`https://localai.example.com`. Traefik is the only ingress: the
 container does not publish a host port. Every request must include the API key
 from `local-ai/.env`, for example as `Authorization: Bearer <key>`.
 
@@ -42,11 +42,11 @@ new privileges, cannot use swap, and has bounded memory, CPU, PIDs, and logs.
 ```sh
 docker compose ps
 docker compose exec api curl --fail http://127.0.0.1:8080/readyz
-curl --resolve localai.example.net:443:192.0.2.10 \
-  https://localai.example.net/readyz
-curl --resolve localai.example.net:443:192.0.2.10 \
+curl --resolve localai.example.com:443:192.0.2.10 \
+  https://localai.example.com/readyz
+curl --resolve localai.example.com:443:192.0.2.10 \
   -H "Authorization: Bearer $LOCALAI_API_KEY" \
-  https://localai.example.net/v1/models
+  https://localai.example.com/v1/models
 ```
 
 The first readiness transition can take longer while LocalAI scans models or

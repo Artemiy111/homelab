@@ -12,7 +12,7 @@ bash init.sh
 docker compose up -d
 ```
 
-pgweb откроется по адресу `https://postgres.example.net/` и сразу
+pgweb откроется по адресу `https://postgres.example.com/` и сразу
 подключится к базе `playground`. Логин и пароль HTTP Basic Auth находятся в
 локальном файле `.env` (`PGWEB_AUTH_USER` и `PGWEB_AUTH_PASS`).
 

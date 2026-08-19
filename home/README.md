@@ -1,7 +1,7 @@
 # Homepage
 
 Homepage — локальная стартовая страница для сервисов homelab. Она доступна по
-адресу `https://home.example.net/` через Traefik.
+адресу `https://home.example.com/` через Traefik.
 
 Контейнер намеренно не подключён к Docker socket: на странице используются
 только декларативные ссылки из `config/services.yaml`, поэтому Homepage не

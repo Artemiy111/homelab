@@ -9,7 +9,7 @@
 слабым клиентом-участником, а для больших звонков хватает одного восходящего
 потока на участника.
 
-Адрес: `https://talk-signaling.example.net/standalone-signaling`
+Адрес: `https://talk-signaling.example.com/standalone-signaling`
 (SFTP-адрес для настроек Talk). TURN/STUN слушает `192.0.2.10:3478`.
 
 ## Топология
@@ -17,7 +17,7 @@
 - Signaling (HTTP/WS) проходит через Traefik: `Host(talk-signaling.*) +
   PathPrefix(/standalone-signaling)` → контейнер `8081`. Публикуется порт `3478`
   (tcp+udp) для TURN/STUN.
-- Пиhole-запись `address=/example.net/192.0.2.10` уже покрывает
+- Пиhole-запись `address=/example.com/192.0.2.10` уже покрывает
   поддомен `talk-signaling`, wildcard-сертификат Traefik тоже существует — новых
   DNS/TLS-записей не требуется.
 - Внутри контейнера relay-адреса eturnal привязаны к адресу контейнера, поэтому
@@ -49,13 +49,13 @@ TALK_SECRET=$(grep -E '^SIGNALING_SECRET=' /home/artlab/projects/homelab/talk-hp
 TURN_SECRET=$(grep -E '^TURN_SECRET=' /home/artlab/projects/homelab/talk-hpb/.env | cut -d= -f2-)
 
 docker exec -u www-data nextcloud-app php occ talk:signaling:add \
-  https://talk-signaling.example.net/standalone-signaling "$TALK_SECRET" --verify
+  https://talk-signaling.example.com/standalone-signaling "$TALK_SECRET" --verify
 
 docker exec -u www-data nextcloud-app php occ talk:stun:add \
-  talk-signaling.example.net:3478
+  talk-signaling.example.com:3478
 
 docker exec -u www-data nextcloud-app php occ talk:turn:add \
-  turn,turns talk-signaling.example.net udp,tcp --secret="$TURN_SECRET"
+  turn,turns talk-signaling.example.com udp,tcp --secret="$TURN_SECRET"
 ```
 
 Проверить, что серверы зарегистрированы:
@@ -82,10 +82,10 @@ sudo firewall-cmd --reload
 ## Проверка
 
 ```sh
-dig +short @192.0.2.10 talk-signaling.example.net A
-curl --resolve talk-signaling.example.net:443:192.0.2.10 \
+dig +short @192.0.2.10 talk-signaling.example.com A
+curl --resolve talk-signaling.example.com:443:192.0.2.10 \
   -o /dev/null -sS -w '%{http_code}\n' \
-  https://talk-signaling.example.net/standalone-signaling/api/v1/welcome
+  https://talk-signaling.example.com/standalone-signaling/api/v1/welcome
 docker compose ps
 docker compose logs --since=5m
 ```

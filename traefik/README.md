@@ -28,7 +28,7 @@ cp .env.example .env
 `traefik.yaml`.
 
 Для получения сертификата Let's Encrypt создать в <dns-provider> TSIG-ключ зоны
-`example.net` и заполнить в `.env`:
+`example.com` и заполнить в `.env`:
 
 ```dotenv
 RFC2136_NAMESERVER=ns1.<dns-provider>.com:53
@@ -55,7 +55,7 @@ docker compose up -d
 ```
 
 После переключения клиентов на Pi-hole панель будет доступна по адресу
-`https://traefik.example.net/dashboard/`. Завершающий слеш обязателен.
+`https://traefik.example.com/dashboard/`. Завершающий слеш обязателен.
 
 Сокет Docker подключён только для чтения. При этом он всё равно раскрывает
 чувствительные метаданные Docker API; позднее его можно заменить ограничивающим

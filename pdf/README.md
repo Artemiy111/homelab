@@ -1,7 +1,7 @@
 # Stirling PDF
 
 Stirling PDF — веб-сервис для операций с PDF. Он доступен через Traefik по
-адресу `https://pdf.example.net/`; порты контейнера на хост не
+адресу `https://pdf.example.com/`; порты контейнера на хост не
 публикуются.
 
 Постоянные данные находятся в `$APPS_STORAGE_PATH/pdf`. Каталог `/configs` содержит
@@ -24,7 +24,7 @@ docker compose up -d
 
 ```sh
 docker compose ps
-curl -fsS https://pdf.example.net/api/v1/info/status
+curl -fsS https://pdf.example.com/api/v1/info/status
 ```
 
 Образ содержит стандартные OCR-языки. Дополнительные `.traineddata` можно

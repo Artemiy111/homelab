@@ -2,7 +2,7 @@
 
 Home Assistant Container работает в сети хоста и использует адрес сервера
 `192.0.2.10`. Интерфейс доступен через Traefik по адресу
-`https://homeassistant.example.net`; отдельный адрес
+`https://homeassistant.example.com`; отдельный адрес
 `192.0.2.10` не назначается. Traefik разрешает доступ к этому маршруту только
 из локальной сети `192.0.2.10/24`, чтобы незавершённый onboarding не был виден
 из интернета.
@@ -64,9 +64,9 @@ privileged mode.
 docker compose ps
 docker compose exec home-assistant \
   python -m homeassistant --script check_config --config /config
-curl --resolve homeassistant.example.net:443:192.0.2.10 \
+curl --resolve homeassistant.example.com:443:192.0.2.10 \
   -o /dev/null -sS -w '%{http_code}\n' \
-  https://homeassistant.example.net/
+  https://homeassistant.example.com/
 docker logs --since=5m home-assistant 2>&1
 ```
 

@@ -2,7 +2,7 @@
 
 Pocket ID предоставляет локальный OpenID Connect provider с аутентификацией по
 passkey. Интерфейс и OIDC endpoints доступны через Traefik по адресу
-`https://pocket-id.example.net/`; порт контейнера на хосте не публикуется.
+`https://pocket-id.example.com/`; порт контейнера на хосте не публикуется.
 
 Сервис использует SQLite и хранит базу, ключи подписи и загруженные файлы в
 `$APPS_STORAGE_PATH/pocket-id/data`. Контейнер запускается без root, с read-only root
@@ -25,7 +25,7 @@ docker compose pull
 docker compose up -d
 docker compose ps
 ```
-Откройте `https://pocket-id.example.net/setup`, создайте администратора и сразу
+Откройте `https://pocket-id.example.com/setup`, создайте администратора и сразу
 зарегистрируйте как минимум две passkey на разных устройствах. Pocket ID не
 поддерживает вход по паролю. Самостоятельная регистрация пользователей по
 умолчанию отключена; дополнительных пользователей создавайте в панели
@@ -39,13 +39,13 @@ docker compose ps
 
 ```sh
 docker compose ps
-curl --resolve pocket-id.example.net:443:192.0.2.10 \
-  -fsS https://pocket-id.example.net/.well-known/openid-configuration
+curl --resolve pocket-id.example.com:443:192.0.2.10 \
+  -fsS https://pocket-id.example.com/.well-known/openid-configuration
 docker logs --since=5m pocket-id 2>&1
 ```
 
 OIDC discovery должен вернуть JSON с issuer
-`https://pocket-id.example.net`. После первоначальной настройки добавьте
+`https://pocket-id.example.com`. После первоначальной настройки добавьте
 декларативный монитор в Uptime Kuma:
 
 ```sh

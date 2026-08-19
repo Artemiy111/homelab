@@ -2,7 +2,7 @@
 
 Authentik — отдельный identity provider, работающий параллельно с Pocket ID.
 Интерфейс доступен только через Traefik по адресу
-`https://auth.example.net/`; порты контейнеров на хосте не публикуются.
+`https://auth.example.com/`; порты контейнеров на хосте не публикуются.
 
 Данные приложения хранятся в `$APPS_STORAGE_PATH/authentik/data`, PostgreSQL — в
 `$APPS_STORAGE_PATH/authentik/postgresql`. Контейнер worker намеренно не получает
@@ -24,7 +24,7 @@ docker compose up -d
 docker compose ps
 ```
 
-Откройте `https://auth.example.net/if/flow/initial-setup/` и задайте
+Откройте `https://auth.example.com/if/flow/initial-setup/` и задайте
 пароль встроенному администратору `akadmin`. Не меняйте
 `AUTHENTIK_SECRET_KEY`: это приведёт к завершению активных сессий.
 
@@ -55,8 +55,8 @@ Authentik поддерживает passwordless-аутентификацию ч�
 
 ```sh
 docker compose ps
-curl --resolve auth.example.net:443:192.0.2.10 \
-  -fsS https://auth.example.net/-/health/ready/
+curl --resolve auth.example.com:443:192.0.2.10 \
+  -fsS https://auth.example.com/-/health/ready/
 docker logs --since=5m authentik-server 2>&1
 docker logs --since=5m authentik-worker 2>&1
 ```

@@ -1,17 +1,17 @@
 http:
   routers:
     matrix-client-well-known:
-      rule: Host(`example.net`) && Path(`/.well-known/matrix/client`)
+      rule: Host(`example.com`) && Path(`/.well-known/matrix/client`)
       entryPoints:
         - websecure
       service: matrix-client-well-known
     matrix-server-well-known:
-      rule: Host(`example.net`) && Path(`/.well-known/matrix/server`)
+      rule: Host(`example.com`) && Path(`/.well-known/matrix/server`)
       entryPoints:
         - websecure
       service: matrix-client-well-known
     matrix-federation:
-      rule: Host(`example.net`) && PathPrefix(`/_matrix/federation`)
+      rule: Host(`example.com`) && PathPrefix(`/_matrix/federation`)
       entryPoints:
         - websecure
       service: matrix-client-well-known

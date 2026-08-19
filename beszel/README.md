@@ -2,7 +2,7 @@
 
 Beszel собирает метрики хоста и Docker-контейнеров, хранит историю и отправляет
 уведомления. Hub доступен через Traefik по адресу
-`https://beszel.example.net/`; порты Hub и Agent на хосте не
+`https://beszel.example.com/`; порты Hub и Agent на хосте не
 публикуются.
 
 Постоянные данные находятся в `$APPS_STORAGE_PATH/beszel`. Локальный Agent использует
@@ -24,7 +24,7 @@ docker compose config --quiet
 docker compose up -d
 ```
 
-Откройте `https://beszel.example.net/` и создайте администратора. Затем:
+Откройте `https://beszel.example.com/` и создайте администратора. Затем:
 
 1. В Settings → Tokens создайте universal token.
 2. Нажмите Add System и скопируйте public key.
@@ -47,7 +47,7 @@ docker compose --profile agent up -d
 
 ```sh
 docker compose --profile agent ps
-curl -fsS https://beszel.example.net/api/health
+curl -fsS https://beszel.example.com/api/health
 ```
 
 Файл `.env` не отслеживается Git. Не добавляйте public key и token в

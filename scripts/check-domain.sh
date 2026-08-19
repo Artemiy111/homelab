@@ -2,7 +2,7 @@
 
 # Проверяет, что базовый домен homelab не захардкожен в рантайм-конфигах.
 #
-# Домен (example.net) может встречаться только в:
+# Домен (example.com) может встречаться только в:
 #   - scripts/lib/common.sh      — единственный источник правды (значение по умолчанию);
 #   - scripts/check-domain.sh    — сам гвард (значение по умолчанию в $domain);
 #   - *.env.example и *.tpl      — шаблоны, из которых init.sh генерирует конфиги;
@@ -17,7 +17,7 @@ set -euo pipefail
 repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$repo_root"
 
-domain="${DOMAIN:-example.net}"
+domain="${DOMAIN:-example.com}"
 
 is_allowed() {
   local path="$1"

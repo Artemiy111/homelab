@@ -1,7 +1,7 @@
 # Mermaid Live Editor
 
 Редактор Mermaid-диаграмм в браузере. Доступен через Traefik по адресу
-`https://mermaid.example.net/`; порт приложения на хосте не публикуется.
+`https://mermaid.example.com/`; порт приложения на хосте не публикуется.
 
 ## Запуск
 

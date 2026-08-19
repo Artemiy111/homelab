@@ -8,26 +8,26 @@
 
 | Сервис | Назначение | Адрес в локальной сети |
 | --- | --- | --- |
-| Traefik | Обратный прокси и обнаружение сервисов | `https://traefik.example.net/dashboard/` |
-| Homepage | Стартовая страница сервисов homelab | `https://home.example.net/` |
-| Pi-hole | Локальный DNS и блокировка рекламы | `https://pihole.example.net/admin/` |
-| Uptime Kuma | Мониторинг доступности | `https://uptime.example.net/` |
-| Beszel | Метрики хоста и Docker-контейнеров | `https://beszel.example.net/` |
-| Arcane | Управление Docker (контейнеры, образы, сети, тома) | `https://arcane.example.net/` |
-| WUD | Отслеживание обновлений Docker images | `https://wud.example.net/` |
-| Cup | Лёгкая независимая проверка обновлений Docker images | `https://cup.example.net/` |
-| 3x-ui | Управление личным Xray-прокси | `https://xui.example.net/<секретный-путь>/` |
-| Immich | Фото- и видеотека | `https://immich.example.net/` |
-| Jellyfin | Домашний медиасервер | `https://jellyfin.example.net/` |
-| Jitsi Meet | Приватные видеоконференции | `https://meet.example.net/` |
-| Nextcloud | Файлы, синхронизация, календарь и контакты | `https://nextcloud.example.net/` |
-| Forgejo | Приватный Git-сервис | `https://forgejo.example.net/` |
-| code-server | VS Code в браузере | `https://code.example.net/` |
-| Pocket ID | Passkey-аутентификация и OpenID Connect | `https://pocket-id.example.net/` |
-| Authentik | Identity provider и SSO | `https://auth.example.net/` |
-| Zitadel | Identity provider и SSO (основной) | `https://id.example.net/` |
-| Dawarich | История местоположений и карта перемещений | `https://dawarich.example.net/` |
-| Stirling PDF | Операции с PDF и OCR | `https://pdf.example.net/` |
+| Traefik | Обратный прокси и обнаружение сервисов | `https://traefik.example.com/dashboard/` |
+| Homepage | Стартовая страница сервисов homelab | `https://home.example.com/` |
+| Pi-hole | Локальный DNS и блокировка рекламы | `https://pihole.example.com/admin/` |
+| Uptime Kuma | Мониторинг доступности | `https://uptime.example.com/` |
+| Beszel | Метрики хоста и Docker-контейнеров | `https://beszel.example.com/` |
+| Arcane | Управление Docker (контейнеры, образы, сети, тома) | `https://arcane.example.com/` |
+| WUD | Отслеживание обновлений Docker images | `https://wud.example.com/` |
+| Cup | Лёгкая независимая проверка обновлений Docker images | `https://cup.example.com/` |
+| 3x-ui | Управление личным Xray-прокси | `https://xui.example.com/<секретный-путь>/` |
+| Immich | Фото- и видеотека | `https://immich.example.com/` |
+| Jellyfin | Домашний медиасервер | `https://jellyfin.example.com/` |
+| Jitsi Meet | Приватные видеоконференции | `https://meet.example.com/` |
+| Nextcloud | Файлы, синхронизация, календарь и контакты | `https://nextcloud.example.com/` |
+| Forgejo | Приватный Git-сервис | `https://forgejo.example.com/` |
+| code-server | VS Code в браузере | `https://code.example.com/` |
+| Pocket ID | Passkey-аутентификация и OpenID Connect | `https://pocket-id.example.com/` |
+| Authentik | Identity provider и SSO | `https://auth.example.com/` |
+| Zitadel | Identity provider и SSO (основной) | `https://id.example.com/` |
+| Dawarich | История местоположений и карта перемещений | `https://dawarich.example.com/` |
+| Stirling PDF | Операции с PDF и OCR | `https://pdf.example.com/` |
 | Restic | Зашифрованные локальные снимки | Только CLI |
 | Tailscale | Удалённый доступ и маршрут в домашнюю сеть | Tailnet |
 
@@ -42,7 +42,7 @@
 
 ## Общий домен сервисов
 
-Базовый домен `example.net` задаётся в одном месте и подставляется во
+Базовый домен `example.com` задаётся в одном месте и подставляется во
 все адреса вида `<sub>.<DOMAIN>`. Источник правды — `scripts/lib/common.sh`
 (значение по умолчанию закоммичено). Чтобы переопределить домен без коммита в
 Git, скопируйте корневой `.env.example` в `.env` и поправьте `DOMAIN`:
@@ -158,7 +158,7 @@ python3 scripts/compose-format.py
 bash scripts/check-domain.sh
 ```
 
-Скрипт падает, если `example.net` встречается вне разрешённых мест:
+Скрипт падает, если `example.com` встречается вне разрешённых мест:
 источник правды (`scripts/lib/common.sh`), шаблоны (`.env.example`, `.tpl`) и
 документация (`.md`, `structurizr/homelab.dsl`).
 

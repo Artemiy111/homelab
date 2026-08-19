@@ -35,11 +35,11 @@ sudo tailscale set --accept-routes
 ## Локальные DNS-имена
 
 Чтобы через Tailscale продолжали работать адреса вида
-`pihole.example.net`, в [DNS-настройках tailnet](https://login.tailscale.com/admin/dns)
+`pihole.example.com`, в [DNS-настройках tailnet](https://login.tailscale.com/admin/dns)
 добавить restricted nameserver:
 
 - nameserver: `192.0.2.10`;
-- domain: `example.net`.
+- domain: `example.com`.
 
 Запросы этой зоны пойдут в домашний Pi-hole, а прочие DNS-запросы останутся у
 обычного резолвера клиента.
@@ -51,7 +51,7 @@ sudo tailscale set --accept-routes
 ```sh
 tailscale ping homelab
 ssh artlab@homelab
-curl -I https://pihole.example.net/admin/
+curl -I https://pihole.example.com/admin/
 ```
 
 Ожидается ответ Tailscale ping, SSH-подключение и HTTP redirect `302` от Pi-hole.

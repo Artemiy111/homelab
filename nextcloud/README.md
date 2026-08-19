@@ -1,7 +1,7 @@
 # Nextcloud
 
 Файловое облако доступно только в локальной сети и через Tailscale по адресу
-`https://nextcloud.example.net/`. Traefik завершает TLS; порты Nextcloud,
+`https://nextcloud.example.com/`. Traefik завершает TLS; порты Nextcloud,
 PostgreSQL и Redis на хост не публикуются.
 
 ## Состав
@@ -47,9 +47,9 @@ sed -n '/^NEXTCLOUD_ADMIN_\(USER\|PASSWORD\)=/p' .env
 docker compose ps
 docker compose exec --user www-data app php occ status
 docker compose exec --user www-data app php occ config:system:get trusted_proxies
-curl --resolve nextcloud.example.net:443:192.0.2.10 \
+curl --resolve nextcloud.example.com:443:192.0.2.10 \
   -o /dev/null -sS -w '%{http_code}\n' \
-  https://nextcloud.example.net/status.php
+  https://nextcloud.example.com/status.php
 ```
 
 Ожидаются healthy-контейнеры, `installed: true` и HTTP `200`.

@@ -2,7 +2,7 @@
 
 Forgejo — лёгкая self-hosted Git-платформа (форк Gitea, лицензия GPL-3.0+,
 управление Codeberg e.V.). Веб-интерфейс доступен через Traefik по адресу
-`https://forgejo.example.net/`, Git over SSH — на порту `2222`.
+`https://forgejo.example.com/`, Git over SSH — на порту `2222`.
 PostgreSQL и HTTP-порт контейнера на хост не публикуются.
 
 Самостоятельная регистрация отключена после первоначальной настройки, новые
@@ -24,7 +24,7 @@ docker compose up -d
 docker compose ps
 ```
 
-Откройте `https://forgejo.example.net/` — откроется мастер установки.
+Откройте `https://forgejo.example.com/` — откроется мастер установки.
 Укажите адрес PostgreSQL (`db:5432`), имя базы и пароль из `.env`, создайте
 первого пользователя (он автоматически станет администратором).
 
@@ -65,7 +65,7 @@ sudo firewall-cmd --reload
 клонировать так:
 
 ```sh
-git clone ssh://git@forgejo.example.net:2222/OWNER/REPOSITORY.git
+git clone ssh://git@forgejo.example.com:2222/OWNER/REPOSITORY.git
 ```
 
 При создании дополнительных пользователей используйте административную панель.
@@ -77,8 +77,8 @@ SMTP намеренно не настроен: восстановление па
 ```sh
 docker compose ps
 docker compose exec --user git app forgejo doctor check --all
-curl --resolve forgejo.example.net:443:192.0.2.10 \
-  -fsS https://forgejo.example.net/api/healthz
+curl --resolve forgejo.example.com:443:192.0.2.10 \
+  -fsS https://forgejo.example.com/api/healthz
 ssh -T -p 2222 git@192.0.2.10
 ```
 

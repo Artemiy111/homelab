@@ -4,9 +4,9 @@ Gatus — основной декларативный монитор досту�
 успеха и внешний вид status page задаются в `config/config.yaml` и хранятся в
 Git. История проверок сохраняется в SQLite под `$APPS_STORAGE_PATH/gatus/data`.
 
-Панель доступна по адресу `https://uptime.example.net/`. Сохранённая
+Панель доступна по адресу `https://uptime.example.com/`. Сохранённая
 Uptime Kuma продолжает работать отдельно на
-`https://kuma.example.net/`.
+`https://kuma.example.com/`.
 
 ## Запуск
 

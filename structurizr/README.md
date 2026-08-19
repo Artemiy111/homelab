@@ -1,7 +1,7 @@
 # Structurizr
 
 Structurizr vNext (open-core) — инструмент для диаграмм C4. Контейнер доступен
-через Traefik по адресу `https://structurizr.example.net/`; порт
+через Traefik по адресу `https://structurizr.example.com/`; порт
 приложения напрямую на хост не публикуется. Постоянные данные находятся в
 `$APPS_STORAGE_PATH/structurizr`, смонтированном в `/usr/local/structurizr`.
 
@@ -60,10 +60,10 @@ basicauth) на роутер `structurizr`.
 
 Сервер не читает DSL напрямую из каталога данных — содержимое публикуется через
 workspace API. Сейчас воркспейс `HomeLab` имеет `<id> = 1` и доступен по адресу
-`https://structurizr.example.net/workspace/1/diagrams`. Создание нового
+`https://structurizr.example.com/workspace/1/diagrams`. Создание нового
 воркспейса и запоминание его `<id>` выполняется один раз:
 
-1. Открыть `https://structurizr.example.net/workspace/create`
+1. Открыть `https://structurizr.example.com/workspace/create`
    (встроенной аутентификации нет — воркспейс создаётся сразу).
 2. Запомнить `<id>` из URL `/workspace/<id>`.
 
@@ -75,7 +75,7 @@ workspace API. Сейчас воркспейс `HomeLab` имеет `<id> = 1` �
 structurizr validate -workspace structurizr/homelab.dsl
 
 # выгрузить воркспейс на сервер
-structurizr push -url https://structurizr.example.net/api \
+structurizr push -url https://structurizr.example.com/api \
   -id <id> -workspace structurizr/homelab.dsl
 ```
 

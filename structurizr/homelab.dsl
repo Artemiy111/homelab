@@ -6,11 +6,11 @@ workspace {
 
         owner = person "Домохозяин" "Пользователь, обращается к сервисам по HTTPS из LAN или через Tailscale"
 
-        letsencrypt = softwareSystem "Let's Encrypt" "Выдаёт TLS-сертификаты для *.example.net (ACME DNS-01)" {
+        letsencrypt = softwareSystem "Let's Encrypt" "Выдаёт TLS-сертификаты для *.example.com (ACME DNS-01)" {
             tags "external"
         }
 
-        dns_provider = softwareSystem "<dns-provider>" "Публичная DNS-зона example.net; TSIG-ключ для DNS-01 challenge" {
+        dns_provider = softwareSystem "<dns-provider>" "Публичная DNS-зона example.com; TSIG-ключ для DNS-01 challenge" {
             tags "external"
         }
 
@@ -56,7 +56,7 @@ workspace {
                 tags "infra"
             }
 
-            homepage = softwareSystem "Homepage" "Стартовая страница со ссылками на все сервисы (home.example.net)" {
+            homepage = softwareSystem "Homepage" "Стартовая страница со ссылками на все сервисы (home.example.com)" {
                 tags "infra"
             }
 
@@ -67,27 +67,27 @@ workspace {
 
         group "Мониторинг и обновления" {
 
-            uptime = softwareSystem "Uptime Kuma" "Мониторинг доступности (kuma.example.net)" {
+            uptime = softwareSystem "Uptime Kuma" "Мониторинг доступности (kuma.example.com)" {
                 tags "monitoring"
             }
 
-            gatus = softwareSystem "Gatus" "Декларативный статус-пейдж и health-чеки (uptime.example.net)" {
+            gatus = softwareSystem "Gatus" "Декларативный статус-пейдж и health-чеки (uptime.example.com)" {
                 tags "monitoring"
             }
 
-            beszel = softwareSystem "Beszel" "Метрики хоста и Docker-контейнеров (beszel.example.net)" {
+            beszel = softwareSystem "Beszel" "Метрики хоста и Docker-контейнеров (beszel.example.com)" {
                 tags "monitoring"
             }
 
-            wud = softwareSystem "WUD" "Отслеживание обновлений Docker-образов (wud.example.net, basicauth)" {
+            wud = softwareSystem "WUD" "Отслеживание обновлений Docker-образов (wud.example.com, basicauth)" {
                 tags "monitoring"
             }
 
-            cup = softwareSystem "Cup" "Независимая проверка обновлений образов (cup.example.net, basicauth)" {
+            cup = softwareSystem "Cup" "Независимая проверка обновлений образов (cup.example.com, basicauth)" {
                 tags "monitoring"
             }
 
-            arcane = softwareSystem "Arcane" "Управление Docker: контейнеры, образы, сети, тома (arcane.example.net)" {
+            arcane = softwareSystem "Arcane" "Управление Docker: контейнеры, образы, сети, тома (arcane.example.com)" {
                 tags "monitoring"
             }
 
@@ -106,11 +106,11 @@ workspace {
 
         group "Идентификация и доступ" {
 
-            pocketid = softwareSystem "Pocket ID" "Passkey-аутентификация и OpenID Connect (pocket-id.example.net)" {
+            pocketid = softwareSystem "Pocket ID" "Passkey-аутентификация и OpenID Connect (pocket-id.example.com)" {
                 tags "idm"
             }
 
-            authentik = softwareSystem "Authentik" "Identity provider и SSO (auth.example.net)" {
+            authentik = softwareSystem "Authentik" "Identity provider и SSO (auth.example.com)" {
                 tags "idm"
             }
 
@@ -121,34 +121,34 @@ workspace {
 
         group "Файлы, код и разработка" {
 
-            nextcloud = softwareSystem "Nextcloud" "Файлы, синхронизация, календарь и контакты (nextcloud.example.net)" {
+            nextcloud = softwareSystem "Nextcloud" "Файлы, синхронизация, календарь и контакты (nextcloud.example.com)" {
                 tags "files"
             }
 
-            forgejo = softwareSystem "Forgejo" "Приватный Git-сервис: web + SSH (:2222) (forgejo.example.net)" {
+            forgejo = softwareSystem "Forgejo" "Приватный Git-сервис: web + SSH (:2222) (forgejo.example.com)" {
                 tags "files"
             }
 
-            codeserver = softwareSystem "code-server" "VS Code в браузере (code.example.net)" {
+            codeserver = softwareSystem "code-server" "VS Code в браузере (code.example.com)" {
                 tags "files"
             }
         }
 
         group "Медиа и развлечения" {
 
-            immich = softwareSystem "Immich" "Фото- и видеотека (immich.example.net)" {
+            immich = softwareSystem "Immich" "Фото- и видеотека (immich.example.com)" {
                 tags "media"
             }
 
-            jellyfin = softwareSystem "Jellyfin" "Домашний медиасервер с аппаратным декодированием VA-API (jellyfin.example.net)" {
+            jellyfin = softwareSystem "Jellyfin" "Домашний медиасервер с аппаратным декодированием VA-API (jellyfin.example.com)" {
                 tags "media"
             }
 
-            navidrome = softwareSystem "Navidrome" "Музыкальный сервер (music.example.net)" {
+            navidrome = softwareSystem "Navidrome" "Музыкальный сервер (music.example.com)" {
                 tags "media"
             }
 
-            jitsi = softwareSystem "Jitsi Meet" "Приватные видеоконференции (meet.example.net); медиа по UDP :10000" {
+            jitsi = softwareSystem "Jitsi Meet" "Приватные видеоконференции (meet.example.com); медиа по UDP :10000" {
                 tags "media"
             }
 
@@ -159,31 +159,31 @@ workspace {
 
         group "Приложения" {
 
-            dawarich = softwareSystem "Dawarich" "История местоположений и карта перемещений (dawarich.example.net)" {
+            dawarich = softwareSystem "Dawarich" "История местоположений и карта перемещений (dawarich.example.com)" {
                 tags "apps"
             }
 
-            pdf = softwareSystem "Stirling PDF" "Операции с PDF и OCR (pdf.example.net)" {
+            pdf = softwareSystem "Stirling PDF" "Операции с PDF и OCR (pdf.example.com)" {
                 tags "apps"
             }
 
-            homeassistant = softwareSystem "Home Assistant" "Домашняя автоматизация; host-сеть, доступ только из LAN (homeassistant.example.net)" {
+            homeassistant = softwareSystem "Home Assistant" "Домашняя автоматизация; host-сеть, доступ только из LAN (homeassistant.example.com)" {
                 tags "apps"
             }
 
-            lute = softwareSystem "Lute" "Приложение для чтения и изучения языков (lute.example.net)" {
+            lute = softwareSystem "Lute" "Приложение для чтения и изучения языков (lute.example.com)" {
                 tags "apps"
             }
 
-            mermaid = softwareSystem "Mermaid Live Editor" "Редактор Mermaid-диаграмм в браузере (mermaid.example.net)" {
+            mermaid = softwareSystem "Mermaid Live Editor" "Редактор Mermaid-диаграмм в браузере (mermaid.example.com)" {
                 tags "apps"
             }
 
-            structurizr = softwareSystem "Structurizr" "Инструмент C4-диаграмм, этот воркспейс (structurizr.example.net)" {
+            structurizr = softwareSystem "Structurizr" "Инструмент C4-диаграмм, этот воркспейс (structurizr.example.com)" {
                 tags "apps"
             }
 
-            localai = softwareSystem "LocalAI" "Локальный OpenAI-совместимый API инференса (localai.example.net)" {
+            localai = softwareSystem "LocalAI" "Локальный OpenAI-совместимый API инференса (localai.example.com)" {
                 tags "apps"
             }
 

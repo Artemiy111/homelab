@@ -1,14 +1,14 @@
 {
   "default_server_config": {
     "m.homeserver": {
-      "base_url": "https://element.example.net",
-      "server_name": "example.net"
+      "base_url": "https://element.example.com",
+      "server_name": "example.com"
     },
     "m.identity_server": {
       "base_url": "https://vector.im"
     }
   },
-  "trusted_domains": ["example.net"],
+  "trusted_domains": ["example.com"],
   "default_theme": "light",
   "plugins": [
     {
@@ -19,8 +19,8 @@
   ],
   "element_call": {
     "enabled": true,
-    "url": "https://element.example.net",
-    "user_id": "https://element.example.net",
+    "url": "https://element.example.com",
+    "user_id": "https://element.example.com",
     "room": ""
   },
   "features": {
@@ -39,5 +39,5 @@
     "flows": [{"type": "m.login.password"}]
   },
   "disable_login_language_selector": false,
-  "set_mxc_hs_endpoint": "https://element.example.net"
+  "set_mxc_hs_endpoint": "https://element.example.com"
 }

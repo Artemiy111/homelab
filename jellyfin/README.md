@@ -2,7 +2,7 @@
 
 Jellyfin хранит конфигурацию в `$APPS_STORAGE_PATH/jellyfin`, читает общую медиатеку
 из `/storage/media` и доступен через Traefik по адресу
-`https://jellyfin.example.net/`. Порты контейнера на хосте не
+`https://jellyfin.example.com/`. Порты контейнера на хосте не
 публикуются; локальный DNS уже направляет все поддомены зоны на Traefik.
 
 Образ закреплён на мажорной версии `jellyfin/jellyfin:10`: обновления внутри
@@ -46,7 +46,7 @@ Compose передаёт AMD Radeon 680M как `/dev/dri/renderD128` и доб�
 ```sh
 docker compose ps
 docker exec jellyfin curl -fsS http://127.0.0.1:8096/health
-curl --resolve jellyfin.example.net:443:192.0.2.10 \
+curl --resolve jellyfin.example.com:443:192.0.2.10 \
   -o /dev/null -sS -w '%{http_code}\n' \
-  https://jellyfin.example.net/
+  https://jellyfin.example.com/
 ```

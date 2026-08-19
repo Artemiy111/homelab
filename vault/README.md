@@ -56,7 +56,7 @@ Dev mode: in-memory, auto-unseal, root token = `dev-root-token`.
 
 ## Web UI
 
-Открыть `https://vault.example.net` → войти с root token.
+Открыть `https://vault.example.com` → войти с root token.
 
 ## Важно
 

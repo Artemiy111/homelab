@@ -7,7 +7,7 @@ Element — web-клиент Matrix, а Synapse — его homeserver. В это
 
 ## Состав
 
-- `element-web` — веб-интерфейс по `https://element.example.net/`;
+- `element-web` — веб-интерфейс по `https://element.example.com/`;
 - `synapse` — Matrix API по пути `/_matrix` того же домена;
 - `livekit` — SFU для Element Call;
 - `matrix-rtc-auth` — выдаёт LiveKit-токены по `/livekit/jwt`;
@@ -18,7 +18,7 @@ Traefik маршрутизирует HTTP(S): корень домена ведё
 `/_matrix` — в Synapse, `/livekit/sfu` — в LiveKit, `/livekit/jwt` — в
 MatrixRTC authorization service.
 
-Для домена Matrix ID (`example.net`) Synapse также публикует
+Для домена Matrix ID (`example.com`) Synapse также публикует
 `/.well-known/matrix/client`. В нём объявлен LiveKit MatrixRTC focus — именно
 так Element обнаруживает сервер звонков.
 
@@ -52,7 +52,7 @@ bash create-admin.sh
 
 Скрипт запросит логин, затем пароль. Логин можно передать сразу: `bash
 create-admin.sh YOUR_LOGIN`. Пользователь войдёт в Element с этим логином и
-паролем; Matrix ID будет `@YOUR_LOGIN:example.net`.
+паролем; Matrix ID будет `@YOUR_LOGIN:example.com`.
 
 ## Обычные пользователи
 
@@ -97,8 +97,8 @@ docker compose --profile push up -d sygnal
 
 ```sh
 docker compose ps
-curl -fsS https://element.example.net/_matrix/client/versions
-curl -fsS https://element.example.net/livekit/jwt/healthz
+curl -fsS https://element.example.com/_matrix/client/versions
+curl -fsS https://element.example.com/livekit/jwt/healthz
 ```
 
 Полная проверка Element Call требует двух авторизованных клиентов в LAN или

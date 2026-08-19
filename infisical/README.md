@@ -24,7 +24,7 @@ docker compose up -d
 docker compose ps
 ```
 
-Затем откройте `https://infisical.example.net` и создайте первого
+Затем откройте `https://infisical.example.com` и создайте первого
 пользователя (он становится администратором).
 
 `ENCRYPTION_KEY` шифрует хранимые секреты. Его потеря сделает зашифрованные
@@ -35,8 +35,8 @@ docker compose ps
 
 ```sh
 docker compose ps
-curl --resolve infisical.example.net:443:192.0.2.10 \
-  -fsS https://infisical.example.net/api/status
+curl --resolve infisical.example.com:443:192.0.2.10 \
+  -fsS https://infisical.example.com/api/status
 ```
 
 `/api/status` должен вернуть JSON с `"message":"Ok"` и HTTP 200.
@@ -45,7 +45,7 @@ curl --resolve infisical.example.net:443:192.0.2.10 \
 
 ```sh
 npm install -g @infisical/cli
-infisical login --domain https://infisical.example.net
+infisical login --domain https://infisical.example.com
 infisical init
 infisical run --env=dev -- node app.js
 ```

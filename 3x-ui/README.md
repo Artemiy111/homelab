@@ -40,7 +40,7 @@ docker compose rm -f initialize
 `XUI_WEB_BASE_PATH` в локальном `.env`, например:
 
 ```text
-https://xui.example.net/<случайный-путь>/
+https://xui.example.com/<случайный-путь>/
 ```
 
 Логин и пароль находятся в том же `.env`. После первого входа включить 2FA.

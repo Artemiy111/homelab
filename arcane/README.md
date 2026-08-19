@@ -2,7 +2,7 @@
 
 Arcane — веб-интерфейс управления Docker: контейнеры, образы, сети, тома и
 stacks. Интерфейс доступен через Traefik по адресу
-`https://arcane.example.net/`; порт 3552 на хосте не публикуется.
+`https://arcane.example.com/`; порт 3552 на хосте не публикуется.
 
 Docker доступен не напрямую, а через ограниченный `docker-socket-proxy`
 (та же схема, что в `image-updates/`): прокси подключает `docker.sock` только
@@ -29,7 +29,7 @@ docker compose up -d
 docker compose ps
 ```
 
-Откройте `https://arcane.example.net/` и войдите под учётными данными
+Откройте `https://arcane.example.com/` и войдите под учётными данными
 по умолчанию (`arcane` / `arcane-admin`); при первом входе Arcane потребует
 сменить пароль. Секреты `ENCRYPTION_KEY` и `JWT_SECRET` генерирует `init.sh`,
 они хранятся только в локальном `arcane/.env` (в Git не попадают).
@@ -38,8 +38,8 @@ docker compose ps
 
 ```sh
 docker compose ps
-curl --resolve arcane.example.net:443:192.0.2.10 \
-  -fsS https://arcane.example.net/api/health
+curl --resolve arcane.example.com:443:192.0.2.10 \
+  -fsS https://arcane.example.com/api/health
 docker logs --since=5m arcane 2>&1
 ```
 
