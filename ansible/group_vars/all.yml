@@ -1,0 +1,69 @@
+---
+host_packages:
+  # --- Шелл и CLI ---
+  - zsh
+  - git
+  - tmux
+  - fzf
+  - fd-find          # бинарник fdfind (команда fd)
+  - bat
+  - lsd
+  - neovim           # бинарник nvim
+  - lazygit          # из COPR dejan/lazygit
+  - tldr
+  - htop
+  - btop
+  - fastfetch
+  - ncdu
+  - glances
+  - lshw
+  - mkpasswd
+  - sshpass
+
+  # --- Docker и k8s ---
+  - docker-ce
+  - docker-ce-cli
+  - containerd.io
+  - docker-buildx-plugin
+  - docker-compose-plugin
+  - podman-compose
+  - helm
+  - k9s
+  - kubernetes1.34-client   # предоставляет kubectl; обновлять при смене версии в Fedora
+  - ansible
+
+  # --- Виртуализация ---
+  - virt-manager
+  - virt-install
+  - virt-top
+
+  # --- Сеть и VPN ---
+  - tailscale
+  - wireguard-tools
+  - fail2ban
+  - iftop
+  - nethogs
+  - bmon
+  - ngrep
+  - wireshark-cli
+
+  # --- Хранение ---
+  - samba
+  - samba-client
+
+  # --- Прочее ---
+  - sysstat          # утилита mpstat
+  - fontconfig
+
+# Группы пакетов (ставим отдельной задачей, префикс @ обязателен).
+host_groups:
+  - "@virtualization"
+
+# Пакеты, которых на хосте быть не должно (были удалены вручную ранее).
+# Явное объявление фиксирует намерение и не даёт им вернуться.
+host_packages_absent:
+  - fish
+  - baobab
+  - nginx
+  - jenkins
+  - caddy
