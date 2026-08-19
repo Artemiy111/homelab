@@ -100,20 +100,45 @@ ensure_dirs() {
   chmod_if_owned "$mode" "$@"
 }
 
-# Создаёт .env, если его ещё нет. Содержимое передаётся через stdin (heredoc).
-# Существующий файл пропускается; новые файлы создаются с umask 077 (права 0600).
+# Создаёт .env-файл. Содержимое передаётся через stdin (heredoc).
+# Новые файлы создаются с umask 077 (права 0600). Существующий файл не
+# перезаписывается целиком: если уже есть — показывает список переменных,
+# которые будут пропущены; если новый — список записываемых переменных.
 write_env_file() {
   local env_file="$1"
+  local content
+  readarray -t content
+
+  local -a names=()
+  local line key
+  for line in "${content[@]}"; do
+    case "$line" in
+      '#'*|'') continue ;;
+    esac
+    key="${line%%=*}"
+    if [[ "$key" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]; then
+      names+=("$key")
+    fi
+  done
+
   if [[ -e "$env_file" ]]; then
-    echo "Пропуск: $env_file уже существует"
+    local -a skipped=()
+    for key in "${names[@]}"; do
+      if grep -q "^${key}=" "$env_file" 2>/dev/null; then
+        skipped+=("$key")
+      fi
+    done
+    if [[ ${#skipped[@]} -gt 0 ]]; then
+      echo "Пропуск: $env_file уже существует (${#skipped[@]} переменных пропущено: ${skipped[*]})"
+    fi
   else
     local old_umask
     old_umask="$(umask)"
     umask 077
-    cat >"$env_file"
+    printf '%s\n' "${content[@]}" >"$env_file"
     umask "$old_umask"
+    echo "Создан: $env_file (${#names[@]} переменных: ${names[*]})"
   fi
-  # Гарантировать права 0600 и для уже существующих файлов.
   chmod 600 "$env_file"
 }
 

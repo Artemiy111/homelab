@@ -19,6 +19,7 @@ XUI_ADMIN_USERNAME=xui-admin
 XUI_ADMIN_PASSWORD=$(random_secret)
 XUI_WEB_BASE_PATH=/panel-$(openssl rand -hex 12)/
 XUI_INBOUND_PORT=8443
+XUI_EGRESS_PORT=8440
 EOF
 
 compose_config "$repo_root/3x-ui"
