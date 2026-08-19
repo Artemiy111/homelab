@@ -153,5 +153,5 @@ traefik_network_cidr() {
 compose_config() {
   local service_dir="$1"
   shift
-  docker compose --project-directory "$service_dir" --file "$service_dir/compose.yaml" "$@" config --quiet
+  docker compose --project-directory "$service_dir" "$@" config --quiet
 }
