@@ -19,6 +19,7 @@ host_packages:
   - lshw
   - mkpasswd
   - sshpass
+  - pv
 
   # --- Docker и k8s ---
   - docker-ce
