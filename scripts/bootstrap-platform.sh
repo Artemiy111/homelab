@@ -38,6 +38,7 @@ services=(
   home
   code-server
   gatus
+  paperless
 )
 
 for service in "${services[@]}"; do
