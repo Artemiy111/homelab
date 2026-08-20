@@ -15,7 +15,7 @@ for env_file in "$repo_root"/*/.env; do
   changed=false
   for var in "${GLOBAL_VARS[@]}"; do
     if grep -q "^${var}=" "$env_file" 2>/dev/null; then
-      sed -i '' "/^${var}=/d" "$env_file"
+      grep -v "^${var}=" "$env_file" > "${env_file}.tmp" && mv "${env_file}.tmp" "$env_file"
       changed=true
     fi
   done
