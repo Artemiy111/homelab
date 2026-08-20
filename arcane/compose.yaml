@@ -40,10 +40,10 @@ services:
       - ${APPS_STORAGE_PATH:-/storage/apps}/arcane/data:/app/data:Z
 
     environment:
-      APP_URL: https://${ARCANE_HOST:?set ARCANE_HOST in arcane/.env}
+      APP_URL: https://${ARCANE_HOST:?set in arcane/.env}
       DOCKER_HOST: tcp://docker-socket-proxy:2375
-      ENCRYPTION_KEY: ${ENCRYPTION_KEY:?set ENCRYPTION_KEY in arcane/.env}
-      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in arcane/.env}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:?set in arcane/.env}
+      JWT_SECRET: ${JWT_SECRET:?set in arcane/.env}
       PUID: 1000
       PGID: 1000
 

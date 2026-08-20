@@ -2,7 +2,7 @@ name: talk-hpb
 
 services:
   talk:
-    image: ghcr.io/nextcloud-releases/aio-talk:${TALK_IMAGE_VERSION:?set TALK_IMAGE_VERSION in talk-hpb/.env}
+    image: ghcr.io/nextcloud-releases/aio-talk:${TALK_IMAGE_VERSION:?set in talk-hpb/.env}
     container_name: talk-hpb
     read_only: true
     init: true
@@ -34,25 +34,25 @@ services:
       - /tmp
 
     ports:
-      - "${SERVER_IP:?set SERVER_IP in talk-hpb/.env}:${TALK_PORT:-3478}:${TALK_PORT:-3478}/tcp"
-      - "${SERVER_IP:?set SERVER_IP in talk-hpb/.env}:${TALK_PORT:-3478}:${TALK_PORT:-3478}/udp"
+      - "${SERVER_IP:?set in talk-hpb/.env}:${TALK_PORT:-3478}:${TALK_PORT:-3478}/tcp"
+      - "${SERVER_IP:?set in talk-hpb/.env}:${TALK_PORT:-3478}:${TALK_PORT:-3478}/udp"
       # TURN relay-порты eturnal: диапазон должен совпадать с TALK_RELAY_MIN/MAX_PORT
       # из command выше — на каждый медиа-аллокацию тратится один порт.
-      - "${SERVER_IP:?set SERVER_IP in talk-hpb/.env}:${TALK_RELAY_MIN_PORT:-20000}-${TALK_RELAY_MAX_PORT:-20499}:${TALK_RELAY_MIN_PORT:-20000}-${TALK_RELAY_MAX_PORT:-20499}/udp"
-      - "${SERVER_IP:?set SERVER_IP in talk-hpb/.env}:${TALK_RELAY_MIN_PORT:-20000}-${TALK_RELAY_MAX_PORT:-20499}:${TALK_RELAY_MIN_PORT:-20000}-${TALK_RELAY_MAX_PORT:-20499}/tcp"
+      - "${SERVER_IP:?set in talk-hpb/.env}:${TALK_RELAY_MIN_PORT:-20000}-${TALK_RELAY_MAX_PORT:-20499}:${TALK_RELAY_MIN_PORT:-20000}-${TALK_RELAY_MAX_PORT:-20499}/udp"
+      - "${SERVER_IP:?set in talk-hpb/.env}:${TALK_RELAY_MIN_PORT:-20000}-${TALK_RELAY_MAX_PORT:-20499}:${TALK_RELAY_MIN_PORT:-20000}-${TALK_RELAY_MAX_PORT:-20499}/tcp"
 
     environment:
       AIO_LOG_LEVEL: warn
-      INTERNAL_SECRET: ${INTERNAL_SECRET:?set INTERNAL_SECRET in talk-hpb/.env}
-      NC_DOMAIN: ${NC_DOMAIN:?set NC_DOMAIN in talk-hpb/.env}
-      SIGNALING_SECRET: ${SIGNALING_SECRET:?set SIGNALING_SECRET in talk-hpb/.env}
-      TALK_HOST: ${TALK_HOST:?set TALK_HOST in talk-hpb/.env}
+      INTERNAL_SECRET: ${INTERNAL_SECRET:?set in talk-hpb/.env}
+      NC_DOMAIN: ${NC_DOMAIN:?set in talk-hpb/.env}
+      SIGNALING_SECRET: ${SIGNALING_SECRET:?set in talk-hpb/.env}
+      TALK_HOST: ${TALK_HOST:?set in talk-hpb/.env}
       TALK_MAX_STREAM_BITRATE: ${TALK_MAX_STREAM_BITRATE:-4194304}
       TALK_MAX_SCREEN_BITRATE: ${TALK_MAX_SCREEN_BITRATE:-8388608}
       TALK_PORT: ${TALK_PORT:-3478}
-      TURN_DOMAIN: ${TURN_DOMAIN:?set TURN_DOMAIN in talk-hpb/.env}
-      TURN_SECRET: ${TURN_SECRET:?set TURN_SECRET in talk-hpb/.env}
-      TZ: ${TZ:?set TZ in talk-hpb/.env}
+      TURN_DOMAIN: ${TURN_DOMAIN:?set in talk-hpb/.env}
+      TURN_SECRET: ${TURN_SECRET:?set in talk-hpb/.env}
+      TZ: ${TZ:?set in talk-hpb/.env}
 
     networks:
       - traefiknet

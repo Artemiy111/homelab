@@ -12,7 +12,7 @@ services:
       - ${APPS_STORAGE_PATH:-/storage/apps}/mailserver/etc:/etc/stalwart:Z
       - ${APPS_STORAGE_PATH:-/storage/apps}/mailserver/data:/var/lib/stalwart:Z
     environment:
-      STALWART_RECOVERY_ADMIN: "${STALWART_ADMIN_USER:?set STALWART_ADMIN_USER in mailserver/.env}:${STALWART_ADMIN_PASS:?set STALWART_ADMIN_PASS in mailserver/.env}"
+      STALWART_RECOVERY_ADMIN: "${STALWART_ADMIN_USER:?set in mailserver/.env}:${STALWART_ADMIN_PASS:?set in mailserver/.env}"
       STALWART_HOSTNAME: "${MAIL_HOST}"
       STALWART_PUBLIC_URL: "https://${MAILSERVER_HOST}"
     networks:

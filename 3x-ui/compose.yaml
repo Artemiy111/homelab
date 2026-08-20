@@ -9,9 +9,9 @@ services:
       - ${APPS_STORAGE_PATH:-/storage/apps}/3x-ui/db:/etc/x-ui:Z
 
     environment:
-      XUI_ADMIN_USERNAME: ${XUI_ADMIN_USERNAME:?set XUI_ADMIN_USERNAME in 3x-ui/.env}
-      XUI_ADMIN_PASSWORD: ${XUI_ADMIN_PASSWORD:?set XUI_ADMIN_PASSWORD in 3x-ui/.env}
-      XUI_WEB_BASE_PATH: ${XUI_WEB_BASE_PATH:?set XUI_WEB_BASE_PATH in 3x-ui/.env}
+      XUI_ADMIN_USERNAME: ${XUI_ADMIN_USERNAME:?set in 3x-ui/.env}
+      XUI_ADMIN_PASSWORD: ${XUI_ADMIN_PASSWORD:?set in 3x-ui/.env}
+      XUI_WEB_BASE_PATH: ${XUI_WEB_BASE_PATH:?set in 3x-ui/.env}
 
     command:
       - |
@@ -39,16 +39,16 @@ services:
       - ${APPS_STORAGE_PATH:-/storage/apps}/3x-ui/log:/var/log/x-ui:Z
 
     environment:
-      TZ: ${TZ:?set TZ in 3x-ui/.env}
+      TZ: ${TZ:?set in 3x-ui/.env}
       XRAY_VMESS_AEAD_FORCED: "false"
       XUI_ENABLE_FAIL2BAN: "true"
-      XUI_INIT_WEB_BASE_PATH: ${XUI_WEB_BASE_PATH:?set XUI_WEB_BASE_PATH in 3x-ui/.env}
+      XUI_INIT_WEB_BASE_PATH: ${XUI_WEB_BASE_PATH:?set in 3x-ui/.env}
       XUI_SKIP_HSTS: "true"
 
     ports:
-      - "${SERVER_IP:?set SERVER_IP in 3x-ui/.env}:${XUI_INBOUND_PORT:?set XUI_INBOUND_PORT in 3x-ui/.env}:${XUI_INBOUND_PORT}/tcp"
-      - "${SERVER_IP:?set SERVER_IP in 3x-ui/.env}:${XUI_INBOUND_PORT:?set XUI_INBOUND_PORT in 3x-ui/.env}:${XUI_INBOUND_PORT}/udp"
-      - "${SERVER_IP:?set SERVER_IP in 3x-ui/.env}:${XUI_EGRESS_PORT:?set XUI_EGRESS_PORT in 3x-ui/.env}:${XUI_EGRESS_PORT}/tcp"
+      - "${SERVER_IP:?set in 3x-ui/.env}:${XUI_INBOUND_PORT:?set in 3x-ui/.env}:${XUI_INBOUND_PORT}/tcp"
+      - "${SERVER_IP:?set in 3x-ui/.env}:${XUI_INBOUND_PORT:?set in 3x-ui/.env}:${XUI_INBOUND_PORT}/udp"
+      - "${SERVER_IP:?set in 3x-ui/.env}:${XUI_EGRESS_PORT:?set in 3x-ui/.env}:${XUI_EGRESS_PORT}/tcp"
     networks:
       - default
       - traefiknet

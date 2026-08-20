@@ -5,21 +5,21 @@ x-forgejo-environment: &forgejo-environment
   FORGEJO__database__HOST: db:5432
   FORGEJO__database__NAME: ${POSTGRES_DB:-forgejo}
   FORGEJO__database__USER: ${POSTGRES_USER:-forgejo}
-  FORGEJO__database__PASSWD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in forgejo/.env}
-  FORGEJO__server__DOMAIN: ${FORGEJO_HOST:?set FORGEJO_HOST in forgejo/.env}
-  FORGEJO__server__ROOT_URL: https://${FORGEJO_HOST:?set FORGEJO_HOST in forgejo/.env}/
-  FORGEJO__server__SSH_DOMAIN: ${FORGEJO_HOST:?set FORGEJO_HOST in forgejo/.env}
+  FORGEJO__database__PASSWD: ${POSTGRES_PASSWORD:?set in forgejo/.env}
+  FORGEJO__server__DOMAIN: ${FORGEJO_HOST:?set in forgejo/.env}
+  FORGEJO__server__ROOT_URL: https://${FORGEJO_HOST:?set in forgejo/.env}/
+  FORGEJO__server__SSH_DOMAIN: ${FORGEJO_HOST:?set in forgejo/.env}
   FORGEJO__server__SSH_PORT: ${FORGEJO_SSH_PORT:-2222}
   FORGEJO__server__LFS_START_SERVER: "true"
   # INSTALL_LOCK управляется веб-мастером — не переопределять через env
-  FORGEJO__security__REVERSE_PROXY_TRUSTED_PROXIES: ${TRAEFIK_NETWORK_CIDR:?set TRAEFIK_NETWORK_CIDR in forgejo/.env}
+  FORGEJO__security__REVERSE_PROXY_TRUSTED_PROXIES: ${TRAEFIK_NETWORK_CIDR:?set in forgejo/.env}
   FORGEJO__service__DISABLE_REGISTRATION: "true"
   FORGEJO__service__DEFAULT_USER_VISIBILITY: private
   FORGEJO__repository__DEFAULT_PRIVATE: private
   FORGEJO__openid__ENABLE_OPENID_SIGNIN: "false"
   FORGEJO__openid__ENABLE_OPENID_SIGNUP: "false"
   FORGEJO__actions__ENABLED: "false"
-  FORGEJO__i18n__DEFAULT_LOCALE: ${FORGEJO_DEFAULT_LOCALE:?set FORGEJO_DEFAULT_LOCALE in forgejo/.env}
+  FORGEJO__i18n__DEFAULT_LOCALE: ${FORGEJO_DEFAULT_LOCALE:?set in forgejo/.env}
   # === После регистрации WebAuthn-ключа ===
   # 1. Включить WebAuthn:
   # FORGEJO__webauthn__ENABLED: "true"
@@ -27,7 +27,7 @@ x-forgejo-environment: &forgejo-environment
   # 3. Отключить регистрацию и веб-мастер:
   # FORGEJO__security__INSTALL_LOCK: "true"
   # FORGEJO__service__DISABLE_REGISTRATION: "true"
-  TZ: ${TZ:?set TZ in forgejo/.env}
+  TZ: ${TZ:?set in forgejo/.env}
 
 services:
   db:
@@ -40,7 +40,7 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-forgejo}
       POSTGRES_USER: ${POSTGRES_USER:-forgejo}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in forgejo/.env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in forgejo/.env}
 
     networks:
       - backend
@@ -69,7 +69,7 @@ services:
       <<: *forgejo-environment
 
     ports:
-      - "${SERVER_IP:?set SERVER_IP in forgejo/.env}:${FORGEJO_SSH_PORT:-2222}:2222"
+      - "${SERVER_IP:?set in forgejo/.env}:${FORGEJO_SSH_PORT:-2222}:2222"
     networks:
       backend:
       traefiknet:
@@ -114,7 +114,7 @@ services:
       PGHOST: db
       PGDATABASE: ${POSTGRES_DB:-forgejo}
       PGUSER: ${POSTGRES_USER:-forgejo}
-      PGPASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in forgejo/.env}
+      PGPASSWORD: ${POSTGRES_PASSWORD:?set in forgejo/.env}
 
     networks:
       - backend

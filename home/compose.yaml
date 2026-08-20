@@ -8,8 +8,8 @@ services:
       - ./config:/app/config:Z
 
     environment:
-      HOMEPAGE_ALLOWED_HOSTS: ${HOMEPAGE_HOST:?set HOMEPAGE_HOST in home/.env}
-      HOMEPAGE_VAR_DOMAIN: ${DOMAIN:?set DOMAIN in home/.env}
+      HOMEPAGE_ALLOWED_HOSTS: ${HOMEPAGE_HOST:?set in home/.env}
+      HOMEPAGE_VAR_DOMAIN: ${DOMAIN:?set in home/.env}
       LOG_TARGETS: stdout
       PUID: "1000"
       PGID: "1000"

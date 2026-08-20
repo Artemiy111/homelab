@@ -1,7 +1,7 @@
 name: element
 
 x-synapse-environment: &synapse-environment
-  SYNAPSE_SERVER_NAME: ${SYNAPSE_SERVER_NAME:?set SYNAPSE_SERVER_NAME in element/.env}
+  SYNAPSE_SERVER_NAME: ${SYNAPSE_SERVER_NAME:?set in element/.env}
   SYNAPSE_REPORT_STATS: "no"
   SYNAPSE_CONFIG_DIR: /data
   SYNAPSE_CONFIG_FILE: /data/homeserver.yaml
@@ -9,7 +9,7 @@ x-synapse-environment: &synapse-environment
   POSTGRES_PORT: "5432"
   POSTGRES_DB: ${POSTGRES_DB:-synapse}
   POSTGRES_USER: ${POSTGRES_USER:-synapse}
-  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in element/.env}
+  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in element/.env}
   TZ: ${TZ:-Asia/Yekaterinburg}
 
 services:
@@ -21,7 +21,7 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-synapse}
       POSTGRES_USER: ${POSTGRES_USER:-synapse}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in element/.env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in element/.env}
       POSTGRES_INITDB_ARGS: --encoding=UTF8 --locale=C
       TZ: ${TZ:-Asia/Yekaterinburg}
     networks:
@@ -120,7 +120,7 @@ services:
     container_name: element-livekit
     volumes:
       - ${APPS_STORAGE_PATH:-/storage/apps}/element/livekit/config.yaml:/etc/livekit/config.yaml:Z,ro
-    command: --config /etc/livekit/config.yaml --node-ip ${LIVEKIT_EXTERNAL_IP:?set LIVEKIT_EXTERNAL_IP in element/.env}
+    command: --config /etc/livekit/config.yaml --node-ip ${LIVEKIT_EXTERNAL_IP:?set in element/.env}
     environment:
       TZ: ${TZ:-Asia/Yekaterinburg}
     ports:
@@ -156,10 +156,10 @@ services:
     container_name: element-matrix-rtc-auth
     environment:
       LIVEKIT_JWT_PORT: "8080"
-      LIVEKIT_URL: wss://${LIVEKIT_HOST:?set LIVEKIT_HOST in element/.env}/livekit/sfu
-      LIVEKIT_KEY: ${LIVEKIT_API_KEY:?set LIVEKIT_API_KEY in element/.env}
-      LIVEKIT_SECRET: ${LIVEKIT_API_SECRET:?set LIVEKIT_API_SECRET in element/.env}
-      LIVEKIT_FULL_ACCESS_HOMESERVERS: ${SYNAPSE_SERVER_NAME:?set SYNAPSE_SERVER_NAME in element/.env}
+      LIVEKIT_URL: wss://${LIVEKIT_HOST:?set in element/.env}/livekit/sfu
+      LIVEKIT_KEY: ${LIVEKIT_API_KEY:?set in element/.env}
+      LIVEKIT_SECRET: ${LIVEKIT_API_SECRET:?set in element/.env}
+      LIVEKIT_FULL_ACCESS_HOMESERVERS: ${SYNAPSE_SERVER_NAME:?set in element/.env}
       TZ: ${TZ:-Asia/Yekaterinburg}
     networks:
       - traefiknet

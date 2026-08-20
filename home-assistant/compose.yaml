@@ -10,7 +10,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
 
     environment:
-      TZ: ${TZ:?set TZ in home-assistant/.env}
+      TZ: ${TZ:?set in home-assistant/.env}
     network_mode: host
     restart: unless-stopped
 

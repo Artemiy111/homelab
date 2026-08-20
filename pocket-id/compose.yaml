@@ -8,9 +8,9 @@ services:
       - ${APPS_STORAGE_PATH:-/storage/apps}/pocket-id/data:/app/data:Z
 
     environment:
-      APP_URL: https://${POCKET_ID_HOST:?set POCKET_ID_HOST in pocket-id/.env}
-      ENCRYPTION_KEY: ${ENCRYPTION_KEY:?set ENCRYPTION_KEY in pocket-id/.env}
-      TRUST_PROXY: ${TRAEFIK_NETWORK_CIDR:?set TRAEFIK_NETWORK_CIDR in pocket-id/.env}
+      APP_URL: https://${POCKET_ID_HOST:?set in pocket-id/.env}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:?set in pocket-id/.env}
+      TRUST_PROXY: ${TRAEFIK_NETWORK_CIDR:?set in pocket-id/.env}
       ALLOW_INSECURE_CALLBACK_URLS: "false"
       ANALYTICS_DISABLED: "true"
       PUID: 1000

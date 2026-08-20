@@ -11,12 +11,12 @@ services:
 
     command:
       - --provider=oidc
-      - --oidc-issuer-url=https://${ZITADEL_HOST:?set ZITADEL_HOST in oauth2-proxy/.env}
-      - --client-id=${OAUTH2_PROXY_CLIENT_ID:?set OAUTH2_PROXY_CLIENT_ID in oauth2-proxy/.env}
-      - --client-secret=${OAUTH2_PROXY_CLIENT_SECRET:?set OAUTH2_PROXY_CLIENT_SECRET in oauth2-proxy/.env}
-      - --cookie-secret=${OAUTH2_PROXY_COOKIE_SECRET:?set OAUTH2_PROXY_COOKIE_SECRET in oauth2-proxy/.env}
+      - --oidc-issuer-url=https://${ZITADEL_HOST:?set in oauth2-proxy/.env}
+      - --client-id=${OAUTH2_PROXY_CLIENT_ID:?set in oauth2-proxy/.env}
+      - --client-secret=${OAUTH2_PROXY_CLIENT_SECRET:?set in oauth2-proxy/.env}
+      - --cookie-secret=${OAUTH2_PROXY_COOKIE_SECRET:?set in oauth2-proxy/.env}
       - --cookie-secure=true
-      - --cookie-domain=.${DOMAIN:?set DOMAIN in oauth2-proxy/.env}
+      - --cookie-domain=.${DOMAIN:?set in oauth2-proxy/.env}
       - --email-domain=*
       - --upstream=static://202
       - --reverse-proxy=true
@@ -24,8 +24,8 @@ services:
       - --set-xauthrequest=true
       - --pass-user-headers=true
       - --pass-access-token=true
-      - --redirect-url=https://${OAUTH2_PROXY_HOST:?set OAUTH2_PROXY_HOST in oauth2-proxy/.env}/oauth2/callback
-      - --whitelist-domain=.${DOMAIN:?set DOMAIN in oauth2-proxy/.env}
+      - --redirect-url=https://${OAUTH2_PROXY_HOST:?set in oauth2-proxy/.env}/oauth2/callback
+      - --whitelist-domain=.${DOMAIN:?set in oauth2-proxy/.env}
       - --http-address=0.0.0.0:4180
 
     labels:

@@ -34,7 +34,7 @@ services:
       - ${APPS_STORAGE_PATH:-/storage/apps}/wud/store:/store:Z
 
     environment:
-      TZ: ${TZ:?set TZ in image-updates/.env}
+      TZ: ${TZ:?set in image-updates/.env}
       WUD_SERVER_FEATURE_DELETE: false
       WUD_WATCHER_LOCAL_CRON: "0 */6 * * *"
       WUD_WATCHER_LOCAL_HOST: docker-socket-proxy
@@ -55,7 +55,7 @@ services:
 
     labels:
       - traefik.enable=true
-      - traefik.http.routers.wud.rule=Host(`${WUD_HOST:?set WUD_HOST in image-updates/.env}`)
+      - traefik.http.routers.wud.rule=Host(`${WUD_HOST:?set in image-updates/.env}`)
       - traefik.http.routers.wud.entrypoints=websecure
       - traefik.http.routers.wud.middlewares=oauth2-proxy@file,secure-headers@file,ratelimit-default@file
       - traefik.http.services.wud.loadbalancer.server.port=3000
@@ -76,7 +76,7 @@ services:
 
     environment:
       CUP_SOCKET: tcp://docker-socket-proxy:2375
-      TZ: ${TZ:?set TZ in image-updates/.env}
+      TZ: ${TZ:?set in image-updates/.env}
 
     networks:
       - docker-api
@@ -86,7 +86,7 @@ services:
 
     labels:
       - traefik.enable=true
-      - traefik.http.routers.cup.rule=Host(`${CUP_HOST:?set CUP_HOST in image-updates/.env}`)
+      - traefik.http.routers.cup.rule=Host(`${CUP_HOST:?set in image-updates/.env}`)
       - traefik.http.routers.cup.entrypoints=websecure
       - traefik.http.routers.cup.middlewares=oauth2-proxy@file,secure-headers@file,ratelimit-default@file
       - traefik.http.services.cup.loadbalancer.server.port=8000

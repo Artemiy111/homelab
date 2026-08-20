@@ -25,7 +25,7 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-paperless}
       POSTGRES_USER: ${POSTGRES_USER:-paperless}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in paperless/.env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in paperless/.env}
     networks:
       - backend
     restart: unless-stopped
@@ -55,8 +55,8 @@ services:
       - ${APPS_STORAGE_PATH:-/storage/apps}/paperless/export:/usr/src/paperless/export:Z
       - ${APPS_STORAGE_PATH:-/storage/apps}/paperless/consume:/usr/src/paperless/consume:Z
     environment:
-      PAPERLESS_SECRET_KEY: ${PAPERLESS_SECRET_KEY:?set PAPERLESS_SECRET_KEY in paperless/.env}
-      PAPERLESS_URL: https://${PAPERLESS_HOST:?set PAPERLESS_HOST in paperless/.env}
+      PAPERLESS_SECRET_KEY: ${PAPERLESS_SECRET_KEY:?set in paperless/.env}
+      PAPERLESS_URL: https://${PAPERLESS_HOST:?set in paperless/.env}
       PAPERLESS_CSRF_TRUSTED_ORIGINS: https://${PAPERLESS_HOST}
       PAPERLESS_TIME_ZONE: ${TZ:-Asia/Yekaterinburg}
       PAPERLESS_OCR_LANGUAGE: ${PAPERLESS_OCR_LANGUAGE:-rus}
@@ -66,7 +66,7 @@ services:
       PAPERLESS_DBHOST: db
       PAPERLESS_DBNAME: ${POSTGRES_DB:-paperless}
       PAPERLESS_DBUSER: ${POSTGRES_USER:-paperless}
-      PAPERLESS_DBPASS: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in paperless/.env}
+      PAPERLESS_DBPASS: ${POSTGRES_PASSWORD:?set in paperless/.env}
       PAPERLESS_TIKA_ENABLED: 1
       PAPERLESS_TIKA_GOTENBERG_ENDPOINT: http://gotenberg:3000
       PAPERLESS_TIKA_ENDPOINT: http://tika:9998

@@ -11,14 +11,14 @@ services:
       - ./dynamic:/etc/traefik/dynamic:ro
 
     environment:
-      RFC2136_NAMESERVER: ${RFC2136_NAMESERVER:?set RFC2136_NAMESERVER in traefik/.env}
-      RFC2136_TSIG_ALGORITHM: ${RFC2136_TSIG_ALGORITHM:?set RFC2136_TSIG_ALGORITHM in traefik/.env}
-      RFC2136_TSIG_KEY: ${RFC2136_TSIG_KEY:?set RFC2136_TSIG_KEY in traefik/.env}
-      RFC2136_TSIG_SECRET: ${RFC2136_TSIG_SECRET:?set RFC2136_TSIG_SECRET in traefik/.env}
+      RFC2136_NAMESERVER: ${RFC2136_NAMESERVER:?set in traefik/.env}
+      RFC2136_TSIG_ALGORITHM: ${RFC2136_TSIG_ALGORITHM:?set in traefik/.env}
+      RFC2136_TSIG_KEY: ${RFC2136_TSIG_KEY:?set in traefik/.env}
+      RFC2136_TSIG_SECRET: ${RFC2136_TSIG_SECRET:?set in traefik/.env}
 
     ports:
-      - "${SERVER_IP:?set SERVER_IP in traefik/.env}:80:80"
-      - "${SERVER_IP:?set SERVER_IP in traefik/.env}:443:443"
+      - "${SERVER_IP:?set in traefik/.env}:80:80"
+      - "${SERVER_IP:?set in traefik/.env}:443:443"
     networks:
       - traefiknet
     extra_hosts:

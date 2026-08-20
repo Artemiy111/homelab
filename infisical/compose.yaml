@@ -9,7 +9,7 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-infisical}
       POSTGRES_USER: ${POSTGRES_USER:-infisical}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in infisical/.env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in infisical/.env}
     networks:
       - backend
     restart: unless-stopped

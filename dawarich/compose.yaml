@@ -6,12 +6,12 @@ x-dawarich-environment: &dawarich-environment
   DATABASE_HOST: db
   DATABASE_PORT: "5432"
   DATABASE_USERNAME: ${POSTGRES_USER:-dawarich}
-  DATABASE_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in dawarich/.env}
+  DATABASE_PASSWORD: ${POSTGRES_PASSWORD:?set in dawarich/.env}
   DATABASE_NAME: ${POSTGRES_DB:-dawarich_production}
-  APPLICATION_HOSTS: ${DAWARICH_HOST:?set DAWARICH_HOST in dawarich/.env}
+  APPLICATION_HOSTS: ${DAWARICH_HOST:?set in dawarich/.env}
   APPLICATION_PROTOCOL: https
-  TIME_ZONE: ${TZ:?set TZ in dawarich/.env}
-  SECRET_KEY_BASE: ${SECRET_KEY_BASE:?set SECRET_KEY_BASE in dawarich/.env}
+  TIME_ZONE: ${TZ:?set in dawarich/.env}
+  SECRET_KEY_BASE: ${SECRET_KEY_BASE:?set in dawarich/.env}
   RAILS_LOG_TO_STDOUT: "true"
   SELF_HOSTED: "true"
   STORE_GEODATA: "true"
@@ -56,7 +56,7 @@ services:
 
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-dawarich}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in dawarich/.env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in dawarich/.env}
       POSTGRES_DB: ${POSTGRES_DB:-dawarich_production}
 
     networks:
@@ -195,7 +195,7 @@ services:
       PGHOST: db
       PGDATABASE: ${POSTGRES_DB:-dawarich_production}
       PGUSER: ${POSTGRES_USER:-dawarich}
-      PGPASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in dawarich/.env}
+      PGPASSWORD: ${POSTGRES_PASSWORD:?set in dawarich/.env}
 
     networks:
       - backend

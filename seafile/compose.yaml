@@ -9,7 +9,7 @@ services:
       - ${APPS_STORAGE_PATH:-/storage/apps}/seafile/mysql:/var/lib/mysql:Z
 
     environment:
-      MARIADB_ROOT_PASSWORD: ${INIT_SEAFILE_MYSQL_ROOT_PASSWORD:?set INIT_SEAFILE_MYSQL_ROOT_PASSWORD in seafile/.env}
+      MARIADB_ROOT_PASSWORD: ${INIT_SEAFILE_MYSQL_ROOT_PASSWORD:?set in seafile/.env}
       MARIADB_AUTO_UPGRADE: "1"
       MARIADB_INITDB_SKIP_TZINFO: "1"
 
@@ -77,7 +77,7 @@ services:
 
     labels:
       - traefik.enable=true
-      - traefik.http.routers.seafile.rule=Host(`${SEAFILE_HOST:?set SEAFILE_HOST in seafile/.env}`)
+      - traefik.http.routers.seafile.rule=Host(`${SEAFILE_HOST:?set in seafile/.env}`)
       - traefik.http.routers.seafile.entrypoints=websecure
       - traefik.http.services.seafile.loadbalancer.server.port=80
       - traefik.docker.network=traefiknet
@@ -98,7 +98,7 @@ services:
 
     environment:
       JWT_ENABLED: "true"
-      JWT_SECRET: ${ONLYOFFICE_JWT_SECRET:?set ONLYOFFICE_JWT_SECRET in seafile/.env}
+      JWT_SECRET: ${ONLYOFFICE_JWT_SECRET:?set in seafile/.env}
       JWT_HEADER: ${ONLYOFFICE_JWT_HEADER:-Authorization}
       JWT_IN_BODY: "true"
 
@@ -118,7 +118,7 @@ services:
 
     labels:
       - traefik.enable=true
-      - traefik.http.routers.onlyoffice.rule=Host(`${ONLYOFFICE_HOST:?set ONLYOFFICE_HOST in seafile/.env}`)
+      - traefik.http.routers.onlyoffice.rule=Host(`${ONLYOFFICE_HOST:?set in seafile/.env}`)
       - traefik.http.routers.onlyoffice.entrypoints=websecure
       - traefik.http.services.onlyoffice.loadbalancer.server.port=80
       - traefik.docker.network=traefiknet
@@ -140,7 +140,7 @@ services:
       - ${APPS_STORAGE_PATH:-/storage/apps}/seafile/backups:/backups:Z
 
     environment:
-      MYSQL_PWD: ${INIT_SEAFILE_MYSQL_ROOT_PASSWORD:?set INIT_SEAFILE_MYSQL_ROOT_PASSWORD in seafile/.env}
+      MYSQL_PWD: ${INIT_SEAFILE_MYSQL_ROOT_PASSWORD:?set in seafile/.env}
 
     networks:
       - backend

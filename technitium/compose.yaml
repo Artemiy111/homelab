@@ -11,11 +11,11 @@ services:
     environment:
       DNS_ADMIN_PASSWORD: ${TECHNITIUM_ADMIN_PASSWORD}
       DNS_SERVER_NAME: ${TECHNITIUM_HOST}
-      TZ: ${TZ:?set TZ in technitium/.env}
+      TZ: ${TZ:?set in technitium/.env}
 
     ports:
-      - "${SERVER_IP:?set SERVER_IP in technitium/.env}:53:53/udp"
-      - "${SERVER_IP:?set SERVER_IP in technitium/.env}:53:53/tcp"
+      - "${SERVER_IP:?set in technitium/.env}:53:53/udp"
+      - "${SERVER_IP:?set in technitium/.env}:53:53/tcp"
     networks:
       - default
       - traefiknet
