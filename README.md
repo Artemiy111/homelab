@@ -21,7 +21,6 @@
 | Jellyfin | Домашний медиасервер | `https://jellyfin.example.com/` |
 | Jitsi Meet | Приватные видеоконференции | `https://meet.example.com/` |
 | Nextcloud | Файлы, синхронизация, календарь и контакты | `https://nextcloud.example.com/` |
-| Seafile | Файловая синхронизация, обмен файлами и редактирование DOCX/XLSX | `https://seafile.example.com/` |
 | Forgejo | Приватный Git-сервис | `https://forgejo.example.com/` |
 | code-server | VS Code в браузере | `https://code.example.com/` |
 | Pocket ID | Passkey-аутентификация и OpenID Connect | `https://pocket-id.example.com/` |
@@ -86,8 +85,8 @@ health-проверки (Gatus, Uptime Kuma), задаётся переменн�
    значения-заглушки. Общий домен задаётся один раз — см. раздел
    «Общий домен сервисов».
 5. Запустить `traefik`, затем `home`, `pihole`, `uptime-kuma`, `beszel`, `arcane`, `3x-ui`,
-   `nextcloud`, `seafile`, `jellyfin`, `forgejo`, `code-server`, `pocket-id`, `authentik`,
-   `dawarich`, `pdf` и `image-updates`.
+   `nextcloud`, `jellyfin`, `forgejo`, `code-server`, `pocket-id`, `authentik`, `dawarich`,
+   `pdf` и `image-updates`.
 6. Настроить DHCP-сервер роутера так, чтобы он выдавал `192.0.2.10` как DNS.
 7. Инициализировать Restic, создать копию и проверить восстановление.
 
