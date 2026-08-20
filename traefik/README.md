@@ -54,7 +54,7 @@ htpasswd -nbB admin 'choose-a-password'
 docker compose up -d
 ```
 
-После переключения клиентов на Pi-hole панель будет доступна по адресу
+После переключения клиентов на Technitium DNS панель будет доступна по адресу
 `https://traefik.example.com/dashboard/`. Завершающий слеш обязателен.
 
 Сокет Docker подключён только для чтения. При этом он всё равно раскрывает

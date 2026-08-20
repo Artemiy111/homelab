@@ -1,0 +1,44 @@
+name: technitium
+
+services:
+  technitium:
+    image: technitium/dns-server:latest
+    container_name: technitium
+    volumes:
+      - ${APPS_STORAGE_PATH:-/storage/apps}/technitium/etc:/etc/dns:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/technitium/data:/var/lib/dns:Z
+
+    environment:
+      DNS_ADMIN_PASSWORD: ${TECHNITIUM_ADMIN_PASSWORD}
+      DNS_SERVER_NAME: ${TECHNITIUM_HOST}
+      TZ: ${TZ:?set TZ in technitium/.env}
+
+    ports:
+      - "${SERVER_IP:?set SERVER_IP in technitium/.env}:53:53/udp"
+      - "${SERVER_IP:?set SERVER_IP in technitium/.env}:53:53/tcp"
+      - "${SERVER_IP:?set SERVER_IP in technitium/.env}:5300:5380/tcp"
+    networks:
+      - default
+      - traefiknet
+    restart: unless-stopped
+
+    healthcheck:
+      test: [ "CMD", "dig", "+short", "+norecurse", "@127.0.0.1", "technitium" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.technitium.rule=Host(`${TECHNITIUM_HOST}`)
+      - traefik.http.routers.technitium.entrypoints=websecure
+      - traefik.http.services.technitium.loadbalancer.server.port=5380
+      - traefik.docker.network=traefiknet
+
+    security_opt:
+      - no-new-privileges:true
+
+networks:
+  traefiknet:
+    external: true

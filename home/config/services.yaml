@@ -3,10 +3,10 @@
         icon: mdi-router-network
         href: https://traefik.{{HOMEPAGE_VAR_DOMAIN}}/dashboard/
         description: Обратный прокси
-    - Pi-hole:
+    - Technitium DNS:
         icon: mdi-dns
-        href: https://pihole.{{HOMEPAGE_VAR_DOMAIN}}/admin/
-        description: DNS и блокировка рекламы
+        href: https://dns.{{HOMEPAGE_VAR_DOMAIN}}/
+        description: DNS-сервер и блокировка рекламы
     - Uptime Kuma:
         icon: mdi-monitor-eye
         href: https://kuma.{{HOMEPAGE_VAR_DOMAIN}}/
