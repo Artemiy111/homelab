@@ -52,7 +52,7 @@ workspace {
                 tags "infra"
             }
 
-            technitium = softwareSystem "Technitium DNS" "Полноценный DNS-сервер; слушает :53 (DNS) и :5300 (веб-панель), рекурсия + блокировка" {
+            technitium = softwareSystem "Technitium DNS" "Полноценный DNS-сервер; слушает :53 (DNS), веб-панель через Traefik, рекурсия + блокировка" {
                 tags "infra"
             }
 

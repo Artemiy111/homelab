@@ -21,7 +21,7 @@
 | Jellyfin | Домашний медиасервер | `https://jellyfin.example.com/` |
 | Jitsi Meet | Приватные видеоконференции | `https://meet.example.com/` |
 | Nextcloud | Файлы, синхронизация, календарь и контакты | `https://nextcloud.example.com/` |
-| Seafile | Файловая синхронизация и обмен файлами | `https://seafile.example.com/` |
+| Seafile | Файловая синхронизация, обмен файлами и редактирование DOCX/XLSX | `https://seafile.example.com/` |
 | Forgejo | Приватный Git-сервис | `https://forgejo.example.com/` |
 | code-server | VS Code в браузере | `https://code.example.com/` |
 | Pocket ID | Passkey-аутентификация и OpenID Connect | `https://pocket-id.example.com/` |

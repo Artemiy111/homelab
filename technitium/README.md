@@ -1,9 +1,9 @@
 # Technitium DNS Server
 
 Technitium — полноценный DNS-сервер с веб-интерфейсом, блокировкой рекламы и
-встроенной рекурсией. Заменяет Pi-hole: слушает порт 53 (DNS) и 5380 (веб-
-панель, проброшен наружу как 5300). Локальная wildcard-запись разрешает
-`example.com` и все его поддомены в `192.0.2.10`.
+встроенной рекурсией. Заменяет Pi-hole: слушает порт 53 (DNS). Веб-панель
+доступна через Traefik по адресу `https://dns.${DOMAIN}/`. Локальная
+wildcard-запись разрешает `${DOMAIN}` и все его поддомены в `${SERVER_IP}`.
 
 ## Перед запуском
 
@@ -27,34 +27,42 @@ sudo install -d -m 0750 ${APPS_STORAGE_PATH:-/storage/apps}/technitium/data
 docker compose up -d
 ```
 
-Затем в настройках DHCP роутера указать `192.0.2.10` как DNS-сервер. После
+Затем в настройках DHCP роутера указать `${SERVER_IP}` как DNS-сервер. После
 изменения настройки обновить DHCP-аренду на клиентах.
 
 ## Добавление зоны для homelab
 
+### Автоматически (setup-zone.sh)
+
+Скрипт находит контейнер в Docker-сети и настраивает зону через API:
+
+```sh
+./technitium/setup-zone.sh
+```
+
 ### Через веб-интерфейс
 
-Открыть `http://192.0.2.10:5300/` или `https://dns.example.com/` (после
-настройки Traefik). Войти под `admin` (пароль по умолчанию `admin`).
+Открыть `https://dns.${DOMAIN}/` (через Traefik). Войти под `admin` (пароль по
+умолчанию `admin`).
 
-1. Zones → New Zone → Primary → ввести `example.com`.
-2. Добавить A-запись: Name `*`, Value `192.0.2.10`, TTL `3600`.
+1. Zones → New Zone → Primary → ввести `${DOMAIN}`.
+2. Добавить A-запись: Name `*`, Value `${SERVER_IP}`, TTL `3600`.
 
 ### Через REST API
 
 ```sh
 # Получить токен
-TOKEN=$(curl -s "http://192.0.2.10:5300/api/user/login?user=admin&pass=admin" \
+TOKEN=$(curl -s "http://${SERVER_IP}:5380/api/user/login?user=admin&pass=admin" \
   | python3 -c "import sys,json; print(json.load(sys.stdin)['token'])")
 
 # Создать зону
-curl -s "http://192.0.2.10:5300/api/zones/create?token=$TOKEN&zone=example.com&type=Primary"
+curl -s "http://${SERVER_IP}:5380/api/zones/create?token=$TOKEN&zone=${DOMAIN}&type=Primary"
 
 # Добавить wildcard A-запись
-curl -s "http://192.0.2.10:5300/api/zones/records/add?token=$TOKEN&domain=%2A.example.com&zone=example.com&type=A&ipAddress=192.0.2.10&ttl=3600"
+curl -s "http://${SERVER_IP}:5380/api/zones/records/add?token=$TOKEN&domain=%2A.${DOMAIN}&zone=${DOMAIN}&type=A&ipAddress=${SERVER_IP}&ttl=3600"
 
 # Добавить A-запись для dns поддомена
-curl -s "http://192.0.2.10:5300/api/zones/records/add?token=$TOKEN&domain=dns.example.com&zone=example.com&type=A&ipAddress=192.0.2.10&ttl=3600"
+curl -s "http://${SERVER_IP}:5380/api/zones/records/add?token=$TOKEN&domain=dns.${DOMAIN}&zone=${DOMAIN}&type=A&ipAddress=${SERVER_IP}&ttl=3600"
 ```
 
 ## Настройка upstream-резолверов
@@ -63,7 +71,7 @@ curl -s "http://192.0.2.10:5300/api/zones/records/add?token=$TOKEN&domain=dns.ex
 перенаправления запросов на Cloudflare:
 
 ```sh
-curl -s "http://192.0.2.10:5300/api/settings/set?token=$TOKEN&forwarders=1.1.1.1,1.0.0.1"
+curl -s "http://${SERVER_IP}:5380/api/settings/set?token=$TOKEN&forwarders=1.1.1.1,1.0.0.1"
 ```
 
 Или через веб-интерфейс: Settings → Resolution → Forwarders → добавить
@@ -78,10 +86,9 @@ Technitium поддерживает встроенную блокировку. �
 
 ## Веб-интерфейс
 
-Административная панель доступна по адресу `https://dns.example.com/`
-(через Traefik) или напрямую по `http://192.0.2.10:5300/`. По умолчанию
-используется self-signed сертификат; для импорта собственного сертификата
-перейти в Settings → Certificates.
+Административная панель доступна по адресу `https://dns.${DOMAIN}/`
+(через Traefik). По умолчанию используется self-signed сертификат; для импорта
+собственного сертификата перейти в Settings → Certificates.
 
 DNS и веб-интерфейс Technitium нельзя публиковать через интернет-роутер.
 

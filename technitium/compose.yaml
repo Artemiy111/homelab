@@ -2,7 +2,7 @@ name: technitium
 
 services:
   technitium:
-    image: technitium/dns-server:latest
+    image: technitium/dns-server:15.4.0
     container_name: technitium
     volumes:
       - ${APPS_STORAGE_PATH:-/storage/apps}/technitium/etc:/etc/dns:Z
@@ -16,7 +16,6 @@ services:
     ports:
       - "${SERVER_IP:?set SERVER_IP in technitium/.env}:53:53/udp"
       - "${SERVER_IP:?set SERVER_IP in technitium/.env}:53:53/tcp"
-      - "${SERVER_IP:?set SERVER_IP in technitium/.env}:5300:5380/tcp"
     networks:
       - default
       - traefiknet
