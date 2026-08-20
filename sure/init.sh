@@ -18,7 +18,6 @@ if [[ -f "$repo_root/local-ai/.env" ]]; then
 fi
 
 write_env_file "$repo_root/sure/.env" <<EOF
-APPS_STORAGE_PATH=$APPS_STORAGE_PATH
 SURE_HOST=sure.$DOMAIN
 POSTGRES_DB=sure_production
 POSTGRES_USER=sure_user
@@ -26,7 +25,7 @@ POSTGRES_PASSWORD=$(random_secret)
 SECRET_KEY_BASE=$(openssl rand -hex 64)
 OPENAI_ACCESS_TOKEN=${local_ai_key}
 OPENAI_MODEL=gpt-4o
-OPENAI_URI_BASE=https://localai.example.com/v1
+OPENAI_URI_BASE=https://localai.$DOMAIN/v1
 LLM_CONTEXT_WINDOW=8192
 OPENAI_REQUEST_TIMEOUT=300
 ASSISTANT_MAX_TOOL_CALL_ITERATIONS=2

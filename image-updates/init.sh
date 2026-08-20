@@ -8,8 +8,6 @@ source "$repo_root/scripts/lib/common.sh"
 mkdir -p "$APPS_STORAGE_PATH"/wud/store
 
 write_env_file "$repo_root/image-updates/.env" <<EOF
-APPS_STORAGE_PATH=$APPS_STORAGE_PATH
-TZ=$TZ
 WUD_HOST=wud.$DOMAIN
 CUP_HOST=cup.$DOMAIN
 # Docker Hub credentials для Cup (PAT с правами read-only). Хранятся только в

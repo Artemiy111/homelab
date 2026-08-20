@@ -7,7 +7,6 @@ source "$repo_root/scripts/lib/common.sh"
 
 write_env_file "$repo_root/home/.env" <<EOF
 HOMEPAGE_HOST=home.$DOMAIN
-DOMAIN=$DOMAIN
 EOF
 
 render_template "$repo_root/home/config/settings.yaml.tpl" \

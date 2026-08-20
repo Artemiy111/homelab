@@ -14,7 +14,6 @@ ensure_dirs 0700 \
 traefik_network_cidr="$(traefik_network_cidr)"
 
 write_env_file "$repo_root/authentik/.env" <<EOF
-APPS_STORAGE_PATH=$APPS_STORAGE_PATH
 AUTHENTIK_HOST=auth.$DOMAIN
 AUTHENTIK_POSTGRESQL_DATABASE=authentik
 AUTHENTIK_POSTGRESQL_USER=authentik

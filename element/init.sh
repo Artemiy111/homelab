@@ -26,7 +26,6 @@ ensure_dirs 0700 \
 traefik_network_cidr="$(traefik_network_cidr)"
 
 write_env_file "$repo_root/element/.env" <<EOF
-APPS_STORAGE_PATH=$APPS_STORAGE_PATH
 SYNAPSE_HOST=element.$DOMAIN
 SYNAPSE_SERVER_NAME=$DOMAIN
 ELEMENT_HOST=element-web.$DOMAIN

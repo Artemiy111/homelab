@@ -30,8 +30,6 @@ _grant_access 2000 "$APPS_STORAGE_PATH"/mailserver/etc "$APPS_STORAGE_PATH"/mail
 _grant_access 1001 "$APPS_STORAGE_PATH"/mailserver/mail
 
 write_env_file "$repo_root/mailserver/.env" <<EOF
-APPS_STORAGE_PATH=$APPS_STORAGE_PATH
-DOMAIN=$DOMAIN
 MAILSERVER_HOST=mailserver.$DOMAIN
 MAIL_HOST=mail.$DOMAIN
 STALWART_ADMIN_USER=admin

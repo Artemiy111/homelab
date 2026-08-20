@@ -13,7 +13,6 @@ mkdir -p \
   "$APPS_STORAGE_PATH"/pdf/tessdata
 
 write_env_file "$repo_root/pdf/.env" <<EOF
-APPS_STORAGE_PATH=$APPS_STORAGE_PATH
 PDF_HOST=pdf.$DOMAIN
 PDF_ADMIN_USERNAME=admin
 PDF_ADMIN_PASSWORD=$(random_secret)

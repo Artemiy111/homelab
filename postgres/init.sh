@@ -14,7 +14,6 @@ ensure_dirs 0711 \
   "$APPS_STORAGE_PATH"/postgres/data
 
 write_env_file "$repo_root/postgres/.env" <<EOF
-APPS_STORAGE_PATH=$APPS_STORAGE_PATH
 PGWEB_HOST=postgres.$DOMAIN
 POSTGRES_DB=playground
 POSTGRES_USER=playground

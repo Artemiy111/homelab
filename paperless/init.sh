@@ -14,7 +14,6 @@ mkdir -p \
   "$APPS_STORAGE_PATH"/paperless/redis
 
 write_env_file "$repo_root/paperless/.env" <<EOF
-APPS_STORAGE_PATH=$APPS_STORAGE_PATH
 PAPERLESS_HOST=paperless.$DOMAIN
 PAPERLESS_SECRET_KEY=$(random_secret)
 POSTGRES_DB=paperless

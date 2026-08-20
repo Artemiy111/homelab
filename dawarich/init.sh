@@ -15,14 +15,12 @@ mkdir -p \
   "$APPS_STORAGE_PATH"/dawarich/watched
 
 write_env_file "$repo_root/dawarich/.env" <<EOF
-APPS_STORAGE_PATH=$APPS_STORAGE_PATH
 DAWARICH_HOST=dawarich.$DOMAIN
 DAWARICH_VERSION=1.11.0
 POSTGRES_DB=dawarich_production
 POSTGRES_USER=dawarich
 POSTGRES_PASSWORD=$(random_secret)
 SECRET_KEY_BASE=$(openssl rand -hex 64)
-TZ=$TZ
 WEB_CONCURRENCY=1
 BACKGROUND_PROCESSING_CONCURRENCY=3
 APP_CPU_LIMIT=0.50

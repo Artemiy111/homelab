@@ -40,11 +40,21 @@ services=(
   code-server
   gatus
   paperless
+  vault
+  navidrome
+  lute
+  immich
+  local-ai
+  home-assistant
 )
 
 for service in "${services[@]}"; do
   echo "==> $service"
   bash "$repo_root/$service/init.sh"
+  docker compose \
+    --project-directory "$repo_root/$service" \
+    --env-file "$repo_root/.env" \
+    up -d --remove-orphans
 done
 
 echo "Подготовка завершена. Пароли сохранены только в локальных .env сервера."

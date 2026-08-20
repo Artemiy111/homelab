@@ -8,9 +8,7 @@ source "$repo_root/scripts/lib/common.sh"
 mkdir -p "$APPS_STORAGE_PATH"/home-assistant
 
 write_env_file "$repo_root/home-assistant/.env" <<EOF
-APPS_STORAGE_PATH=$APPS_STORAGE_PATH
 HOME_ASSISTANT_HOST=homeassistant.$DOMAIN
-TZ=$TZ
 EOF
 
 compose_config "$repo_root/home-assistant"

@@ -24,11 +24,9 @@ ensure_dirs 0770 \
   "$APPS_STORAGE_PATH"/jitsi/tmp/web-load-test
 
 write_env_file "$repo_root/jitsi/.env" <<EOF
-APPS_STORAGE_PATH=$APPS_STORAGE_PATH
 JITSI_IMAGE_VERSION=stable-11146-1
 JITSI_HOST=meet.$DOMAIN
 PUBLIC_URL=https://meet.$DOMAIN
-TZ=$TZ
 RESOLUTION=1080
 RESOLUTION_MIN=180
 RESOLUTION_WIDTH=1920

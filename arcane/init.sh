@@ -10,7 +10,6 @@ ensure_dirs 0700 \
   "$APPS_STORAGE_PATH"/arcane/data
 
 write_env_file "$repo_root/arcane/.env" <<EOF
-APPS_STORAGE_PATH=$APPS_STORAGE_PATH
 ARCANE_HOST=arcane.$DOMAIN
 ENCRYPTION_KEY=$(openssl rand -hex 32)
 JWT_SECRET=$(openssl rand -hex 32)

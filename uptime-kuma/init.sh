@@ -8,10 +8,7 @@ source "$repo_root/scripts/lib/common.sh"
 mkdir -p "$APPS_STORAGE_PATH"/uptime-kuma/data
 
 write_env_file "$repo_root/uptime-kuma/.env" <<EOF
-APPS_STORAGE_PATH=$APPS_STORAGE_PATH
-SERVER_IP=$SERVER_IP
 UPTIME_KUMA_HOST=kuma.$DOMAIN
-DOMAIN=$DOMAIN
 UPTIME_KUMA_USERNAME=user
 UPTIME_KUMA_PASSWORD=
 EOF

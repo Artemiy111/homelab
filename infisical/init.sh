@@ -17,7 +17,6 @@ postgres_password="$(random_secret)"
 traefik_network_cidr="$(traefik_network_cidr)"
 
 write_env_file "$repo_root/infisical/.env" <<EOF
-APPS_STORAGE_PATH=$APPS_STORAGE_PATH
 INFISICAL_HOST=infisical.$DOMAIN
 INFISICAL_VERSION=latest
 POSTGRES_DB=infisical

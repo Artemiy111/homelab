@@ -15,7 +15,6 @@ ensure_dirs 0755 \
   "$APPS_STORAGE_PATH"/seafile/onlyoffice/logs
 
 write_env_file "$repo_root/seafile/.env" <<EOF
-APPS_STORAGE_PATH=$APPS_STORAGE_PATH
 SEAFILE_HOST=seafile.$DOMAIN
 SEAFILE_VERSION=13.0.25
 TIME_ZONE=$TZ

@@ -56,7 +56,7 @@ curl -I https://dns.example.com/
 
 Ожидается ответ Tailscale ping, SSH-подключение и HTTP redirect `302` от Technitium.
 
-Если сам `homelab` доступен, но адреса `192.168.3.x` не открываются, сначала
+Если сам `homelab` доступен, но адреса `192.168.1.x` не открываются, сначала
 проверить, что subnet route одобрен в admin console. Для firewalld может также
 понадобиться masquerading в активной зоне хоста:
 
