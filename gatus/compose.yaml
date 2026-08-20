@@ -11,10 +11,10 @@ services:
     environment:
       DOMAIN: ${DOMAIN:?set in gatus/.env}
       SERVER_IP: ${SERVER_IP:?set in gatus/.env}
-      NTFY_TOPIC: ${NTFY_TOPIC}
-      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
-      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID}
-      TELEGRAM_PROXY_URL: ${TELEGRAM_PROXY_URL}
+      NTFY_TOPIC: ${NTFY_TOPIC:?set in gatus/.env}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:?set in gatus/.env}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:?set in gatus/.env}
+      TELEGRAM_PROXY_URL: ${TELEGRAM_PROXY_URL:?set in gatus/.env}
 
     networks:
       - traefiknet

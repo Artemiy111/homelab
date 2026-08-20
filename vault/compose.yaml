@@ -12,7 +12,7 @@ services:
     environment:
       # Used by the bundled CLI and healthcheck inside the HTTP-only container.
       VAULT_ADDR: "http://127.0.0.1:8200"
-      VAULT_API_ADDR: "https://${VAULT_HOST}"
+      VAULT_API_ADDR: "https://${VAULT_HOST:?set in vault/.env}"
     command: vault server -config=/vault/config/vault.hcl
     restart: unless-stopped
     healthcheck:

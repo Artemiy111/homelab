@@ -9,8 +9,8 @@ services:
       - ${APPS_STORAGE_PATH:-/storage/apps}/technitium/data:/var/lib/dns:Z
 
     environment:
-      DNS_ADMIN_PASSWORD: ${TECHNITIUM_ADMIN_PASSWORD}
-      DNS_SERVER_NAME: ${TECHNITIUM_HOST}
+      DNS_ADMIN_PASSWORD: ${TECHNITIUM_ADMIN_PASSWORD:?set in technitium/.env}
+      DNS_SERVER_NAME: ${TECHNITIUM_HOST:?set in technitium/.env}
       TZ: ${TZ:?set in technitium/.env}
 
     ports:

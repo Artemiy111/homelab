@@ -44,23 +44,23 @@ services:
 
     environment:
       ZITADEL_PORT: 8080
-      ZITADEL_EXTERNALDOMAIN: ${ZITADEL_HOST}
+      ZITADEL_EXTERNALDOMAIN: ${ZITADEL_HOST:?set in zitadel/.env}
       ZITADEL_EXTERNALPORT: "443"
       ZITADEL_EXTERNALSECURE: "true"
       ZITADEL_TLS_ENABLED: "false"
       ZITADEL_DATABASE_POSTGRES_DSN: postgres://${POSTGRES_USER:-zitadel}:${POSTGRES_PASSWORD:?set in zitadel/.env}@postgres:5432/${POSTGRES_DB:-zitadel}?sslmode=disable
-      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_USERNAME: ${ADMIN_USERNAME}
-      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORD: ${ADMIN_PASSWORD}
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_USERNAME: ${ADMIN_USERNAME:?set in zitadel/.env}
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORD: ${ADMIN_PASSWORD:?set in zitadel/.env}
       ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORDCHANGEREQUIRED: "true"
       ZITADEL_FIRSTINSTANCE_LOGINCLIENTPATPATH: /zitadel/bootstrap/login-client.pat
       ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_MACHINE_USERNAME: login-client
       ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_MACHINE_NAME: Automatically Initialized IAM_LOGIN_CLIENT
       ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_PAT_EXPIRATIONDATE: "2099-01-01T00:00:00Z"
       ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_REQUIRED: "true"
-      ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_BASEURI: https://${ZITADEL_HOST}/ui/v2/login/
-      ZITADEL_OIDC_DEFAULTLOGINURLV2: https://${ZITADEL_HOST}/ui/v2/login/login?authRequest=
-      ZITADEL_OIDC_DEFAULTLOGOUTURLV2: https://${ZITADEL_HOST}/ui/v2/login/logout?post_logout_redirect=
-      ZITADEL_SAML_DEFAULTLOGINURLV2: https://${ZITADEL_HOST}/ui/v2/login/login?samlRequest=
+      ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_BASEURI: https://${ZITADEL_HOST:?set in zitadel/.env}/ui/v2/login/
+      ZITADEL_OIDC_DEFAULTLOGINURLV2: https://${ZITADEL_HOST:?set in zitadel/.env}/ui/v2/login/login?authRequest=
+      ZITADEL_OIDC_DEFAULTLOGOUTURLV2: https://${ZITADEL_HOST:?set in zitadel/.env}/ui/v2/login/logout?post_logout_redirect=
+      ZITADEL_SAML_DEFAULTLOGINURLV2: https://${ZITADEL_HOST:?set in zitadel/.env}/ui/v2/login/login?samlRequest=
 
     volumes:
       - ${APPS_STORAGE_PATH:-/storage/apps}/zitadel/bootstrap:/zitadel/bootstrap:rw
@@ -111,7 +111,7 @@ services:
       ZITADEL_API_URL: http://zitadel:8080
       NEXT_PUBLIC_BASE_PATH: /ui/v2/login
       ZITADEL_SERVICE_USER_TOKEN_FILE: /zitadel/bootstrap/login-client.pat
-      CUSTOM_REQUEST_HEADERS: Host:${ZITADEL_HOST},X-Forwarded-Proto:https
+      CUSTOM_REQUEST_HEADERS: Host:${ZITADEL_HOST:?set in zitadel/.env},X-Forwarded-Proto:https
 
     volumes:
       - ${APPS_STORAGE_PATH:-/storage/apps}/zitadel/bootstrap:/zitadel/bootstrap:ro

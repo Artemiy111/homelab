@@ -10,7 +10,7 @@ services:
       - /storage/media:/media:z,ro
 
     environment:
-      JELLYFIN_PublishedServerUrl: https://${JELLYFIN_HOST}
+      JELLYFIN_PublishedServerUrl: https://${JELLYFIN_HOST:?set in jellyfin/.env}
 
     networks:
       - traefiknet

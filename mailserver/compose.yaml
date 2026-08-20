@@ -13,8 +13,8 @@ services:
       - ${APPS_STORAGE_PATH:-/storage/apps}/mailserver/data:/var/lib/stalwart:Z
     environment:
       STALWART_RECOVERY_ADMIN: "${STALWART_ADMIN_USER:?set in mailserver/.env}:${STALWART_ADMIN_PASS:?set in mailserver/.env}"
-      STALWART_HOSTNAME: "${MAIL_HOST}"
-      STALWART_PUBLIC_URL: "https://${MAILSERVER_HOST}"
+      STALWART_HOSTNAME: "${MAIL_HOST:?set in mailserver/.env}"
+      STALWART_PUBLIC_URL: "https://${MAILSERVER_HOST:?set in mailserver/.env}"
     networks:
       - default
       - traefiknet
@@ -37,7 +37,7 @@ services:
     environment:
       HOSTNAME: "0.0.0.0"
       PORT: "3000"
-      JMAP_SERVER_URL: "https://${MAILSERVER_HOST}"
+      JMAP_SERVER_URL: "https://${MAILSERVER_HOST:?set in mailserver/.env}"
       SETTINGS_SYNC_ENABLED: "true"
     networks:
       - traefiknet

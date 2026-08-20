@@ -9,7 +9,7 @@ services:
       - ${APPS_STORAGE_PATH:-/storage/apps}/beszel/socket:/beszel_socket:z
 
     environment:
-      APP_URL: https://${BESZEL_HOST}
+      APP_URL: https://${BESZEL_HOST:?set in beszel/.env}
       DISABLE_PASSWORD_AUTH: true
 
     networks:
@@ -51,7 +51,7 @@ services:
 
     environment:
       LISTEN: /beszel_socket/beszel.sock
-      HUB_URL: https://${BESZEL_HOST}
+      HUB_URL: https://${BESZEL_HOST:?set in beszel/.env}
       KEY: ${BESZEL_AGENT_KEY:-}
       TOKEN: ${BESZEL_AGENT_TOKEN:-}
     network_mode: host
