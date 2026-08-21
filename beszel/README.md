@@ -46,6 +46,17 @@ docker compose --profile agent ps
 curl -fsS https://beszel.example.com/api/health
 ```
 
+## Superuser панели /_
+
+PocketBase-панель (`/_/`) — отдельный аккаунт, не связанный с hub-пользователем.
+Создать или сбросить пароль:
+
+```sh
+bash ./superuser.sh <email>
+```
+
+Пароль генерируется случайно и печатается один раз.
+
 Файл `.env` не отслеживается Git. Не добавляйте public key и token в
 `.env.example` или Compose-конфигурацию.
 
