@@ -1,42 +1,27 @@
 # Zitadel
 
-Zitadel — основной IdP homelab (Authentik оставлен для сравнения). Один Go-бинар (API + консоль),
-PostgreSQL и отдельный контейнер Login V2 (Next.js). Доступен через Traefik по
-`https://id.example.com/`; консоль — `/ui/console`, вход — `/ui/v2/login`.
-Порты контейнеров на хосте не публикуются.
-
-## Состав
-
-- `postgres` — PostgreSQL, данные в `$APPS_STORAGE_PATH/zitadel/postgresql`.
-- `zitadel` — API + консоль (gRPC/REST на 8080); пишет bootstrap-PAT для Login V2.
-- `login` — Login V2 (`/ui/v2/login`, порт 3000); читает тот же bootstrap-том.
-- `backup-db` (profile `tools`) — согласованный `pg_dump` перед Restic.
-
-Роутинг повторяет официальный compose upstream: `/` → Login V2, `/ui/v2/login`
-→ Login V2, `/api` → API (с strip-prefix), всё остальное → консоль. TLS
-терминирует общий Traefik (`websecure`), поэтому `ZITADEL_TLS_ENABLED=false`,
-`ZITADEL_EXTERNALSECURE=true`.
+Zitadel — IdP homelab. Доступен через Traefik по `https://id.example.com/`;
+- консоль — `/ui/console`
+- вход — `/ui/v2/login`.
 
 ## Первый запуск
 
-`scripts/bootstrap-platform.sh` создаёт `zitadel/.env` со случайными
-`POSTGRES_PASSWORD`, `ADMIN_PASSWORD` и `ZITADEL_MASTERKEY` (админ-пароль сразу
-удовлетворяет политике сложности), а также каталоги `$APPS_STORAGE_PATH/zitadel/*`.
-Либо вручную:
-
 ```sh
-cd zitadel
-cp .env.example .env
-# заполнить POSTGRES_PASSWORD, ADMIN_PASSWORD, ZITADEL_MASTERKEY
-docker compose config --quiet
-docker compose up -d
-docker compose ps
+bash init.sh
 ```
 
+Postgres поднимается с двумя ролями: суперпользователь (`POSTGRES_ADMIN_USER`,
+нужен только для создания роли при инициализации, бэкапа и ручных работ) и
+непривилегированный `POSTGRES_ZITADEL_USER` — владелец базы, под которым
+работает ZITADEL. Роль создаёт `initdb/01-create-zitadel-user.sh`; скрипты из
+`initdb/` выполняются только на пустом каталоге данных.
+
 Админ логинится как `admin@zitadel.id.example.com` (org по умолчанию —
-`zitadel`). Первый вход заставит сменить пароль. Если старт падает с ошибкой
-password complexity — пароль не прошёл политику; миграция применяется частично,
-поэтому `docker compose down -v`, поправить пароль и поднять заново.
+`zitadel`). Принудительная смена пароля выключена
+(`PASSWORDCHANGEREQUIRED=false`): пароль генерируется случайно и лежит в
+`.env`, менять его при первом входе не требуется.
+
+`ZITADEL_FIRSTINSTANCE_*` применяется только на пустой базе.
 
 Не менять `ZITADEL_MASTERKEY` после инициализации: им зашифрованы секреты,
 замена ключа делает данные нечитаемыми.

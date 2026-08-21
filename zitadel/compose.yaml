@@ -7,11 +7,13 @@ services:
 
     volumes:
       - ${APPS_STORAGE_PATH:-/storage/apps}/zitadel/postgresql:/var/lib/postgresql:Z
+      - ./initdb:/docker-entrypoint-initdb.d:ro
 
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-zitadel}
-      POSTGRES_USER: ${POSTGRES_USER:-zitadel}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in zitadel/.env}
+      POSTGRES_USER: ${POSTGRES_ADMIN_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_ADMIN_PASSWORD:?set in zitadel/.env}
+      POSTGRES_ZITADEL_PASSWORD: ${POSTGRES_ZITADEL_PASSWORD:?set in zitadel/.env}
 
     networks:
       - backend
@@ -39,19 +41,18 @@ services:
 
     command:
       - start-from-init
-      - --masterkey
-      - ${ZITADEL_MASTERKEY:?set in zitadel/.env}
 
     environment:
+      ZITADEL_MASTERKEY: ${ZITADEL_MASTERKEY:?set in zitadel/.env}
       ZITADEL_PORT: 8080
       ZITADEL_EXTERNALDOMAIN: ${ZITADEL_HOST:?set in zitadel/.env}
       ZITADEL_EXTERNALPORT: "443"
       ZITADEL_EXTERNALSECURE: "true"
       ZITADEL_TLS_ENABLED: "false"
-      ZITADEL_DATABASE_POSTGRES_DSN: postgres://${POSTGRES_USER:-zitadel}:${POSTGRES_PASSWORD:?set in zitadel/.env}@postgres:5432/${POSTGRES_DB:-zitadel}?sslmode=disable
+      ZITADEL_DATABASE_POSTGRES_DSN: postgres://${POSTGRES_ZITADEL_USER:-zitadel}:${POSTGRES_ZITADEL_PASSWORD:?set in zitadel/.env}@postgres:5432/${POSTGRES_DB:-zitadel}?sslmode=disable
       ZITADEL_FIRSTINSTANCE_ORG_HUMAN_USERNAME: ${ADMIN_USERNAME:?set in zitadel/.env}
       ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORD: ${ADMIN_PASSWORD:?set in zitadel/.env}
-      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORDCHANGEREQUIRED: "true"
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORDCHANGEREQUIRED: "false"
       ZITADEL_FIRSTINSTANCE_LOGINCLIENTPATPATH: /zitadel/bootstrap/login-client.pat
       ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_MACHINE_USERNAME: login-client
       ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_MACHINE_NAME: Automatically Initialized IAM_LOGIN_CLIENT
@@ -161,8 +162,8 @@ services:
     environment:
       PGHOST: postgres
       PGDATABASE: ${POSTGRES_DB:-zitadel}
-      PGUSER: ${POSTGRES_USER:-zitadel}
-      PGPASSWORD: ${POSTGRES_PASSWORD:?set in zitadel/.env}
+      PGUSER: ${POSTGRES_ADMIN_USER:-postgres}
+      PGPASSWORD: ${POSTGRES_ADMIN_PASSWORD:?set in zitadel/.env}
 
     networks:
       - backend
