@@ -16,6 +16,7 @@ services:
       - ${APPS_STORAGE_PATH:-/storage/apps}/netdata/cache:/var/cache/netdata:Z
       - ./config/go.d/prometheus.conf:/etc/netdata/go.d/prometheus.conf:Z,ro
       - ./config/go.d/sd/docker.conf:/etc/netdata/go.d/sd/docker.conf:Z,ro
+      - ./config/health_alarm_notify.conf:/etc/netdata/health_alarm_notify.conf:Z,ro
       - /:/host/root:ro,rslave
       - /etc/passwd:/host/etc/passwd:ro
       - /etc/group:/host/etc/group:ro
