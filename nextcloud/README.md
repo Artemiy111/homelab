@@ -18,20 +18,17 @@ PostgreSQL и Redis на хост не публикуются.
 
 ## Первый запуск
 
-Запустить на сервере общий bootstrap либо создать каталоги и `.env` вручную:
-
 ```sh
-cd /home/artlab/projects/homelab
-bash scripts/bootstrap-platform.sh
-cd nextcloud
-docker compose config --quiet
+cd /home/artlab/projects/homelab/nextcloud
+bash ./init.sh
 docker compose up -d
 docker compose ps
 ```
 
-Bootstrap генерирует независимые пароли PostgreSQL и администратора, записывает
-их только в `nextcloud/.env` с правами `0600` и не перезаписывает существующий
-файл. Узнать первичные реквизиты можно непосредственно в терминале сервера:
+`init.sh` создаёт каталоги состояния, генерирует независимые пароли PostgreSQL
+и администратора, записывает их только в `nextcloud/.env` с правами `0600` и не
+перезаписывает существующий файл. Узнать первичные реквизиты можно непосредственно
+в терминале сервера:
 
 ```sh
 cd /home/artlab/projects/homelab/nextcloud

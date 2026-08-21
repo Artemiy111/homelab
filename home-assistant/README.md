@@ -14,14 +14,14 @@ MAC-адресов сетью и не позволяет контейнеру н
 
 ## Первый запуск
 
-Создайте `.env` и принадлежащий root каталог конфигурации. Home Assistant
-работает как root внутри контейнера, но без Linux capabilities, кроме
-`NET_RAW`; поэтому каталог заранее создаётся отдельным одноразовым контейнером.
+`init.sh` создаёт `.env` с хостом и каталог конфигурации
+`$APPS_STORAGE_PATH/home-assistant`. Home Assistant работает как root внутри
+контейнера, но без Linux capabilities, кроме `NET_RAW`; поэтому каталог заранее
+получает нужные владельца, права и стартовые файлы через отдельный одноразовый
+контейнер. Из каталога сервиса:
 
 ```sh
-cp .env.example .env
-chmod 0600 .env
-mkdir -p ${APPS_STORAGE_PATH:-/storage/apps}/home-assistant
+bash ./init.sh
 docker run --rm \
   --cap-drop ALL \
   --cap-add CHOWN \
@@ -32,7 +32,6 @@ docker run --rm \
     test -e /config/automations.yaml || printf "[]\n" > /config/automations.yaml;
     test -e /config/scripts.yaml || printf "{}\n" > /config/scripts.yaml;
     test -e /config/scenes.yaml || printf "[]\n" > /config/scenes.yaml'
-docker compose config --quiet
 docker compose up -d
 docker compose ps
 ```

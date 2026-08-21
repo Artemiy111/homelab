@@ -41,7 +41,7 @@ curl -fsS 'http://netdata:19999/api/v1/allmetrics?format=prometheus'
 ## Первый запуск
 
 ```sh
-bash init.sh
+bash ./init.sh
 docker compose up -d
 ```
 

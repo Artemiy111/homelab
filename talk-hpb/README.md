@@ -25,19 +25,13 @@
 
 ## Подготовка
 
-На сервере выполнить:
-
 ```sh
-cd /home/artlab/projects/homelab/talk-hpb
-./init.sh
-docker compose pull
+bash ./init.sh
 docker compose up -d
-docker compose ps
 ```
 
 `init.sh` создаёт игнорируемый `.env` с правами `0600` и случайными секретами.
-Повторный запуск не перезаписывает существующие секреты. Проект также входит в
-общий оркестратор инициализации `bash scripts/bootstrap-platform.sh`.
+Повторный запуск не перезаписывает существующие секреты.
 
 ## Настройка Nextcloud Talk
 

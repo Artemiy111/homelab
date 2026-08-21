@@ -11,18 +11,14 @@ Unix-сокет для связи с Hub и подключает Docker socket �
 
 ## Первый запуск
 
-Сначала запустите только Hub:
+Сначала запустите только Hub. Из каталога `beszel` выполнить:
 
 ```sh
-sudo install -d -m 0750 \
-  ${APPS_STORAGE_PATH:-/storage/apps}/beszel/data \
-  ${APPS_STORAGE_PATH:-/storage/apps}/beszel/agent \
-  ${APPS_STORAGE_PATH:-/storage/apps}/beszel/socket
-cp .env.example .env
-chmod 600 .env
-docker compose config --quiet
+bash ./init.sh
 docker compose up -d
 ```
+
+`init.sh` создаёт каталоги `data`, `agent` и `socket` и заготовку `.env`.
 
 Откройте `https://beszel.example.com/` и создайте администратора. Затем:
 

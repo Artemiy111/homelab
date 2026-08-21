@@ -1,43 +1,41 @@
 # LocalAI
 
-LocalAI provides an OpenAI-compatible API at
-`https://localai.example.com`. Traefik is the only ingress: the
-container does not publish a host port. Every request must include the API key
-from `local-ai/.env`, for example as `Authorization: Bearer <key>`.
+LocalAI предоставляет OpenAI-совместимый API по адресу
+`https://localai.example.com`. Единственный ingress — Traefik: контейнер не
+публикует порт на хосте. Каждый запрос должен содержать API-ключ из
+`local-ai/.env`, например как `Authorization: Bearer <key>`.
 
-The deployment uses the pinned `linux/amd64` CPU image. The server has an AMD
-Ryzen 7 6800H with eight physical cores and AVX2. LocalAI chooses its own thread
-count, while Docker limits the whole container to 14 CPU units so two of the
-server's 16 logical CPUs remain outside its quota. GPU devices are deliberately
-not passed through.
+Используется закреплённый CPU-образ `linux/amd64`. На сервере AMD Ryzen 7 6800H
+с восемью физическими ядрами и AVX2. LocalAI сам выбирает число потоков, а
+Docker ограничивает весь контейнер 14 единицами CPU, так что два из 16
+логических ядер сервера остаются вне его квоты. GPU-устройства намеренно не
+пробрасываются.
 
-## First deployment
+## Первый запуск
 
-Create the secret file and persistent directories on the server:
+`init.sh` создаёт каталог `$APPS_STORAGE_PATH/local-ai/models`, формирует `.env`
+с хостом и сгенерированным `LOCALAI_API_KEY`. Остальные каталоги данных он не
+создаёт. Из каталога сервиса:
 
 ```sh
-cp .env.example .env
-openssl rand -hex 32
-chmod 0600 .env
-install -d -m 0750 \
-  ${APPS_STORAGE_PATH:-/storage/apps}/local-ai/models \
+bash ./init.sh
+install -d -m 0750 -o 1000 -g 1000 \
   ${APPS_STORAGE_PATH:-/storage/apps}/local-ai/backends \
   ${APPS_STORAGE_PATH:-/storage/apps}/local-ai/configuration \
   ${APPS_STORAGE_PATH:-/storage/apps}/local-ai/data
-docker compose config --quiet
 docker compose up -d
+docker compose ps
 ```
 
-Put the generated value in `LOCALAI_API_KEY`. The persistent directories must
-be owned by UID/GID `1000:1000`. Existing models under
-`$APPS_STORAGE_PATH/local-ai/models` are retained.
+Существующие модели в `$APPS_STORAGE_PATH/local-ai/models` сохраняются.
 
-The root filesystem is read-only. Only `/models`, `/backends`,
-`/configuration`, `/data`, and the memory-backed `/tmp` are writable. The
-container runs as a non-root user, drops every Linux capability, cannot gain
-new privileges, cannot use swap, and has bounded memory, CPU, PIDs, and logs.
+Корневая файловая система контейнера read-only. Запись возможна только в
+`/models`, `/backends`, `/configuration`, `/data` и memory-backed `/tmp`.
+Контейнер работает от непривилегированного пользователя, сбрасывает все Linux
+capabilities, не может получать новые привилегии, использовать swap и ограничен
+по памяти, CPU, PIDs и логам.
 
-## Verification
+## Проверка
 
 ```sh
 docker compose ps
@@ -49,7 +47,7 @@ curl --resolve localai.example.com:443:192.0.2.10 \
   https://localai.example.com/v1/models
 ```
 
-The first readiness transition can take longer while LocalAI scans models or
-installs a backend. Failed probes are ignored for the first ten minutes so a
-normal startup is not marked unhealthy; a successful probe still makes the
-container healthy immediately.
+Первый переход в состояние ready может занять время, пока LocalAI сканирует
+модели или устанавливает backend. Неудачные пробы игнорируются первые десять
+минут, чтобы обычный старт не помечался как unhealthy; успешная проба сразу
+делает контейнер healthy.

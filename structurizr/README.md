@@ -1,9 +1,7 @@
 # Structurizr
 
 Structurizr vNext (open-core) — инструмент для диаграмм C4. Контейнер доступен
-через Traefik по адресу `https://structurizr.example.com/`; порт
-приложения напрямую на хост не публикуется. Постоянные данные находятся в
-`$APPS_STORAGE_PATH/structurizr`, смонтированном в `/usr/local/structurizr`.
+через Traefik по адресу `https://structurizr.example.com/`.
 
 ## Образ
 
@@ -17,7 +15,7 @@ runtime-образ на `eclipse-temurin:21-alpine`. Пересборка при
 
 ```sh
 # в structurizr/: обновить тег vYYYY.MM.DD в Dockerfile, затем
-bash init.sh   # создаёт .env (STRUCTURIZR_HOST из общего DOMAIN)
+bash ./init.sh   # создаёт .env (STRUCTURIZR_HOST из общего DOMAIN)
 docker compose build --pull
 docker compose up -d
 ```
@@ -29,7 +27,7 @@ docker compose up -d
 
 ## Конфигурация
 
-Настройки лежат в `structurizr.properties.tpl`; `bash init.sh` генерирует из
+Настройки лежат в `structurizr.properties.tpl`; `bash ./init.sh` генерирует из
 него `structurizr.properties` (домен из `DOMAIN`), который монтируется в
 `/usr/local/structurizr/structurizr.properties`: включён браузерный DSL-редактор
 и задан базовый URL за Traefik.

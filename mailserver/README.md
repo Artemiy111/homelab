@@ -13,7 +13,7 @@
 ## Запуск
 
 ```sh
-bash init.sh
+bash ./init.sh
 docker compose up -d
 ```
 

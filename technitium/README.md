@@ -13,12 +13,11 @@ wildcard-запись разрешает `${DOMAIN}` и все его поддо
 sudo ss -lntup | grep ':53 '
 ```
 
-Создать файл окружения и постоянные каталоги:
+Подготовить каталоги и `.env`:
 
 ```sh
-cp .env.example .env
-sudo install -d -m 0750 ${APPS_STORAGE_PATH:-/storage/apps}/technitium/etc
-sudo install -d -m 0750 ${APPS_STORAGE_PATH:-/storage/apps}/technitium/data
+cd /home/artlab/projects/homelab/technitium
+bash ./init.sh
 ```
 
 Внешняя сеть `traefiknet` должна уже существовать. Запустить Technitium:

@@ -10,19 +10,17 @@ Docker socket: при необходимости proxy outposts нужно ра�
 
 ## Первый запуск
 
-После доставки изменений на сервер выполните bootstrap. Он создаст каталоги,
-секретный ключ Authentik, пароль PostgreSQL, CIDR Traefik и `authentik/.env` с
-правами `0600`.
+Из каталога `authentik` выполнить:
 
 ```sh
-cd /home/artlab/projects/homelab
-bash scripts/bootstrap-platform.sh
-cd authentik
-docker compose config --quiet
+bash ./init.sh
 docker compose pull
 docker compose up -d
 docker compose ps
 ```
+
+`init.sh` создаст каталоги (включая `backups`), секретный ключ Authentik, пароль PostgreSQL, CIDR Traefik и `authentik/.env` с
+правами `0600`.
 
 Откройте `https://auth.example.com/if/flow/initial-setup/` и задайте
 пароль встроенному администратору `akadmin`. Не меняйте

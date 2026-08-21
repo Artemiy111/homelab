@@ -11,18 +11,17 @@ Dawarich хранит и визуализирует историю местоп�
 
 ## Первый запуск
 
-Общий bootstrap создаёт каталоги и `.env`, генерирует независимые секреты
-PostgreSQL и Rails и сохраняет их только на сервере с правами `0600`:
+Из каталога `dawarich` выполнить:
 
 ```sh
-cd /home/artlab/projects/homelab
-bash scripts/bootstrap-platform.sh
-cd dawarich
-docker compose config --quiet
+bash ./init.sh
 docker compose pull
 docker compose up -d
 docker compose ps
 ```
+
+`init.sh` создаёт каталоги и `.env`, генерирует независимые секреты
+PostgreSQL и Rails и сохраняет их только на сервере с правами `0600`.
 
 На пустой базе встроенный seed Dawarich создаёт администратора
 `demo@dawarich.app` с паролем `safepassword`. Сразу после первого входа измените
@@ -55,9 +54,7 @@ docker run --rm \
   -v ${APPS_STORAGE_PATH:-/storage/apps}/dawarich:/data:Z \
   alpine:3.22 \
   sh -ec 'find /data -mindepth 1 -delete'
-cd ..
-bash scripts/bootstrap-platform.sh
-cd dawarich
+bash ./init.sh
 docker compose up -d
 docker compose ps
 ```

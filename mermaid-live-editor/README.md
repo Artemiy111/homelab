@@ -6,6 +6,6 @@
 ## Запуск
 
 ```sh
-bash init.sh        # создаёт .env (MERMAID_HOST из общего DOMAIN)
+bash ./init.sh        # создаёт .env (MERMAID_HOST из общего DOMAIN)
 docker compose up -d
 ```

@@ -10,13 +10,11 @@ Homepage — локальная стартовая страница для се�
 
 ## Запуск
 
-На сервере выполните общий bootstrap, затем примените только этот проект:
+`init.sh` формирует `.env` с хостом и `config/settings.yaml`, затем проверяет
+Compose-конфигурацию. Из каталога сервиса:
 
 ```sh
-cd /home/artlab/projects/homelab
-bash scripts/bootstrap-platform.sh
-cd home
-docker compose config --quiet
+bash ./init.sh
 docker compose up -d
 docker compose ps
 ```

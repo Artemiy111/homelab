@@ -7,7 +7,8 @@ Zitadel — IdP homelab. Доступен через Traefik по `https://id.ex
 ## Первый запуск
 
 ```sh
-bash init.sh
+bash ./init.sh
+docker compose up -d
 ```
 
 Postgres поднимается с двумя ролями: суперпользователь (`POSTGRES_ADMIN_USER`,

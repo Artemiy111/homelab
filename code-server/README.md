@@ -12,15 +12,16 @@ snapshot.
 
 ## Запуск
 
-Общий bootstrap создаёт `.env`, каталоги и проверяет Compose-конфигурацию:
+Из каталога `code-server` выполнить:
 
 ```sh
-bash scripts/bootstrap-platform.sh
-cd code-server
-docker compose config --quiet
+bash ./init.sh
 docker compose up -d
 docker compose ps
 ```
+
+`init.sh` создаёт `.env` (хост, UID/GID и имя пользователя) и каталоги `home`
+и `workspace`.
 
 После первого запуска пароль можно получить так:
 

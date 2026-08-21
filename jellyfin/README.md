@@ -11,16 +11,16 @@ Jellyfin хранит конфигурацию в `$APPS_STORAGE_PATH/jellyfin`,
 
 ## Запуск
 
-На сервере создать локальный файл окружения и постоянные каталоги:
+`init.sh` создаёт каталоги `$APPS_STORAGE_PATH/jellyfin/config` и `cache`,
+формирует `.env` с хостом и GID группы `render`. Каталог медиатеки он не
+создаёт. Из каталога сервиса:
 
 ```sh
-cd /home/artlab/projects/homelab/jellyfin
-cp .env.example .env
-chmod 600 .env
-mkdir -p ${APPS_STORAGE_PATH:-/storage/apps}/jellyfin/config ${APPS_STORAGE_PATH:-/storage/apps}/jellyfin/cache /storage/media
-docker compose config --quiet
+bash ./init.sh
+install -d /storage/media
 docker compose pull
 docker compose up -d
+docker compose ps
 ```
 
 При существующей установке каталоги `/config` и `/cache` сохраняются, поэтому

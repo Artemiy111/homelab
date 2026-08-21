@@ -18,20 +18,12 @@ ZITADEL (`oauth2-proxy/README.md`). Отдельные секреты для э�
 
 ## Запуск
 
-Первичная подготовка всего homelab создаёт каталог данных и `.env`
-автоматически:
+`init.sh` создаёт каталог `$APPS_STORAGE_PATH/wud/store`, формирует `.env`
+с хостами и заготовками для Docker Hub и рендерит `cup.json`. Из каталога
+сервиса:
 
 ```sh
-bash scripts/bootstrap-platform.sh
-```
-
-Для ручной подготовки только этого проекта:
-
-```sh
-sudo install -d -m 0750 ${APPS_STORAGE_PATH:-/storage/apps}/wud/store
-cp .env.example .env
-chmod 600 .env
-docker compose config --quiet
+bash ./init.sh
 docker compose up -d
 docker compose ps
 ```

@@ -12,19 +12,16 @@ filesystem и принимает proxy headers только от CIDR сети `
 
 ## Первый запуск
 
-После доставки изменений на сервер запустите общий bootstrap: он создаст каталог
-данных с правами `0700`, сформирует независимый ключ шифрования в локальном
-`pocket-id/.env` и проверит Compose-конфигурацию. Секрет не попадёт в Git.
-
 ```sh
-cd /home/artlab/projects/homelab
-bash scripts/bootstrap-platform.sh
-cd pocket-id
-docker compose config --quiet
-docker compose pull
+bash ./init.sh
 docker compose up -d
 docker compose ps
 ```
+
+`init.sh` создаёт каталог данных с правами `0700`, формирует независимый ключ
+шифрования в локальном `pocket-id/.env` и проверяет Compose-конфигурацию.
+Секрет не попадёт в Git.
+
 Откройте `https://pocket-id.example.com/setup`, создайте администратора и сразу
 зарегистрируйте как минимум две passkey на разных устройствах. Pocket ID не
 поддерживает вход по паролю. Самостоятельная регистрация пользователей по

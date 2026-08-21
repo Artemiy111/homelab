@@ -2,13 +2,12 @@
 
 Тестовый PostgreSQL с веб-интерфейсом [pgweb](https://sosedoff.github.io/pgweb/).
 База не публикует порт `5432` на хосте: к ней можно подключиться из pgweb или
-из терминала через Docker Compose. Данные сохраняются в
-`$APPS_STORAGE_PATH/postgres/data`.
+из терминала через Docker Compose.
 
 ## Запуск
 
 ```sh
-bash init.sh
+bash ./init.sh
 docker compose up -d
 ```
 

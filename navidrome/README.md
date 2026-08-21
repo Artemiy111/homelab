@@ -11,16 +11,16 @@ Navidrome индексирует локальную музыкальную би�
 
 ## Первый запуск
 
-На сервере один раз создайте постоянные каталоги и локальный файл окружения:
-
 ```sh
-mkdir -p ${APPS_STORAGE_PATH:-/storage/apps}/navidrome/data /storage/media/music
 cd /home/artlab/projects/homelab/navidrome
-cp .env.example .env
-chmod 600 .env
-docker compose config --quiet
+bash ./init.sh
 docker compose up -d
+docker compose ps
 ```
+
+`init.sh` создаёт каталог данных и `.env` с правами `0600`, проверяет
+Compose-конфигурацию. Каталог с музыкой `/storage/media/music` он не создаёт —
+при необходимости создайте его вручную (`mkdir -p /storage/media/music`).
 
 Создайте учётную запись администратора на экране первого запуска. Публичный
 доступ к ссылкам отключён в Compose-конфигурации.

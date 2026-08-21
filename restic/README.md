@@ -16,11 +16,15 @@ Restic создаёт зашифрованные дедуплицированн�
 ## Инициализация
 
 ```sh
-cp .env.example .env
-chmod 600 .env
-sudo install -d -m 0700 /storage/backups/restic ${APPS_STORAGE_PATH:-/storage/apps}/restic/cache
+cd /home/artlab/projects/homelab/restic
+bash ./init.sh
 docker compose run --rm init
 ```
+
+`init.sh` создаёт каталоги `$APPS_STORAGE_PATH/restic/{cache,restore}`,
+`/storage/backups/restic`, генерирует `RESTIC_PASSWORD` в `.env` и проверяет
+Compose-конфигурацию. Одноразовую инициализацию репозитория выполняет
+`docker compose run --rm init`.
 
 Нельзя терять `RESTIC_PASSWORD`: его резервную копию нужно хранить вне сервера.
 

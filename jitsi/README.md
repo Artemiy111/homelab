@@ -10,22 +10,15 @@ Tailscale к `192.0.2.10/24`, как описано в [`../tailscale/README.md`
 
 ## Подготовка
 
-На сервере выполнить:
+`init.sh` создаёт каталоги в `$APPS_STORAGE_PATH/jitsi` и игнорируемый `.env` с
+правами `0600`. Повторный запуск не перезаписывает существующие секреты.
+Из каталога сервиса:
 
 ```sh
-cd /home/artlab/projects/homelab/jitsi
-./init.sh
+bash ./init.sh
 docker compose pull
 docker compose up -d
 docker compose ps
-```
-
-`init.sh` создаёт каталоги в `$APPS_STORAGE_PATH/jitsi` и игнорируемый `.env` с
-правами `0600`. Повторный запуск не перезаписывает существующие секреты. Jitsi
-также входит в общий оркестратор инициализации:
-
-```sh
-bash scripts/bootstrap-platform.sh
 ```
 
 Версия `stable-11146-1` закреплена для всех четырёх образов. При обновлении менять

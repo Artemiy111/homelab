@@ -8,13 +8,12 @@ Utilities for Tracking Exposure). Контейнер доступен тольк
 
 ## Запуск
 
-Создайте `.env` с именем хоста (используется в правиле маршрутизации Traefik):
+`init.sh` создаёт каталоги данных и книг в `$APPS_STORAGE_PATH/lute` и формирует
+`.env` с именем хоста (используется в правиле маршрутизации Traefik). Из
+каталога сервиса:
 
 ```sh
-cp .env.example .env
-chmod 600 .env
-install -d ${APPS_STORAGE_PATH:-/storage/apps}/lute/data/data ${APPS_STORAGE_PATH:-/storage/apps}/lute/data/backups
-docker compose config --quiet
+bash ./init.sh
 docker compose up -d
 docker compose ps
 ```

@@ -72,7 +72,7 @@ create-user.sh YOUR_LOGIN`. Созданная учётная запись не 
 Из каталога `element`:
 
 ```sh
-bash init.sh
+bash ./init.sh
 docker compose up -d
 docker compose ps
 ```

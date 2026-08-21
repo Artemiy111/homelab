@@ -10,12 +10,17 @@ Uptime Kuma продолжает работать отдельно на
 
 ## Запуск
 
+Из каталога `gatus` выполнить:
+
 ```sh
-cp .env.example .env
-sudo install -d -m 0750 ${APPS_STORAGE_PATH:-/storage/apps}/gatus/data
-docker compose config --quiet
+bash ./init.sh
 docker compose up -d
+docker compose ps
 ```
+
+`init.sh` создаёт каталог данных и `.env`: случайный топик ntfy и заготовки
+переменных Telegram (`TELEGRAM_BOT_TOKEN` и `TELEGRAM_CHAT_ID` нужно заполнить
+вручную).
 
 Gatus подключён к `traefiknet`, поэтому может проверять как пользовательские
 HTTPS-маршруты, так и отдельно выбранные Docker backend. HTTPS-проверки явно

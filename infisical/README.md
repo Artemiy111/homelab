@@ -13,8 +13,7 @@ Open-source secrets management platform (MIT CE). Хранение, ротаци
 
 `init.sh` создаёт каталоги данных, формирует локальный `infisical/.env`
 (пароль PostgreSQL, `ENCRYPTION_KEY`, `AUTH_SECRET` и `TRUSTED_PROXY_CIDRS`)
-и проверяет Compose-конфигурацию. Секреты не попадают в Git. См. также
-`scripts/bootstrap-platform.sh`.
+и проверяет Compose-конфигурацию. Секреты не попадают в Git.
 
 ```sh
 cd /home/artlab/projects/homelab

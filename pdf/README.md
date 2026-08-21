@@ -13,17 +13,17 @@ Stirling PDF — веб-сервис для операций с PDF. Он дос
 ## Запуск
 
 ```sh
-cp .env.example .env
-chmod 600 .env
-install -d ${APPS_STORAGE_PATH:-/storage/apps}/pdf/{configs,customFiles,logs,pipeline,tessdata}
-docker compose config --quiet
+cd /home/artlab/projects/homelab/pdf
+bash ./init.sh
 docker compose up -d
+docker compose ps
 ```
+
+`init.sh` создаёт каталоги состояния и `.env` с учётными данными администратора.
 
 Проверка состояния:
 
 ```sh
-docker compose ps
 curl -fsS https://pdf.example.com/api/v1/info/status
 ```
 

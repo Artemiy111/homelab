@@ -2,8 +2,7 @@
 
 Seafile — файловое облако для синхронизации и обмена файлами. Сервис доступен
 только в локальной сети и через Tailscale по адресу
-`https://seafile.example.com/`. TLS завершается в Traefik; порты Seafile и
-MariaDB на хост не публикуются.
+`https://seafile.example.com/`.
 
 ## Состав
 

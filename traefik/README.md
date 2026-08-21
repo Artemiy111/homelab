@@ -13,22 +13,22 @@ HTTPS-точку входа `websecure`, а `web` перенаправляет H
 docker network create traefiknet
 ```
 
-Создать локальный файл окружения:
+Подготовить конфигурацию и запустить:
 
 ```sh
-cp .env.example .env
+bash ./init.sh
+docker compose up -d
+docker compose ps
 ```
 
-При использовании `scripts/bootstrap-platform.sh` файл создаётся автоматически,
-а случайный пароль сохраняется в `TRAEFIK_DASHBOARD_PASSWORD` внутри `.env`.
-
-`traefik.yaml` в Git не хранится: `bash init.sh` генерирует его из
-`traefik.yaml.tpl`, подставляя домен из `DOMAIN`. При ручной подготовке вместо
-`cp .env.example .env` выполните `bash init.sh` — он создаст и `.env`, и
-`traefik.yaml`.
+`init.sh` создаёт `.env` со случайным паролем дашборда
+(`TRAEFIK_DASHBOARD_PASSWORD` и его хеш) и генерирует `traefik.yaml` из
+`traefik.yaml.tpl`, подставляя домен из `DOMAIN`. Повторный запуск существующий
+`.env` не перезаписывает, но заново рендерит `traefik.yaml` — поэтому после
+заполнения `LETSENCRYPT_EMAIL` в `.env` выполните `bash ./init.sh` ещё раз.
 
 Для получения сертификата Let's Encrypt создать в <dns-provider> TSIG-ключ зоны
-`example.com` и заполнить в `.env`:
+`example.com` и заполнить в `.env` вместо заглушек:
 
 ```dotenv
 RFC2136_NAMESERVER=ns1.<dns-provider>.com:53
@@ -39,20 +39,8 @@ RFC2136_TSIG_SECRET=секрет-из-<dns-provider>
 
 TSIG-секрет не добавлять в Git. Он используется Traefik только для временного
 создания TXT-записей DNS-01. Сертификаты и данные ACME сохраняются в
-`$APPS_STORAGE_PATH/traefik/letsencrypt/acme.json` с правами `0600`.
-
-Создать учётные данные панели. В `.env` хеш необходимо оставить в одинарных
-кавычках, чтобы знаки доллара воспринимались буквально:
-
-```sh
-htpasswd -nbB admin 'choose-a-password'
-```
-
-Запустить Traefik:
-
-```sh
-docker compose up -d
-```
+`$APPS_STORAGE_PATH/traefik/letsencrypt/acme.json` с правами `0600` (файл
+создаёт `init.sh`).
 
 После переключения клиентов на Technitium DNS панель будет доступна по адресу
 `https://traefik.example.com/dashboard/`. Завершающий слеш обязателен.

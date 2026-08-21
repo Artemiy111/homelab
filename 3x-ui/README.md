@@ -13,19 +13,10 @@ VLESS, VMess, Trojan, Shadowsocks, WireGuard, Hysteria2, HTTP/SOCKS и неск�
 
 ## Подготовка
 
-На сервере выполнить общий bootstrap, который создаст каталоги, `.env`, случайный
-пароль и случайный URL-путь панели:
+Из каталога `3x-ui` выполнить:
 
 ```sh
-cd /home/artlab/projects/homelab
-bash scripts/bootstrap-platform.sh
-```
-
-Проверить итоговую Compose-конфигурацию и запустить сервис:
-
-```sh
-cd 3x-ui
-docker compose config --quiet
+bash ./init.sh
 docker compose up -d
 docker compose ps
 docker compose rm -f initialize
@@ -43,7 +34,8 @@ docker compose rm -f initialize
 https://xui.example.com/<случайный-путь>/
 ```
 
-Логин и пароль находятся в том же `.env`. После первого входа включить 2FA.
+Логин и пароль находятся в том же `.env`: `init.sh` генерирует случайный пароль
+администратора и случайный URL-путь панели. После первого входа включить 2FA.
 Внутренний TLS панели включать не нужно: HTTPS завершается на Traefik.
 
 ## Создание первого inbound
@@ -81,7 +73,7 @@ docker compose up -d
 ```
 
 SQLite-база и настройки находятся в `$APPS_STORAGE_PATH/3x-ui/db` и попадают в общий
-Restic backup каталога `$APPS_STORAGE_PATH`. Bootstrap закрывает каталоги 3x-ui
+Restic backup каталога `$APPS_STORAGE_PATH`. `init.sh` закрывает каталоги 3x-ui
 режимом `0700`, поскольку база содержит клиентские конфигурации и ключевой
 материал.
 

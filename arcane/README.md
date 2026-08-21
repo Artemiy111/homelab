@@ -20,16 +20,16 @@ Docker доступен не напрямую, а через ограничен�
 
 ## Первый запуск
 
+Из каталога `arcane` выполнить:
+
 ```sh
-cd /home/artlab/projects/homelab
-bash scripts/bootstrap-platform.sh
-cd arcane
+bash ./init.sh
 docker compose pull
 docker compose up -d
 docker compose ps
 ```
 
-Откройте `https://arcane.example.com/` и войдите под учётными данными
+`init.sh` создаёт каталоги данных и `.env`. Откройте `https://arcane.example.com/` и войдите под учётными данными
 по умолчанию (`arcane` / `arcane-admin`); при первом входе Arcane потребует
 сменить пароль. Секреты `ENCRYPTION_KEY` и `JWT_SECRET` генерирует `init.sh`,
 они хранятся только в локальном `arcane/.env` (в Git не попадают).

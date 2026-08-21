@@ -11,18 +11,17 @@ PostgreSQL и HTTP-порт контейнера на хост не публик
 
 ## Первый запуск
 
-Общий bootstrap создаёт каталоги данных и `.env`, генерирует пароль PostgreSQL
-и сохраняет его на сервере с правами `0600`:
+Из каталога `forgejo` выполнить:
 
 ```sh
-cd /home/artlab/projects/homelab
-bash scripts/bootstrap-platform.sh
-cd forgejo
-docker compose config --quiet
+bash ./init.sh
 docker compose pull
 docker compose up -d
 docker compose ps
 ```
+
+`init.sh` создаст каталоги данных (включая `backups`) и `.env`, сгенерирует пароль PostgreSQL
+и сохранит его на сервере с правами `0600`.
 
 Откройте `https://forgejo.example.com/` — откроется мастер установки.
 Укажите адрес PostgreSQL (`db:5432`), имя базы и пароль из `.env`, создайте

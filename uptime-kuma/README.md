@@ -2,11 +2,8 @@
 
 ## Запуск
 
-Создать файл окружения и каталог данных:
-
 ```sh
-cp .env.example .env
-sudo install -d -m 0750 ${APPS_STORAGE_PATH:-/storage/apps}/uptime-kuma/data
+bash ./init.sh
 docker compose up -d
 ```
 
