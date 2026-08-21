@@ -40,9 +40,9 @@ docker compose ps
 ```
 
 Второй запуск `init.sh` выполняется уже после создания контейнером файла
-`shared/seafile/conf/seahub_settings.py`: он подключает к нему файл настроек
-редактора `seahub_onlyoffice.py`. При последующих обновлениях достаточно
-выполнить `init.sh` перед перезапуском стека.
+`shared/seafile/conf/seahub_settings.py`: он добавляет настройки редактора в
+Seahub. При последующих обновлениях достаточно выполнить `init.sh` перед
+перезапуском стека.
 
 Начальная учётная запись берётся из `INIT_SEAFILE_ADMIN_EMAIL` и
 `INIT_SEAFILE_ADMIN_PASSWORD` в `seafile/.env`. Она создаётся только при первом
@@ -57,15 +57,7 @@ docker compose ps
 
 `init.sh` генерирует общий JWT-секрет для Seafile и ONLYOFFICE. Существующий
 `.env` автоматически дополняется настройками редактора без замены имеющихся
-секретов. Настройки редактора для Seahub живут в отслеживаемом файле
-`seahub_onlyoffice.py`: он примонтирован в контейнер read-only и подключается
-из `seahub_settings.py`, а значения берёт из окружения контейнера. Seahub
-читает настройки один раз при старте воркера, поэтому после изменения
-`seahub_onlyoffice.py` или переменных `ONLYOFFICE_*` в `.env` выполните
-`docker compose restart seafile` — иначе редактор покажет «Загрузка
-не удалась». ONLYOFFICE разрешено обращаться к приватному адресу Seafile,
-потому что сервисы работают только во внутренней сети homelab; внешний доступ
-к ним по-прежнему ограничен DNS/Tailscale и Traefik. После обновления запустите:
+секретов. После обновления запустите:
 
 ```sh
 docker compose pull onlyoffice seafile
@@ -87,23 +79,6 @@ curl --resolve onlyoffice.example.com:443:192.0.2.10 \
 измените содержимое и закройте редактор — Seafile сохранит изменения через
 защищённый callback. Не меняйте `ONLYOFFICE_JWT_SECRET` на работающей установке
 без планового перезапуска обоих контейнеров.
-
-### «Загрузка не удалась» в редакторе
-
-Если редактор открывается, но документ не загружается, проверьте, какую схему
-видит DocumentServer на websocket-соединениях. Traefik не выставляет
-`X-Forwarded-Proto` на websocket-upgrade запросах; из-за этого DocumentServer
-строит ссылку на документ с `http://`, и браузер блокирует её как mixed
-content. В `compose.yaml` для этого добавлена middleware
-`onlyoffice-xfp` (принудительно `X-Forwarded-Proto: https`) — не удаляйте её.
-Проверить схему можно в DEBUG-логе документсервера:
-
-```sh
-docker compose exec onlyoffice grep -a getBaseUrlByConnection \
-  /var/log/onlyoffice/documentserver/docservice/out.log | tail -1
-```
-
-Ожидается `x-forwarded-proto=https`.
 
 После входа смените пароль и создайте отдельную учётную запись администратора
 для повседневной работы. Не публикуйте содержимое `.env` и не добавляйте его в
