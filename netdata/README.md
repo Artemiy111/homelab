@@ -19,13 +19,32 @@ setuid-binary, и запрет новых привилегий ломает сб
 
 Сбор Prometheus-метрик приложений настроен декларативно в
 `config/go.d/prometheus.conf`. Цели выбраны по аудиту
-`docs/research/monitoring-systems-overview.md` (§7): приложения, которые уже
-отдают `/metrics` без дополнительных настроек:
+`docs/research/monitoring-systems-overview.md` (§7):
 
-- Authentik: `http://authentik-server:9300/metrics`;
-- WUD: `http://wud:3000/metrics`.
+| Цель | Источник |
+|---|---|
+| `authentik-server:9300` | отдаёт метрики без настройки |
+| `wud:3000/metrics` | отдаёт метрики без настройки |
+| `traefik:8082/metrics` | entrypoint `metrics` в `traefik.yaml.tpl` |
+| `gatus:8080/metrics` | `metrics: true` в `gatus/config/config.yaml` |
+| `navidrome:4533/metrics_<секрет>` | секретный путь из `navidrome/.env` |
+| `dawarich:3000/metrics` (basic auth) | env в `dawarich/compose.yaml` |
+| `forgejo:3000/metrics?token=…` | токен из `forgejo/.env` |
+| `element-synapse:9009/_synapse/metrics` | listener в `homeserver.yaml.tmpl` |
+| `immich-server:8081/metrics` | `IMMICH_TELEMETRY_INCLUDE=all` в `.env` |
+| `element-livekit:6789/metrics` | блок `prometheus:` в конфиге LiveKit |
 
-Новые цели добавляются в этот файл и применяются перезапуском контейнера:
+Креды целей с аутентификацией живут только в `.env` соответствующих сервисов;
+`netdata/init.sh` зеркалирует их в `netdata/.env` с префиксом `NETDATA_`,
+а compose пробрасывает в контейнер — в конфиге они раскрываются как `${NETDATA_*}`.
+
+Не подключены (нужен ручной шаг или вскрывают метрики наружу): Vault
+(маршрут без oauth, unauth-метрики были бы публичными), Technitium,
+LocalAI, Home Assistant (long-lived токены через UI), Stalwart (конфиг
+в административной БД), talk-hpb (сторонний модуль eturnal).
+
+Новые цели добавляются в `config/go.d/prometheus.conf` и применяются
+перезапуском контейнера:
 
 ```sh
 docker compose restart netdata

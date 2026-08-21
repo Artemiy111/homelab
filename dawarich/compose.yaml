@@ -16,7 +16,9 @@ x-dawarich-environment: &dawarich-environment
   SELF_HOSTED: "true"
   STORE_GEODATA: "true"
   STORAGE_BACKEND: local
-  PROMETHEUS_EXPORTER_ENABLED: "false"
+  PROMETHEUS_EXPORTER_ENABLED: "true"
+  METRICS_USERNAME: ${DAWARICH_METRICS_USERNAME:?set in dawarich/.env}
+  METRICS_PASSWORD: ${DAWARICH_METRICS_PASSWORD:?set in dawarich/.env}
 
 services:
   redis:

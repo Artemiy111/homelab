@@ -22,4 +22,8 @@ POSTGRES_PASSWORD=$(random_secret)
 TRAEFIK_NETWORK_CIDR=$traefik_network_cidr
 EOF
 
+# Токен для Prometheus-метрик (см. compose.yaml): без него /metrics был бы
+# доступен на публичном маршруте forgejo.$DOMAIN/metrics.
+upsert_env "$repo_root/forgejo/.env" FORGEJO_METRICS_TOKEN "$(random_secret)"
+
 compose_config "$repo_root/forgejo"

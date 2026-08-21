@@ -7,6 +7,8 @@ extra_well_known_client_content:
       livekit_service_url: https://${LIVEKIT_HOST}/livekit/jwt
 report_stats: false
 pid_file: /data/homeserver.pid
+# Метрики отдаются на отдельном listener (скрейп netdata внутри traefiknet).
+enable_metrics: true
 listeners:
   - port: 8080
     tls: false
@@ -16,6 +18,14 @@ listeners:
     resources:
       - names: [client, federation]
         compress: true
+  - port: 9009
+    tls: false
+    type: http
+    bind_addresses:
+      - 0.0.0.0
+    resources:
+      - names: [metrics]
+        compress: false
 
 database:
   name: psycopg2

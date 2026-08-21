@@ -31,6 +31,13 @@ entryPoints:
           - main: ${DOMAIN}
             sans:
               - "*.${DOMAIN}"
+  # Внутренний entrypoint для Prometheus-метрик; наружу не публикуется.
+  metrics:
+    address: ":8082"
+
+metrics:
+  prometheus:
+    entryPoint: metrics
 
 certificatesResolvers:
   letsencrypt:

@@ -159,6 +159,19 @@ write_env_file() {
   chmod 600 "$env_file"
 }
 
+# Добавляет или обновляет одну переменную в .env-файле. Нужна для ключей,
+# появившихся после первого создания файла (write_env_file существующие
+# файлы не изменяет). Значение со спецсимволом | не поддерживается.
+upsert_env() {
+  local env_file="$1" key="$2" value="$3"
+  if grep -q "^${key}=" "$env_file" 2>/dev/null; then
+    sed -i "s|^${key}=.*|${key}=${value}|" "$env_file"
+  else
+    printf '%s=%s\n' "$key" "$value" >>"$env_file"
+    chmod 600 "$env_file"
+  fi
+}
+
 # CIDR подсети docker-сети traefiknet (нужен некоторым сервисам в .env).
 traefik_network_cidr() {
   docker network inspect traefiknet \

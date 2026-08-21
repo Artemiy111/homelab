@@ -17,4 +17,7 @@ DB_USERNAME=postgres
 DB_DATABASE_NAME=immich
 EOF
 
+# Телеметрия (Prometheus-метрики) на внутренних портах 8081/8082.
+upsert_env "$repo_root/immich/.env" IMMICH_TELEMETRY_INCLUDE "all"
+
 compose_config "$repo_root/immich"

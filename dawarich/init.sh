@@ -29,4 +29,8 @@ LOG_MAX_SIZE=100m
 LOG_MAX_FILE=5
 EOF
 
+# Basic auth для Prometheus-метрик (см. compose.yaml).
+upsert_env "$repo_root/dawarich/.env" DAWARICH_METRICS_USERNAME "netdata"
+upsert_env "$repo_root/dawarich/.env" DAWARICH_METRICS_PASSWORD "$(random_secret)"
+
 compose_config "$repo_root/dawarich"
