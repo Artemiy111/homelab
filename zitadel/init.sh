@@ -23,7 +23,7 @@ POSTGRES_ADMIN_PASSWORD=$(random_secret)
 POSTGRES_ZITADEL_USER=zitadel
 POSTGRES_ZITADEL_PASSWORD=$(random_secret)
 ADMIN_USERNAME=admin
-ADMIN_PASSWORD=Za9!$(openssl rand -base64 18 | tr -d '=\n' | tr '/+' '_-')
+ADMIN_PASSWORD=$(random_password)
 EOF
 
 # Masterkey хранится отдельным файлом (0600): ZITADEL v4 не читает его из
