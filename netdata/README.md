@@ -35,8 +35,11 @@ setuid-binary, и запрет новых привилегий ломает сб
 | `element-livekit:6789/metrics` | блок `prometheus:` в конфиге LiveKit |
 
 Креды целей с аутентификацией живут только в `.env` соответствующих сервисов;
-`netdata/init.sh` зеркалирует их в `netdata/.env` с префиксом `NETDATA_`,
-а compose пробрасывает в контейнер — в конфиге они раскрываются как `${NETDATA_*}`.
+`netdata/init.sh` зеркалирует их в `netdata/.env` с префиксом `NETDATA_` и
+рендерит из шаблона `config/go.d/prometheus.conf.tpl` файл в
+`$APPS_STORAGE_PATH/netdata/config/go.d/prometheus.conf` (go.d не подставляет
+переменные окружения в конфиги, а готовый файл содержит секреты и хранится
+только на сервере).
 
 Не подключены (нужен ручной шаг или вскрывают метрики наружу): Vault
 (маршрут без oauth, unauth-метрики были бы публичными), Technitium,

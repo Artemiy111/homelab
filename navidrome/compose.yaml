@@ -13,6 +13,9 @@ services:
       ND_MUSICFOLDER: /music
       ND_SCANNER_SCHEDULE: "@every 1h"
       ND_ENABLESHARING: "false"
+      # Метрики на секретном пути (значение в navidrome/.env).
+      ND_PROMETHEUS_ENABLED: "true"
+      ND_PROMETHEUS_METRICSPATH: /metrics_${NAVIDROME_METRICS_PATH:?set in navidrome/.env}
 
     networks:
       - traefiknet

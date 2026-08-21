@@ -22,12 +22,16 @@ jobs:
     url: http://navidrome:4533/metrics_${NETDATA_NAVIDROME_METRICS_PATH}
 
   - name: dawarich
-    url: http://dawarich:3000/metrics
+    # Приложение редиректит внутренние запросы на публичный HTTPS-URL.
+    url: https://dawarich.example.com/metrics
     username: ${NETDATA_DAWARICH_METRICS_USERNAME}
     password: ${NETDATA_DAWARICH_METRICS_PASSWORD}
 
   - name: forgejo
-    url: http://forgejo:3000/metrics?token=${NETDATA_FORGEJO_METRICS_TOKEN}
+    # Токен передаётся как Bearer (см. forgejo docs, [metrics] TOKEN).
+    url: http://forgejo:3000/metrics
+    headers:
+      Authorization: "Bearer ${NETDATA_FORGEJO_METRICS_TOKEN}"
 
   - name: synapse
     url: http://element-synapse:9009/_synapse/metrics
