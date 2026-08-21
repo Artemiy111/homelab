@@ -41,9 +41,10 @@ services:
 
     command:
       - start-from-init
+      - --masterkeyFile
+      - /zitadel/masterkey
 
     environment:
-      ZITADEL_MASTERKEY: ${ZITADEL_MASTERKEY:?set in zitadel/.env}
       ZITADEL_PORT: 8080
       ZITADEL_EXTERNALDOMAIN: ${ZITADEL_HOST:?set in zitadel/.env}
       ZITADEL_EXTERNALPORT: "443"
@@ -65,6 +66,7 @@ services:
 
     volumes:
       - ${APPS_STORAGE_PATH:-/storage/apps}/zitadel/bootstrap:/zitadel/bootstrap:rw
+      - ${APPS_STORAGE_PATH:-/storage/apps}/zitadel/masterkey:/zitadel/masterkey:ro
 
     networks:
       - backend

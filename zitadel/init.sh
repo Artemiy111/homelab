@@ -24,8 +24,15 @@ POSTGRES_ZITADEL_USER=zitadel
 POSTGRES_ZITADEL_PASSWORD=$(random_secret)
 ADMIN_USERNAME=admin
 ADMIN_PASSWORD=Za9!$(openssl rand -base64 18 | tr -d '=\n' | tr '/+' '_-')
-ZITADEL_MASTERKEY=$(openssl rand -hex 16)
 EOF
+
+# Masterkey хранится отдельным файлом (0600): ZITADEL v4 не читает его из
+# переменной окружения, только --masterkey / --masterkeyFile. Существующий файл
+# не перезаписывать — ключом зашифрованы данные базы.
+if [ ! -e "$APPS_STORAGE_PATH"/zitadel/masterkey ]; then
+  umask 077
+  printf '%s' "$(openssl rand -hex 16)" > "$APPS_STORAGE_PATH"/zitadel/masterkey
+fi
 
 compose_config "$repo_root/zitadel"
 compose_config "$repo_root/zitadel" --profile tools
