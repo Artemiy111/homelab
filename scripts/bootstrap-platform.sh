@@ -39,6 +39,7 @@ services=(
   home
   code-server
   gatus
+  netdata
   paperless
   vault
   navidrome

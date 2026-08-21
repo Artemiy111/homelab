@@ -1,0 +1,50 @@
+name: netdata
+
+services:
+  netdata:
+    image: netdata/netdata:v2.11.0@sha256:d9f6f14c2fb0517168bd9c5da952f6cb735df757919c37172695c2fbb63c3252
+    container_name: netdata
+    hostname: homelab
+
+    cap_add:
+      - SYS_PTRACE
+      - DAC_READ_SEARCH
+
+    volumes:
+      - ${APPS_STORAGE_PATH:-/storage/apps}/netdata/config:/etc/netdata:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/netdata/lib:/var/lib/netdata:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/netdata/cache:/var/cache/netdata:Z
+      - ./config/go.d/prometheus.conf:/etc/netdata/go.d/prometheus.conf:Z,ro
+      - ./config/go.d/sd/docker.conf:/etc/netdata/go.d/sd/docker.conf:Z,ro
+      - /:/host/root:ro,rslave
+      - /etc/passwd:/host/etc/passwd:ro
+      - /etc/group:/host/etc/group:ro
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/os-release:/host/etc/os-release:ro
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /var/log:/host/var/log:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+    networks:
+      - traefiknet
+    restart: unless-stopped
+
+    healthcheck:
+      test: [ "CMD", "curl", "-fsS", "http://127.0.0.1:19999/api/v1/info" ]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.netdata.rule=Host(`${NETDATA_HOST:?set in netdata/.env}`)
+      - traefik.http.routers.netdata.entrypoints=websecure
+      - traefik.http.routers.netdata.middlewares=oauth2-proxy@file,secure-headers@file,ratelimit-default@file
+      - traefik.http.services.netdata.loadbalancer.server.port=19999
+      - traefik.docker.network=traefiknet
+
+networks:
+  traefiknet:
+    external: true
