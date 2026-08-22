@@ -11,6 +11,9 @@ services:
       - ./dynamic:/etc/traefik/dynamic:ro
 
     environment:
+      # Go-templating динамических конфигов (dynamic/*.yaml) читает DOMAIN
+      # из окружения процесса Traefik: {{ env "DOMAIN" }}.
+      DOMAIN: ${DOMAIN:?set in root .env}
       RFC2136_NAMESERVER: ${RFC2136_NAMESERVER:?set in traefik/.env}
       RFC2136_TSIG_ALGORITHM: ${RFC2136_TSIG_ALGORITHM:?set in traefik/.env}
       RFC2136_TSIG_KEY: ${RFC2136_TSIG_KEY:?set in traefik/.env}
