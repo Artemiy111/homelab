@@ -41,3 +41,8 @@ jobs:
 
   - name: livekit
     url: http://element-livekit:6789/metrics
+
+  - name: technitium
+    url: http://technitium:5380/api/dashboard/metrics/text
+    headers:
+      Authorization: "Bearer ${NETDATA_TECHNITIUM_METRICS_TOKEN}"

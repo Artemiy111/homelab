@@ -33,6 +33,7 @@ setuid-binary, и запрет новых привилегий ломает сб
 | `element-synapse:9009/_synapse/metrics` | listener в `homeserver.yaml.tmpl` |
 | `immich-server:8081/metrics` | `IMMICH_TELEMETRY_INCLUDE=all` в `.env` |
 | `element-livekit:6789/metrics` | блок `prometheus:` в конфиге LiveKit |
+| `technitium:5380/api/dashboard/metrics/text` | Bearer-токен из `technitium/.env` |
 
 Креды целей с аутентификацией живут только в `.env` соответствующих сервисов;
 `netdata/init.sh` зеркалирует их в `netdata/.env` с префиксом `NETDATA_` и
