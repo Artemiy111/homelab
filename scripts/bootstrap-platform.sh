@@ -50,8 +50,18 @@ services=(
 
 for service in "${services[@]}"; do
   echo "==> $service"
-  bash "$repo_root/$service/init.sh"
-  docker compose \
+
+  # Сервис, мигрированный на SOPS+age (есть secrets.env), получает секреты
+  # в рантайме через sops exec-env; plaintext-файл не создаётся. Остальные
+  # пока работают по старой схеме с генерацией .env.
+  if [[ -f "$repo_root/$service/secrets.env" ]]; then
+    run=(sops exec-env "$repo_root/$service/secrets.env" --)
+  else
+    run=()
+  fi
+
+  "${run[@]}" bash "$repo_root/$service/init.sh"
+  "${run[@]}" docker compose \
     --project-directory "$repo_root/$service" \
     --env-file "$repo_root/.env" \
     up -d --remove-orphans

@@ -5,6 +5,16 @@ set -euo pipefail
 repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$repo_root/scripts/lib/common.sh"
 
+# Конфигурация и секреты приходят через окружение — их расшифровывает
+# `sops exec-env traefik/secrets.env` (это делает bootstrap-platform.sh;
+# вручную см. scripts/compose-secrets.sh). Plaintext-файл .env не создаётся.
+if [[ -z "${RFC2136_TSIG_SECRET:-}" ]]; then
+  echo "Ошибка: секреты traefik не переданы в окружение." >&2
+  echo "Запустите через: bash scripts/compose-secrets.sh traefik ..." >&2
+  echo "или: sops exec-env traefik/secrets.env -- bash traefik/init.sh" >&2
+  exit 1
+fi
+
 mkdir -p "$APPS_STORAGE_PATH"/traefik/letsencrypt
 
 if [[ -x "$APPS_STORAGE_PATH"/traefik/letsencrypt ]]; then
@@ -15,25 +25,9 @@ else
   echo 'Пропуск: каталог Traefik ACME недоступен текущему пользователю'
 fi
 
-password="$(random_secret)"
-hash="$(printf '%s' "$password" | openssl passwd -apr1 -stdin)"
-
-write_env_file "$repo_root/traefik/.env" <<EOF
-TRAEFIK_HOST=traefik.$DOMAIN
-TRAEFIK_DASHBOARD_USERNAME=admin
-TRAEFIK_DASHBOARD_PASSWORD=$password
-TRAEFIK_DASHBOARD_USERS='admin:$hash'
-RFC2136_NAMESERVER=ns1.<dns-provider>.com:53
-RFC2136_TSIG_ALGORITHM=hmac-sha256.
-RFC2136_TSIG_KEY=replace-with-the-<dns-provider>-tsig-key-name
-RFC2136_TSIG_SECRET=replace-with-the-<dns-provider>-tsig-secret
-LETSENCRYPT_EMAIL=
-EOF
-
-# write_env_file пропускает уже существующий .env, поэтому читаем email из него
-# и запекаем в статический конфиг Traefik (env-подстановка в нём не работает).
-LETSENCRYPT_EMAIL="$(sed -n 's/^LETSENCRYPT_EMAIL=//p' "$repo_root/traefik/.env")"
-LETSENCRYPT_EMAIL="$LETSENCRYPT_EMAIL" render_template \
+# Статический конфиг Traefik запекается из шаблона: домен берётся из
+# DOMAIN (common.sh), email Let's Encrypt — из расшифрованных секретов.
+render_template \
   "$repo_root/traefik/traefik.yaml.tpl" \
   "$repo_root/traefik/traefik.yaml" \
   '\$DOMAIN \$LETSENCRYPT_EMAIL'
