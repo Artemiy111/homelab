@@ -73,7 +73,7 @@ docker compose up -d
 
 ```sh
 docker compose ps
-curl -fsS http://netdata:19999/v1/info | head -c 200; echo
+curl -fsS 'http://netdata:19999/api/v1/info' | head -c 200; echo
 ```
 
 Netdata Cloud не используется: SSO у локального агента возможно только через

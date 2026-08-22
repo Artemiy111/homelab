@@ -140,6 +140,18 @@ endpoints:
     conditions: *https-ok
     alerts: *alerts-all
 
+  - name: Netdata
+    group: Monitoring
+    # UI закрыт forward auth (302 без авторизации), поэтому проверяем агент
+    # напрямую в docker-сети.
+    url: http://netdata:19999/api/v1/info
+    interval: 60s
+    client: &docker-client
+      timeout: 10s
+    conditions:
+      - "[STATUS] == 200"
+    alerts: *alerts-all
+
   # Публичные URL этих сервисов закрыты forward auth (oauth2-proxy@file) и для
   # неавторизованного запроса отдают 302, поэтому проверяем приложения напрямую
   # в docker-сети (gatus, wud, cup, structurizr — на одной сети traefiknet).
@@ -147,8 +159,7 @@ endpoints:
     group: Monitoring
     url: http://wud:3000/health
     interval: 60s
-    client: &docker-client
-      timeout: 10s
+    client: *docker-client
     conditions:
       - "[STATUS] == 200"
       - "[BODY] == pat(*uptime*)"
@@ -330,4 +341,107 @@ endpoints:
     interval: 60s
     client: *https-client
     conditions: *https-ok
+    alerts: *alerts-all
+
+  - name: Mailserver
+    group: Applications
+    # Панель администрирования Stalwart; корень отдаёт 302 на страницу входа.
+    url: https://mailserver.${DOMAIN}/
+    interval: 60s
+    client: *https-client
+    conditions: *https-ok
+    alerts: *alerts-all
+
+  - name: Webmail
+    group: Applications
+    url: https://mail.${DOMAIN}/
+    interval: 60s
+    client: *https-client
+    conditions: *https-ok
+    alerts: *alerts-all
+
+  - name: Seafile
+    group: Applications
+    url: https://seafile.${DOMAIN}/api2/ping/
+    interval: 60s
+    client: *https-client
+    conditions:
+      - "[STATUS] == 200"
+      - "[BODY] == pat(*pong*)"
+      - "[CERTIFICATE_EXPIRATION] > 168h"
+    alerts: *alerts-all
+
+  - name: OnlyOffice
+    group: Applications
+    url: https://onlyoffice.${DOMAIN}/healthcheck
+    interval: 60s
+    client: *https-client
+    conditions:
+      - "[STATUS] == 200"
+      - "[BODY] == true"
+      - "[CERTIFICATE_EXPIRATION] > 168h"
+    alerts: *alerts-all
+
+  - name: Paperless
+    group: Applications
+    # Корень отдаёт 302 на страницу входа.
+    url: https://paperless.${DOMAIN}/
+    interval: 60s
+    client: *https-client
+    conditions: *https-ok
+    alerts: *alerts-all
+
+  - name: Infisical
+    group: Applications
+    url: https://infisical.${DOMAIN}/api/status
+    interval: 60s
+    client: *https-client
+    conditions:
+      - "[STATUS] == 200"
+      - "[BODY].message == Ok"
+      - "[CERTIFICATE_EXPIRATION] > 168h"
+    alerts: *alerts-all
+
+  - name: Zitadel
+    group: Applications
+    url: https://id.${DOMAIN}/debug/healthz
+    interval: 60s
+    client: *https-client
+    conditions:
+      - "[STATUS] == 200"
+      - "[BODY] == ok"
+      - "[CERTIFICATE_EXPIRATION] > 168h"
+    alerts: *alerts-all
+
+  - name: Element Web
+    group: Applications
+    url: https://element.${DOMAIN}/
+    interval: 60s
+    client: *https-client
+    conditions: *https-ok
+    alerts: *alerts-all
+
+  - name: Synapse
+    group: Applications
+    # Client-Server API Synapse, опубликованный по пути /_matrix.
+    url: https://element.${DOMAIN}/_matrix/client/versions
+    interval: 60s
+    client: *https-client
+    conditions:
+      - "[STATUS] == 200"
+      - "[BODY] == pat(*versions*)"
+      - "[CERTIFICATE_EXPIRATION] > 168h"
+    alerts: *alerts-all
+
+  - name: Talk signaling
+    group: Applications
+    # Nextcloud Talk high-performance backend (eturnal); префикс
+    # /standalone-signaling Traefik снимает перед проксированием.
+    url: https://talk-signaling.${DOMAIN}/standalone-signaling/api/v1/welcome
+    interval: 60s
+    client: *https-client
+    conditions:
+      - "[STATUS] == 200"
+      - "[BODY] == pat(*Welcome*)"
+      - "[CERTIFICATE_EXPIRATION] > 168h"
     alerts: *alerts-all

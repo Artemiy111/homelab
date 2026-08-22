@@ -157,9 +157,97 @@
     },
     {
       "name": "Sure",
-      "description": "HTTPS-маршрут Sure через Traefik; страница логина отвечает 200.",
+      "description": "Веб-интерфейс Sure на опубликованном LAN-порту; сервис пока не подключён к Traefik.",
       "type": "http",
-      "url": "https://sure.{{DOMAIN}}/sessions/new",
+      "url": "http://{{SERVER_IP}}:40060/",
+      "interval": 60,
+      "maxretries": 2
+    },
+    {
+      "name": "Mailserver",
+      "description": "Панель администрирования Stalwart через локальный DNS, TLS и Traefik; корень отдаёт 302 на страницу входа.",
+      "type": "http",
+      "url": "https://mailserver.{{DOMAIN}}/",
+      "interval": 60,
+      "maxretries": 2
+    },
+    {
+      "name": "Webmail",
+      "description": "Пользовательский HTTPS-маршрут веб-почты через локальный DNS, TLS и Traefik.",
+      "type": "http",
+      "url": "https://mail.{{DOMAIN}}/",
+      "interval": 60,
+      "maxretries": 2
+    },
+    {
+      "name": "Seafile",
+      "description": "Анонимный ping endpoint Seafile через локальный DNS, TLS и Traefik.",
+      "type": "http",
+      "url": "https://seafile.{{DOMAIN}}/api2/ping/",
+      "interval": 60,
+      "maxretries": 2
+    },
+    {
+      "name": "OnlyOffice",
+      "description": "Healthcheck OnlyOffice Document Server через локальный DNS, TLS и Traefik.",
+      "type": "http",
+      "url": "https://onlyoffice.{{DOMAIN}}/healthcheck",
+      "interval": 60,
+      "maxretries": 2
+    },
+    {
+      "name": "Paperless",
+      "description": "Веб-интерфейс Paperless-ngx через локальный DNS, TLS и Traefik; корень отдаёт 302 на страницу входа.",
+      "type": "http",
+      "url": "https://paperless.{{DOMAIN}}/",
+      "interval": 60,
+      "maxretries": 2
+    },
+    {
+      "name": "Infisical",
+      "description": "Status endpoint Infisical через локальный DNS, TLS и Traefik; также отражает доступность Redis и Postgres.",
+      "type": "http",
+      "url": "https://infisical.{{DOMAIN}}/api/status",
+      "interval": 60,
+      "maxretries": 2
+    },
+    {
+      "name": "Zitadel",
+      "description": "Health endpoint Zitadel через локальный DNS, TLS и Traefik.",
+      "type": "http",
+      "url": "https://id.{{DOMAIN}}/debug/healthz",
+      "interval": 60,
+      "maxretries": 2
+    },
+    {
+      "name": "Element Web",
+      "description": "Пользовательский HTTPS-маршрут Element Web через локальный DNS, TLS и Traefik.",
+      "type": "http",
+      "url": "https://element.{{DOMAIN}}/",
+      "interval": 60,
+      "maxretries": 2
+    },
+    {
+      "name": "Synapse",
+      "description": "Client-Server API Synapse (/_matrix) через локальный DNS, TLS и Traefik.",
+      "type": "http",
+      "url": "https://element.{{DOMAIN}}/_matrix/client/versions",
+      "interval": 60,
+      "maxretries": 2
+    },
+    {
+      "name": "Talk signaling",
+      "description": "Nextcloud Talk high-performance backend (eturnal) через локальный DNS, TLS и Traefik.",
+      "type": "http",
+      "url": "https://talk-signaling.{{DOMAIN}}/standalone-signaling/api/v1/welcome",
+      "interval": 60,
+      "maxretries": 2
+    },
+    {
+      "name": "Netdata",
+      "description": "Агент Netdata в Docker-сети; публичный маршрут закрыт forward auth.",
+      "type": "http",
+      "url": "http://netdata:19999/api/v1/info",
       "interval": 60,
       "maxretries": 2
     },
