@@ -59,6 +59,14 @@
       "maxretries": 2
     },
     {
+      "name": "Pocket ID",
+      "description": "OIDC discovery Pocket ID через локальный DNS, TLS и Traefik.",
+      "type": "http",
+      "url": "https://pocket-id.{{DOMAIN}}/.well-known/openid-configuration",
+      "interval": 60,
+      "maxretries": 2
+    },
+    {
       "name": "Authentik",
       "description": "Readiness endpoint Authentik через локальный DNS, TLS и Traefik; также проверяет подключение к PostgreSQL.",
       "type": "http",

@@ -61,6 +61,10 @@
         icon: mdi-microsoft-visual-studio-code
         href: https://code.{{HOMEPAGE_VAR_DOMAIN}}/
         description: VS Code в браузере
+    - Pocket ID:
+        icon: mdi-key
+        href: https://pocket-id.{{HOMEPAGE_VAR_DOMAIN}}/
+        description: Passkey и OpenID Connect
     - Authentik:
         icon: mdi-shield-account
         href: https://auth.{{HOMEPAGE_VAR_DOMAIN}}/

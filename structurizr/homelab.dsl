@@ -106,6 +106,10 @@ workspace {
 
         group "Идентификация и доступ" {
 
+            pocketid = softwareSystem "Pocket ID" "Passkey-аутентификация и OpenID Connect (pocket-id.example.com)" {
+                tags "idm"
+            }
+
             authentik = softwareSystem "Authentik" "Identity provider и SSO (auth.example.com)" {
                 tags "idm"
             }
@@ -217,6 +221,9 @@ workspace {
             tags "http"
         }
         traefik -> arcane "маршрутизирует Host(arcane.*)" "HTTPS" {
+            tags "http"
+        }
+        traefik -> pocketid "маршрутизирует Host(id.*)" "HTTPS" {
             tags "http"
         }
         traefik -> authentik "маршрутизирует Host(auth.*)" "HTTPS" {

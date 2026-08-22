@@ -24,6 +24,7 @@
 | Seafile | Файловая синхронизация, обмен файлами и редактирование DOCX/XLSX | `https://seafile.example.com/` |
 | Forgejo | Приватный Git-сервис | `https://forgejo.example.com/` |
 | code-server | VS Code в браузере | `https://code.example.com/` |
+| Pocket ID | Passkey-аутентификация и OpenID Connect | `https://pocket-id.example.com/` |
 | Authentik | Identity provider и SSO | `https://auth.example.com/` |
 | Zitadel | Identity provider и SSO (основной) | `https://id.example.com/` |
 | Dawarich | История местоположений и карта перемещений | `https://dawarich.example.com/` |
@@ -85,7 +86,7 @@ health-проверки (Gatus, Uptime Kuma), задаётся переменн�
    значения-заглушки. Общий домен задаётся один раз — см. раздел
    «Общий домен сервисов».
 5. Запустить `traefik`, затем `home`, `technitium`, `uptime-kuma`, `beszel`, `arcane`, `3x-ui`,
-   `nextcloud`, `seafile`, `jellyfin`, `forgejo`, `code-server`, `authentik`,
+   `nextcloud`, `seafile`, `jellyfin`, `forgejo`, `code-server`, `pocket-id`, `authentik`,
    `dawarich`, `pdf` и `image-updates`.
 6. Настроить DHCP-сервер роутера так, чтобы он выдавал `192.0.2.10` как DNS.
 7. Инициализировать Restic, создать копию и проверить восстановление.
@@ -116,43 +117,8 @@ docker compose config
 docker compose up -d
 ```
 
-## Секреты (SOPS + age)
-
-Секреты сервисов хранятся в Git в зашифрованном виде: `<сервис>/secrets.env`
-(SOPS поверх age, dotenv-формат). Правила шифрования — `.sops.yaml` в корне;
-публичный age-ключ закоммичен там же. Приватный ключ существует только на
-сервере (`~artlab/.config/sops/age/keys.txt`, `0600`): расшифровка возможна
-только там, зашифровать новый файл можно и локально.
-
-Шифруются только значения секретных полей (`encrypted_regex` в `.sops.yaml`):
-пароли, токены, хеши. Публичная конфигурация (домены, алгоритмы, email)
-остаётся открытой — diff читаем. При появлении новых чувствительных ключей
-с другими именами расширьте регулярное выражение.
-
-Plaintext-файл `.env` для мигрированных сервисов не создаётся: секреты
-расшифровываются только в памяти процесса через `sops exec-env`. Запуск:
-
-```sh
-bash scripts/compose-secrets.sh <сервис> config --quiet
-bash scripts/compose-secrets.sh <сервис> up -d
-```
-
-`bootstrap-platform.sh` определяет мигрировавшие сервисы по наличию
-`secrets.env` и сам оборачивает их `init.sh` и `docker compose` в
-`sops exec-env`. Сервисы, ещё не переведённые на SOPS, продолжают работать
-по старой схеме (генерация `.env` в `init.sh`).
-
-Перевод сервиса со старой схемы выполняется на сервере скриптом:
-
-```sh
-bash scripts/sops-migrate-service.sh <каталог-сервиса>
-```
-
-Он шифрует существующий `.env` в `secrets.env`; дальше файл доставляется по
-обычной схеме commit → push → `git pull --ff-only`, а старый plaintext `.env`
-удаляется с сервера. Установку бинарников `sops` и `age` выполняет Ansible
-(`ansible/host.yml`). Потеря приватного ключа = невосстановимая потеря всех
-`secrets.env`: храните его резервную копию вне репозитория.
+Секреты находятся в игнорируемом файле `.env` рядом с Compose-файлом. В Git
+добавляются только файлы `.env.example` (включая корневой, задающий `DOMAIN`).
 
 Старые и экспериментальные каталоги приложений сохранены для последующего
 разбора. В частности, `caddy/` не входит в активный стек и не должен запускаться
