@@ -28,14 +28,6 @@ services:
       - /var/log:/host/var/log:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
 
-    # Креды scrape-целей; значения лежат только в netdata/.env на сервере
-    # и зеркалятся из .env соответствующих сервисов в init.sh.
-    environment:
-      NETDATA_NAVIDROME_METRICS_PATH: ${NETDATA_NAVIDROME_METRICS_PATH:-}
-      NETDATA_DAWARICH_METRICS_USERNAME: ${NETDATA_DAWARICH_METRICS_USERNAME:-}
-      NETDATA_DAWARICH_METRICS_PASSWORD: ${NETDATA_DAWARICH_METRICS_PASSWORD:-}
-      NETDATA_FORGEJO_METRICS_TOKEN: ${NETDATA_FORGEJO_METRICS_TOKEN:-}
-
     networks:
       - traefiknet
     restart: unless-stopped

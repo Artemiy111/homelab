@@ -19,7 +19,7 @@ NETDATA_HOST=netdata.$DOMAIN
 EOF
 
 # Креды scrape-целей с аутентификацией: единственный источник — .env
-# соответствующего сервиса; netdata получает их копию с префиксом NETDATA_.
+# соответствующего сервиса.
 NETDATA_NAVIDROME_METRICS_PATH="$(read_env_key "$repo_root/navidrome/.env" NAVIDROME_METRICS_PATH)"
 NETDATA_DAWARICH_METRICS_USERNAME="$(read_env_key "$repo_root/dawarich/.env" DAWARICH_METRICS_USERNAME)"
 NETDATA_DAWARICH_METRICS_PASSWORD="$(read_env_key "$repo_root/dawarich/.env" DAWARICH_METRICS_PASSWORD)"
@@ -27,21 +27,6 @@ NETDATA_FORGEJO_METRICS_TOKEN="$(read_env_key "$repo_root/forgejo/.env" FORGEJO_
 NETDATA_TECHNITIUM_METRICS_TOKEN="$(read_env_key "$repo_root/technitium/.env" TECHNITIUM_METRICS_TOKEN)"
 NETDATA_STALWART_METRICS_USERNAME="$(read_env_key "$repo_root/mailserver/.env" STALWART_METRICS_USERNAME)"
 NETDATA_STALWART_METRICS_PASSWORD="$(read_env_key "$repo_root/mailserver/.env" STALWART_METRICS_PASSWORD)"
-
-upsert_env "$repo_root/netdata/.env" NETDATA_NAVIDROME_METRICS_PATH \
-  "$NETDATA_NAVIDROME_METRICS_PATH"
-upsert_env "$repo_root/netdata/.env" NETDATA_DAWARICH_METRICS_USERNAME \
-  "$NETDATA_DAWARICH_METRICS_USERNAME"
-upsert_env "$repo_root/netdata/.env" NETDATA_DAWARICH_METRICS_PASSWORD \
-  "$NETDATA_DAWARICH_METRICS_PASSWORD"
-upsert_env "$repo_root/netdata/.env" NETDATA_FORGEJO_METRICS_TOKEN \
-  "$NETDATA_FORGEJO_METRICS_TOKEN"
-upsert_env "$repo_root/netdata/.env" NETDATA_TECHNITIUM_METRICS_TOKEN \
-  "$NETDATA_TECHNITIUM_METRICS_TOKEN"
-upsert_env "$repo_root/netdata/.env" NETDATA_STALWART_METRICS_USERNAME \
-  "$NETDATA_STALWART_METRICS_USERNAME"
-upsert_env "$repo_root/netdata/.env" NETDATA_STALWART_METRICS_PASSWORD \
-  "$NETDATA_STALWART_METRICS_PASSWORD"
 
 # Рендер списка scrape-целей. go.d не подставляет переменные окружения в
 # конфиги, поэтому значения запекаются на сервере; файл содержит секреты,

@@ -37,8 +37,7 @@ setuid-binary, и запрет новых привилегий ломает сб
 | `mailserver:8080/metrics/prometheus` | Basic auth; секрет — env `STALWART_METRICS_PASSWORD`, включается в WebUI Stalwart |
 
 Креды целей с аутентификацией живут только в `.env` соответствующих сервисов;
-`netdata/init.sh` зеркалирует их в `netdata/.env` с префиксом `NETDATA_` и
-рендерит из шаблона `config/go.d/prometheus.conf.tpl` файл в
+`netdata/init.sh` читает их при рендере и запекает в файл
 `$APPS_STORAGE_PATH/netdata/config/go.d/prometheus.conf` (go.d не подставляет
 переменные окружения в конфиги, а готовый файл содержит секреты и хранится
 только на сервере).
