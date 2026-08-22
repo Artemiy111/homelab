@@ -24,7 +24,6 @@
 | Seafile | Файловая синхронизация, обмен файлами и редактирование DOCX/XLSX | `https://seafile.example.com/` |
 | Forgejo | Приватный Git-сервис | `https://forgejo.example.com/` |
 | code-server | VS Code в браузере | `https://code.example.com/` |
-| Pocket ID | Passkey-аутентификация и OpenID Connect | `https://pocket-id.example.com/` |
 | Authentik | Identity provider и SSO | `https://auth.example.com/` |
 | Zitadel | Identity provider и SSO (основной) | `https://id.example.com/` |
 | Dawarich | История местоположений и карта перемещений | `https://dawarich.example.com/` |
@@ -86,7 +85,7 @@ health-проверки (Gatus, Uptime Kuma), задаётся переменн�
    значения-заглушки. Общий домен задаётся один раз — см. раздел
    «Общий домен сервисов».
 5. Запустить `traefik`, затем `home`, `technitium`, `uptime-kuma`, `beszel`, `arcane`, `3x-ui`,
-   `nextcloud`, `seafile`, `jellyfin`, `forgejo`, `code-server`, `pocket-id`, `authentik`,
+   `nextcloud`, `seafile`, `jellyfin`, `forgejo`, `code-server`, `authentik`,
    `dawarich`, `pdf` и `image-updates`.
 6. Настроить DHCP-сервер роутера так, чтобы он выдавал `192.0.2.10` как DNS.
 7. Инициализировать Restic, создать копию и проверить восстановление.

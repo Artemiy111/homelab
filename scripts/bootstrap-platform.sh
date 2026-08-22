@@ -25,7 +25,6 @@ services=(
   jitsi
   talk-hpb
   forgejo
-  pocket-id
   authentik
   zitadel
   oauth2-proxy

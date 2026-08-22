@@ -230,14 +230,6 @@ endpoints:
     conditions: *https-ok
     alerts: *alerts-all
 
-  - name: Pocket ID
-    group: Applications
-    url: https://pocket-id.${DOMAIN}/.well-known/openid-configuration
-    interval: 60s
-    client: *https-client
-    conditions: *https-ok
-    alerts: *alerts-all
-
   - name: LocalAI
     group: Applications
     url: https://localai.${DOMAIN}/readyz
