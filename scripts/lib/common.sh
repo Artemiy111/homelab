@@ -172,6 +172,24 @@ upsert_env() {
   fi
 }
 
+# Читает значение одной переменной из .env-файла (пустая строка, если нет).
+read_env_key() {
+  local env_file="$1" key="$2"
+  sed -n "s/^${key}=//p" "$env_file" 2>/dev/null | head -1
+}
+
+# Генерирует секрет однократно: если ключ уже есть в .env, значение
+# сохраняется, иначе создаётся новое случайное.
+ensure_secret() {
+  local env_file="$1" key="$2" value
+  value="$(read_env_key "$env_file" "$key")"
+  if [[ -z "$value" ]]; then
+    value="$(random_secret)"
+    upsert_env "$env_file" "$key" "$value"
+  fi
+  printf '%s\n' "$value"
+}
+
 # CIDR подсети docker-сети traefiknet (нужен некоторым сервисам в .env).
 traefik_network_cidr() {
   docker network inspect traefiknet \

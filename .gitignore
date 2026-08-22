@@ -7,3 +7,4 @@ traefik/traefik.yaml
 structurizr/structurizr.properties
 image-updates/cup.json
 home/config/settings.yaml
+netdata/config/go.d/prometheus.conf

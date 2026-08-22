@@ -20,15 +20,10 @@ EOF
 
 # Креды scrape-целей с аутентификацией: единственный источник — .env
 # соответствующего сервиса; netdata получает их копию с префиксом NETDATA_.
-read_env_key() {
-  local file="$repo_root/$1" key="$2"
-  sed -n "s/^${key}=//p" "$file" 2>/dev/null | head -1
-}
-
-NETDATA_NAVIDROME_METRICS_PATH="$(read_env_key navidrome/.env NAVIDROME_METRICS_PATH)"
-NETDATA_DAWARICH_METRICS_USERNAME="$(read_env_key dawarich/.env DAWARICH_METRICS_USERNAME)"
-NETDATA_DAWARICH_METRICS_PASSWORD="$(read_env_key dawarich/.env DAWARICH_METRICS_PASSWORD)"
-NETDATA_FORGEJO_METRICS_TOKEN="$(read_env_key forgejo/.env FORGEJO_METRICS_TOKEN)"
+NETDATA_NAVIDROME_METRICS_PATH="$(read_env_key "$repo_root/navidrome/.env" NAVIDROME_METRICS_PATH)"
+NETDATA_DAWARICH_METRICS_USERNAME="$(read_env_key "$repo_root/dawarich/.env" DAWARICH_METRICS_USERNAME)"
+NETDATA_DAWARICH_METRICS_PASSWORD="$(read_env_key "$repo_root/dawarich/.env" DAWARICH_METRICS_PASSWORD)"
+NETDATA_FORGEJO_METRICS_TOKEN="$(read_env_key "$repo_root/forgejo/.env" FORGEJO_METRICS_TOKEN)"
 
 upsert_env "$repo_root/netdata/.env" NETDATA_NAVIDROME_METRICS_PATH \
   "$NETDATA_NAVIDROME_METRICS_PATH"

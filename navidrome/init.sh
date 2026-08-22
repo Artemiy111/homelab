@@ -11,7 +11,8 @@ write_env_file "$repo_root/navidrome/.env" <<EOF
 NAVIDROME_HOST=music.$DOMAIN
 EOF
 
-# Секретный сегмент пути Prometheus-метрик (см. compose.yaml).
-upsert_env "$repo_root/navidrome/.env" NAVIDROME_METRICS_PATH "$(random_secret)"
+# Секретный сегмент пути Prometheus-метрик (см. compose.yaml); генерируется
+# однократно и хранится в .env.
+ensure_secret "$repo_root/navidrome/.env" NAVIDROME_METRICS_PATH >/dev/null
 
 compose_config "$repo_root/navidrome"
