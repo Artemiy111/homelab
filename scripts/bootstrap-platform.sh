@@ -57,10 +57,14 @@ for service in "${services[@]}"; do
   # Остальные сервисы пока работают по старой схеме с генерацией .env.
   if [[ -f "$repo_root/$service/secrets.env" ]]; then
     env_files="--env-file '$repo_root/.env'"
-    [[ -f "$repo_root/$service/config.env" ]] &&
+    # init.sh рендерит шаблоны (.tpl) и тоже нуждается в публичной
+    # конфигурации — подгружаем её в окружение перед секретами.
+    init_cmd="bash '$repo_root/$service/init.sh'"
+    if [[ -f "$repo_root/$service/config.env" ]]; then
       env_files+=" --env-file '$repo_root/$service/config.env'"
-    sops exec-env "$repo_root/$service/secrets.env" \
-      "bash '$repo_root/$service/init.sh'"
+      init_cmd="set -a && . '$repo_root/$service/config.env' && $init_cmd"
+    fi
+    sops exec-env "$repo_root/$service/secrets.env" "$init_cmd"
     sops exec-env "$repo_root/$service/secrets.env" \
       "docker compose --project-directory '$repo_root/$service' $env_files up -d --remove-orphans"
   else
