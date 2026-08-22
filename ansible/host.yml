@@ -67,6 +67,49 @@
         path: /usr/local/bin/sops
         state: absent
 
+    # --- vals: сборка из исходного кода ---
+
+    - name: Установить toolchain для сборки vals
+      ansible.builtin.dnf5:
+        name:
+          - git
+          - golang
+        state: present
+
+    - name: Определить версию установленного vals
+      ansible.builtin.command:
+        cmd: /usr/local/bin/vals --version
+      register: vals_installed
+      failed_when: false
+      changed_when: false
+
+    - name: Клонировать vals ({{ vals_version }})
+      ansible.builtin.git:
+        repo: "{{ vals_repo }}"
+        dest: /usr/local/src/vals
+        version: "{{ vals_version }}"
+        depth: 1
+      register: vals_repo_state
+
+    # Пересобираем при смене пина или если бинарник отсутствует/битый/
+    # другой версии. Main-пакет vals — ./cmd/vals (корень репозитория —
+    # библиотека). go build учитывает umask, поэтому права фиксируем ниже.
+    - name: Собрать vals из исходного кода
+      ansible.builtin.command:
+        cmd: go build -trimpath -o /usr/local/bin/vals ./cmd/vals
+        chdir: /usr/local/src/vals
+      when: >-
+        vals_repo_state.changed
+        or vals_installed.rc != 0
+        or vals_version not in vals_installed.stdout
+      environment:
+        GOPATH: /root/go
+
+    - name: Выставить права бинарнику vals
+      ansible.builtin.file:
+        path: /usr/local/bin/vals
+        mode: "0755"
+
     # --- Чистка устаревших репозиториев ---
 
     - name: Удалить устаревший репозиторий Jenkins (пакет давно удалён)

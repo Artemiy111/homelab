@@ -77,3 +77,9 @@ host_packages_absent:
 # Официального репозитория sops в Fedora нет — RPM из релиза GitHub.
 sops_version: "3.13.3"
 sops_rpm_url: "https://github.com/getsops/sops/releases/download/v{{ sops_version }}/sops-{{ sops_version }}-1.x86_64.rpm"
+
+# --- vals: рендер шаблонов конфигов с подстановкой секретов ---
+
+# Ставим из исходного кода, пин по тегу релиза (нужны golang и git).
+vals_version: "v0.46.0"
+vals_repo: "https://github.com/helmfile/vals.git"
