@@ -1,0 +1,10 @@
+# Правила шифрования SOPS: все secrets.env сервисов шифруются age-ключом.
+# Публичный ключ хранить в Git безопасно; приватный существует только на
+# сервере: ~artlab/.config/sops/age/keys.txt (права 0600). Потеря приватного
+# ключа = невосстановимая потеря всех secrets.env.
+creation_rules:
+  # Правило покрывает как миграционный вход (<сервис>/.env), так и
+  # закоммиченный результат <сервис>/secrets.env.
+  - path_regex: '\.env$'
+    age: >-
+      age1anr07xknmnlyp3hxnm0nts4v2fuz22z6xh52tx0cv2ahxs607aeqvzpxkz
