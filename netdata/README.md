@@ -27,6 +27,7 @@ setuid-binary, и запрет новых привилегий ломает сб
 | `wud:3000/metrics` | отдаёт метрики без настройки |
 | `traefik:8082/metrics` | entrypoint `metrics` в `traefik.yaml.tpl` |
 | `gatus:8080/metrics` | `metrics: true` в `gatus/config/config.yaml` |
+| `uptime-kuma:3001/metrics` | API-ключ из `uptime-kuma/.env` (`UPTIME_KUMA_METRICS_API_KEY`, создаётся в UI Kuma) |
 | `navidrome:4533/metrics_<секрет>` | секретный путь из `navidrome/.env` |
 | `dawarich:3000/metrics` (basic auth) | env в `dawarich/compose.yaml` |
 | `forgejo:3000/metrics?token=…` | токен из `forgejo/.env` |

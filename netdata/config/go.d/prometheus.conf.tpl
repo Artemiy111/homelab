@@ -17,6 +17,12 @@ jobs:
   - name: gatus
     url: http://gatus:8080/metrics
 
+  # API-ключ Kuma с доступом к метрикам (создаётся в UI Kuma, живёт в
+  # uptime-kuma/.env). Ключ передаётся как пароль basic auth без username.
+  - name: uptime-kuma
+    url: http://uptime-kuma:3001/metrics
+    password: ${NETDATA_UPTIME_KUMA_METRICS_API_KEY}
+
   # Приложения с включённым экспортом метрик (см. compose/init.sh каждого).
   - name: navidrome
     url: http://navidrome:4533/metrics_${NETDATA_NAVIDROME_METRICS_PATH}
