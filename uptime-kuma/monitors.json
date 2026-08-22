@@ -157,9 +157,9 @@
     },
     {
       "name": "Sure",
-      "description": "Веб-интерфейс Sure на опубликованном LAN-порту; сервис пока не подключён к Traefik.",
+      "description": "HTTPS-маршрут Sure через Traefik; страница логина отвечает 200.",
       "type": "http",
-      "url": "http://{{SERVER_IP}}:40060/",
+      "url": "https://sure.{{DOMAIN}}/sessions/new",
       "interval": 60,
       "maxretries": 2
     },

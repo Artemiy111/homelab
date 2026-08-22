@@ -187,7 +187,7 @@ workspace {
                 tags "apps"
             }
 
-            sure = softwareSystem "Sure" "Семейное Rails-приложение (we-promise/sure); доступ только по LAN :40060" {
+            sure = softwareSystem "Sure" "Семейное Rails-приложение (we-promise/sure); доступ через Traefik (sure.example.com)" {
                 tags "apps"
             }
         }
@@ -196,7 +196,7 @@ workspace {
         owner -> forgejo "Git over SSH (:2222)" "SSH"
         owner -> xui "Xray-клиенты (TCP/UDP :8443)" "TCP/UDP"
         owner -> jitsi "медиа-потоки (UDP :10000)" "UDP"
-        owner -> sure "HTTPS (LAN :40060)" "HTTPS"
+        owner -> sure "HTTPS (sure.example.com)" "HTTPS"
         owner -> tailscale "удалённый доступ к сервисам извне LAN" "Tailscale"
 
         traefik -> homepage "маршрутизирует Host(home.*)" "HTTPS" {

@@ -326,10 +326,8 @@ endpoints:
 
   - name: Sure
     group: Applications
-    url: http://${SERVER_IP}:40060/
+    url: https://sure.${DOMAIN}/sessions/new
     interval: 60s
-    client:
-      timeout: 10s
-    conditions:
-      - "[STATUS] == 200"
+    client: *https-client
+    conditions: *https-ok
     alerts: *alerts-all
