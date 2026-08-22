@@ -77,6 +77,14 @@ while IFS= read -r line || [[ -n "$line" ]]; do
     '#'*|'') printf '%s\n' "$line" >>"$config_file"; continue ;;
   esac
   key="${line%%=*}"
+  value="${line#*=}"
+  # Нормализуем кавычи значений: парсер dotenv в Compose их снимает,
+  # а sops сохранил бы как часть значения (ломает, например, htpasswd).
+  case "$value" in
+    "'"*"'") value="${value#\'}"; value="${value%\'}" ;;
+    '"'*) value="${value#\"}"; value="${value%\"}" ;;
+  esac
+  line="${key}=${value}"
   if [[ -n "${secret_keys[$key]:-}" ]]; then
     printf '%s\n' "$line" >>"$tmp_plaintext"
     secret_names+=("$key")
