@@ -52,7 +52,6 @@ Kuma, как и Gatus, проверяет напрямую в Docker-сети (W
 
 - DNS-запрос непосредственно к Technitium DNS (то же имя, что и в Gatus — `uptime.<домен>`);
 - опубликованные TCP-порты Gitea SSH и Xray;
-- Sure по LAN-порту, поскольку он пока не подключён к Traefik.
 
 Проверка Xray proxy egress (HTTPS через прокси `192.0.2.10:8440`) есть только
 в Gatus: Uptime Kuma не управляет прокси из `monitors.json`.
