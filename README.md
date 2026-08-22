@@ -56,8 +56,11 @@ cp .env.example .env
 Homepage, Gatus и Uptime Kuma подставляют домен через переменные окружения
 (`{{HOMEPAGE_VAR_DOMAIN}}`, `${DOMAIN}`, `{{DOMAIN}}` соответственно).
 Статические конфиги, не умеющие читать переменные окружения (Traefik static,
-structurizr.properties), генерируются `init.sh` из `.tpl`-шаблонов
-через `envsubst` (плейсхолдеры `${DOMAIN}` / `${SERVER_IP}`).
+structurizr.properties), рендерятся `init.sh` из `.tpl`-шаблонов через
+`vals flatten`: плейсхолдеры вида `ref+envsubst://$DOMAIN` разворачиваются
+из окружения, формат и комментарии шаблона сохраняются. Секретные значения
+в шаблонах можно подтягивать напрямую через `ref+sops://`-ссылки на
+`secrets.env`.
 После смены домена заново выполните `bash scripts/bootstrap-platform.sh`.
 
 ## IP-адрес сервера
@@ -203,7 +206,7 @@ bash scripts/check-domain.sh
 ```
 
 Скрипт падает, если `example.com` встречается вне разрешённых мест:
-источник правды (`scripts/lib/common.sh`), шаблоны (`.env.example`, `.tpl`) и
+источник правды (`scripts/lib/common.sh`), шаблоны (`.env.example`, `.tpl.*`) и
 документация (`.md`, `structurizr/homelab.dsl`).
 
 ## Пакеты хоста

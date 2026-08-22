@@ -28,9 +28,9 @@ entryPoints:
       tls:
         certResolver: letsencrypt
         domains:
-          - main: ${DOMAIN}
+          - main: ref+envsubst://$DOMAIN
             sans:
-              - "*.${DOMAIN}"
+              - "*.ref+envsubst://$DOMAIN+"
   # Внутренний entrypoint для Prometheus-метрик; наружу не публикуется.
   metrics:
     address: ":8082"
@@ -42,7 +42,7 @@ metrics:
 certificatesResolvers:
   letsencrypt:
     acme:
-      email: ${LETSENCRYPT_EMAIL}
+      email: ref+envsubst://$LETSENCRYPT_EMAIL
       storage: /letsencrypt/acme.json
       dnsChallenge:
         provider: rfc2136

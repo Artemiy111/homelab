@@ -9,7 +9,7 @@ write_env_file "$repo_root/home/.env" <<EOF
 HOMEPAGE_HOST=home.$DOMAIN
 EOF
 
-render_template "$repo_root/home/config/settings.yaml.tpl" \
-  "$repo_root/home/config/settings.yaml" '\$DEFAULT_LOCALE'
+render_template "$repo_root/home/config/settings.tpl.yaml" \
+  "$repo_root/home/config/settings.yaml"
 
 compose_config "$repo_root/home"

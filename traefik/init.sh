@@ -26,10 +26,9 @@ else
 fi
 
 # Статический конфиг Traefik запекается из шаблона: домен берётся из
-# DOMAIN (common.sh), email Let's Encrypt — из расшифрованных секретов.
+# DOMAIN (common.sh), email Let's Encrypt — из config.env сервиса.
 render_template \
-  "$repo_root/traefik/traefik.yaml.tpl" \
-  "$repo_root/traefik/traefik.yaml" \
-  '\$DOMAIN \$LETSENCRYPT_EMAIL'
+  "$repo_root/traefik/traefik.tpl.yaml" \
+  "$repo_root/traefik/traefik.yaml"
 
 compose_config "$repo_root/traefik"

@@ -1,7 +1,7 @@
 .env
 .freebuff/
 
-# Генерируются init.sh из *.tpl-шаблонов (домен подставляется из DOMAIN).
+# Генерируются init.sh из *.tpl.*-шаблонов (домен подставляется из DOMAIN).
 traefik/traefik.yaml
 
 structurizr/structurizr.properties

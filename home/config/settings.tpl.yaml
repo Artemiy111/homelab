@@ -1,6 +1,6 @@
 title: Homelab
 description: Домашний сервер
-language: ${DEFAULT_LOCALE}
+language: ref+envsubst://$DEFAULT_LOCALE
 theme: dark
 color: slate
 headerStyle: clean

@@ -5,7 +5,7 @@
 # Домен (example.com) может встречаться только в:
 #   - scripts/lib/common.sh      — единственный источник правды (значение по умолчанию);
 #   - scripts/check-domain.sh    — сам гвард (значение по умолчанию в $domain);
-#   - *.env.example и *.tpl      — шаблоны, из которых init.sh генерирует конфиги;
+#   - *.env.example и *.tpl.*    — шаблоны, из которых init.sh генерирует конфиги;
 #   - *.md и structurizr/homelab.dsl — документация.
 #
 # Во всех остальных файлах (compose, config.yaml, services.yaml, monitors.json,
@@ -27,7 +27,7 @@ is_allowed() {
     structurizr/homelab.dsl) return 0 ;;
     *.md) return 0 ;;
     *.env.example) return 0 ;;
-    *.tpl) return 0 ;;
+    *.tpl.*) return 0 ;;
   esac
   return 1
 }

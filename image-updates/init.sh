@@ -31,9 +31,10 @@ if [[ -n "$CUP_DOCKERHUB_TOKEN" ]]; then
   CUP_DOCKERHUB_REGISTRIES=",\"registries\":{\"registry-1.docker.io\":{\"authentication\":\"$basic_auth\"}}"
 fi
 
-CUP_DOCKERHUB_REGISTRIES="$CUP_DOCKERHUB_REGISTRIES" render_template \
-  "$repo_root/image-updates/cup.json.tpl" \
-  "$repo_root/image-updates/cup.json" \
-  '\$CUP_DOCKERHUB_REGISTRIES'
+# vals flatten читает переменные из окружения процесса, поэтому экспорт.
+export CUP_DOCKERHUB_REGISTRIES
+render_template \
+  "$repo_root/image-updates/cup.tpl.json" \
+  "$repo_root/image-updates/cup.json"
 
 compose_config "$repo_root/image-updates"

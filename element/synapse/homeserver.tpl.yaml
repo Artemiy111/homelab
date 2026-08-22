@@ -1,10 +1,10 @@
 server_name: "example.com"
-public_baseurl: https://${SYNAPSE_HOST}/
+public_baseurl: https://ref+envsubst://$SYNAPSE_HOST+/
 serve_server_wellknown: true
 extra_well_known_client_content:
   org.matrix.msc4143.rtc_foci:
     - type: livekit
-      livekit_service_url: https://${LIVEKIT_HOST}/livekit/jwt
+      livekit_service_url: https://ref+envsubst://$LIVEKIT_HOST+/livekit/jwt
 report_stats: false
 pid_file: /data/homeserver.pid
 # Метрики отдаются на отдельном listener (скрейп netdata внутри traefiknet).
@@ -30,9 +30,9 @@ listeners:
 database:
   name: psycopg2
   args:
-    user: ${POSTGRES_USER}
-    password: ${POSTGRES_PASSWORD}
-    database: ${POSTGRES_DB}
+    user: ref+envsubst://$POSTGRES_USER
+    password: ref+envsubst://$POSTGRES_PASSWORD
+    database: ref+envsubst://$POSTGRES_DB
     host: db
     cp_min: 5
     cp_max: 10
@@ -54,7 +54,7 @@ url_preview_ip_range_blacklist:
 
 enable_registration: false
 enable_registration_without_verification: false
-registration_shared_secret: ${SYNAPSE_REGISTRATION_SHARED_SECRET}
+registration_shared_secret: ref+envsubst://$SYNAPSE_REGISTRATION_SHARED_SECRET
 
 bcrypt_rounds: 12
 
@@ -89,15 +89,15 @@ experimental_features:
 max_event_delay_duration: 24h
 
 turn_uris:
-  - turn:${SYNAPSE_HOST}:${TURN_PORT}?transport=udp
-  - turn:${SYNAPSE_HOST}:${TURN_PORT}?transport=tcp
-turn_shared_secret: ${TURN_SECRET}
+  - turn:ref+envsubst://$SYNAPSE_HOST+:ref+envsubst://$TURN_PORT+?transport=udp
+  - turn:ref+envsubst://$SYNAPSE_HOST+:ref+envsubst://$TURN_PORT+?transport=tcp
+turn_shared_secret: ref+envsubst://$TURN_SECRET
 turn_user_lifetime: 1h
 
 matrix_rtc:
   transports:
     - type: livekit
-      livekit_service_url: https://${LIVEKIT_HOST}/livekit/jwt
+      livekit_service_url: https://ref+envsubst://$LIVEKIT_HOST+/livekit/jwt
 
 max_upload_size: 104857600
 max_image_pixels: 26214400

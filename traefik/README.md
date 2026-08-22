@@ -24,7 +24,7 @@ docker compose ps
 Секреты traefik хранятся зашифрованными в `secrets.env` (SOPS + age, см.
 раздел «Секреты» в корневом README) и передаются в рантайме через
 `sops exec-env`: plaintext-файл `.env` не создаётся. `init.sh` создаёт
-каталог ACME и рендерит `traefik.yaml` из `traefik.yaml.tpl`, подставляя
+каталог ACME и рендерит `traefik.yaml` из `traefik.tpl.yaml`, подставляя
 домен из `DOMAIN` и email из расшифрованных секретов (`LETSENCRYPT_EMAIL`).
 После изменения секретов (`sops secrets.env` на сервере) перезапустите
 контейнер через `scripts/compose-secrets.sh`.

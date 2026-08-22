@@ -54,21 +54,21 @@ source "$repo_root/element/.env"
 set +a
 
 render_template \
-  "$repo_root/element/synapse/homeserver.yaml.tmpl" \
-  "$APPS_STORAGE_PATH/element/synapse/config/homeserver.yaml" \
-  '\$SYNAPSE_HOST \$SYNAPSE_SERVER_NAME \$POSTGRES_USER \$POSTGRES_PASSWORD \$POSTGRES_DB \$SYNAPSE_REGISTRATION_SHARED_SECRET \$TURN_PORT \$TURN_SECRET \$LIVEKIT_HOST'
+  "$repo_root/element/synapse/homeserver.tpl.yaml" \
+  "$APPS_STORAGE_PATH/element/synapse/config/homeserver.yaml"
+
 
 render_template \
-  "$repo_root/element/livekit/config.yaml.tmpl" \
-  "$APPS_STORAGE_PATH/element/livekit/config.yaml" \
-  '\$LIVEKIT_RTC_PORT_MIN \$LIVEKIT_RTC_PORT_MAX \$LIVEKIT_API_KEY \$LIVEKIT_API_SECRET'
+  "$repo_root/element/livekit/config.tpl.yaml" \
+  "$APPS_STORAGE_PATH/element/livekit/config.yaml"
+
 
 render_template \
-  "$repo_root/element/turn/turnserver.conf.tmpl" \
-  "$APPS_STORAGE_PATH/element/turn/turnserver.conf" \
-  '\$TURN_PORT \$TURN_SECRET \$TURN_REALM \$TURN_USER \$TURN_PASSWORD \$TURN_RELAY_MIN_PORT \$TURN_RELAY_MAX_PORT'
+  "$repo_root/element/turn/turnserver.tpl.conf" \
+  "$APPS_STORAGE_PATH/element/turn/turnserver.conf"
 
-cp "$repo_root/element/sygnal/sygnal.yaml.tmpl" \
+
+cp "$repo_root/element/sygnal/sygnal.tpl.yaml" \
   "$APPS_STORAGE_PATH/element/sygnal/sygnal.yaml"
 
 if [[ -n "${FCM_SERVER_KEY:-}" ]]; then
