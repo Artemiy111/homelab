@@ -51,50 +51,21 @@
         state: enabled
         host: copr.fedorainfracloud.org
 
-    # --- Шифрование секретов (SOPS + age) ---
+    # age есть в официальных репозиториях Fedora (ставится с пакетом ниже).
+    # Для sops официального репозитория нет — берём RPM из релиза GitHub.
+    # RPM подписан cosign, а не GPG, поэтому проверка подписи отключена;
+    # целостность фиксируется checksum URL-версии (см. group_vars/all.yml).
+    - name: Установить sops из релиза GitHub
+      ansible.builtin.dnf5:
+        name: "{{ sops_rpm_url }}"
+        state: present
+        disable_gpg_check: true
 
-    # Официального пакета sops в Fedora нет — ставим статический бинарник
-    # из релиза GitHub. Checksum фиксирует версию (см. group_vars/all.yml).
-    - name: Установить бинарник sops
-      ansible.builtin.get_url:
-        url: "{{ sops_url }}"
-        dest: /usr/local/bin/sops
-        mode: "0755"
-        checksum: "{{ sops_checksum }}"
-
-    # age ставим из архива релиза: сначала скачиваем и распаковываем во
-    # временный каталог, затем копируем бинарники в /usr/local/bin.
-    - name: Скачать архив age
-      ansible.builtin.get_url:
-        url: "{{ age_url }}"
-        dest: "/tmp/age-v{{ age_version }}-linux-amd64.tar.gz"
-        mode: "0644"
-        checksum: "{{ age_tarball_checksum }}"
-
-    - name: Распаковать архив age во временный каталог
-      ansible.builtin.unarchive:
-        src: "/tmp/age-v{{ age_version }}-linux-amd64.tar.gz"
-        dest: "/tmp/age-v{{ age_version }}"
-        remote_src: true
-        creates: "/tmp/age-v{{ age_version }}/age/age"
-
-    - name: Установить бинарники age и age-keygen
-      ansible.builtin.copy:
-        src: "/tmp/age-v{{ age_version }}/age/{{ item }}"
-        dest: "/usr/local/bin/{{ item }}"
-        mode: "0755"
-        remote_src: true
-      loop:
-        - age
-        - age-keygen
-
-    - name: Удалить временные файлы установки age
+    # Остаток прежней установки сырым бинарником (перекрывал RPM в PATH).
+    - name: Удалить старый бинарник sops из /usr/local/bin
       ansible.builtin.file:
-        path: "{{ item }}"
+        path: /usr/local/bin/sops
         state: absent
-      loop:
-        - "/tmp/age-v{{ age_version }}-linux-amd64.tar.gz"
-        - "/tmp/age-v{{ age_version }}"
 
     # --- Чистка устаревших репозиториев ---
 
