@@ -30,8 +30,6 @@ services:
       - traefik.enable=true
       - traefik.http.routers.homeassistant.rule=Host(`${HOME_ASSISTANT_HOST}`)
       - traefik.http.routers.homeassistant.entrypoints=websecure
-      - traefik.http.routers.homeassistant.middlewares=homeassistant-lan-only
-      - traefik.http.middlewares.homeassistant-lan-only.ipallowlist.sourcerange=192.0.2.10/24
       - traefik.http.services.homeassistant.loadbalancer.server.port=8123
 
     cap_add:

@@ -1,11 +1,7 @@
 # Home Assistant
 
-Home Assistant Container работает в сети хоста и использует адрес сервера
-`192.0.2.10`. Интерфейс доступен через Traefik по адресу
-`https://homeassistant.example.com`; отдельный адрес
-`192.0.2.10` не назначается. Traefik разрешает доступ к этому маршруту только
-из локальной сети `192.0.2.10/24`, чтобы незавершённый onboarding не был виден
-из интернета.
+Home Assistant Container работает в сети хоста и использует адрес сервера. Интерфейс доступен через Traefik по адресу
+`https://homeassistant.example.com`;
 
 `network_mode: host` нужен для локального обнаружения устройств через mDNS,
 SSDP и DHCP. Он также надёжнее отдельного `macvlan` на этом сервере: физическое
@@ -22,16 +18,7 @@ MAC-адресов сетью и не позволяет контейнеру н
 
 ```sh
 bash ./init.sh
-docker run --rm \
-  --cap-drop ALL \
-  --cap-add CHOWN \
-  --security-opt no-new-privileges:true \
-  -v ${APPS_STORAGE_PATH:-/storage/apps}/home-assistant:/config:Z \
-  alpine:3.23 \
-  sh -ec 'chown 0:0 /config; chmod 0700 /config;
-    test -e /config/automations.yaml || printf "[]\n" > /config/automations.yaml;
-    test -e /config/scripts.yaml || printf "{}\n" > /config/scripts.yaml;
-    test -e /config/scenes.yaml || printf "[]\n" > /config/scenes.yaml'
+bash ./init-postinstall.sh
 docker compose up -d
 docker compose ps
 ```
