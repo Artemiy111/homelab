@@ -49,11 +49,6 @@ docker exec -it mailserver stalwart-cli recovery-login
 - `$APPS_STORAGE_PATH/mailserver/data` — база Stalwart (каталоги, почта)
 - `$APPS_STORAGE_PATH/mailserver/mail` — данные Bulwark
 
-Каталоги Stalwart монтируются в `/etc/stalwart` и `/var/lib/stalwart` (в образах
-v0.16 это — рабочие пути, а не `/opt/stalwart`). Контейнер Stalwart работает
-под uid `2000`, Bulwark — под uid `1001`, поэтому `init.sh` открывает
-каталогам доступ (chown при root, иначе ACL: `setfacl -m u:<uid>:rwx`).
-
 ## DNS и сертификаты
 
 Сертификаты для `mailserver.*` и `mail.*` выпускает Traefik (DNS-01 через

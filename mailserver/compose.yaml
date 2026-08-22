@@ -8,13 +8,17 @@ services:
       - "25:25"
       - "587:587"
       - "993:993"
+
     volumes:
       - ${APPS_STORAGE_PATH:-/storage/apps}/mailserver/etc:/etc/stalwart:Z
       - ${APPS_STORAGE_PATH:-/storage/apps}/mailserver/data:/var/lib/stalwart:Z
+
     environment:
       STALWART_RECOVERY_ADMIN: "${STALWART_ADMIN_USER:?set in mailserver/.env}:${STALWART_ADMIN_PASS:?set in mailserver/.env}"
       STALWART_HOSTNAME: "${MAIL_HOST:?set in mailserver/.env}"
       STALWART_PUBLIC_URL: "https://${MAILSERVER_HOST:?set in mailserver/.env}"
+    user: "1000:1000"
+
     networks:
       - default
       - traefiknet
@@ -30,15 +34,20 @@ services:
   mail:
     image: ghcr.io/bulwarkmail/webmail:1.8
     container_name: mail
+
     depends_on:
       - mailserver
+
     volumes:
       - ${APPS_STORAGE_PATH:-/storage/apps}/mailserver/mail:/app/data:Z
+
     environment:
       HOSTNAME: "0.0.0.0"
       PORT: "3000"
       JMAP_SERVER_URL: "https://${MAILSERVER_HOST:?set in mailserver/.env}"
       SETTINGS_SYNC_ENABLED: "true"
+    user: "1000:1000"
+
     networks:
       - traefiknet
     restart: unless-stopped
