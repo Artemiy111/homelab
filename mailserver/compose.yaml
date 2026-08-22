@@ -15,6 +15,7 @@ services:
 
     environment:
       STALWART_RECOVERY_ADMIN: "${STALWART_ADMIN_USER:?set in mailserver/.env}:${STALWART_ADMIN_PASS:?set in mailserver/.env}"
+      STALWART_METRICS_PASSWORD: ${STALWART_METRICS_PASSWORD:?set in mailserver/.env}
       STALWART_HOSTNAME: "${MAIL_HOST:?set in mailserver/.env}"
       STALWART_PUBLIC_URL: "https://${MAILSERVER_HOST:?set in mailserver/.env}"
     user: "1000:1000"

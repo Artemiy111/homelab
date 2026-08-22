@@ -34,7 +34,7 @@ setuid-binary, и запрет новых привилегий ломает сб
 | `immich-server:8081/metrics` | `IMMICH_TELEMETRY_INCLUDE=all` в `.env` |
 | `element-livekit:6789/metrics` | блок `prometheus:` в конфиге LiveKit |
 | `technitium:5380/api/dashboard/metrics/text` | Bearer-токен из `technitium/.env` |
-| `mailserver:8080/metrics/prometheus` | Basic auth из `mailserver/.env`, включается в WebUI Stalwart |
+| `mailserver:8080/metrics/prometheus` | Basic auth; секрет — env `STALWART_METRICS_PASSWORD`, включается в WebUI Stalwart |
 
 Креды целей с аутентификацией живут только в `.env` соответствующих сервисов;
 `netdata/init.sh` зеркалирует их в `netdata/.env` с префиксом `NETDATA_` и
