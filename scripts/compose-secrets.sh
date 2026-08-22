@@ -27,8 +27,8 @@ if [[ ! -f "$encrypted" ]]; then
   exit 1
 fi
 
-exec sops exec-env "$encrypted" -- \
-  docker compose \
-    --project-directory "$repo_root/$service" \
-    --env-file "$repo_root/.env" \
-    "$@"
+# sops exec-env принимает команду одним аргументом и запускает её через
+# /bin/sh -c, поэтому compose-вызов склеивается в одну строку. Пути внутри
+# репозитория не содержат пробелов.
+exec sops exec-env "$encrypted" \
+  "docker compose --project-directory '$repo_root/$service' --env-file '$repo_root/.env' $*"

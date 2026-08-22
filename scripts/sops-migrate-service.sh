@@ -47,9 +47,14 @@ if [[ ! -f "$age_key_file" ]]; then
   exit 1
 fi
 
+tmp_out="$(mktemp)"
+trap 'rm -f "$tmp_out"' EXIT
+
 umask 077
-sops --encrypt "$env_file" >"$encrypted"
+sops --encrypt "$env_file" >"$tmp_out"
+mv "$tmp_out" "$encrypted"
 chmod 600 "$encrypted"
+trap - EXIT
 
 echo "Создан: $encrypted"
 echo "Дальнейшие шаги:"

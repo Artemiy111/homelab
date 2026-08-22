@@ -52,19 +52,21 @@ for service in "${services[@]}"; do
   echo "==> $service"
 
   # Сервис, мигрированный на SOPS+age (есть secrets.env), получает секреты
-  # в рантайме через sops exec-env; plaintext-файл не создаётся. Остальные
-  # пока работают по старой схеме с генерацией .env.
+  # в рантайме через sops exec-env; plaintext-файл не создаётся. Команда
+  # передаётся одним аргументом (sops исполняет её через /bin/sh -c).
+  # Остальные сервисы пока работают по старой схеме с генерацией .env.
   if [[ -f "$repo_root/$service/secrets.env" ]]; then
-    run=(sops exec-env "$repo_root/$service/secrets.env" --)
+    sops exec-env "$repo_root/$service/secrets.env" \
+      "bash '$repo_root/$service/init.sh'"
+    sops exec-env "$repo_root/$service/secrets.env" \
+      "docker compose --project-directory '$repo_root/$service' --env-file '$repo_root/.env' up -d --remove-orphans"
   else
-    run=()
+    bash "$repo_root/$service/init.sh"
+    docker compose \
+      --project-directory "$repo_root/$service" \
+      --env-file "$repo_root/.env" \
+      up -d --remove-orphans
   fi
-
-  "${run[@]}" bash "$repo_root/$service/init.sh"
-  "${run[@]}" docker compose \
-    --project-directory "$repo_root/$service" \
-    --env-file "$repo_root/.env" \
-    up -d --remove-orphans
 done
 
 echo "Подготовка завершена. Пароли сохранены только в локальных .env сервера."
