@@ -25,6 +25,12 @@ ensure_dirs 0700 \
 
 traefik_network_cidr="$(traefik_network_cidr)"
 
+# Конфиг браузерного Element Web рендерится из шаблона: домен приходит
+# из DOMAIN (common.sh), готовый файл в Git не попадает.
+render_template \
+  "$repo_root/element/element-web/config.tpl.json" \
+  "$repo_root/element/element-web/config.json"
+
 write_env_file "$repo_root/element/.env" <<EOF
 SYNAPSE_HOST=element.$DOMAIN
 SYNAPSE_SERVER_NAME=$DOMAIN
