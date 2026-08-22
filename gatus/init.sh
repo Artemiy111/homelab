@@ -9,13 +9,9 @@ ensure_dirs 0750 \
   "$APPS_STORAGE_PATH"/gatus \
   "$APPS_STORAGE_PATH"/gatus/data
 
-write_env_file "$repo_root/gatus/.env" <<EOF
-GATUS_HOST=uptime.$DOMAIN
-NTFY_TOPIC=gatus-$(openssl rand -hex 16)
-# Telegram-бот (@BotFather): заполните токен и ID чата (у группы ID отрицательный)
-TELEGRAM_BOT_TOKEN=
-TELEGRAM_CHAT_ID=
-TELEGRAM_PROXY_URL=http://$SERVER_IP:8440
-EOF
+
+# Конфигурация и секреты приходят через окружение: bootstrap подмешивает
+# config.env и расшифровывает secrets.env (sops exec-env). Plaintext .env
+# не создаётся.
 
 compose_config "$repo_root/gatus"

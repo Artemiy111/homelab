@@ -9,10 +9,8 @@ ensure_dirs 0700 \
   "$APPS_STORAGE_PATH"/arcane \
   "$APPS_STORAGE_PATH"/arcane/data
 
-write_env_file "$repo_root/arcane/.env" <<EOF
-ARCANE_HOST=arcane.$DOMAIN
-ENCRYPTION_KEY=$(openssl rand -hex 32)
-JWT_SECRET=$(openssl rand -hex 32)
-EOF
+# Конфигурация и секреты приходят через окружение: bootstrap подмешивает
+# config.env и расшифровывает secrets.env (sops exec-env). Plaintext .env
+# не создаётся.
 
 compose_config "$repo_root/arcane"

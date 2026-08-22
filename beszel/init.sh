@@ -10,10 +10,9 @@ mkdir -p \
   "$APPS_STORAGE_PATH"/beszel/agent \
   "$APPS_STORAGE_PATH"/beszel/socket
 
-write_env_file "$repo_root/beszel/.env" <<EOF
-BESZEL_HOST=beszel.$DOMAIN
-BESZEL_AGENT_KEY=
-BESZEL_AGENT_TOKEN=
-EOF
+
+# Конфигурация и секреты приходят через окружение: bootstrap подмешивает
+# config.env и расшифровывает secrets.env (sops exec-env). Plaintext .env
+# не создаётся.
 
 compose_config "$repo_root/beszel" --profile agent

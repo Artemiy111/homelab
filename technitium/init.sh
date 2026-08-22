@@ -9,9 +9,8 @@ ensure_dirs 0750 \
   "$APPS_STORAGE_PATH"/technitium/etc \
   "$APPS_STORAGE_PATH"/technitium/data
 
-write_env_file "$repo_root/technitium/.env" <<EOF
-TECHNITIUM_HOST=dns.$DOMAIN
-TECHNITIUM_ADMIN_PASSWORD=$(random_secret)
-EOF
+# Конфигурация и секреты приходят через окружение: bootstrap подмешивает
+# config.env и расшифровывает secrets.env (sops exec-env). Plaintext .env
+# не создаётся.
 
 compose_config "$repo_root/technitium"

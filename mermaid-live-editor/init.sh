@@ -5,8 +5,8 @@ set -euo pipefail
 repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$repo_root/scripts/lib/common.sh"
 
-write_env_file "$repo_root/mermaid-live-editor/.env" <<EOF
-MERMAID_HOST=mermaid.$DOMAIN
-EOF
+# Конфигурация и секреты приходят через окружение: bootstrap подмешивает
+# config.env и расшифровывает secrets.env (sops exec-env). Plaintext .env
+# не создаётся.
 
 compose_config "$repo_root/mermaid-live-editor"

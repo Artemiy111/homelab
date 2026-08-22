@@ -12,11 +12,9 @@ mkdir -p \
   "$APPS_STORAGE_PATH"/pdf/pipeline \
   "$APPS_STORAGE_PATH"/pdf/tessdata
 
-write_env_file "$repo_root/pdf/.env" <<EOF
-PDF_HOST=pdf.$DOMAIN
-PDF_ADMIN_USERNAME=admin
-PDF_ADMIN_PASSWORD=$(random_secret)
-PDF_DEFAULT_LOCALE=$DEFAULT_LOCALE
-EOF
+
+# Конфигурация и секреты приходят через окружение: bootstrap подмешивает
+# config.env и расшифровывает secrets.env (sops exec-env). Plaintext .env
+# не создаётся.
 
 compose_config "$repo_root/pdf"

@@ -14,20 +14,27 @@ ensure_dirs 0750 \
   "$APPS_STORAGE_PATH"/netdata/lib \
   "$APPS_STORAGE_PATH"/netdata/cache
 
-write_env_file "$repo_root/netdata/.env" <<EOF
-NETDATA_HOST=netdata.$DOMAIN
-EOF
+# Публичная конфигурация сервиса — в закоммиченном config.env.
 
-# Креды scrape-целей с аутентификацией: единственный источник — .env
-# соответствующего сервиса.
-NETDATA_NAVIDROME_METRICS_PATH="$(read_env_key "$repo_root/navidrome/.env" NAVIDROME_METRICS_PATH)"
+# Креды scrape-целей с аутентификацией. Источник — secrets.env соответствующего
+# сервиса (SOPS); dawarich ещё не мигрирован и читается из plaintext .env.
+read_secret_key() {
+  local svc="$1" key="$2"
+  local secrets="$repo_root/$svc/secrets.env"
+  if [[ -f "$secrets" ]]; then
+    sops -d "$secrets" | sed -n "s/^${key}=//p" | head -1
+  else
+    read_env_key "$repo_root/$svc/.env" "$key"
+  fi
+}
+NETDATA_NAVIDROME_METRICS_PATH="$(read_secret_key navidrome NAVIDROME_METRICS_PATH)"
 NETDATA_DAWARICH_METRICS_USERNAME="$(read_env_key "$repo_root/dawarich/.env" DAWARICH_METRICS_USERNAME)"
 NETDATA_DAWARICH_METRICS_PASSWORD="$(read_env_key "$repo_root/dawarich/.env" DAWARICH_METRICS_PASSWORD)"
-NETDATA_FORGEJO_METRICS_TOKEN="$(read_env_key "$repo_root/forgejo/.env" FORGEJO_METRICS_TOKEN)"
-NETDATA_TECHNITIUM_METRICS_TOKEN="$(read_env_key "$repo_root/technitium/.env" TECHNITIUM_METRICS_TOKEN)"
-NETDATA_STALWART_METRICS_USERNAME="$(read_env_key "$repo_root/mailserver/.env" STALWART_METRICS_USERNAME)"
-NETDATA_STALWART_METRICS_PASSWORD="$(read_env_key "$repo_root/mailserver/.env" STALWART_METRICS_PASSWORD)"
-NETDATA_UPTIME_KUMA_METRICS_API_KEY="$(read_env_key "$repo_root/uptime-kuma/.env" UPTIME_KUMA_METRICS_API_KEY)"
+NETDATA_FORGEJO_METRICS_TOKEN="$(read_secret_key forgejo FORGEJO_METRICS_TOKEN)"
+NETDATA_TECHNITIUM_METRICS_TOKEN="$(read_secret_key technitium TECHNITIUM_METRICS_TOKEN)"
+NETDATA_STALWART_METRICS_USERNAME="$(read_secret_key mailserver STALWART_METRICS_USERNAME)"
+NETDATA_STALWART_METRICS_PASSWORD="$(read_secret_key mailserver STALWART_METRICS_PASSWORD)"
+NETDATA_UPTIME_KUMA_METRICS_API_KEY="$(read_secret_key uptime-kuma UPTIME_KUMA_METRICS_API_KEY)"
 
 # Рендер списка scrape-целей. go.d не подставляет переменные окружения в
 # конфиги, поэтому значения запекаются на сервере; файл содержит секреты,

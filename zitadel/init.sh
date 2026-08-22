@@ -14,18 +14,6 @@ ensure_dirs 0700 \
 # поэтому каталог данных должен оставаться проходимым (0755, а не 0700).
 ensure_dirs 0755 "$APPS_STORAGE_PATH"/zitadel/postgresql
 
-write_env_file "$repo_root/zitadel/.env" <<EOF
-ZITADEL_HOST=id.$DOMAIN
-ZITADEL_VERSION=v4.17.1
-POSTGRES_DB=zitadel
-POSTGRES_ADMIN_USER=postgres
-POSTGRES_ADMIN_PASSWORD=$(random_secret)
-POSTGRES_ZITADEL_USER=zitadel
-POSTGRES_ZITADEL_PASSWORD=$(random_secret)
-ADMIN_USERNAME=admin
-ADMIN_PASSWORD=$(random_password)
-EOF
-
 # Masterkey хранится отдельным файлом (0600): ZITADEL v4 не читает его из
 # переменной окружения, только --masterkey / --masterkeyFile. Существующий файл
 # не перезаписывать — ключом зашифрованы данные базы.

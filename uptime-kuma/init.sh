@@ -7,10 +7,8 @@ source "$repo_root/scripts/lib/common.sh"
 
 mkdir -p "$APPS_STORAGE_PATH"/uptime-kuma/data
 
-write_env_file "$repo_root/uptime-kuma/.env" <<EOF
-UPTIME_KUMA_HOST=kuma.$DOMAIN
-UPTIME_KUMA_USERNAME=user
-UPTIME_KUMA_PASSWORD=
-EOF
+# Конфигурация и секреты приходят через окружение: bootstrap подмешивает
+# config.env и расшифровывает secrets.env (sops exec-env). Plaintext .env
+# не создаётся.
 
 compose_config "$repo_root/uptime-kuma"

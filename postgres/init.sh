@@ -13,13 +13,8 @@ ensure_dirs 0700 \
 ensure_dirs 0711 \
   "$APPS_STORAGE_PATH"/postgres/data
 
-write_env_file "$repo_root/postgres/.env" <<EOF
-PGWEB_HOST=postgres.$DOMAIN
-POSTGRES_DB=playground
-POSTGRES_USER=playground
-POSTGRES_PASSWORD=$(random_secret)
-PGWEB_AUTH_USER=pgweb
-PGWEB_AUTH_PASS=$(random_secret)
-EOF
+# Конфигурация и секреты приходят через окружение: bootstrap подмешивает
+# config.env и расшифровывает secrets.env (sops exec-env). Plaintext .env
+# не создаётся.
 
 compose_config "$repo_root/postgres"

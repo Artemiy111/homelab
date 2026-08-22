@@ -10,13 +10,8 @@ ensure_dirs 0700 \
   "$APPS_STORAGE_PATH"/3x-ui/db \
   "$APPS_STORAGE_PATH"/3x-ui/log
 
-write_env_file "$repo_root/3x-ui/.env" <<EOF
-XUI_HOST=xui.$DOMAIN
-XUI_ADMIN_USERNAME=xui-admin
-XUI_ADMIN_PASSWORD=$(random_secret)
-XUI_WEB_BASE_PATH=/panel-$(openssl rand -hex 12)/
-XUI_INBOUND_PORT=8443
-XUI_EGRESS_PORT=8440
-EOF
+# Конфигурация и секреты приходят через окружение: bootstrap подмешивает
+# config.env и расшифровывает secrets.env (sops exec-env). Plaintext .env
+# не создаётся.
 
 compose_config "$repo_root/3x-ui"

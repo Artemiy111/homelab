@@ -51,19 +51,21 @@ services=(
 for service in "${services[@]}"; do
   echo "==> $service"
 
-  # Сервис, мигрированный на SOPS+age (есть secrets.env), получает секреты
-  # в рантайме через sops exec-env; plaintext с секретами не создаётся.
-  # Команда передаётся одним аргументом (sops исполняет её через /bin/sh -c).
-  # Остальные сервисы пока работают по старой схеме с генерацией .env.
+  # Приоритет источников: корневой .env → config.env сервиса → секреты
+  # из secrets.env (sops exec-env, высший). Сервис без secrets.env работает
+  # без расшифровки; сервис без config.env — только с корневым .env.
+  env_files="--env-file '$repo_root/.env'"
+  if [[ -f "$repo_root/$service/config.env" ]]; then
+    env_files+=" --env-file '$repo_root/$service/config.env'"
+  fi
+
+  # init.sh рендерит шаблоны (.tpl.*) и тоже нуждается в публичной
+  # конфигурации — подгружаем её в окружение перед секретами.
+  init_cmd="bash '$repo_root/$service/init.sh'"
+  [[ -f "$repo_root/$service/config.env" ]] &&
+    init_cmd="set -a && . '$repo_root/$service/config.env' && $init_cmd"
+
   if [[ -f "$repo_root/$service/secrets.env" ]]; then
-    env_files="--env-file '$repo_root/.env'"
-    # init.sh рендерит шаблоны (.tpl) и тоже нуждается в публичной
-    # конфигурации — подгружаем её в окружение перед секретами.
-    init_cmd="bash '$repo_root/$service/init.sh'"
-    if [[ -f "$repo_root/$service/config.env" ]]; then
-      env_files+=" --env-file '$repo_root/$service/config.env'"
-      init_cmd="set -a && . '$repo_root/$service/config.env' && $init_cmd"
-    fi
     sops exec-env "$repo_root/$service/secrets.env" "$init_cmd"
     sops exec-env "$repo_root/$service/secrets.env" \
       "docker compose --project-directory '$repo_root/$service' $env_files up -d --remove-orphans"
@@ -71,7 +73,7 @@ for service in "${services[@]}"; do
     bash "$repo_root/$service/init.sh"
     docker compose \
       --project-directory "$repo_root/$service" \
-      --env-file "$repo_root/.env" \
+      $env_files \
       up -d --remove-orphans
   fi
 done

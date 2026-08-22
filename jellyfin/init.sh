@@ -15,9 +15,6 @@ if [[ -z "$render_group_id" ]]; then
   exit 1
 fi
 
-write_env_file "$repo_root/jellyfin/.env" <<EOF
-JELLYFIN_HOST=jellyfin.$DOMAIN
-JELLYFIN_RENDER_GROUP_ID=$render_group_id
-EOF
+# Публичная конфигурация сервиса — в закоммиченном config.env.
 
 compose_config "$repo_root/jellyfin"

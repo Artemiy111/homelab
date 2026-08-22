@@ -13,16 +13,9 @@ mkdir -p \
   "$APPS_STORAGE_PATH"/paperless/postgresql \
   "$APPS_STORAGE_PATH"/paperless/redis
 
-write_env_file "$repo_root/paperless/.env" <<EOF
-PAPERLESS_HOST=paperless.$DOMAIN
-PAPERLESS_SECRET_KEY=$(random_secret)
-POSTGRES_DB=paperless
-POSTGRES_USER=paperless
-POSTGRES_PASSWORD=$(random_secret)
-PAPERLESS_OCR_LANGUAGE=rus
-PAPERLESS_OCR_LANGUAGES=rus
-USERMAP_UID=1000
-USERMAP_GID=1000
-EOF
+
+# Конфигурация и секреты приходят через окружение: bootstrap подмешивает
+# config.env и расшифровывает secrets.env (sops exec-env). Plaintext .env
+# не создаётся.
 
 compose_config "$repo_root/paperless"

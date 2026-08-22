@@ -7,8 +7,6 @@ source "$repo_root/scripts/lib/common.sh"
 
 mkdir -p "$APPS_STORAGE_PATH"/home-assistant
 
-write_env_file "$repo_root/home-assistant/.env" <<EOF
-HOME_ASSISTANT_HOST=homeassistant.$DOMAIN
-EOF
+# Публичная конфигурация сервиса — в закоммиченном config.env.
 
 compose_config "$repo_root/home-assistant"
