@@ -48,6 +48,9 @@ host_packages:
   - ngrep
   - wireshark-cli
 
+  # --- Шифрование секретов ---
+  - age              # age + age-keygen, официальные репозитории Fedora
+
   # --- Хранение ---
   - samba
   - samba-client
@@ -68,3 +71,9 @@ host_packages_absent:
   - nginx
   - jenkins
   - caddy
+
+# --- Шифрование секретов (SOPS) ---
+
+# Официального репозитория sops в Fedora нет — RPM из релиза GitHub.
+sops_version: "3.13.3"
+sops_rpm_url: "https://github.com/getsops/sops/releases/download/v{{ sops_version }}/sops-{{ sops_version }}-1.x86_64.rpm"

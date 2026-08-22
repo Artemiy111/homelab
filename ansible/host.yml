@@ -51,6 +51,22 @@
         state: enabled
         host: copr.fedorainfracloud.org
 
+    # age есть в официальных репозиториях Fedora (ставится с пакетом ниже).
+    # Для sops официального репозитория нет — берём RPM из релиза GitHub.
+    # RPM подписан cosign, а не GPG, поэтому проверка подписи отключена;
+    # целостность фиксируется checksum URL-версии (см. group_vars/all.yml).
+    - name: Установить sops из релиза GitHub
+      ansible.builtin.dnf5:
+        name: "{{ sops_rpm_url }}"
+        state: present
+        disable_gpg_check: true
+
+    # Остаток прежней установки сырым бинарником (перекрывал RPM в PATH).
+    - name: Удалить старый бинарник sops из /usr/local/bin
+      ansible.builtin.file:
+        path: /usr/local/bin/sops
+        state: absent
+
     # --- Чистка устаревших репозиториев ---
 
     - name: Удалить устаревший репозиторий Jenkins (пакет давно удалён)

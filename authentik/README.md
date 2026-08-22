@@ -1,7 +1,7 @@
 # Authentik
 
-Authentik — отдельный identity provider, работающий параллельно с Pocket ID.
-Интерфейс доступен только через Traefik по адресу
+Authentik — отдельный identity provider. Интерфейс доступен только через
+Traefik по адресу
 `https://auth.example.com/`; порты контейнеров на хосте не публикуются.
 
 Данные приложения хранятся в `$APPS_STORAGE_PATH/authentik/data`, PostgreSQL — в
