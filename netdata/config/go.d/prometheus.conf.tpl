@@ -46,3 +46,8 @@ jobs:
     url: http://technitium:5380/api/dashboard/metrics/text
     headers:
       Authorization: "Bearer ${NETDATA_TECHNITIUM_METRICS_TOKEN}"
+
+  - name: stalwart
+    url: http://mailserver:8080/metrics/prometheus
+    username: ${NETDATA_STALWART_METRICS_USERNAME}
+    password: ${NETDATA_STALWART_METRICS_PASSWORD}
