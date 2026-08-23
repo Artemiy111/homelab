@@ -11,9 +11,6 @@ export PATH="$BUN_INSTALL/bin:$PATH"
 # --- Редактор по умолчанию ---
 export EDITOR=nvim
 export VISUAL=nvim
-# zsh выбирает keymap по $EDITOR: "nvim" содержит подстроку "vi" и молча
-# включает vi-режим (после случайного ESC буквы становятся vi-командами).
-bindkey -e
 
 # --- История ---
 HISTFILE=~/.zsh_history

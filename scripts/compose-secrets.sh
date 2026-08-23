@@ -4,11 +4,12 @@
 #   bash scripts/compose-secrets.sh traefik config --quiet
 #   bash scripts/compose-secrets.sh traefik up -d
 #
-# Расшифровывает <сервис>/secrets.enc.env через `sops exec-env` и передаёт
-# переменные в docker compose как переменные окружения — plaintext-файл
-# не создаётся. Требует приватный age-ключ, поэтому работает только на
-# сервере (от имени artlab). Корневой .env подмешивается через --env-file,
-# значения из secrets.enc.env имеют приоритет.
+# Обёртка над service_compose из scripts/lib/common.sh: расшифровывает
+# <сервис>/secrets.enc.env через `sops exec-env` и передаёт переменные
+# в docker compose как переменные окружения — plaintext-файл не создаётся.
+# Требует приватный age-ключ, поэтому работает только на сервере
+# (от имени artlab). Корневой .env и config.env сервиса подмешиваются
+# через --env-file, значения из secrets.enc.env имеют приоритет.
 
 set -euo pipefail
 
@@ -27,14 +28,5 @@ if [[ ! -f "$encrypted" ]]; then
   exit 1
 fi
 
-# sops exec-env принимает команду одним аргументом и запускает её через
-# /bin/sh -c, поэтому compose-вызов склеивается в одну строку. Пути внутри
-# репозитория не содержат пробелов. Приоритет: корневой .env → config.env
-# сервиса → расшифрованные секреты (окружение, высший).
-env_files=(--env-file "$repo_root/.env")
-if [[ -f "$repo_root/$service/config.env" ]]; then
-  env_files+=(--env-file "$repo_root/$service/config.env")
-fi
-
-exec sops exec-env "$encrypted" \
-  "docker compose --project-directory '$repo_root/$service' ${env_files[*]} $*"
+source "$repo_root/scripts/lib/common.sh"
+service_compose "$service" "$@"

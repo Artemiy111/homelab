@@ -8,7 +8,8 @@
 #
 # Скрипт задаёт $repo_root (если вызывающий ещё не задал) и определяет
 # функции: random_secret, chmod_if_owned, ensure_dirs, write_env_file,
-# traefik_network_cidr, compose_config.
+# traefik_network_cidr, compose_config, service_env_files, service_compose,
+# service_init, service_bootstrap.
 
 repo_root="${repo_root:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)}"
 
@@ -203,4 +204,53 @@ compose_config() {
   local service_dir="$1"
   shift
   docker compose --project-directory "$service_dir" --file "$service_dir/compose.yaml" "$@" config --quiet
+}
+
+# Строка --env-file для сервиса: корневой .env плюс config.env сервиса,
+# если тот существует. Пути в кавычках — строка раскрывается без словоделения
+# по содержимому (пути без пробелов по соглашению репо).
+service_env_files() {
+  local service="$1"
+  local files="--env-file '$repo_root/.env'"
+  [[ -f "$repo_root/$service/config.env" ]] &&
+    files+=" --env-file '$repo_root/$service/config.env'"
+  printf '%s' "$files"
+}
+
+# Запускает docker compose для сервиса. Если у сервиса есть secrets.enc.env,
+# команда оборачивается в sops exec-env: расшифрованные секреты попадают
+# в окружение compose в памяти процесса, plaintext-файл не создаётся.
+service_compose() {
+  local service="$1"
+  shift
+  if [[ -f "$repo_root/$service/secrets.enc.env" ]]; then
+    sops exec-env "$repo_root/$service/secrets.enc.env" \
+      "docker compose --project-directory '$repo_root/$service' $(service_env_files "$service") $*"
+  else
+    docker compose \
+      --project-directory "$repo_root/$service" \
+      $(service_env_files "$service") \
+      "$@"
+  fi
+}
+
+# Выполняет init.sh сервиса (каталоги данных, шаблоны, валидация конфигурации).
+# config.env подмешивается в окружение, секреты — через sops exec-env.
+service_init() {
+  local service="$1"
+  local init_cmd="bash '$repo_root/$service/init.sh'"
+  [[ -f "$repo_root/$service/config.env" ]] &&
+    init_cmd="set -a && . '$repo_root/$service/config.env' && $init_cmd"
+  if [[ -f "$repo_root/$service/secrets.enc.env" ]]; then
+    sops exec-env "$repo_root/$service/secrets.enc.env" "$init_cmd"
+  else
+    bash "$repo_root/$service/init.sh"
+  fi
+}
+
+# Полный цикл одного сервиса: init.sh + compose up -d.
+service_bootstrap() {
+  local service="$1"
+  service_init "$service"
+  service_compose "$service" up -d --remove-orphans
 }
