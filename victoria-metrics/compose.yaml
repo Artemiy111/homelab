@@ -4,6 +4,9 @@ services:
   victoriametrics:
     image: victoriametrics/victoria-metrics:v1.150.0@sha256:54467c7764a3e6579199af1914bb779f01ce32265cd552eb5ae0d4f8a2b80a97
     container_name: victoriametrics
+    # Непривилегированный uid (artlab); вместе с cap_drop: ALL это требует,
+    # чтобы каталог данных был доступен на запись uid 1000 (см. init.sh).
+    user: "1000:1000"
     command:
       - -storageDataPath=/data
       - -retentionPeriod=${VM_RETENTION_PERIOD:-180d}
