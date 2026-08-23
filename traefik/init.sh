@@ -6,12 +6,12 @@ repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$repo_root/scripts/lib/common.sh"
 
 # Конфигурация и секреты приходят через окружение — их расшифровывает
-# `sops exec-env traefik/secrets.env` (это делает bootstrap-platform.sh;
+# `sops exec-env traefik/secrets.enc.env` (это делает bootstrap-platform.sh;
 # вручную см. scripts/compose-secrets.sh). Plaintext-файл .env не создаётся.
 if [[ -z "${RFC2136_TSIG_SECRET:-}" ]]; then
   echo "Ошибка: секреты traefik не переданы в окружение." >&2
   echo "Запустите через: bash scripts/compose-secrets.sh traefik ..." >&2
-  echo "или: sops exec-env traefik/secrets.env -- bash traefik/init.sh" >&2
+  echo "или: sops exec-env traefik/secrets.enc.env -- bash traefik/init.sh" >&2
   exit 1
 fi
 

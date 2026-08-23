@@ -9,7 +9,7 @@ mkdir -p "$APPS_STORAGE_PATH"/wud/store
 
 # Cup для Docker Hub отправляет `Authorization: Basic base64(логин:токен)`
 # (как в ~/.docker/config.json). Креды приходят из окружения (config.env +
-# secrets.env), готовая строка подставляется в cup.json через render_template.
+# secrets.enc.env), готовая строка подставляется в cup.json через render_template.
 # Пока токен не задан, блок registries не рендерится — Cup работает анонимно
 # (лимит 100 pulls/6h).
 

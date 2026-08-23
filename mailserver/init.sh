@@ -12,6 +12,6 @@ ensure_dirs 0750 "$APPS_STORAGE_PATH"/mailserver/mail
 
 # Basic auth для Prometheus-метрик (включается в WebUI: Settings →
 # Telemetry → Metrics): креды приходят из окружения (STALWART_METRICS_*
-# из secrets.env), в контейнер передаются через environment (compose.yaml).
+# из secrets.enc.env), в контейнер передаются через environment (compose.yaml).
 
 compose_config "$repo_root/mailserver"

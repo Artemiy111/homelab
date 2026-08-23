@@ -4,11 +4,11 @@
 #   bash scripts/compose-secrets.sh traefik config --quiet
 #   bash scripts/compose-secrets.sh traefik up -d
 #
-# Расшифровывает <сервис>/secrets.env через `sops exec-env` и передаёт
+# Расшифровывает <сервис>/secrets.enc.env через `sops exec-env` и передаёт
 # переменные в docker compose как переменные окружения — plaintext-файл
 # не создаётся. Требует приватный age-ключ, поэтому работает только на
 # сервере (от имени artlab). Корневой .env подмешивается через --env-file,
-# значения из secrets.env имеют приоритет.
+# значения из secrets.enc.env имеют приоритет.
 
 set -euo pipefail
 
@@ -21,7 +21,7 @@ repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 service="$1"
 shift
 
-encrypted="$repo_root/$service/secrets.env"
+encrypted="$repo_root/$service/secrets.enc.env"
 if [[ ! -f "$encrypted" ]]; then
   echo "Ошибка: $encrypted не найден — сервис не мигрирован на SOPS" >&2
   exit 1

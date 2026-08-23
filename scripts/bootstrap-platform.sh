@@ -52,7 +52,7 @@ for service in "${services[@]}"; do
   echo "==> $service"
 
   # Приоритет источников: корневой .env → config.env сервиса → секреты
-  # из secrets.env (sops exec-env, высший). Сервис без secrets.env работает
+  # из secrets.enc.env (sops exec-env, высший). Сервис без secrets.enc.env работает
   # без расшифровки; сервис без config.env — только с корневым .env.
   env_files="--env-file '$repo_root/.env'"
   if [[ -f "$repo_root/$service/config.env" ]]; then
@@ -65,9 +65,9 @@ for service in "${services[@]}"; do
   [[ -f "$repo_root/$service/config.env" ]] &&
     init_cmd="set -a && . '$repo_root/$service/config.env' && $init_cmd"
 
-  if [[ -f "$repo_root/$service/secrets.env" ]]; then
-    sops exec-env "$repo_root/$service/secrets.env" "$init_cmd"
-    sops exec-env "$repo_root/$service/secrets.env" \
+  if [[ -f "$repo_root/$service/secrets.enc.env" ]]; then
+    sops exec-env "$repo_root/$service/secrets.enc.env" "$init_cmd"
+    sops exec-env "$repo_root/$service/secrets.enc.env" \
       "docker compose --project-directory '$repo_root/$service' $env_files up -d --remove-orphans"
   else
     bash "$repo_root/$service/init.sh"

@@ -10,7 +10,7 @@ ensure_dirs 0700 \
   "$APPS_STORAGE_PATH"/arcane/data
 
 # Конфигурация и секреты приходят через окружение: bootstrap подмешивает
-# config.env и расшифровывает secrets.env (sops exec-env). Plaintext .env
+# config.env и расшифровывает secrets.enc.env (sops exec-env). Plaintext .env
 # не создаётся.
 
 compose_config "$repo_root/arcane"

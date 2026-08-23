@@ -21,16 +21,16 @@ bash scripts/compose-secrets.sh traefik up -d
 docker compose ps
 ```
 
-Секреты traefik хранятся зашифрованными в `secrets.env` (SOPS + age, см.
+Секреты traefik хранятся зашифрованными в `secrets.enc.env` (SOPS + age, см.
 раздел «Секреты» в корневом README) и передаются в рантайме через
 `sops exec-env`: plaintext-файл `.env` не создаётся. `init.sh` создаёт
 каталог ACME и рендерит `traefik.yaml` из `traefik.tpl.yaml`, подставляя
 домен из `DOMAIN` и email из расшифрованных секретов (`LETSENCRYPT_EMAIL`).
-После изменения секретов (`sops secrets.env` на сервере) перезапустите
+После изменения секретов (`sops secrets.enc.env` на сервере) перезапустите
 контейнер через `scripts/compose-secrets.sh`.
 
 Для получения сертификата Let's Encrypt создать в <dns-provider> TSIG-ключ зоны
-`example.com` и заполнить значения в `secrets.env` вместо заглушек:
+`example.com` и заполнить значения в `secrets.enc.env` вместо заглушек:
 
 ```dotenv
 RFC2136_NAMESERVER=ns1.<dns-provider>.com:53
@@ -40,7 +40,7 @@ RFC2136_TSIG_SECRET=секрет-из-<dns-provider>
 ```
 
 TSIG-секрет не хранится в Git в открытом виде: он зашифрован внутри
-`secrets.env`. Сертификаты и данные ACME сохраняются в
+`secrets.enc.env`. Сертификаты и данные ACME сохраняются в
 `$APPS_STORAGE_PATH/traefik/letsencrypt/acme.json` с правами `0600` (файл
 создаёт `init.sh`).
 

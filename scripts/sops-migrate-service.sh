@@ -8,7 +8,7 @@
 # человек по init.sh и compose.yaml сервиса, список фиксируется в коммите).
 # Скрипт раскладывает существующий <service>/.env на два файла:
 #   <service>/config.env  — публичная конфигурация (plaintext, tracked);
-#   <service>/secrets.env — только секреты, зашифрован SOPS+age целиком.
+#   <service>/secrets.enc.env — только секреты, зашифрован SOPS+age целиком.
 # Глобальные переменные (DOMAIN, SERVER_IP, TZ, APPS_STORAGE_PATH) в
 # config.env не переносятся — они уже есть в корневом .env.
 
@@ -25,7 +25,7 @@ service="$1"
 service_dir="$repo_root/$service"
 env_file="$service_dir/.env"
 config_file="$service_dir/config.env"
-encrypted="$service_dir/secrets.env"
+encrypted="$service_dir/secrets.enc.env"
 age_key_file="${SOPS_AGE_KEY_FILE:-$HOME/.config/sops/age/keys.txt}"
 
 # Глобальные переменные остаются в корневом .env, в config.env им не место.
@@ -40,7 +40,7 @@ if [[ ! -f "$env_file" ]]; then
   exit 1
 fi
 if [[ -f "$encrypted" || -f "$config_file" ]]; then
-  echo "Ошибка: secrets.env или config.env уже существуют — сервис уже мигрирован" >&2
+  echo "Ошибка: secrets.enc.env или config.env уже существуют — сервис уже мигрирован" >&2
   exit 1
 fi
 if ! command -v sops >/dev/null 2>&1; then
@@ -67,7 +67,7 @@ fi
 
 # Раскладываем строки .env: секретные — во временный файл для шифрования,
 # остальные (плюс комментарии) — в config.env.
-tmp_plaintext="$(mktemp /tmp/sops-migrate-XXXXXX.env)"
+tmp_plaintext="$(mktemp /tmp/sops-migrate-XXXXXX-secrets.enc.env)"
 trap 'rm -f "$tmp_plaintext"' EXIT
 
 secret_names=()
@@ -117,7 +117,7 @@ echo "Создан: $config_file ($config_count переменных конфи�
 echo "Создан: $encrypted (секреты: ${secret_names[*]})"
 echo "Дальнейшие шаги:"
 echo "  1. Перенести оба файла в локальную рабочую копию на macOS"
-echo "     (secrets.env зашифрован, его содержимое можно выводить в логи;"
+echo "     (secrets.enc.env зашифрован, его содержимое можно выводить в логи;"
 echo "     config.env не содержит секретов)."
 echo "  2. Закоммитить с указанием классификации, push, git pull --ff-only."
 echo "  3. Проверить: bash scripts/compose-secrets.sh $service config --quiet."

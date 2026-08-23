@@ -67,7 +67,7 @@ TZ="${TZ:-Asia/Yekaterinburg}"
 # сохраняя формат и комментарии шаблона. Нужные переменные должны быть
 # экспортированы вызывающим скриптом. Секреты в шаблоны передаются либо
 # через окружение (сервис запущен под sops exec-env), либо напрямую через
-# ref+sops-ссылки на secrets.env других сервисов.
+# ref+sops-ссылки на secrets.enc.env других сервисов.
 render_template() {
   local template="$1" output="$2"
   vals flatten -f "$template" >"$output"

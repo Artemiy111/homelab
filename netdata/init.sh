@@ -16,11 +16,11 @@ ensure_dirs 0750 \
 
 # Публичная конфигурация сервиса — в закоммиченном config.env.
 
-# Креды scrape-целей с аутентификацией. Источник — secrets.env соответствующего
+# Креды scrape-целей с аутентификацией. Источник — secrets.enc.env соответствующего
 # сервиса (SOPS); dawarich ещё не мигрирован и читается из plaintext .env.
 read_secret_key() {
   local svc="$1" key="$2"
-  local secrets="$repo_root/$svc/secrets.env"
+  local secrets="$repo_root/$svc/secrets.enc.env"
   if [[ -f "$secrets" ]]; then
     sops -d "$secrets" | sed -n "s/^${key}=//p" | head -1
   else
