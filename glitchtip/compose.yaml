@@ -2,7 +2,7 @@ name: glitchtip
 
 services:
   postgres:
-    image: postgres:18-alpine
+    image: postgres:17-alpine
     container_name: glitchtip-postgres
     volumes:
       - ${APPS_STORAGE_PATH:-/storage/apps}/glitchtip/postgresql:/var/lib/postgresql:Z
@@ -27,19 +27,19 @@ services:
     security_opt:
       - no-new-privileges:true
 
-  valkey:
-    image: valkey/valkey:9-alpine
-    container_name: glitchtip-valkey
+  redis:
+    image: redis:7-alpine
+    container_name: glitchtip-redis
 
     volumes:
-      - ${APPS_STORAGE_PATH:-/storage/apps}/glitchtip/valkey:/data:Z
+      - ${APPS_STORAGE_PATH:-/storage/apps}/glitchtip/redis:/data:Z
 
     networks:
       - backend
     restart: unless-stopped
 
     healthcheck:
-      test: [ "CMD", "valkey-cli", "ping" ]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -77,13 +77,13 @@ services:
     depends_on:
       migrate:
         condition: service_completed_successfully
-      valkey:
+      redis:
         condition: service_healthy
 
     environment:
       SECRET_KEY: ${SECRET_KEY:?set in glitchtip/secrets.enc.env}
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD:?set in glitchtip/secrets.enc.env}@postgres:5432/${POSTGRES_DB:-glitchtip}
-      REDIS_URL: ${REDIS_URL:-redis://valkey:6379/0}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
       GLITCHTIP_DOMAIN: https://glitchtip.${DOMAIN:?set in root .env}
       ENABLE_USER_REGISTRATION: ${ENABLE_USER_REGISTRATION:-false}
       ENABLE_ORGANIZATION_CREATION: ${ENABLE_ORGANIZATION_CREATION:-true}
@@ -120,7 +120,7 @@ services:
     depends_on:
       migrate:
         condition: service_completed_successfully
-      valkey:
+      redis:
         condition: service_healthy
       web:
         condition: service_started
@@ -129,7 +129,7 @@ services:
       SERVER_ROLE: worker
       SECRET_KEY: ${SECRET_KEY:?set in glitchtip/secrets.enc.env}
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD:?set in glitchtip/secrets.enc.env}@postgres:5432/${POSTGRES_DB:-glitchtip}
-      REDIS_URL: ${REDIS_URL:-redis://valkey:6379/0}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
       GLITCHTIP_DOMAIN: https://glitchtip.${DOMAIN:?set in root .env}
 
     networks:

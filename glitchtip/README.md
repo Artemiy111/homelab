@@ -1,9 +1,8 @@
 # GlitchTip
 
-GlitchTip — сбор ошибок приложений, совместимый с Sentry SDK. Веб-интерфейс
-доступен через Traefik по адресу `https://glitchtip.example.com/`; порты
-приложения, PostgreSQL и Valkey на хост не публикуются. Локальный wildcard DNS
-уже направляет этот адрес на Traefik.
+`https://glitchtip.example.com/`
+
+GlitchTip — сбор ошибок приложений, совместимый с Sentry SDK. 
 
 Образ закреплён на мажорной версии `6` (переменная `GLITCHTIP_VERSION`).
 Постоянные данные находятся в `$APPS_STORAGE_PATH/glitchtip` и входят в общий
