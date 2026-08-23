@@ -15,6 +15,4 @@ if [[ -z "$render_group_id" ]]; then
   exit 1
 fi
 
-# Публичная конфигурация сервиса — в закоммиченном config.env.
-
 compose_config "$repo_root/jellyfin"

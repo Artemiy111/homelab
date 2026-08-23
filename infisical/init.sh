@@ -13,23 +13,8 @@ ensure_dirs 0755 \
   "$APPS_STORAGE_PATH"/infisical/postgresql \
   "$APPS_STORAGE_PATH"/infisical/redis
 
-postgres_password="$(random_secret)"
-traefik_network_cidr="$(traefik_network_cidr)"
-
-write_env_file "$repo_root/infisical/.env" <<EOF
-INFISICAL_HOST=infisical.$DOMAIN
-INFISICAL_VERSION=latest
-POSTGRES_DB=infisical
-POSTGRES_USER=infisical
-POSTGRES_PASSWORD=$postgres_password
-ENCRYPTION_KEY=$(openssl rand -hex 16)
-AUTH_SECRET=$(openssl rand -base64 32)
-DB_CONNECTION_URI=postgresql://infisical:$postgres_password@postgres:5432/infisical?sslmode=disable
-REDIS_URL=redis://redis:6379
-SITE_URL=https://infisical.$DOMAIN
-HOST=0.0.0.0
-TRUSTED_PROXY_CIDRS=$traefik_network_cidr
-TELEMETRY_ENABLED=false
-EOF
+# Конфигурация и секреты приходят через окружение: bootstrap подмешивает
+# config.env и расшифровывает secrets.enc.env (sops exec-env). Plaintext .env
+# не создаётся.
 
 compose_config "$repo_root/infisical"

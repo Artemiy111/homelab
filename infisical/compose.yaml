@@ -9,7 +9,7 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-infisical}
       POSTGRES_USER: ${POSTGRES_USER:-infisical}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in infisical/.env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in infisical/secrets.enc.env}
     networks:
       - backend
     restart: unless-stopped
@@ -42,9 +42,17 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
-    env_file: .env
     environment:
-      - NODE_ENV=production
+      NODE_ENV: production
+      INFISICAL_HOST: infisical.${DOMAIN:?set in root .env}
+      SITE_URL: https://infisical.${DOMAIN:?set in root .env}
+      DB_CONNECTION_URI: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD:?set in infisical/secrets.enc.env}@postgres:5432/${POSTGRES_DB}?sslmode=disable
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:?set in infisical/secrets.enc.env}
+      AUTH_SECRET: ${AUTH_SECRET:?set in infisical/secrets.enc.env}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+      HOST: ${HOST:-0.0.0.0}
+      TRUSTED_PROXY_CIDRS: ${TRUSTED_PROXY_CIDRS:-}
+      TELEMETRY_ENABLED: ${TELEMETRY_ENABLED:-false}
     networks:
       - backend
       - traefiknet
@@ -62,7 +70,7 @@ services:
       - traefik.enable=true
       - traefik.docker.network=traefiknet
       - traefik.http.services.infisical.loadbalancer.server.port=8080
-      - traefik.http.routers.infisical.rule=Host(`${INFISICAL_HOST}`)
+      - traefik.http.routers.infisical.rule=Host(`infisical.${DOMAIN:?set in root .env}`)
       - traefik.http.routers.infisical.entrypoints=websecure
       - traefik.http.routers.infisical.service=infisical
       - traefik.http.routers.infisical.tls.certresolver=letsencrypt
