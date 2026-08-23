@@ -27,9 +27,9 @@ is_allowed() {
     structurizr/homelab.dsl) return 0 ;;
     *.md) return 0 ;;
     *.env.example) return 0 ;;
-    # config.env — трекаемые дефолты сервиса (публичная конфигурация),
-    # та же категория, что и .env.example.
-    */config.env) return 0 ;;
+    # config.env — трекаемые дефолты сервиса (публичная конфигурация).
+    # Производные от DOMAIN значения сюда НЕ пишутся: они собираются
+    # в compose.yaml/шаблонах, поэтому allowlist для них нет.
     *.tpl.*) return 0 ;;
   esac
   return 1

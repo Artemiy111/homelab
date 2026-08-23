@@ -9,7 +9,7 @@ services:
       - ${APPS_STORAGE_PATH:-/storage/apps}/beszel/socket:/beszel_socket:z
 
     environment:
-      APP_URL: https://${BESZEL_HOST:?set in beszel/.env}
+      APP_URL: https://beszel.${DOMAIN}
       DISABLE_PASSWORD_AUTH: true
 
     networks:
@@ -25,7 +25,7 @@ services:
 
     labels:
       - traefik.enable=true
-      - traefik.http.routers.beszel.rule=Host(`${BESZEL_HOST}`)
+      - traefik.http.routers.beszel.rule=Host(`beszel.${DOMAIN}`)
       - traefik.http.routers.beszel.entrypoints=websecure
       - traefik.http.services.beszel.loadbalancer.server.port=8090
       - traefik.docker.network=traefiknet
@@ -51,7 +51,7 @@ services:
 
     environment:
       LISTEN: /beszel_socket/beszel.sock
-      HUB_URL: https://${BESZEL_HOST:?set in beszel/.env}
+      HUB_URL: https://beszel.${DOMAIN}
       KEY: ${BESZEL_AGENT_KEY:-}
       TOKEN: ${BESZEL_AGENT_TOKEN:-}
     network_mode: host

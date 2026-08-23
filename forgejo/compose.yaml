@@ -6,9 +6,9 @@ x-forgejo-environment: &forgejo-environment
   FORGEJO__database__NAME: ${POSTGRES_DB:-forgejo}
   FORGEJO__database__USER: ${POSTGRES_USER:-forgejo}
   FORGEJO__database__PASSWD: ${POSTGRES_PASSWORD:?set in forgejo/.env}
-  FORGEJO__server__DOMAIN: ${FORGEJO_HOST:?set in forgejo/.env}
-  FORGEJO__server__ROOT_URL: https://${FORGEJO_HOST:?set in forgejo/.env}/
-  FORGEJO__server__SSH_DOMAIN: ${FORGEJO_HOST:?set in forgejo/.env}
+  FORGEJO__server__DOMAIN: forgejo.${DOMAIN}
+  FORGEJO__server__ROOT_URL: https://forgejo.${DOMAIN}/
+  FORGEJO__server__SSH_DOMAIN: forgejo.${DOMAIN}
   FORGEJO__server__SSH_PORT: ${FORGEJO_SSH_PORT:-2222}
   FORGEJO__server__LFS_START_SERVER: "true"
   # INSTALL_LOCK управляется веб-мастером — не переопределять через env
@@ -21,7 +21,7 @@ x-forgejo-environment: &forgejo-environment
   FORGEJO__actions__ENABLED: "false"
   FORGEJO__metrics__ENABLED: "true"
   FORGEJO__metrics__TOKEN: ${FORGEJO_METRICS_TOKEN:?set in forgejo/.env}
-  FORGEJO__i18n__DEFAULT_LOCALE: ${FORGEJO_DEFAULT_LOCALE:?set in forgejo/.env}
+  FORGEJO__i18n__DEFAULT_LOCALE: ${DEFAULT_LOCALE}
   # === После регистрации WebAuthn-ключа ===
   # 1. Включить WebAuthn:
   # FORGEJO__webauthn__ENABLED: "true"
@@ -91,7 +91,7 @@ services:
 
     labels:
       - traefik.enable=true
-      - traefik.http.routers.forgejo.rule=Host(`${FORGEJO_HOST}`)
+      - traefik.http.routers.forgejo.rule=Host(`forgejo.${DOMAIN}`)
       - traefik.http.routers.forgejo.entrypoints=websecure
       - traefik.http.services.forgejo.loadbalancer.server.port=3000
       - traefik.http.middlewares.forgejo-security.headers.stsSeconds=15552000

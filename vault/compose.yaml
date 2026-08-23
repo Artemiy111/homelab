@@ -12,7 +12,7 @@ services:
     environment:
       # Used by the bundled CLI and healthcheck inside the HTTP-only container.
       VAULT_ADDR: "http://127.0.0.1:8200"
-      VAULT_API_ADDR: "https://${VAULT_HOST:?set in vault/.env}"
+      VAULT_API_ADDR: "https://vault.${DOMAIN}"
     command: vault server -config=/vault/config/vault.hcl
     restart: unless-stopped
     healthcheck:
@@ -29,7 +29,7 @@ services:
       - traefik.enable=true
       - traefik.docker.network=traefiknet
       - traefik.http.services.vault.loadbalancer.server.port=8200
-      - traefik.http.routers.vault.rule=Host(`${VAULT_HOST}`)
+      - traefik.http.routers.vault.rule=Host(`vault.${DOMAIN}`)
       - traefik.http.routers.vault.entrypoints=websecure
       - traefik.http.routers.vault.service=vault
       - traefik.http.routers.vault.tls.certresolver=letsencrypt

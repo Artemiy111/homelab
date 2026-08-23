@@ -8,13 +8,13 @@ x-nextcloud-environment: &nextcloud-environment
   REDIS_HOST: redis
   NEXTCLOUD_ADMIN_USER: ${NEXTCLOUD_ADMIN_USER:?set in nextcloud/.env}
   NEXTCLOUD_ADMIN_PASSWORD: ${NEXTCLOUD_ADMIN_PASSWORD:?set in nextcloud/.env}
-  NEXTCLOUD_TRUSTED_DOMAINS: ${NEXTCLOUD_HOST:?set in nextcloud/.env}
-  NEXTCLOUD_DEFAULT_LANGUAGE: ${NEXTCLOUD_DEFAULT_LANGUAGE:?set in nextcloud/.env}
+  NEXTCLOUD_TRUSTED_DOMAINS: nextcloud.${DOMAIN}
+  NEXTCLOUD_DEFAULT_LANGUAGE: ${DEFAULT_LOCALE}
   TRUSTED_PROXIES: ${TRAEFIK_NETWORK_CIDR:?set in nextcloud/.env}
   APACHE_DISABLE_REWRITE_IP: "1"
-  OVERWRITEHOST: ${NEXTCLOUD_HOST:?set in nextcloud/.env}
+  OVERWRITEHOST: nextcloud.${DOMAIN}
   OVERWRITEPROTOCOL: https
-  OVERWRITECLIURL: https://${NEXTCLOUD_HOST:?set in nextcloud/.env}
+  OVERWRITECLIURL: https://nextcloud.${DOMAIN}
   NEXTCLOUD_INIT_HTACCESS: "true"
   PHP_MEMORY_LIMIT: 512M
   PHP_UPLOAD_LIMIT: 16G
@@ -97,7 +97,7 @@ services:
 
     labels:
       - traefik.enable=true
-      - traefik.http.routers.nextcloud.rule=Host(`${NEXTCLOUD_HOST}`)
+      - traefik.http.routers.nextcloud.rule=Host(`nextcloud.${DOMAIN}`)
       - traefik.http.routers.nextcloud.entrypoints=websecure
       - traefik.http.routers.nextcloud.middlewares=nextcloud-dav,nextcloud-security
       - traefik.http.services.nextcloud.loadbalancer.server.port=80

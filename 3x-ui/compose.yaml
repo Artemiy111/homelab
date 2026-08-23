@@ -65,7 +65,7 @@ services:
 
     labels:
       - traefik.enable=true
-      - traefik.http.routers.3x-ui.rule=Host(`${XUI_HOST}`)
+      - traefik.http.routers.3x-ui.rule=Host(`xui.${DOMAIN}`)
       - traefik.http.routers.3x-ui.entrypoints=websecure
       - traefik.http.services.3x-ui.loadbalancer.server.port=2053
       - traefik.docker.network=traefiknet

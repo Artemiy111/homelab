@@ -44,13 +44,13 @@ services:
     environment:
       AIO_LOG_LEVEL: warn
       INTERNAL_SECRET: ${INTERNAL_SECRET:?set in talk-hpb/.env}
-      NC_DOMAIN: ${NC_DOMAIN:?set in talk-hpb/.env}
+      NC_DOMAIN: nextcloud.${DOMAIN}
       SIGNALING_SECRET: ${SIGNALING_SECRET:?set in talk-hpb/.env}
-      TALK_HOST: ${TALK_HOST:?set in talk-hpb/.env}
+      TALK_HOST: talk-signaling.${DOMAIN}
       TALK_MAX_STREAM_BITRATE: ${TALK_MAX_STREAM_BITRATE:-4194304}
       TALK_MAX_SCREEN_BITRATE: ${TALK_MAX_SCREEN_BITRATE:-8388608}
       TALK_PORT: ${TALK_PORT:-3478}
-      TURN_DOMAIN: ${TURN_DOMAIN:?set in talk-hpb/.env}
+      TURN_DOMAIN: talk-signaling.${DOMAIN}
       TURN_SECRET: ${TURN_SECRET:?set in talk-hpb/.env}
       TZ: ${TZ:?set in talk-hpb/.env}
 
@@ -60,7 +60,7 @@ services:
 
     labels:
       - traefik.enable=true
-      - traefik.http.routers.talk-signaling.rule=Host(`${TALK_HOST}`) && PathPrefix(`/standalone-signaling`)
+      - traefik.http.routers.talk-signaling.rule=Host(`talk-signaling.${DOMAIN}`) && PathPrefix(`/standalone-signaling`)
       - traefik.http.routers.talk-signaling.entrypoints=websecure
       - traefik.http.routers.talk-signaling.middlewares=talk-signaling-strip
       - traefik.http.services.talk-signaling.loadbalancer.server.port=8081

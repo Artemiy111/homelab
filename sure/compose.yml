@@ -50,7 +50,7 @@ services:
       - traefik.enable=true
       - traefik.docker.network=traefiknet
       - traefik.http.services.sure.loadbalancer.server.port=3000
-      - traefik.http.routers.sure.rule=Host(`${SURE_HOST}`)
+      - traefik.http.routers.sure.rule=Host(`sure.${DOMAIN}`)
       - traefik.http.routers.sure.entrypoints=websecure
       - traefik.http.routers.sure.service=sure
       - traefik.http.routers.sure.tls.certresolver=letsencrypt

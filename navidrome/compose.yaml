@@ -23,7 +23,7 @@ services:
 
     labels:
       - traefik.enable=true
-      - traefik.http.routers.navidrome.rule=Host(`${NAVIDROME_HOST}`)
+      - traefik.http.routers.navidrome.rule=Host(`music.${DOMAIN}`)
       - traefik.http.routers.navidrome.entrypoints=websecure
       - traefik.http.services.navidrome.loadbalancer.server.port=4533
       - traefik.docker.network=traefiknet

@@ -16,8 +16,8 @@ services:
     environment:
       STALWART_RECOVERY_ADMIN: "${STALWART_ADMIN_USER:?set in mailserver/.env}:${STALWART_ADMIN_PASS:?set in mailserver/.env}"
       STALWART_METRICS_PASSWORD: ${STALWART_METRICS_PASSWORD:?set in mailserver/.env}
-      STALWART_HOSTNAME: "${MAIL_HOST:?set in mailserver/.env}"
-      STALWART_PUBLIC_URL: "https://${MAILSERVER_HOST:?set in mailserver/.env}"
+      STALWART_HOSTNAME: "mail.${DOMAIN}"
+      STALWART_PUBLIC_URL: "https://mailserver.${DOMAIN}"
     user: "1000:1000"
 
     networks:
@@ -27,7 +27,7 @@ services:
 
     labels:
       - traefik.enable=true
-      - traefik.http.routers.mailserver.rule=Host(`${MAILSERVER_HOST}`)
+      - traefik.http.routers.mailserver.rule=Host(`mailserver.${DOMAIN}`)
       - traefik.http.routers.mailserver.entrypoints=websecure
       - traefik.http.services.mailserver.loadbalancer.server.port=8080
       - traefik.docker.network=traefiknet
@@ -45,7 +45,7 @@ services:
     environment:
       HOSTNAME: "0.0.0.0"
       PORT: "3000"
-      JMAP_SERVER_URL: "https://${MAILSERVER_HOST:?set in mailserver/.env}"
+      JMAP_SERVER_URL: "https://mailserver.${DOMAIN}"
       SETTINGS_SYNC_ENABLED: "true"
     user: "1000:1000"
 
@@ -70,7 +70,7 @@ services:
 
     labels:
       - traefik.enable=true
-      - traefik.http.routers.mail.rule=Host(`${MAIL_HOST}`)
+      - traefik.http.routers.mail.rule=Host(`mail.${DOMAIN}`)
       - traefik.http.routers.mail.entrypoints=websecure
       - traefik.http.services.mail.loadbalancer.server.port=3000
       - traefik.docker.network=traefiknet

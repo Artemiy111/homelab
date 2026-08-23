@@ -8,7 +8,7 @@ services:
       - ./config:/app/config:Z
 
     environment:
-      HOMEPAGE_ALLOWED_HOSTS: ${HOMEPAGE_HOST:?set in home/.env}
+      HOMEPAGE_ALLOWED_HOSTS: home.${DOMAIN}
       HOMEPAGE_VAR_DOMAIN: ${DOMAIN:?set in home/.env}
       LOG_TARGETS: stdout
       PUID: "1000"
@@ -39,7 +39,7 @@ services:
 
     labels:
       - traefik.enable=true
-      - traefik.http.routers.homepage.rule=Host(`${HOMEPAGE_HOST}`)
+      - traefik.http.routers.homepage.rule=Host(`home.${DOMAIN}`)
       - traefik.http.routers.homepage.entrypoints=websecure
       - traefik.http.routers.homepage.middlewares=secure-headers@file,ratelimit-default@file
       - traefik.http.services.homepage.loadbalancer.server.port=3000

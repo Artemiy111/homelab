@@ -56,8 +56,8 @@ services:
       - ${APPS_STORAGE_PATH:-/storage/apps}/paperless/consume:/usr/src/paperless/consume:Z
     environment:
       PAPERLESS_SECRET_KEY: ${PAPERLESS_SECRET_KEY:?set in paperless/.env}
-      PAPERLESS_URL: https://${PAPERLESS_HOST:?set in paperless/.env}
-      PAPERLESS_CSRF_TRUSTED_ORIGINS: https://${PAPERLESS_HOST:?set in paperless/.env}
+      PAPERLESS_URL: https://paperless.${DOMAIN}
+      PAPERLESS_CSRF_TRUSTED_ORIGINS: https://paperless.${DOMAIN}
       PAPERLESS_TIME_ZONE: ${TZ:-Asia/Yekaterinburg}
       PAPERLESS_OCR_LANGUAGE: ${PAPERLESS_OCR_LANGUAGE:-rus}
       PAPERLESS_OCR_LANGUAGES: ${PAPERLESS_OCR_LANGUAGES:-rus}
@@ -87,7 +87,7 @@ services:
       start_period: 60s
     labels:
       - traefik.enable=true
-      - traefik.http.routers.paperless.rule=Host(`${PAPERLESS_HOST}`)
+      - traefik.http.routers.paperless.rule=Host(`paperless.${DOMAIN}`)
       - traefik.http.routers.paperless.entrypoints=websecure
       - traefik.http.routers.paperless.middlewares=paperless-security
       - traefik.http.services.paperless.loadbalancer.server.port=8000

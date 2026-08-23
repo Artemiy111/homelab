@@ -24,7 +24,7 @@ services:
 
     labels:
       - traefik.enable=true
-      - traefik.http.routers.mermaid-live-editor.rule=Host(`${MERMAID_HOST:?set in mermaid-live-editor/.env}`)
+      - traefik.http.routers.mermaid-live-editor.rule=Host(`mermaid.${DOMAIN}`)
       - traefik.http.routers.mermaid-live-editor.entrypoints=websecure
       - traefik.http.routers.mermaid-live-editor.middlewares=secure-headers@file,ratelimit-default@file
       - traefik.http.services.mermaid-live-editor.loadbalancer.server.port=8080

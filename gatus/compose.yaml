@@ -14,7 +14,7 @@ services:
       NTFY_TOPIC: ${NTFY_TOPIC:?set in gatus/.env}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:?set in gatus/.env}
       TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:?set in gatus/.env}
-      TELEGRAM_PROXY_URL: ${TELEGRAM_PROXY_URL:?set in gatus/.env}
+      TELEGRAM_PROXY_URL: http://${SERVER_IP}:8440
 
     networks:
       - traefiknet
@@ -22,7 +22,7 @@ services:
 
     labels:
       - traefik.enable=true
-      - traefik.http.routers.gatus.rule=Host(`${GATUS_HOST}`)
+      - traefik.http.routers.gatus.rule=Host(`uptime.${DOMAIN}`)
       - traefik.http.routers.gatus.entrypoints=websecure
       - traefik.http.services.gatus.loadbalancer.server.port=8080
       - traefik.docker.network=traefiknet

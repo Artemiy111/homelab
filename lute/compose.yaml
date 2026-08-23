@@ -26,7 +26,7 @@ services:
 
     labels:
       - traefik.enable=true
-      - traefik.http.routers.lute.rule=Host(`${LUTE_HOST}`)
+      - traefik.http.routers.lute.rule=Host(`lute.${DOMAIN}`)
       - traefik.http.routers.lute.entrypoints=websecure
       - traefik.http.services.lute.loadbalancer.server.port=5001
       - traefik.docker.network=traefiknet

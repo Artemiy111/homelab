@@ -1,7 +1,7 @@
 name: element
 
 x-synapse-environment: &synapse-environment
-  SYNAPSE_SERVER_NAME: ${SYNAPSE_SERVER_NAME:?set in element/.env}
+  SYNAPSE_SERVER_NAME: ${DOMAIN}
   SYNAPSE_REPORT_STATS: "no"
   SYNAPSE_CONFIG_DIR: /data
   SYNAPSE_CONFIG_FILE: /data/homeserver.yaml
@@ -92,10 +92,10 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=traefiknet
-      - traefik.http.routers.synapse.rule=Host(`${SYNAPSE_HOST}`) && PathPrefix(`/_matrix`)
+      - traefik.http.routers.synapse.rule=Host(`element.${DOMAIN}`) && PathPrefix(`/_matrix`)
       - traefik.http.routers.synapse.entrypoints=websecure
       - traefik.http.services.synapse.loadbalancer.server.port=8080
-      - traefik.http.routers.synapse-well-known.rule=Host(`${SYNAPSE_SERVER_NAME}`) && Path(`/.well-known/matrix/client`)
+      - traefik.http.routers.synapse-well-known.rule=Host(`${DOMAIN}`) && Path(`/.well-known/matrix/client`)
       - traefik.http.routers.synapse-well-known.entrypoints=websecure
       - traefik.http.routers.synapse-well-known.service=synapse
     init: true
@@ -127,7 +127,7 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=traefiknet
-      - traefik.http.routers.element-web.rule=Host(`${ELEMENT_HOST}`)
+      - traefik.http.routers.element-web.rule=Host(`element.${DOMAIN}`)
       - traefik.http.routers.element-web.entrypoints=websecure
       - traefik.http.services.element-web.loadbalancer.server.port=80
     init: true
@@ -141,15 +141,15 @@ services:
 
     volumes:
       - ${APPS_STORAGE_PATH:-/storage/apps}/element/livekit/config.yaml:/etc/livekit/config.yaml:Z,ro
-    command: --config /etc/livekit/config.yaml --node-ip ${LIVEKIT_EXTERNAL_IP:?set in element/.env}
+    command: --config /etc/livekit/config.yaml --node-ip ${SERVER_IP}
 
     environment:
       TZ: ${TZ:-Asia/Yekaterinburg}
 
     ports:
-      - "${LIVEKIT_EXTERNAL_IP}:${LIVEKIT_PORT:-7880}:7880"
-      - "${LIVEKIT_EXTERNAL_IP}:${LIVEKIT_RTC_PORT:-7881}:7881"
-      - "${LIVEKIT_EXTERNAL_IP}:${LIVEKIT_RTC_PORT_MIN:-50000}-${LIVEKIT_RTC_PORT_MAX:-50499}:${LIVEKIT_RTC_PORT_MIN:-50000}-${LIVEKIT_RTC_PORT_MAX:-50499}/udp"
+      - "${SERVER_IP}:${LIVEKIT_PORT:-7880}:7880"
+      - "${SERVER_IP}:${LIVEKIT_RTC_PORT:-7881}:7881"
+      - "${SERVER_IP}:${LIVEKIT_RTC_PORT_MIN:-50000}-${LIVEKIT_RTC_PORT_MAX:-50499}:${LIVEKIT_RTC_PORT_MIN:-50000}-${LIVEKIT_RTC_PORT_MAX:-50499}/udp"
     networks:
       backend:
       traefiknet:
@@ -167,7 +167,7 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=traefiknet
-      - traefik.http.routers.livekit.rule=Host(`${LIVEKIT_HOST}`) && PathPrefix(`/livekit/sfu`)
+      - traefik.http.routers.livekit.rule=Host(`element.${DOMAIN}`) && PathPrefix(`/livekit/sfu`)
       - traefik.http.routers.livekit.entrypoints=websecure
       - traefik.http.routers.livekit.middlewares=livekit-sfu-strip
       - traefik.http.middlewares.livekit-sfu-strip.stripprefix.prefixes=/livekit/sfu
@@ -183,10 +183,10 @@ services:
 
     environment:
       LIVEKIT_JWT_PORT: "8080"
-      LIVEKIT_URL: wss://${LIVEKIT_HOST:?set in element/.env}/livekit/sfu
+      LIVEKIT_URL: wss://element.${DOMAIN}/livekit/sfu
       LIVEKIT_KEY: ${LIVEKIT_API_KEY:?set in element/.env}
       LIVEKIT_SECRET: ${LIVEKIT_API_SECRET:?set in element/.env}
-      LIVEKIT_FULL_ACCESS_HOMESERVERS: ${SYNAPSE_SERVER_NAME:?set in element/.env}
+      LIVEKIT_FULL_ACCESS_HOMESERVERS: ${DOMAIN}
       TZ: ${TZ:-Asia/Yekaterinburg}
 
     networks:
@@ -196,7 +196,7 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=traefiknet
-      - traefik.http.routers.matrix-rtc-auth.rule=Host(`${LIVEKIT_HOST}`) && PathPrefix(`/livekit/jwt`)
+      - traefik.http.routers.matrix-rtc-auth.rule=Host(`element.${DOMAIN}`) && PathPrefix(`/livekit/jwt`)
       - traefik.http.routers.matrix-rtc-auth.entrypoints=websecure
       - traefik.http.routers.matrix-rtc-auth.middlewares=matrix-rtc-auth-strip
       - traefik.http.middlewares.matrix-rtc-auth-strip.stripprefix.prefixes=/livekit/jwt

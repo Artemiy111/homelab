@@ -40,7 +40,7 @@ services:
       - ${APPS_STORAGE_PATH:-/storage/apps}/arcane/data:/app/data:Z
 
     environment:
-      APP_URL: https://${ARCANE_HOST:?set in arcane/.env}
+      APP_URL: https://arcane.${DOMAIN}
       DOCKER_HOST: tcp://docker-socket-proxy:2375
       ENCRYPTION_KEY: ${ENCRYPTION_KEY:?set in arcane/.env}
       JWT_SECRET: ${JWT_SECRET:?set in arcane/.env}
@@ -61,7 +61,7 @@ services:
 
     labels:
       - traefik.enable=true
-      - traefik.http.routers.arcane.rule=Host(`${ARCANE_HOST}`)
+      - traefik.http.routers.arcane.rule=Host(`arcane.${DOMAIN}`)
       - traefik.http.routers.arcane.entrypoints=websecure
       - traefik.http.routers.arcane.middlewares=arcane-security
       - traefik.http.services.arcane.loadbalancer.server.port=3552

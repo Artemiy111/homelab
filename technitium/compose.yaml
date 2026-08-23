@@ -10,7 +10,7 @@ services:
 
     environment:
       DNS_ADMIN_PASSWORD: ${TECHNITIUM_ADMIN_PASSWORD:?set in technitium/.env}
-      DNS_SERVER_NAME: ${TECHNITIUM_HOST:?set in technitium/.env}
+      DNS_SERVER_NAME: dns.${DOMAIN}
       TZ: ${TZ:?set in technitium/.env}
 
     ports:
@@ -30,7 +30,7 @@ services:
 
     labels:
       - traefik.enable=true
-      - traefik.http.routers.technitium.rule=Host(`${TECHNITIUM_HOST}`)
+      - traefik.http.routers.technitium.rule=Host(`dns.${DOMAIN}`)
       - traefik.http.routers.technitium.entrypoints=websecure
       - traefik.http.services.technitium.loadbalancer.server.port=5380
       - traefik.docker.network=traefiknet
