@@ -152,6 +152,40 @@ endpoints:
       - "[STATUS] == 200"
     alerts: *alerts-all
 
+  - name: VictoriaMetrics
+    group: Monitoring
+    # TSDB и vmagent наружу не публикуются, проверяем напрямую в docker-сети;
+    # /health отдаёт 200 и тело OK.
+    url: http://victoriametrics:8428/health
+    interval: 60s
+    client: *docker-client
+    conditions:
+      - "[STATUS] == 200"
+      - "[BODY] == OK"
+    alerts: *alerts-all
+
+  - name: vmagent
+    group: Monitoring
+    url: http://vmagent:8429/health
+    interval: 60s
+    client: *docker-client
+    conditions:
+      - "[STATUS] == 200"
+      - "[BODY] == OK"
+    alerts: *alerts-all
+
+  - name: Grafana
+    group: Monitoring
+    # Публичный маршрут закрыт forward auth (302 без авторизации), поэтому
+    # проверяем health API напрямую в docker-сети.
+    url: http://grafana:3000/api/health
+    interval: 60s
+    client: *docker-client
+    conditions:
+      - "[STATUS] == 200"
+      - "[BODY].database == ok"
+    alerts: *alerts-all
+
   # Публичные URL этих сервисов закрыты forward auth (oauth2-proxy@file) и для
   # неавторизованного запроса отдают 302, поэтому проверяем приложения напрямую
   # в docker-сети (gatus, wud, cup, structurizr — на одной сети traefiknet).

@@ -39,6 +39,7 @@ services=(
   code-server
   gatus
   netdata
+  victoria-metrics
   paperless
   vault
   navidrome

@@ -244,6 +244,30 @@
       "maxretries": 2
     },
     {
+      "name": "VictoriaMetrics",
+      "description": "TSDB VictoriaMetrics в Docker-сети; наружу не публикуется, /health отдаёт 200 и тело OK.",
+      "type": "http",
+      "url": "http://victoriametrics:8428/health",
+      "interval": 60,
+      "maxretries": 2
+    },
+    {
+      "name": "vmagent",
+      "description": "Сборщик метрик vmagent в Docker-сети; наружу не публикуется, /health отдаёт 200 и тело OK.",
+      "type": "http",
+      "url": "http://vmagent:8429/health",
+      "interval": 60,
+      "maxretries": 2
+    },
+    {
+      "name": "Grafana",
+      "description": "Health API Grafana в Docker-сети; публичный маршрут закрыт forward auth.",
+      "type": "http",
+      "url": "http://grafana:3000/api/health",
+      "interval": 60,
+      "maxretries": 2
+    },
+    {
       "name": "Uptime Kuma",
       "description": "Собственный HTTPS-маршрут Uptime Kuma; фиксирует проблемы маршрута, пока сам процесс Kuma способен выполнять проверки.",
       "type": "http",

@@ -1,0 +1,27 @@
+# Скрейп-конфиг vmagent. Секретов не содержит — все цели отдают метрики
+# внутри traefiknet без аутентификации (аутентификация наружу закрывает
+# Traefik + oauth2-proxy, внутренние порты на хосте не публикуются).
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  # Netdata уже агрегирует хост, Docker и приложения (см. netdata/README.md).
+  # Забираем его Prometheus-эндпоинт целиком.
+  - job_name: netdata
+    metrics_path: /api/v1/allmetrics
+    params:
+      format:
+        - prometheus
+    static_configs:
+      - targets:
+          - netdata:19999
+
+  - job_name: victoriametrics
+    static_configs:
+      - targets:
+          - victoriametrics:8428
+
+  - job_name: vmagent
+    static_configs:
+      - targets:
+          - localhost:8429
