@@ -53,6 +53,10 @@ services:
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
       GF_USERS_ALLOW_SIGN_UP: "false"
       GF_ANALYTICS_REPORTING_ENABLED: "false"
+      # Эквивалент [feature_toggles] enable=... в grafana.ini. Индивидуальные
+      # GF_FEATURE_TOGGLES_<ИМЯ> не подходят: имя флага приводится к верхнему
+      # регистру и ломает camelCase (grafanaAdvisor).
+      GF_FEATURE_TOGGLES_ENABLE: grafanaAdvisor
       GF_SERVER_ROOT_URL: https://grafana.${DOMAIN}
     volumes:
       - ${APPS_STORAGE_PATH:-/storage/apps}/victoria-metrics/grafana:/var/lib/grafana:Z
