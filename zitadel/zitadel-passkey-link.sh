@@ -10,11 +10,12 @@
 # PAT передаётся переменной окружения ZITADEL_PAT или спрашивается интерактивно.
 #
 # Пример:
-#   ZITADEL_PAT=... ./scripts/zitadel-passkey-link.sh
+#   ZITADEL_PAT=... ./zitadel/zitadel-passkey-link.sh
 
 set -euo pipefail
 
 repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 source "$repo_root/scripts/lib/common.sh"
 
 info() { printf '\033[1;36m%s\033[0m\n' "$*" >&2; }
@@ -24,8 +25,8 @@ die()  { printf '\033[1;31mОшибка: %s\033[0m\n' "$*" >&2; exit 1; }
 
 # --- Хост ------------------------------------------------------------------
 ZITADEL_HOST="${ZITADEL_HOST:-}"
-if [[ -z "$ZITADEL_HOST" && -f "$repo_root/zitadel/.env" ]]; then
-  ZITADEL_HOST="$(sed -n 's/^ZITADEL_HOST=//p' "$repo_root/zitadel/.env" | head -n1)"
+if [[ -z "$ZITADEL_HOST" && -f "$script_dir/.env" ]]; then
+  ZITADEL_HOST="$(sed -n 's/^ZITADEL_HOST=//p' "$script_dir/.env" | head -n1)"
 fi
 ZITADEL_HOST="${ZITADEL_HOST:-id.$DOMAIN}"
 
@@ -40,81 +41,54 @@ if [[ -z "$PAT" ]]; then
 fi
 [[ -n "$PAT" ]] || die 'PAT не задан (переменная ZITADEL_PAT или интерактивный ввод).'
 
-# --- Helpers ---------------------------------------------------------------
+# --- API: умирает сама, если в ответе есть .message -------------------------
 api() {
   # api METHOD path [json_body]
-  local method="$1" path="$2" body="${3:-}"
+  local method="$1" path="$2" body="${3:-}" resp msg
   local args=(-sS -X "$method" "$API_BASE$path" -H "Authorization: Bearer ${PAT}")
-  if [[ -n "$body" ]]; then
-    args+=(-H 'Content-Type: application/json' -d "$body")
-  fi
-  curl "${args[@]}"
+  [[ -n "$body" ]] && args+=(-H 'Content-Type: application/json' -d "$body")
+  resp="$(curl "${args[@]}")"
+  msg="$(jq -r '.message // empty' <<<"$resp")"
+  [[ -z "$msg" ]] || die "$msg"
+  printf '%s' "$resp"
 }
 
-error_message() {
-  # Печатает текст ошибки ZITADEL (grpc-gateway) и возвращает 0, если это ошибка.
-  local json="$1" msg
-  msg="$(jq -r '.message // empty' <<<"$json")"
-  if [[ -n "$msg" ]]; then
-    printf '%s\n' "$msg"
-    return 0
-  fi
-  return 1
-}
-
-# --- Выбор пользователя ----------------------------------------------------
+# --- Поиск пользователя ----------------------------------------------------
 info "ZITADEL: https://${ZITADEL_HOST}"
 
 read -rp 'Логин или user ID (например user или 386564404046479363): ' target
 [[ -n "$target" ]] || die 'пустой ввод.'
 
-user_id=''
-org_id=''
-username=''
-login=''
-
+# Один вызов ListUsers на оба случая: число — точный поиск по ID,
+# иначе — подстрока логина без учёта регистра.
 if [[ "$target" =~ ^[0-9]{5,}$ ]]; then
-  # Похоже на user ID — берём пользователя напрямую.
-  json="$(api GET "/users/${target}")"
-  if msg="$(error_message "$json")"; then
-    die "GetUserByID: $msg"
-  fi
-  user_id="$target"
-  username="$(jq -r '.user.username // empty' <<<"$json")"
-  login="$(jq -r '.user.preferredLoginName // empty' <<<"$json")"
-  org_id="$(jq -r '.user.details.resourceOwner // empty' <<<"$json")"
+  body="$(jq -nc --arg id "$target" '{queries:[{inUserIdsQuery:{userIds:[$id]}}]}')"
 else
-  # Ищем по логину (без учёта регистра, по подстроке).
   body="$(jq -nc --arg q "$target" \
     '{queries:[{loginNameQuery:{loginName:$q,method:"TEXT_QUERY_METHOD_CONTAINS_IGNORE_CASE"}}]}')"
-  json="$(api POST '/users' "$body")"
-  if msg="$(error_message "$json")"; then
-    die "ListUsers: $msg"
-  fi
+fi
+json="$(api POST '/users' "$body")"
 
-  mapfile -t users < <(jq -r \
-    '.result[]? | [.userId, (.username // ""), (.preferredLoginName // ""), (.details.resourceOwner // "")] | @tsv' \
-    <<<"$json")
+mapfile -t users < <(jq -r \
+  '.result[]? | [.userId, (.username // ""), (.preferredLoginName // ""), (.details.resourceOwner // "")] | @tsv' \
+  <<<"$json")
 
-  if [[ ${#users[@]} -eq 0 ]]; then
-    die "пользователь по \"$target\" не найден."
-  fi
+[[ ${#users[@]} -gt 0 ]] || die "пользователь по \"$target\" не найден."
 
-  if [[ ${#users[@]} -eq 1 ]]; then
-    IFS=$'\t' read -r user_id username login org_id <<<"${users[0]}"
-  else
-    info 'Найдено несколько пользователей:'
-    local i=1 line uid uname ulogin
-    for line in "${users[@]}"; do
-      IFS=$'\t' read -r uid uname ulogin _ <<<"$line"
-      printf '  %d) %s (%s)  id=%s\n' "$i" "$uname" "$ulogin" "$uid" >&2
-      i=$((i + 1))
-    done
-    read -rp 'Номер: ' choice
-    [[ "$choice" =~ ^[0-9]+$ ]] && ((choice >= 1 && choice <= ${#users[@]})) \
-      || die 'неверный номер.'
-    IFS=$'\t' read -r user_id username login org_id <<<"${users[$((choice - 1))]}"
-  fi
+if [[ ${#users[@]} -eq 1 ]]; then
+  IFS=$'\t' read -r user_id username login org_id <<<"${users[0]}"
+else
+  info 'Найдено несколько пользователей:'
+  local i=1 line uid uname ulogin
+  for line in "${users[@]}"; do
+    IFS=$'\t' read -r uid uname ulogin _ <<<"$line"
+    printf '  %d) %s (%s)  id=%s\n' "$i" "$uname" "$ulogin" "$uid" >&2
+    i=$((i + 1))
+  done
+  read -rp 'Номер: ' choice
+  [[ "$choice" =~ ^[0-9]+$ ]] && ((choice >= 1 && choice <= ${#users[@]})) \
+    || die 'неверный номер.'
+  IFS=$'\t' read -r user_id username login org_id <<<"${users[$((choice - 1))]}"
 fi
 
 [[ -n "$user_id" && -n "$org_id" ]] || die 'не удалось определить user ID / organization ID.'
@@ -124,9 +98,6 @@ info "user_id=$user_id  organization=$org_id"
 
 # --- Код и ссылка ----------------------------------------------------------
 json="$(api POST "/users/${user_id}/passkeys/registration_link" '{"returnCode":{}}')"
-if msg="$(error_message "$json")"; then
-  die "CreatePasskeyRegistrationLink: $msg"
-fi
 
 code_id="$(jq -r '.code.id // empty' <<<"$json")"
 code="$(jq -r '.code.code // empty' <<<"$json")"

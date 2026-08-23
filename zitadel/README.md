@@ -39,10 +39,10 @@ Allowed; пользователей регистрировать только pa
 это отключит и passkey.
 
 Одноразовую ссылку на регистрацию passkey без SMTP выдаёт
-`scripts/zitadel-passkey-link.sh` (нужен PAT администратора):
+`zitadel/zitadel-passkey-link.sh` (нужен PAT администратора):
 
 ```sh
-ZITADEL_PAT=... ./scripts/zitadel-passkey-link.sh
+ZITADEL_PAT=... ./zitadel/zitadel-passkey-link.sh
 ```
 
 ## OIDC-клиент для oauth2-proxy
