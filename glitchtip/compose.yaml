@@ -86,7 +86,6 @@ services:
       REDIS_URL: ${REDIS_URL:-redis://valkey:6379/0}
       GLITCHTIP_DOMAIN: https://glitchtip.${DOMAIN:?set in root .env}
       ENABLE_USER_REGISTRATION: ${ENABLE_USER_REGISTRATION:-false}
-      ENABLE_ORGANIZATION_CREATION: ${ENABLE_ORGANIZATION_CREATION:-true}
 
     networks:
       - backend
@@ -129,8 +128,9 @@ services:
       SERVER_ROLE: worker
       SECRET_KEY: ${SECRET_KEY:?set in glitchtip/secrets.enc.env}
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD:?set in glitchtip/secrets.enc.env}@postgres:5432/${POSTGRES_DB:-glitchtip}
-      REDIS_URL: ${REDIS_URL:-redis://valkey:6379/0}
+      VALKEY_URL: ${VALKEY_URL:-redis://valkey:6379/0}
       GLITCHTIP_DOMAIN: https://glitchtip.${DOMAIN:?set in root .env}
+      GLITCHTIP_INSTANCE_NAME: Homelab
 
     networks:
       - backend
