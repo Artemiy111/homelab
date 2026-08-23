@@ -8,7 +8,7 @@ x-dawarich-environment: &dawarich-environment
   DATABASE_USERNAME: ${POSTGRES_USER:-dawarich}
   DATABASE_PASSWORD: ${POSTGRES_PASSWORD:?set in dawarich/.env}
   DATABASE_NAME: ${POSTGRES_DB:-dawarich_production}
-  APPLICATION_HOSTS: ${DAWARICH_HOST:?set in dawarich/.env}
+  APPLICATION_HOSTS: dawarich.${DOMAIN:?set in root .env}
   APPLICATION_PROTOCOL: https
   TIME_ZONE: ${TZ:?set in dawarich/.env}
   SECRET_KEY_BASE: ${SECRET_KEY_BASE:?set in dawarich/.env}
@@ -121,7 +121,7 @@ services:
         max-file: ${LOG_MAX_FILE:-5}
     labels:
       - traefik.enable=true
-      - traefik.http.routers.dawarich.rule=Host(`${DAWARICH_HOST}`)
+      - traefik.http.routers.dawarich.rule=Host(`dawarich.${DOMAIN:?set in root .env}`)
       - traefik.http.routers.dawarich.entrypoints=websecure
       - traefik.http.routers.dawarich.middlewares=dawarich-security
       - traefik.http.services.dawarich.loadbalancer.server.port=3000
