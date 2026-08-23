@@ -24,37 +24,41 @@ else
   services=(
     traefik
     technitium
-    uptime-kuma
     3x-ui
-    nextcloud
-    seafile
-    jellyfin
-    jitsi
-    talk-hpb
-    forgejo
-    authentik
-    zitadel
-    oauth2-proxy
-    dawarich
-    beszel
     arcane
-    image-updates
-    infisical
-    restic
-    pdf
-    home
+    authentik
+    beszel
     code-server
+    dawarich
+    element
+    forgejo
     gatus
     glitchtip
-    netdata
-    victoria-metrics
-    paperless
-    vault
-    navidrome
-    lute
-    immich
-    local-ai
+    home
     home-assistant
+    image-updates
+    immich
+    infisical
+    jellyfin
+    jitsi
+    local-ai
+    lute
+    mermaid-live-editor
+    navidrome
+    netdata
+    nextcloud
+    oauth2-proxy
+    paperless
+    pdf
+    restic
+    seafile
+    structurizr
+    sure
+    talk-hpb
+    uptime-kuma
+    vault
+    victoria-metrics
+    zitadel
   )
 fi
 
