@@ -1,0 +1,154 @@
+name: glitchtip
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    container_name: glitchtip-postgres
+    volumes:
+      - ${APPS_STORAGE_PATH:-/storage/apps}/glitchtip/postgresql:/var/lib/postgresql:Z
+
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-glitchtip}
+      POSTGRES_USER: ${POSTGRES_USER:-glitchtip}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in glitchtip/secrets.enc.env}
+
+    networks:
+      - backend
+    restart: unless-stopped
+
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    mem_limit: 256m
+
+    security_opt:
+      - no-new-privileges:true
+
+  valkey:
+    image: valkey/valkey:9-alpine
+    container_name: glitchtip-valkey
+
+    volumes:
+      - ${APPS_STORAGE_PATH:-/storage/apps}/glitchtip/valkey:/data:Z
+
+    networks:
+      - backend
+    restart: unless-stopped
+
+    healthcheck:
+      test: [ "CMD", "valkey-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    mem_limit: 64m
+
+    security_opt:
+      - no-new-privileges:true
+
+  migrate:
+    image: glitchtip/glitchtip:${GLITCHTIP_VERSION:-6}
+    container_name: glitchtip-migrate
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    environment:
+      SECRET_KEY: ${SECRET_KEY:?set in glitchtip/secrets.enc.env}
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD:?set in glitchtip/secrets.enc.env}@postgres:5432/${POSTGRES_DB:-glitchtip}
+
+    networks:
+      - backend
+    command: ./manage.py migrate
+    restart: "no"
+    mem_limit: 512m
+
+    security_opt:
+      - no-new-privileges:true
+
+  web:
+    image: glitchtip/glitchtip:${GLITCHTIP_VERSION:-6}
+    container_name: glitchtip-web
+
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      valkey:
+        condition: service_healthy
+
+    environment:
+      SECRET_KEY: ${SECRET_KEY:?set in glitchtip/secrets.enc.env}
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD:?set in glitchtip/secrets.enc.env}@postgres:5432/${POSTGRES_DB:-glitchtip}
+      REDIS_URL: ${REDIS_URL:-redis://valkey:6379/0}
+      GLITCHTIP_DOMAIN: https://glitchtip.${DOMAIN:?set in root .env}
+      ENABLE_USER_REGISTRATION: ${ENABLE_USER_REGISTRATION:-false}
+      ENABLE_ORGANIZATION_CREATION: ${ENABLE_ORGANIZATION_CREATION:-true}
+
+    networks:
+      - backend
+      - traefiknet
+    restart: unless-stopped
+
+    healthcheck:
+      test: ["CMD", "python", "/code/healthcheck.py"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefiknet
+      - traefik.http.services.glitchtip.loadbalancer.server.port=8000
+      - traefik.http.routers.glitchtip.rule=Host(`glitchtip.${DOMAIN:?set in root .env}`)
+      - traefik.http.routers.glitchtip.entrypoints=websecure
+      - traefik.http.routers.glitchtip.service=glitchtip
+      - traefik.http.routers.glitchtip.tls.certresolver=letsencrypt
+    mem_limit: 768m
+
+    security_opt:
+      - no-new-privileges:true
+
+  worker:
+    image: glitchtip/glitchtip:${GLITCHTIP_VERSION:-6}
+    container_name: glitchtip-worker
+
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      valkey:
+        condition: service_healthy
+      web:
+        condition: service_started
+
+    environment:
+      SERVER_ROLE: worker
+      SECRET_KEY: ${SECRET_KEY:?set in glitchtip/secrets.enc.env}
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD:?set in glitchtip/secrets.enc.env}@postgres:5432/${POSTGRES_DB:-glitchtip}
+      REDIS_URL: ${REDIS_URL:-redis://valkey:6379/0}
+      GLITCHTIP_DOMAIN: https://glitchtip.${DOMAIN:?set in root .env}
+
+    networks:
+      - backend
+    restart: unless-stopped
+
+    healthcheck:
+      test: [ "CMD-SHELL", "grep -q runworker /proc/[0-9]*/cmdline" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    mem_limit: 512m
+
+    security_opt:
+      - no-new-privileges:true
+
+networks:
+  backend:
+    internal: true
+  traefiknet:
+    external: true

@@ -38,6 +38,7 @@ services=(
   home
   code-server
   gatus
+  glitchtip
   netdata
   victoria-metrics
   paperless

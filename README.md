@@ -27,6 +27,7 @@
 | Authentik | Identity provider и SSO | `https://auth.example.com/` |
 | Zitadel | Identity provider и SSO (основной) | `https://id.example.com/` |
 | Dawarich | История местоположений и карта перемещений | `https://dawarich.example.com/` |
+| GlitchTip | Сбор ошибок приложений (Sentry SDK) | `https://glitchtip.example.com/` |
 | Stirling PDF | Операции с PDF и OCR | `https://pdf.example.com/` |
 | Restic | Зашифрованные локальные снимки | Только CLI |
 | Tailscale | Удалённый доступ и маршрут в домашнюю сеть | Tailnet |
