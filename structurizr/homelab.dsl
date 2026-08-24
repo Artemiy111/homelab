@@ -163,7 +163,7 @@ workspace {
                 tags "apps"
             }
 
-            homeassistant = softwareSystem "Home Assistant" "Домашняя автоматизация; host-сеть, доступ только из LAN (homeassistant.example.com)" {
+            homeassistant = softwareSystem "Home Assistant" "Домашняя автоматизация; host-сеть, доступ только из LAN (ha.example.com)" {
                 tags "apps"
             }
 
@@ -252,7 +252,7 @@ workspace {
         traefik -> pdf "маршрутизирует Host(pdf.*)" "HTTPS" {
             tags "http"
         }
-        traefik -> homeassistant "маршрутизирует Host(homeassistant.*)" "HTTPS" {
+        traefik -> homeassistant "маршрутизирует Host(ha.*)" "HTTPS" {
             tags "http"
         }
         traefik -> lute "маршрутизирует Host(lute.*)" "HTTPS" {

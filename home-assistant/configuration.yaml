@@ -32,3 +32,20 @@ http:
   use_x_forwarded_for: true
   trusted_proxies:
     - 172.20.0.0/16
+
+# Локальный вход по паролю отключён полностью: единственный способ войти —
+# ZITADEL через auth_oidc ниже. Если SSO сломался, доступ восстанавливается
+# на сервере правкой этого файла (git revert + docker compose restart).
+# Мобильные приложения аутентифицируются через OIDC-браузер и продолжают работать.
+homeassistant:
+  auth_providers: []
+
+# SSO через ZITADEL (custom component hass-oidc-auth, ставится init.sh;
+# см. README). Креденшалы клиента — в secrets.yaml на сервере.
+auth_oidc:
+  client_id: !secret oidc_client_id
+  client_secret: !secret oidc_client_secret
+  discovery_url: https://id.example.com/.well-known/openid-configuration
+  features:
+    # Сразу отправлять на ZITADEL при открытии корня HA.
+    default_redirect: true

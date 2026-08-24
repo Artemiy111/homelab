@@ -75,7 +75,7 @@
         description: Matrix-чат
     - Home Assistant:
         icon: mdi-home-assistant
-        href: https://homeassistant.{{HOMEPAGE_VAR_DOMAIN}}/
+        href: https://ha.{{HOMEPAGE_VAR_DOMAIN}}/
         description: Автоматизация дома
     - Infisical:
         icon: mdi-key-variant

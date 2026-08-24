@@ -10,7 +10,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
 
     environment:
-      TZ: ${TZ:?set in home-assistant/.env}
+      TZ: ${TZ:?set in root .env}
     network_mode: host
     restart: unless-stopped
 
@@ -28,7 +28,7 @@ services:
 
     labels:
       - traefik.enable=true
-      - traefik.http.routers.homeassistant.rule=Host(`homeassistant.${DOMAIN}`)
+      - traefik.http.routers.homeassistant.rule=Host(`ha.${DOMAIN}`)
       - traefik.http.routers.homeassistant.entrypoints=websecure
       - traefik.http.services.homeassistant.loadbalancer.server.port=8123
 
