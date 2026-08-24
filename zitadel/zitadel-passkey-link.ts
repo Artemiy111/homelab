@@ -1,45 +1,40 @@
-#!/usr/bin/env npx tsx
+#!/usr/bin/env bun
 // Получить одноразовую ссылку для регистрации passkey (WebAuthn) у пользователя
 // ZITADEL. Портирование zitadel/zitadel-passkey-link.sh на TypeScript.
 //
-// Зависимости — только Node.js >= 18 (встроенный fetch) + tsx для запуска TS:
-//   npx tsx zitadel/zitadel-passkey-link.ts
+// Зависимости — только Bun (нативные Bun.file и prompt):
+//   bun zitadel/zitadel-passkey-link.ts
 //
 // Требует PAT администратора: переменная окружения ZITADEL_PAT или интерактивный ввод.
 
-import { readFileSync } from "node:fs";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
-import * as readline from "node:readline/promises";
+const scriptDir = import.meta.dir;
+const repoRoot = `${scriptDir}/..`;
 
-const scriptDir = dirname(fileURLToPath(import.meta.url));
-const repoRoot = join(scriptDir, "..");
-
+// Bun.color отдаёт пустую строку вне TTY — цвета сами отключаются при пайпе.
+const paint = (color: string, msg: string) => console.error(`\x1b[1m${Bun.color(color, "ansi-16")}${msg}\x1b[0m`);
 function info(msg: string) {
-  console.error(`\x1b[1;36m${msg}\x1b[0m`);
+  paint("cyan", msg);
 }
 function ok(msg: string) {
-  console.error(`\x1b[1;32m${msg}\x1b[0m`);
+  paint("green", msg);
 }
 function warn(msg: string) {
-  console.error(`\x1b[1;33m${msg}\x1b[0m`);
+  paint("yellow", msg);
 }
 function die(msg: string): never {
-  console.error(`\x1b[1;31mОшибка: ${msg}\x1b[0m`);
+  paint("red", `Ошибка: ${msg}`);
   process.exit(1);
 }
 
-const readEnvFile = (path: string): Record<string, string> => {
-  try {
-    const entries: Record<string, string> = {};
-    for (const line of readFileSync(path, "utf8").split("\n")) {
-      const m = line.match(/^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/);
-      if (m) entries[m[1]] = m[2].trim();
-    }
-    return entries;
-  } catch {
-    return {};
+const readEnvFile = async (path: string): Promise<Record<string, string>> => {
+  const file = Bun.file(path);
+  if (!(await file.exists())) return {};
+  const entries: Record<string, string> = {};
+  for (const line of (await file.text()).split("\n")) {
+    const [, key, value] = line.match(/^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/) ?? [];
+    if (key && value) entries[key] = value.trim();
   }
+  return entries;
 };
 
 // grpc-gateway отдаёт ошибку и с кодом 200 — общий фильтр по .message.
@@ -57,14 +52,14 @@ async function api(method: string, path: string, pat: string, apiBase: string, b
   return data;
 }
 
-async function ask(rl: readline.Interface, question: string): Promise<string> {
-  process.stderr.write(question);
-  return (await rl.question("")).trim();
+function ask(question: string): string {
+  const answer = prompt(question);
+  return (answer ?? "").trim();
 }
 
 async function main() {
-  const rootEnv = readEnvFile(join(repoRoot, ".env"));
-  const serviceEnv = readEnvFile(join(scriptDir, ".env"));
+  const rootEnv = await readEnvFile(`${repoRoot}/.env`);
+  const serviceEnv = await readEnvFile(`${scriptDir}/.env`);
   const domain = process.env.DOMAIN ?? rootEnv.DOMAIN ?? "example.com";
   const host = process.env.ZITADEL_HOST ?? serviceEnv.ZITADEL_HOST ?? `id.${domain}`;
 
@@ -72,17 +67,12 @@ async function main() {
   const loginBase = `https://${host}/ui/v2/login`;
 
   let pat = process.env.ZITADEL_PAT ?? "";
-  if (!pat) {
-    const rl = readline.createInterface({ input: process.stdin, output: process.stderr, terminal: false });
-    pat = await ask(rl, "PAT (Console → Users → <admin> → Personal Access Tokens): ");
-    rl.close();
-  }
+  if (!pat) pat = ask("PAT (Console → Users → <admin> → Personal Access Tokens): ");
   if (!pat) die("PAT не задан (переменная ZITADEL_PAT или интерактивный ввод).");
 
   info(`ZITADEL: https://${host}`);
 
-  const rl = readline.createInterface({ input: process.stdin, output: process.stderr });
-  const target = await ask(rl, "Логин или user ID (например user или 386564404046479363): ");
+  const target = ask("Логин или user ID (например user или 386564404046479363): ");
   if (!target) die("пустой ввод.");
 
   // Один вызов ListUsers на оба случая: число — точный поиск по ID,
@@ -98,14 +88,17 @@ async function main() {
 
   let user: [string, string, string, string];
   if (users.length === 1) {
-    user = users[0];
+    const u = users[0];
+    if (!u) die("не удалось прочитать результат поиска.");
+    user = u;
   } else {
     info("Найдено несколько пользователей:");
     users.forEach(([uid, uname, ulogin], i) => console.error(`  ${i + 1}) ${uname} (${ulogin})  id=${uid}`));
-    const choice = await ask(rl, "Номер: ");
-    const idx = Number(choice);
+    const idx = Number(ask("Номер: "));
     if (!Number.isInteger(idx) || idx < 1 || idx > users.length) die("неверный номер.");
-    user = users[idx - 1];
+    const u = users[idx - 1];
+    if (!u) die("неверный номер.");
+    user = u;
   }
   const [userId, username, loginName, orgId] = user;
 
@@ -126,8 +119,6 @@ async function main() {
     "Код одноразовый: ссылку надо открыть на том устройстве, где будет храниться passkey, " +
       "и пройти регистрацию до конца с первого раза (ZITADEL #12499).",
   );
-
-  rl.close();
 }
 
 await main();

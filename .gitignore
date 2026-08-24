@@ -1,5 +1,6 @@
 .env
 .freebuff/
+node_modules
 
 # Генерируются init.sh из *.tpl.*-шаблонов (домен подставляется из DOMAIN).
 traefik/traefik.yaml
