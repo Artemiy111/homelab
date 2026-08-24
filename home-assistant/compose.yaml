@@ -5,12 +5,24 @@ services:
     image: ghcr.io/home-assistant/home-assistant:stable
     container_name: home-assistant
     volumes:
+      # Собственное состояние HA (БД, .storage, blueprints, tts).
       - ${APPS_STORAGE_PATH:-/storage/apps}/home-assistant:/config:Z
+      # Управляемые файлы — маунты из каталога сервиса.
       - ./configuration.yaml:/config/configuration.yaml:Z,ro
+      - ./custom_components:/config/custom_components:Z,ro
+      # automations/scripts/scenes.yaml НЕ маунтятся файлами: HA пишет их
+      # атомарно (tmp + rename), rename поверх файлового bind-mount даёт
+      # EBUSY. Файлы живут в персистентном каталоге /config и попадают
+      # в Restic-бэкап.
       - /etc/localtime:/etc/localtime:ro
 
     environment:
       TZ: ${TZ:?set in root .env}
+      # Секреты SSO приходят из окружения: service_compose расшифровывает
+      # secrets.enc.env через sops exec-env; configuration.yaml читает их
+      # через !env_var. Plaintext-файл секретов не создаётся.
+      OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:?set in home-assistant/secrets.enc.env}
+      OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET:?set in home-assistant/secrets.enc.env}
     network_mode: host
     restart: unless-stopped
 
@@ -34,6 +46,9 @@ services:
 
     cap_add:
       - NET_RAW
+      # Позволяет root контейнера писать в artlab-owned маунты (автоматизации
+      # из UI) и каталог данных без подгона владельцев под root.
+      - DAC_OVERRIDE
     cap_drop:
       - ALL
     security_opt:

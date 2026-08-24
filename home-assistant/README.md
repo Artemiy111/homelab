@@ -10,29 +10,31 @@ MAC-адресов сетью и не позволяет контейнеру н
 
 ## Первый запуск
 
-`init.sh` создаёт `.env` с хостом и каталог конфигурации
-`$APPS_STORAGE_PATH/home-assistant`. Home Assistant работает как root внутри
-контейнера, но без Linux capabilities, кроме `NET_RAW`; поэтому каталог заранее
-получает нужные владельца, права и стартовые файлы через отдельный одноразовый
-контейнер. Из каталога сервиса:
+Все управляемые файлы (`configuration.yaml`, `automations.yaml`, `scripts.yaml`,
+`scenes.yaml`, `custom_components/`) маунтятся из каталога сервиса; в
+`$APPS_STORAGE_PATH/home-assistant` живёт только собственное
+состояние HA (БД, `.storage`, blueprints, tts). Контейнер работает как root,
+поэтому владелец каталога данных для него не важен. Из каталога сервиса:
 
 ```sh
 bash ./init.sh
-bash ./init-postinstall.sh
 docker compose up -d
 docker compose ps
 ```
 
 После запуска завершите onboarding в веб-интерфейсе. Постоянные данные находятся
 в `$APPS_STORAGE_PATH/home-assistant` и входят в общий Restic snapshot.
+Правки автоматизаций через UI попадают в `automations.yaml`/`scripts.yaml`
+маунта — на сервере они видны как diff рабочей копии репозитория.
 
 ## Привилегии
 
 Контейнер намеренно не использует `privileged: true`, Docker socket, D-Bus или
-доступ ко всему `/dev`. Все стандартные capabilities сняты; возвращён только
-`NET_RAW`, необходимый пассивному DHCP discovery и интеграциям, использующим
-ICMP. `no-new-privileges` запрещает получение дополнительных прав процессами
-в контейнере.
+доступ ко всему `/dev`. Все стандартные capabilities сняты; возвращены только
+`NET_RAW` (пассивный DHCP discovery и ICMP-интеграции) и `DAC_OVERRIDE`
+(запись в artlab-owned мауты — автоматизации из UI и состояние в каталоге
+данных — без подгона владельцев под root). `no-new-privileges` запрещает
+получение дополнительных прав процессами в контейнере.
 
 Локальный Bluetooth сейчас намеренно не подключён. Вместо `default_config`
 явно перечислены его стандартные зависимости, кроме `bluetooth`, чтобы Home
@@ -69,11 +71,13 @@ docker logs --since=5m home-assistant 2>&1
 
 Интеграция ставится не через HACS: версия пинируется переменной
 `HOME_ASSISTANT_OIDC_VERSION` в закоммиченном `config.env`, установка и обновление
-выполняются идемпотентным `init.sh` (скачивает релиз в
-`$APPS_STORAGE_PATH/home-assistant/custom_components/auth_oidc`, повторный запуск
-ничего не меняет). Креденшалы клиента — в
-`$APPS_STORAGE_PATH/home-assistant/secrets.yaml` (не трекается, входит в Restic
-snapshot): `oidc_client_id`, `oidc_client_secret`.
+выполняются идемпотентным `init.sh` (скачивает релиз в `custom_components/`
+каталога сервиса, который целиком маунтится в контейнер; повторный запуск
+ничего не меняет). Креденшалы клиента (`OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`)
+лежат в закоммиченном зашифрованном `secrets.enc.env` (SOPS + age) и попадают
+в контейнер окружением (`sops exec-env` внутри `service_compose`);
+`configuration.yaml` читает их через `!env_var`. Plaintext-файл секретов
+на диске не создаётся.
 
 Права: новый пользователь ZITADEL при первом входе получает обычную (не
 админскую) учётку HA, привязанную к его subject в ZITADEL. Автоматически
@@ -96,32 +100,30 @@ snapshot): `oidc_client_id`, `oidc_client_secret`.
    тип **Web**, auth method **CODE**, redirect URI
    `https://ha.example.com/auth/oidc/callback`; сохранить
    ClientID/ClientSecret (секрет показывается один раз).
-2. Вписать креденшалы в secrets.yaml:
+2. Вписать креденшалы в зашифрованный secrets.enc.env (локально или на
+   сервере; приватный age-ключ есть только на сервере):
 
 ```sh
-SECRETS="$APPS_STORAGE_PATH/home-assistant/secrets.yaml"
-touch "$SECRETS" && chmod 600 "$SECRETS"
-cat >>"$SECRETS" <<EOF
-oidc_client_id: ВСТАВЬ_CLIENT_ID
-oidc_client_secret: ВСТАВЬ_CLIENT_SECRET
-EOF
+sops home-assistant/secrets.enc.env
 ```
 
 3. Установить интеграцию и проверить конфигурацию (версия берётся из
    `config.env`; повторный запуск ничего не переустанавливает):
 
 ```sh
-cd /home/artlab/projects/homelab/home-assistant
-set -a && . ./config.env && set +a
-bash ./init.sh
-docker compose exec home-assistant \
+cd /home/artlab/projects/homelab
+source scripts/lib/common.sh && service_init home-assistant
+docker compose --project-directory home-assistant exec home-assistant \
   python -m homeassistant --script check_config --config /config
 ```
+
+`service_init` подмешивает `config.env` и расшифровывает `secrets.enc.env`,
+после чего `init.sh` ставит компонент и рендерит `/config/secrets.yaml`.
 
 4. Перезапустить и проверить вход:
 
 ```sh
-docker compose restart home-assistant
+docker compose --project-directory home-assistant restart home-assistant
 curl -fsSL -o /dev/null -w '%{http_code} %{redirect_url}\n' \
   https://ha.example.com/
 ```

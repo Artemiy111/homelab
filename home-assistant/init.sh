@@ -5,38 +5,33 @@ set -euo pipefail
 repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$repo_root/scripts/lib/common.sh"
 
-# Каталоги данных сервиса.
-HA_DATA_DIR="$APPS_STORAGE_PATH"/home-assistant
-HA_CUSTOM_COMPONENTS_DIR="$HA_DATA_DIR"/custom_components
-
-# Кастомная интеграция SSO (hass-oidc-auth): ставится не через HACS, а из
-# релиза GitHub, чтобы версия контролировалась коммитом. Желаемая версия —
-# в закоммиченном config.env, установленная — в файле-метке рядом с компонентом.
-OIDC_COMPONENT_DIR="$HA_CUSTOM_COMPONENTS_DIR"/auth_oidc
+SERVICE_DIR="$repo_root"/home-assistant
 OIDC_VERSION="${HOME_ASSISTANT_OIDC_VERSION:?set in home-assistant/config.env}"
-OIDC_VERSION_STAMP="$HA_CUSTOM_COMPONENTS_DIR"/.hass-oidc-auth.version
+OIDC_DIR="$SERVICE_DIR"/custom_components/auth_oidc
+OIDC_STAMP="$SERVICE_DIR"/custom_components/.hass-oidc-auth.version
 
-ensure_dirs 0750 \
-  "$HA_DATA_DIR" \
-  "$HA_CUSTOM_COMPONENTS_DIR"
+export TZ="${TZ:-Asia/Yekaterinburg}"
 
-install_oidc_component() {
-  local archive="/tmp/hass-oidc-auth-${OIDC_VERSION}.zip"
-
+# Интеграция SSO ставится из релиза GitHub в маунт-каталог сервиса; версия
+# пинируется в закоммиченном config.env. Повторный запуск с той же версией —
+# no-op, с новой — обновление.
+if [[ "$(cat "$OIDC_STAMP" 2>/dev/null || true)" != "$OIDC_VERSION" ]]; then
   echo "Установка hass-oidc-auth ${OIDC_VERSION}..."
-  curl -fsSL -o "$archive" \
+  curl -fsSL -o /tmp/hass-oidc-auth.zip \
     "https://github.com/christiaangoossens/hass-oidc-auth/releases/download/${OIDC_VERSION}/hass-oidc-auth.zip"
-  rm -rf "$OIDC_COMPONENT_DIR"
-  unzip -q -o "$archive" -d "$HA_CUSTOM_COMPONENTS_DIR"
-  rm -f "$archive"
-  test -f "$OIDC_COMPONENT_DIR/manifest.json"
-  printf '%s\n' "$OIDC_VERSION" >"$OIDC_VERSION_STAMP"
-}
-
-if [[ "$(cat "$OIDC_VERSION_STAMP" 2>/dev/null || true)" == "$OIDC_VERSION" ]]; then
-  echo "hass-oidc-auth ${OIDC_VERSION} уже установлен."
+  rm -rf "$OIDC_DIR"
+  # Содержимое релиза лежит в корне архива — это и есть auth_oidc/.
+  mkdir -p "$OIDC_DIR"
+  unzip -q /tmp/hass-oidc-auth.zip -d "$OIDC_DIR"
+  rm /tmp/hass-oidc-auth.zip
+  test -f "$OIDC_DIR/manifest.json"
+  echo "$OIDC_VERSION" >"$OIDC_STAMP"
 else
-  install_oidc_component
+  echo "hass-oidc-auth ${OIDC_VERSION} уже установлен."
 fi
 
-compose_config "$repo_root/home-assistant"
+# Секреты никуда на диск не пишутся: они приходят в контейнер окружением
+# (secrets.enc.env расшифровывается service_compose через sops exec-env),
+# configuration.yaml читает их через !env_var.
+
+compose_config "$SERVICE_DIR"

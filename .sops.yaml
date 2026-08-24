@@ -15,3 +15,8 @@ creation_rules:
   - path_regex: 'secrets\.enc\.env$'
     age: >-
       age1anr07xknmnlyp3hxnm0nts4v2fuz22z6xh52tx0cv2ahxs607aeqvzpxkz
+  # Токены/адреса устройств Xiaomi (miio) для локального управления.
+  # Обновляется после перепривязки устройства: xiaomi_miot.get_token в HA.
+  - path_regex: 'devices-secrets\.enc\.yaml$'
+    age: >-
+      age1anr07xknmnlyp3hxnm0nts4v2fuz22z6xh52tx0cv2ahxs607aeqvzpxkz

@@ -27,11 +27,9 @@ automation: !include automations.yaml
 script: !include scripts.yaml
 scene: !include scenes.yaml
 
-# Traefik reaches this host-networked container from the traefiknet subnet.
-http:
-  use_x_forwarded_for: true
-  trusted_proxies:
-    - 172.20.0.0/16
+# Настройки HTTP начиная с HA 2026.x управляются в UI (Settings → System →
+# Network): YAML-блок http: игнорируется. После миграции там заданы:
+# доверенный прокси 172.20.0.0/16 (подсеть Traefik) и use_x_forwarded_for.
 
 # Локальный вход по паролю отключён полностью: единственный способ войти —
 # ZITADEL через auth_oidc ниже. Если SSO сломался, доступ восстанавливается
@@ -41,11 +39,15 @@ homeassistant:
   auth_providers: []
 
 # SSO через ZITADEL (custom component hass-oidc-auth, ставится init.sh;
-# см. README). Креденшалы клиента — в secrets.yaml на сервере.
+# см. README). Креденшалы приходят из окружения (secrets.enc.env через
+# sops exec-env в service_compose).
 auth_oidc:
-  client_id: !secret oidc_client_id
-  client_secret: !secret oidc_client_secret
+  client_id: !env_var OIDC_CLIENT_ID
+  client_secret: !env_var OIDC_CLIENT_SECRET
   discovery_url: https://id.example.com/.well-known/openid-configuration
   features:
     # Сразу отправлять на ZITADEL при открытии корня HA.
     default_redirect: true
+    # ВРЕМЕННО, только для миграции: вход через ZITADEL прикрепляется к
+    # существующему пользователю с тем же логином. После проверки выключить.
+    automatic_user_linking: true
