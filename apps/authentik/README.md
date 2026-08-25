@@ -10,10 +10,6 @@ URL: `https://auth.example.com/`
 ```sh
 bash scripts/bootstrap-platform.sh authentik
 ```
-> Любые последующие команды `docker compose` этого сервиса требуют того же окружения:
-> выполняйте их через `bash scripts/compose-secrets.sh authentik …` или повторным
-> `bash scripts/bootstrap-platform.sh authentik`.
-
 
 `init.sh` создаст каталоги (включая `backups`), секретный ключ Authentik, пароль PostgreSQL, CIDR Traefik и `apps/authentik/secrets.enc.env` с
 правами `0600`.

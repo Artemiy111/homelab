@@ -10,10 +10,6 @@ URL: `https://dawarich.example.com/`
 ```sh
 bash scripts/bootstrap-platform.sh dawarich
 ```
-> Любые последующие команды `docker compose` этого сервиса требуют того же окружения:
-> выполняйте их через `bash scripts/compose-secrets.sh dawarich …` или повторным
-> `bash scripts/bootstrap-platform.sh dawarich`.
-
 
 На пустой базе встроенный seed Dawarich создаёт администратора
 `demo@dawarich.app` с паролем `safepassword`. Сразу после первого входа измените

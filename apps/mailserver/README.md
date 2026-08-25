@@ -15,10 +15,6 @@
 ```sh
 bash scripts/bootstrap-platform.sh mailserver
 ```
-> Любые последующие команды `docker compose` этого сервиса требуют того же окружения:
-> выполняйте их через `bash scripts/compose-secrets.sh mailserver …` или повторным
-> `bash scripts/bootstrap-platform.sh mailserver`.
-
 
 `init.sh` создаёт каталоги данных и генерирует секреты в зашифрованном
 `secrets.enc.env` (домен подставляется из `DOMAIN`, случайный пароль

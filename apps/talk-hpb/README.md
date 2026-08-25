@@ -28,10 +28,6 @@
 ```sh
 bash scripts/bootstrap-platform.sh talk-hpb
 ```
-> Любые последующие команды `docker compose` этого сервиса требуют того же окружения:
-> выполняйте их через `bash scripts/compose-secrets.sh talk-hpb …` или повторным
-> `bash scripts/bootstrap-platform.sh talk-hpb`.
-
 
 `init.sh` генерирует секреты в зашифрованный `secrets.enc.env`.
 Повторный запуск их не перезаписывает.

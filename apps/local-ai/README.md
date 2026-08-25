@@ -10,14 +10,9 @@ Docker ограничивает весь контейнер 14 единицам�
 
 ## Первый запуск
 
-
 ```sh
 bash scripts/bootstrap-platform.sh local-ai
 ```
-> Любые последующие команды `docker compose` этого сервиса требуют того же окружения:
-> выполняйте их через `bash scripts/compose-secrets.sh local-ai …` или повторным
-> `bash scripts/bootstrap-platform.sh local-ai`.
-
 
 Существующие модели в `$APPS_STORAGE_PATH/local-ai/models` сохраняются.
 

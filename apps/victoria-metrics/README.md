@@ -49,10 +49,6 @@ Grafana работает под `user: "1000:1000"` (uid artlab) — bind mount 
 ```sh
 bash scripts/bootstrap-platform.sh victoria-metrics
 ```
-> Любые последующие команды `docker compose` этого сервиса требуют того же окружения:
-> выполняйте их через `bash scripts/compose-secrets.sh victoria-metrics …` или повторным
-> `bash scripts/bootstrap-platform.sh victoria-metrics`.
-
 
 Или через bootstrap: каталог добавлен в `scripts/bootstrap-platform.sh`.
 

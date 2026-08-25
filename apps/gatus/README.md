@@ -3,15 +3,11 @@
 Gatus — основной декларативный монитор доступности homelab.
 URL: `https://uptime.example.com/`.
 
-## Первый Запуск
+## Первый запуск
 
 ```sh
 bash scripts/bootstrap-platform.sh gatus
 ```
-> Любые последующие команды `docker compose` этого сервиса требуют того же окружения:
-> выполняйте их через `bash scripts/compose-secrets.sh gatus …` или повторным
-> `bash scripts/bootstrap-platform.sh gatus`.
-
 
 Gatus подключён к `traefiknet`, поэтому может проверять как пользовательские
 HTTPS-маршруты, так и отдельно выбранные Docker backend. HTTPS-проверки явно

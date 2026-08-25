@@ -11,10 +11,6 @@ URL: `https://beszel.example.com/`
 ```sh
 bash scripts/bootstrap-platform.sh beszel
 ```
-> Любые последующие команды `docker compose` этого сервиса требуют того же окружения:
-> выполняйте их через `bash scripts/compose-secrets.sh beszel …` или повторным
-> `bash scripts/bootstrap-platform.sh beszel`.
-
 
 Откройте URL и создайте администратора. Затем:
 

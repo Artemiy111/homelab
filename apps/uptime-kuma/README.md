@@ -1,14 +1,12 @@
 # Uptime Kuma
 
+Uptime-мониторинг сервисов: дашборд статусов, метрики Prometheus, уведомления.
+
 ## Запуск
 
 ```sh
 bash scripts/bootstrap-platform.sh uptime-kuma
 ```
-> Любые последующие команды `docker compose` этого сервиса требуют того же окружения:
-> выполняйте их через `bash scripts/compose-secrets.sh uptime-kuma …` или повторным
-> `bash scripts/bootstrap-platform.sh uptime-kuma`.
-
 
 Завершить первоначальную настройку учётной записи по адресу
 `https://kuma.example.com/`. Те же логин и пароль записать в локальный
@@ -45,7 +43,6 @@ Kuma отдаёт Prometheus-метрики на `:3001/metrics`. Доступ �
 Желаемое состояние находится в `monitors.json`. Gatus (`gatus/config/config.yaml`)
 — источник правды: Kuma зеркалит его там, где это возможно, поэтому URL и
 ожидаемые статусы мониторов должны совпадать с эндпоинтами Gatus.
-
 
 Применить конфигурацию:
 

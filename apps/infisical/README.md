@@ -1,14 +1,12 @@
 # Infisical — self-hosted secrets manager
 
+Хранилище переменных окружения для проектов: веб-интерфейс, CLI, доступ по ролям.
+
 ## Первый запуск
 
 ```sh
 bash scripts/bootstrap-platform.sh infisical
 ```
-> Любые последующие команды `docker compose` этого сервиса требуют того же окружения:
-> выполняйте их через `bash scripts/compose-secrets.sh infisical …` или повторным
-> `bash scripts/bootstrap-platform.sh infisical`.
-
 
 Затем откройте `https://infisical.example.com` и создайте первого
 пользователя (он становится администратором).

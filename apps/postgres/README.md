@@ -9,10 +9,6 @@
 ```sh
 bash scripts/bootstrap-platform.sh postgres
 ```
-> Любые последующие команды `docker compose` этого сервиса требуют того же окружения:
-> выполняйте их через `bash scripts/compose-secrets.sh postgres …` или повторным
-> `bash scripts/bootstrap-platform.sh postgres`.
-
 
 pgweb откроется по адресу `https://postgres.example.com/` и сразу
 подключится к базе `playground`. Логин и пароль HTTP Basic Auth находятся в

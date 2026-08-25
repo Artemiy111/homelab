@@ -19,10 +19,6 @@ MAC-адресов сетью и не позволяет контейнеру н
 ```sh
 bash scripts/bootstrap-platform.sh home-assistant
 ```
-> Любые последующие команды `docker compose` этого сервиса требуют того же окружения:
-> выполняйте их через `bash scripts/compose-secrets.sh home-assistant …` или повторным
-> `bash scripts/bootstrap-platform.sh home-assistant`.
-
 
 После запуска завершите onboarding в веб-интерфейсе. Постоянные данные находятся
 в `$APPS_STORAGE_PATH/home-assistant` и входят в общий Restic snapshot.

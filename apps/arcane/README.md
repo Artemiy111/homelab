@@ -15,10 +15,6 @@ URL: `https://arcane.example.com/`
 ```sh
 bash scripts/bootstrap-platform.sh arcane
 ```
-> Любые последующие команды `docker compose` этого сервиса требуют того же окружения:
-> выполняйте их через `bash scripts/compose-secrets.sh arcane …` или повторным
-> `bash scripts/bootstrap-platform.sh arcane`.
-
 
 Откройте URL и войдите под учётными данными
 по умолчанию (`arcane` / `arcane-admin`); при первом входе Arcane потребует

@@ -74,10 +74,6 @@ create-user.sh YOUR_LOGIN`. Созданная учётная запись не 
 ```sh
 bash scripts/bootstrap-platform.sh element
 ```
-> Любые последующие команды `docker compose` этого сервиса требуют того же окружения:
-> выполняйте их через `bash scripts/compose-secrets.sh element …` или повторным
-> `bash scripts/bootstrap-platform.sh element`.
-
 
 `init.sh` создаёт отсутствующие секреты в зашифрованном `apps/element/secrets.enc.env`,
 генерирует конфигурации в `$APPS_STORAGE_PATH/element` и сохраняет timezone

@@ -9,10 +9,6 @@ Zitadel — IdP homelab. Доступен через Traefik по `https://id.ex
 ```sh
 bash scripts/bootstrap-platform.sh zitadel
 ```
-> Любые последующие команды `docker compose` этого сервиса требуют того же окружения:
-> выполняйте их через `bash scripts/compose-secrets.sh zitadel …` или повторным
-> `bash scripts/bootstrap-platform.sh zitadel`.
-
 
 Postgres поднимается с двумя ролями: суперпользователь (`POSTGRES_ADMIN_USER`,
 нужен только для создания роли при инициализации, бэкапа и ручных работ) и
