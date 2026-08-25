@@ -22,7 +22,7 @@ repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 service="$1"
 shift
 
-encrypted="$repo_root/$service/secrets.enc.env"
+encrypted="$repo_root/apps/$service/secrets.enc.env"
 if [[ ! -f "$encrypted" ]]; then
   echo "Ошибка: $encrypted не найден — сервис не мигрирован на SOPS" >&2
   exit 1

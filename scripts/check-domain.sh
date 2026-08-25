@@ -6,7 +6,7 @@
 #   - scripts/lib/common.sh      — единственный источник правды (значение по умолчанию);
 #   - scripts/check-domain.sh    — сам гвард (значение по умолчанию в $domain);
 #   - *.env.example и *.tpl.*    — шаблоны, из которых init.sh генерирует конфиги;
-#   - *.md и structurizr/homelab.dsl — документация.
+#   - *.md и apps/structurizr/homelab.dsl — документация.
 #
 # Во всех остальных файлах (compose, config.yaml, services.yaml, monitors.json,
 # init.sh, *.properties, *.conf, *.mjs и т.д.) домен обязан приходить из DOMAIN
@@ -24,7 +24,7 @@ is_allowed() {
   case "$path" in
     scripts/lib/common.sh) return 0 ;;
     scripts/check-domain.sh) return 0 ;;
-    structurizr/homelab.dsl) return 0 ;;
+    apps/structurizr/homelab.dsl) return 0 ;;
     *.md) return 0 ;;
     *.env.example) return 0 ;;
     # config.env — трекаемые дефолты сервиса (публичная конфигурация).

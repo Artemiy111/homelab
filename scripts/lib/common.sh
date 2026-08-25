@@ -13,6 +13,9 @@
 
 repo_root="${repo_root:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)}"
 
+# Корень каталога сервисов: один подкаталог apps/<имя> на сервис.
+apps_dir="${apps_dir:-$repo_root/apps}"
+
 # Базовый домен homelab — единственный источник правды для имён хостов сервисов.
 # Каждый сервис доступен по адресу <sub>.$DOMAIN. Приоритет значения:
 #   1. переменная окружения DOMAIN;
@@ -119,8 +122,8 @@ compose_config() {
   local service
   service="$(basename "$service_dir")"
   local -a env_files=(--env-file "$repo_root/.env")
-  [[ -f "$repo_root/$service/config.env" ]] &&
-    env_files+=(--env-file "$repo_root/$service/config.env")
+  [[ -f "$apps_dir/$service/config.env" ]] &&
+    env_files+=(--env-file "$apps_dir/$service/config.env")
   docker compose --project-directory "$service_dir" \
     "${env_files[@]}" \
     "$@" config --quiet
@@ -132,8 +135,8 @@ compose_config() {
 service_env_files() {
   local service="$1"
   local files="--env-file '$repo_root/.env'"
-  [[ -f "$repo_root/$service/config.env" ]] &&
-    files+=" --env-file '$repo_root/$service/config.env'"
+  [[ -f "$apps_dir/$service/config.env" ]] &&
+    files+=" --env-file '$apps_dir/$service/config.env'"
   printf '%s' "$files"
 }
 
@@ -143,12 +146,12 @@ service_env_files() {
 service_compose() {
   local service="$1"
   shift
-  if [[ -f "$repo_root/$service/secrets.enc.env" ]]; then
-    sops exec-env "$repo_root/$service/secrets.enc.env" \
-      "docker compose --project-directory '$repo_root/$service' $(service_env_files "$service") $*"
+  if [[ -f "$apps_dir/$service/secrets.enc.env" ]]; then
+    sops exec-env "$apps_dir/$service/secrets.enc.env" \
+      "docker compose --project-directory '$apps_dir/$service' $(service_env_files "$service") $*"
   else
     docker compose \
-      --project-directory "$repo_root/$service" \
+      --project-directory "$apps_dir/$service" \
       $(service_env_files "$service") \
       "$@"
   fi
@@ -158,13 +161,13 @@ service_compose() {
 # config.env подмешивается в окружение, секреты — через sops exec-env.
 service_init() {
   local service="$1"
-  local init_cmd="bash '$repo_root/$service/init.sh'"
-  [[ -f "$repo_root/$service/config.env" ]] &&
-    init_cmd="set -a && . '$repo_root/$service/config.env' && $init_cmd"
-  if [[ -f "$repo_root/$service/secrets.enc.env" ]]; then
-    sops exec-env "$repo_root/$service/secrets.enc.env" "$init_cmd"
+  local init_cmd="bash '$apps_dir/$service/init.sh'"
+  [[ -f "$apps_dir/$service/config.env" ]] &&
+    init_cmd="set -a && . '$apps_dir/$service/config.env' && $init_cmd"
+  if [[ -f "$apps_dir/$service/secrets.enc.env" ]]; then
+    sops exec-env "$apps_dir/$service/secrets.enc.env" "$init_cmd"
   else
-    bash "$repo_root/$service/init.sh"
+    bash "$apps_dir/$service/init.sh"
   fi
 }
 

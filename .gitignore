@@ -3,13 +3,13 @@
 node_modules
 
 # Генерируются init.sh из *.tpl.*-шаблонов (домен подставляется из DOMAIN).
-traefik/traefik.yaml
+apps/traefik/traefik.yaml
 
-structurizr/structurizr.properties
-image-updates/cup.json
-home/config/settings.yaml
-element/element-web/config.json
-netdata/config/go.d/prometheus.conf
+apps/structurizr/structurizr.properties
+apps/image-updates/cup.json
+apps/home/config/settings.yaml
+apps/element/element-web/config.json
+apps/netdata/config/go.d/prometheus.conf
 
 # Ставится init.sh из релиза hass-oidc-auth.
-home-assistant/custom_components/
+apps/home-assistant/custom_components/

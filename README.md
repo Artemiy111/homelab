@@ -39,7 +39,14 @@ DNS разрешает зону <dns-provider> и все её поддомены
 доступ проходит через Tailscale.
 
 Удалённый доступ без публикации портов в интернете настраивается через
-[Tailscale](tailscale/README.md).
+[Tailscale](apps/tailscale/README.md).
+
+## Структура репозитория
+
+- `apps/<сервис>/` — все разворачиваемые сервисы; один подкаталог — один
+  сервис (`compose.yaml`, `config.env`, `secrets.enc.env`, `init.sh`).
+- `k8s/`, `ansible/`, `scripts/`, `docs/`, `dotfiles/` — платформенная
+  инфраструктура, не относящаяся к одному сервису.
 
 ## Общий домен сервисов
 
@@ -98,17 +105,18 @@ bash scripts/bootstrap-platform.sh glitchtip
 Отдельный сервис можно подготовить напрямую:
 
 ```sh
-bash traefik/init.sh
+bash apps/traefik/init.sh
 ```
 
 Скрипты не перезаписывают существующие `.env` и сохраняют сгенерированные пароли
 только на сервере с правами доступа `0600`. Общие функции находятся в
 `scripts/lib/common.sh`.
 
-Каждый сервис управляется из своего каталога:
+Каждый сервис управляется из своего каталога в `apps/` (один подкаталог —
+один сервис):
 
 ```sh
-cd traefik
+cd apps/traefik
 docker compose config
 docker compose up -d
 ```
@@ -159,7 +167,7 @@ bash scripts/sops-migrate-service.sh <каталог-сервиса> КЛЮЧ1,�
 Установку бинарников `sops` и `age` выполняет Ansible (`ansible/host.yml`).
 
 Старые и экспериментальные каталоги приложений сохранены для последующего
-разбора. `wg-easy/` пока не разворачивается.
+разбора. `apps/wg-easy/` пока не разворачивается.
 
 ## Линтинг Compose-файлов
 
@@ -188,4 +196,4 @@ bash scripts/check-domain.sh
 
 Скрипт падает, если `example.com` встречается вне разрешённых мест:
 источник правды (`scripts/lib/common.sh`), шаблоны (`.env.example`, `.tpl.*`) и
-документация (`.md`, `structurizr/homelab.dsl`).
+документация (`.md`, `apps/structurizr/homelab.dsl`).

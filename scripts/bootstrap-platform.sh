@@ -7,7 +7,7 @@
 #   bash scripts/bootstrap-platform.sh            # все сервисы
 #   bash scripts/bootstrap-platform.sh glitchtip  # один сервис
 # Отдельный сервис можно инициализировать напрямую:
-#   bash traefik/init.sh
+#   bash apps/traefik/init.sh
 
 set -euo pipefail
 
