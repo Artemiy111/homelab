@@ -3,7 +3,7 @@
 set -euo pipefail
 
 if [[ ${EUID} -ne 0 ]]; then
-  echo "Запустите скрипт через sudo: sudo bash tailscale/setup.sh" >&2
+  echo "Запустите скрипт через sudo: sudo bash apps/tailscale/setup.sh" >&2
   exit 1
 fi
 
@@ -24,9 +24,14 @@ install \
   /etc/sysctl.d/99-tailscale.conf
 sysctl --load /etc/sysctl.d/99-tailscale.conf
 
+# Сервер сам держит Technitium DNS, поэтому DNS tailnet ему не нужен:
+# иначе при недоступных резолверах tailnet узел получает предупреждение
+# health и лишнюю зависимость от admin console.
 tailscale up \
   --hostname=homelab \
-  --advertise-routes=192.0.2.10/24
+  --advertise-routes=192.0.2.10/24 \
+  --accept-dns=false
 
 echo
-echo "Tailscale подключён. Одобрите маршрут 192.0.2.10/24 в admin console."
+echo "Tailscale подключён. Одобрите маршрут 192.0.2.10/24 в admin console"
+echo "(Machines → homelab → Subnets) и удалите одобрение устаревших маршрутов."

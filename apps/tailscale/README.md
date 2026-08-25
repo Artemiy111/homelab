@@ -15,12 +15,15 @@ OpenSSH сервера.
 На сервере из корня репозитория выполнить:
 
 ```sh
-sudo bash tailscale/setup.sh
+sudo bash apps/tailscale/setup.sh
 ```
 
 Команда выведет ссылку для входа. После авторизации открыть страницу
 [Machines](https://login.tailscale.com/admin/machines), выбрать `homelab`, затем
-в разделе **Subnets** одобрить маршрут `192.0.2.10/24`.
+в разделе **Subnets** одобрить маршрут `192.0.2.10/24` и снять одобрение
+устаревших маршрутов (например, оставшейся от старой сети `192.0.2.10/24`):
+клиенты ходят в домашнюю сеть только через одобренные маршруты, и расхождение
+с реальной LAN выглядит как «дома всё работает, удалённо — нет».
 
 Чтобы сервер не терял маршрут после истечения ключа, там же рекомендуется
 отключить key expiry для `homelab`.
@@ -34,15 +37,24 @@ sudo tailscale set --accept-routes
 
 ## Локальные DNS-имена
 
-Чтобы через Tailscale продолжали работать адреса вида
-`dns.example.com`, в [DNS-настройках tailnet](https://login.tailscale.com/admin/dns)
-добавить restricted nameserver:
+Чтобы через Tailscale продолжали работать адреса вида `dns.example.com`,
+в [DNS-настройках tailnet](https://login.tailscale.com/admin/dns) нужен
+restricted nameserver (split DNS):
 
-- nameserver: `192.0.2.10`;
-- domain: `example.com`.
+- domain: `example.com`;
+- nameserver: `192.0.2.10`.
 
-Запросы этой зоны пойдут в домашний Technitium DNS, а прочие DNS-запросы останутся у
-обычного резолвера клиента.
+Запросы этой зоны пойдут в домашний Technitium DNS через одобренный subnet
+route, а прочие DNS-запросы останутся у обычного резолвера клиента.
+
+В том же разделе проверить, что не осталось записей от старой конфигурации:
+restricted nameserver на старый домен (`example.net`) и на старую
+подсеть (`192.0.2.10`) нужно удалить — иначе каждый узел tailnet при
+проверке таких резолверов получает предупреждение «Tailscale can't reach the
+configured DNS servers» в `tailscale status`.
+
+Сам сервер Tailscale-настройки DNS не принимает (`--accept-dns=false`):
+он сам является DNS-сервером для зоны `${DOMAIN}`.
 
 ## Проверка
 
@@ -51,10 +63,21 @@ sudo tailscale set --accept-routes
 ```sh
 tailscale ping homelab
 ssh artlab@homelab
+dig +short uptime.example.com A   # ожидается 192.0.2.10
 curl -I https://dns.example.com/
 ```
 
-Ожидается ответ Tailscale ping, SSH-подключение и HTTP redirect `302` от Technitium.
+Ожидается ответ Tailscale ping, SSH-подключение, ответ DNS и HTTP redirect
+`302` от Technitium.
+
+Если внутренние имена не резолвятся только вне домашней сети:
+
+1. В admin console (DNS) есть restricted nameserver `example.com →
+   192.0.2.10`, а устаревшие записи удалены.
+2. В admin console (Machines → homelab → Subnets) одобрен именно
+   `192.0.2.10/24` — та подсеть, где реально живёт сервер.
+3. На клиенте `tailscale ping homelab` проходит, а `dig` до появления записи
+   возвращал NXDOMAIN — значит запрос уходил в публичный DNS.
 
 Если сам `homelab` доступен, но адреса `192.168.1.x` не открываются, сначала
 проверить, что subnet route одобрен в admin console. Для firewalld может также
