@@ -13,14 +13,15 @@ VLESS, VMess, Trojan, Shadowsocks, WireGuard, Hysteria2, HTTP/SOCKS и неск�
 
 ## Подготовка
 
-Из каталога `3x-ui` выполнить:
+Из корня репозитория:
 
 ```sh
-bash ./init.sh
-docker compose up -d
-docker compose ps
-docker compose rm -f initialize
+bash scripts/bootstrap-platform.sh 3x-ui
 ```
+> Любые последующие команды `docker compose` этого сервиса требуют того же окружения:
+> выполняйте их через `bash scripts/compose-secrets.sh 3x-ui …` или повторным
+> `bash scripts/bootstrap-platform.sh 3x-ui`.
+
 
 Последняя команда удаляет завершившийся init-контейнер, чтобы его окружение с
 первоначальным паролем не оставалось в метаданных Docker. При последующих

@@ -9,7 +9,5 @@ URL: `https://home.example.com/`
 Compose-конфигурацию.
 
 ```sh
-bash ./init.sh
-docker compose up -d
-docker compose ps
+bash scripts/bootstrap-platform.sh home
 ```

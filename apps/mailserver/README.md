@@ -13,9 +13,12 @@
 ## Запуск
 
 ```sh
-bash ./init.sh
-docker compose up -d
+bash scripts/bootstrap-platform.sh mailserver
 ```
+> Любые последующие команды `docker compose` этого сервиса требуют того же окружения:
+> выполняйте их через `bash scripts/compose-secrets.sh mailserver …` или повторным
+> `bash scripts/bootstrap-platform.sh mailserver`.
+
 
 `init.sh` создаёт каталоги данных, генерирует `.env` (домен подставляется из
 `DOMAIN`, случайный пароль администратора — в `STALWART_ADMIN_PASS`) и

@@ -13,9 +13,7 @@ Utilities for Tracking Exposure). Контейнер доступен тольк
 каталога сервиса:
 
 ```sh
-bash ./init.sh
-docker compose up -d
-docker compose ps
+bash scripts/bootstrap-platform.sh lute
 ```
 
 Доступ к приложению идёт через `traefiknet`; на хосту должна быть запись DNS

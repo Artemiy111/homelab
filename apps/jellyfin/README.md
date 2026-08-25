@@ -6,11 +6,7 @@ URL: `https://jellyfin.example.com/`
 ## Запуск
 
 ```sh
-bash ./init.sh
-install -d /storage/media
-docker compose pull
-docker compose up -d
-docker compose ps
+bash scripts/bootstrap-platform.sh jellyfin
 ```
 
 При существующей установке каталоги `/config` и `/cache` сохраняются, поэтому

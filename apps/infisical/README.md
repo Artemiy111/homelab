@@ -3,10 +3,12 @@
 ## Первый запуск
 
 ```sh
-bash ./init.sh
-docker compose up -d
-docker compose ps
+bash scripts/bootstrap-platform.sh infisical
 ```
+> Любые последующие команды `docker compose` этого сервиса требуют того же окружения:
+> выполняйте их через `bash scripts/compose-secrets.sh infisical …` или повторным
+> `bash scripts/bootstrap-platform.sh infisical`.
+
 
 Затем откройте `https://infisical.example.com` и создайте первого
 пользователя (он становится администратором).

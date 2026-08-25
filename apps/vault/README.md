@@ -13,8 +13,7 @@
 ## Запуск
 
 ```sh
-bash ./init.sh
-docker compose up -d
+bash scripts/bootstrap-platform.sh vault
 ```
 
 ### Инициализация (первый запуск)

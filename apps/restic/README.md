@@ -16,9 +16,7 @@ Restic создаёт зашифрованные дедуплицированн�
 ## Инициализация
 
 ```sh
-cd /home/artlab/projects/homelab/restic
-bash ./init.sh
-docker compose run --rm init
+bash scripts/bootstrap-platform.sh restic
 ```
 
 `init.sh` создаёт каталоги `$APPS_STORAGE_PATH/restic/{cache,restore}`,

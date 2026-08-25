@@ -15,15 +15,9 @@ sudo ss -lntup | grep ':53 '
 
 Подготовить каталоги и `.env`:
 
+Внешняя сеть `traefiknet` должна уже существовать.
 ```sh
-cd /home/artlab/projects/homelab/technitium
-bash ./init.sh
-```
-
-Внешняя сеть `traefiknet` должна уже существовать. Запустить Technitium:
-
-```sh
-docker compose up -d
+bash scripts/bootstrap-platform.sh technitium
 ```
 
 Затем в настройках DHCP роутера указать `${SERVER_IP}` как DNS-сервер. После

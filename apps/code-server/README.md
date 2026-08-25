@@ -5,12 +5,10 @@ URL: `https://code.example.com/`
 
 ## Запуск
 
-Из каталога `code-server` выполнить:
+Из корня репозитория:
 
 ```sh
-bash ./init.sh
-docker compose up -d
-docker compose ps
+bash scripts/bootstrap-platform.sh code-server
 ```
 
 После первого запуска пароль можно получить так:

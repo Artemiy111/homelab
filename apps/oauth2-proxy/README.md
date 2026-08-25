@@ -29,7 +29,8 @@ Forward auth перед приложениями без своей автори�
 2. `bash ./init.sh` создаёт `oauth2-proxy/.env` со случайным
    `OAUTH2_PROXY_COOKIE_SECRET`; осталось вписать client_id и client_secret
    из шага 1.
-3. `docker compose up -d`.
+3. Запуск из корня репозитория — с секретами в окружении:
+   `bash scripts/bootstrap-platform.sh oauth2-proxy`.
 
 ## Что получает upstream
 

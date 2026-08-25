@@ -12,10 +12,7 @@ Navidrome индексирует локальную музыкальную би�
 ## Первый запуск
 
 ```sh
-cd /home/artlab/projects/homelab/navidrome
-bash ./init.sh
-docker compose up -d
-docker compose ps
+bash scripts/bootstrap-platform.sh navidrome
 ```
 
 `init.sh` создаёт каталог данных и `.env` с правами `0600`, проверяет

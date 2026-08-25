@@ -12,14 +12,12 @@ Docker ограничивает весь контейнер 14 единицам�
 
 
 ```sh
-bash ./init.sh
-install -d -m 0750 -o 1000 -g 1000 \
-  ${APPS_STORAGE_PATH:-/storage/apps}/local-ai/backends \
-  ${APPS_STORAGE_PATH:-/storage/apps}/local-ai/configuration \
-  ${APPS_STORAGE_PATH:-/storage/apps}/local-ai/data
-docker compose up -d
-docker compose ps
+bash scripts/bootstrap-platform.sh local-ai
 ```
+> Любые последующие команды `docker compose` этого сервиса требуют того же окружения:
+> выполняйте их через `bash scripts/compose-secrets.sh local-ai …` или повторным
+> `bash scripts/bootstrap-platform.sh local-ai`.
+
 
 Существующие модели в `$APPS_STORAGE_PATH/local-ai/models` сохраняются.
 

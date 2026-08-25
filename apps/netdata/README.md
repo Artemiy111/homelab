@@ -65,8 +65,7 @@ curl -fsS 'http://netdata:19999/api/v1/allmetrics?format=prometheus'
 ## Первый запуск
 
 ```sh
-bash ./init.sh
-docker compose up -d
+bash scripts/bootstrap-platform.sh netdata
 ```
 
 Проверка после запуска:

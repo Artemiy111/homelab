@@ -6,10 +6,12 @@ URL: `https://glitchtip.example.com/`
 ## Первый запуск
 
 ```sh
-bash ./init.sh
-docker compose up -d
-docker compose ps
+bash scripts/bootstrap-platform.sh glitchtip
 ```
+> Любые последующие команды `docker compose` этого сервиса требуют того же окружения:
+> выполняйте их через `bash scripts/compose-secrets.sh glitchtip …` или повторным
+> `bash scripts/bootstrap-platform.sh glitchtip`.
+
 
 Миграции БД выполняются one-shot контейнером `glitchtip-migrate` перед
 стартом `web` (зависимость `service_completed_successfully`); повторный запуск

@@ -10,10 +10,12 @@ OpenAI-совместимый API не подключены (`ENABLE_OLLAMA_API=
 ## Первый запуск
 
 ```sh
-bash ./init.sh
-bash scripts/compose-secrets.sh open-webui up -d
-docker compose ps
+bash scripts/bootstrap-platform.sh open-webui
 ```
+> Любые последующие команды `docker compose` этого сервиса требуют того же окружения:
+> выполняйте их через `bash scripts/compose-secrets.sh open-webui …` или повторным
+> `bash scripts/bootstrap-platform.sh open-webui`.
+
 
 ## Подключение движка (позже)
 

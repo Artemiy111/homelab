@@ -10,14 +10,15 @@ Git over SSH: `2222:`.
 
 ## Первый запуск
 
-Из каталога `forgejo` выполнить:
+Из корня репозитория:
 
 ```sh
-bash ./init.sh
-docker compose pull
-docker compose up -d
-docker compose ps
+bash scripts/bootstrap-platform.sh forgejo
 ```
+> Любые последующие команды `docker compose` этого сервиса требуют того же окружения:
+> выполняйте их через `bash scripts/compose-secrets.sh forgejo …` или повторным
+> `bash scripts/bootstrap-platform.sh forgejo`.
+
 
 Откройте `https://forgejo.example.com/` — откроется мастер установки.
 Укажите адрес PostgreSQL (`db:5432`), имя базы и пароль, создайте

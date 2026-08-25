@@ -13,10 +13,7 @@ Stirling PDF — веб-сервис для операций с PDF. Он дос
 ## Запуск
 
 ```sh
-cd /home/artlab/projects/homelab/pdf
-bash ./init.sh
-docker compose up -d
-docker compose ps
+bash scripts/bootstrap-platform.sh pdf
 ```
 
 `init.sh` создаёт каталоги состояния и `.env` с учётными данными администратора.

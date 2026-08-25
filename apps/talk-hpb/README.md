@@ -26,9 +26,12 @@
 ## Подготовка
 
 ```sh
-bash ./init.sh
-docker compose up -d
+bash scripts/bootstrap-platform.sh talk-hpb
 ```
+> Любые последующие команды `docker compose` этого сервиса требуют того же окружения:
+> выполняйте их через `bash scripts/compose-secrets.sh talk-hpb …` или повторным
+> `bash scripts/bootstrap-platform.sh talk-hpb`.
+
 
 `init.sh` создаёт игнорируемый `.env` с правами `0600` и случайными секретами.
 Повторный запуск не перезаписывает существующие секреты.

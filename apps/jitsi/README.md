@@ -6,11 +6,12 @@ Jitsi Videobridge принимает медиатрафик на `192.0.2.10:100
 ## Подготовка
 
 ```sh
-bash ./init.sh
-docker compose pull
-docker compose up -d
-docker compose ps
+bash scripts/bootstrap-platform.sh jitsi
 ```
+> Любые последующие команды `docker compose` этого сервиса требуют того же окружения:
+> выполняйте их через `bash scripts/compose-secrets.sh jitsi …` или повторным
+> `bash scripts/bootstrap-platform.sh jitsi`.
+
 
 ## Rootless-контейнеры
 

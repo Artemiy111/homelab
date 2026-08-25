@@ -3,9 +3,12 @@
 ## Запуск
 
 ```sh
-bash ./init.sh
-docker compose up -d
+bash scripts/bootstrap-platform.sh uptime-kuma
 ```
+> Любые последующие команды `docker compose` этого сервиса требуют того же окружения:
+> выполняйте их через `bash scripts/compose-secrets.sh uptime-kuma …` или повторным
+> `bash scripts/bootstrap-platform.sh uptime-kuma`.
+
 
 Завершить первоначальную настройку учётной записи по адресу
 `https://kuma.example.com/`. Те же логин и пароль записать в локальный

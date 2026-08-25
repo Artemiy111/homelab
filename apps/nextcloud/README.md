@@ -19,10 +19,7 @@ PostgreSQL и Redis на хост не публикуются.
 ## Первый запуск
 
 ```sh
-cd /home/artlab/projects/homelab/nextcloud
-bash ./init.sh
-docker compose up -d
-docker compose ps
+bash scripts/bootstrap-platform.sh nextcloud
 ```
 
 `init.sh` создаёт каталоги состояния, генерирует независимые пароли PostgreSQL
@@ -31,8 +28,7 @@ docker compose ps
 в терминале сервера:
 
 ```sh
-cd /home/artlab/projects/homelab/nextcloud
-sed -n '/^NEXTCLOUD_ADMIN_\(USER\|PASSWORD\)=/p' .env
+sops -d apps/nextcloud/secrets.enc.env | sed -n '/^NEXTCLOUD_ADMIN_\(USER\|PASSWORD\)=/p'
 ```
 
 После входа создать обычную пользовательскую учётную запись. Начальную

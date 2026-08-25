@@ -19,10 +19,12 @@ ZITADEL (`oauth2-proxy/README.md`). Отдельные секреты для э�
 ## Запуск
 
 ```sh
-bash ./init.sh
-docker compose up -d
-docker compose ps
+bash scripts/bootstrap-platform.sh image-updates
 ```
+> Любые последующие команды `docker compose` этого сервиса требуют того же окружения:
+> выполняйте их через `bash scripts/compose-secrets.sh image-updates …` или повторным
+> `bash scripts/bootstrap-platform.sh image-updates`.
+
 
 Проверки Cup выполняются при первом запуске, далее обновления запрашиваются
 вручную кнопкой refresh в его интерфейсе: автоинтервал отключён, потому что Cup

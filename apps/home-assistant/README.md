@@ -17,10 +17,12 @@ MAC-адресов сетью и не позволяет контейнеру н
 поэтому владелец каталога данных для него не важен. Из каталога сервиса:
 
 ```sh
-bash ./init.sh
-docker compose up -d
-docker compose ps
+bash scripts/bootstrap-platform.sh home-assistant
 ```
+> Любые последующие команды `docker compose` этого сервиса требуют того же окружения:
+> выполняйте их через `bash scripts/compose-secrets.sh home-assistant …` или повторным
+> `bash scripts/bootstrap-platform.sh home-assistant`.
+
 
 После запуска завершите onboarding в веб-интерфейсе. Постоянные данные находятся
 в `$APPS_STORAGE_PATH/home-assistant` и входят в общий Restic snapshot.
@@ -140,5 +142,5 @@ ZITADEL и вернуться в HA под пользователем ZITADEL.
    вернуть конфиг и перезапустить ещё раз.
 
 Обновление интеграции: поменять `HOME_ASSISTANT_OIDC_VERSION` в `config.env`,
-закоммитить, на сервере `git pull --ff-only` и запустить `bash ./init.sh`
-заново, затем рестарт контейнера.
+закоммитить, на сервере `git pull --ff-only` и запустить
+`bash scripts/bootstrap-platform.sh home-assistant` заново.
