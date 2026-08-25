@@ -71,4 +71,4 @@ for service in "${services[@]}"; do
   service_bootstrap "$service"
 done
 
-echo "Подготовка завершена. Пароли сохранены только в локальных .env сервера."
+echo "Подготовка завершена. Секреты хранятся зашифрованно в apps/<сервис>/secrets.enc.env."

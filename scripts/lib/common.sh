@@ -8,8 +8,8 @@
 #
 # Скрипт задаёт $repo_root (если вызывающий ещё не задал) и определяет
 # функции: random_secret, random_password, chmod_if_owned, ensure_dirs,
-# traefik_network_cidr, compose_config, service_env_files, service_compose,
-# service_init, service_bootstrap.
+# traefik_network_cidr, compose_config, service_env_files, service_secret_args,
+# service_run, service_compose, service_init, service_bootstrap.
 
 repo_root="${repo_root:-$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)}"
 
@@ -53,7 +53,7 @@ fi
 # (ref+envsubst://$VAR — переменные окружения, ref+sops://… — секреты),
 # сохраняя формат и комментарии шаблона. Нужные переменные должны быть
 # экспортированы вызывающим скриптом. Секреты в шаблоны передаются либо
-# через окружение (сервис запущен под sops exec-env), либо напрямую через
+# через окружение (сервис запущен под service_run), либо напрямую через
 # ref+sops-ссылки на secrets.enc.env других сервисов.
 render_template() {
   local template="$1" output="$2"
@@ -121,53 +121,67 @@ compose_config() {
   shift
   local service
   service="$(basename "$service_dir")"
-  local -a env_files=(--env-file "$repo_root/.env")
-  [[ -f "$apps_dir/$service/config.env" ]] &&
-    env_files+=(--env-file "$apps_dir/$service/config.env")
-  docker compose --project-directory "$service_dir" \
-    "${env_files[@]}" \
-    "$@" config --quiet
+  local -a args=(docker compose --project-directory "$service_dir")
+  local f
+  while IFS= read -r f; do args+=(--env-file "$f"); done < <(service_env_files "$service")
+  service_run "$service" "${args[@]}" "$@" config --quiet
 }
 
-# Строка --env-file для сервиса: корневой .env плюс config.env сервиса,
-# если тот существует. Пути в кавычках — строка раскрывается без словоделения
-# по содержимому (пути без пробелов по соглашению репо).
+# Список трекаемых env-файлов сервиса (по одному на строку): корневой .env
+# и config.env сервиса, если существует.
 service_env_files() {
   local service="$1"
-  local files="--env-file '$repo_root/.env'"
-  [[ -f "$apps_dir/$service/config.env" ]] &&
-    files+=" --env-file '$apps_dir/$service/config.env'"
-  printf '%s' "$files"
+  [[ -f "$repo_root/.env" ]] && printf '%s\n' "$repo_root/.env"
+  [[ -f "$apps_dir/$service/config.env" ]] && printf '%s\n' "$apps_dir/$service/config.env"
 }
 
-# Запускает docker compose для сервиса. Если у сервиса есть secrets.enc.env,
-# команда оборачивается в sops exec-env: расшифрованные секреты попадают
-# в окружение compose в памяти процесса, plaintext-файл не создаётся.
+# Печатает расшифрованные секреты сервиса построчно в виде K=V — для передачи
+# одним элементом argv в env(1). Значения не интерполируются и не экранируются;
+# формат secrets.enc.env — плоский dotenv без переводов строк внутри значений.
+# У сервиса без secrets.enc.env вывод пуст — это норма (секретов нет).
+service_secret_args() {
+  local service="$1"
+  local enc="$apps_dir/$service/secrets.enc.env"
+  [[ -f "$enc" ]] || return 0
+  local line
+  while IFS= read -r line; do
+    [[ "$line" == *=* && "$line" != "#"* ]] && printf '%s\n' "$line"
+  done < <(sops -d "$enc")
+}
+
+# Выполняет команду в окружении секретов сервиса, если они есть: значения
+# попадают в environ потомка дословно через env(1), приоритет выше любых
+# --env-file. У сервиса без secrets.enc.env секретных аргументов нет — env
+# просто выполняет команду.
+service_run() {
+  local service="$1"
+  shift
+  local -a secargs=() line
+  while IFS= read -r line; do secargs+=("$line"); done < <(service_secret_args "$service")
+  env "${secargs[@]}" "$@"
+}
+
+# Запускает docker compose для сервиса. Окружение интерполяции: корневой
+# .env → config.env (--env-file), поверх них — секреты из окружения процесса.
 service_compose() {
   local service="$1"
   shift
-  if [[ -f "$apps_dir/$service/secrets.enc.env" ]]; then
-    sops exec-env "$apps_dir/$service/secrets.enc.env" \
-      "docker compose --project-directory '$apps_dir/$service' $(service_env_files "$service") $*"
-  else
-    docker compose \
-      --project-directory "$apps_dir/$service" \
-      $(service_env_files "$service") \
-      "$@"
-  fi
+  local -a args=(docker compose --project-directory "$apps_dir/$service")
+  local f
+  while IFS= read -r f; do args+=(--env-file "$f"); done < <(service_env_files "$service")
+  service_run "$service" "${args[@]}" "$@"
 }
 
-# Выполняет init.sh сервиса (каталоги данных, шаблоны, валидация конфигурации).
-# config.env подмешивается в окружение, секреты — через sops exec-env.
+# Выполняет init.sh сервиса (каталоги данных, шаблоны, валидация конфигурации):
+# config.env экспортируется в окружение, секреты добавляет service_run.
 service_init() {
   local service="$1"
-  local init_cmd="bash '$apps_dir/$service/init.sh'"
-  [[ -f "$apps_dir/$service/config.env" ]] &&
-    init_cmd="set -a && . '$apps_dir/$service/config.env' && $init_cmd"
-  if [[ -f "$apps_dir/$service/secrets.enc.env" ]]; then
-    sops exec-env "$apps_dir/$service/secrets.enc.env" "$init_cmd"
+  local dir="$apps_dir/$service"
+  if [[ -f "$dir/config.env" ]]; then
+    service_run "$service" \
+      bash -c 'set -a; . "$1"; set +a; exec bash "$2"' _ "$dir/config.env" "$dir/init.sh"
   else
-    bash "$apps_dir/$service/init.sh"
+    service_run "$service" bash "$dir/init.sh"
   fi
 }
 

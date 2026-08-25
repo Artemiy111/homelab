@@ -31,7 +31,7 @@ else
 fi
 
 # Секреты никуда на диск не пишутся: они приходят в контейнер окружением
-# (secrets.enc.env расшифровывается service_compose через sops exec-env),
+# (secrets.enc.env расшифровывается service_compose через service_run),
 # configuration.yaml читает их через !env_var.
 
 compose_config "$SERVICE_DIR"

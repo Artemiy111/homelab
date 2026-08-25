@@ -8,7 +8,7 @@ source "$repo_root/scripts/lib/common.sh"
 mkdir -p "$APPS_STORAGE_PATH"/uptime-kuma/data
 
 # Конфигурация и секреты приходят через окружение: bootstrap подмешивает
-# config.env и расшифровывает secrets.enc.env (sops exec-env). Plaintext .env
+# config.env и расшифровывает secrets.enc.env (через service_run). Plaintext .env
 # не создаётся.
 
 compose_config "$repo_root/apps/uptime-kuma"

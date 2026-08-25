@@ -5,8 +5,8 @@
 #   bash scripts/compose-secrets.sh traefik up -d
 #
 # Обёртка над service_compose из scripts/lib/common.sh: расшифровывает
-# <сервис>/secrets.enc.env через `sops exec-env` и передаёт переменные
-# в docker compose как переменные окружения — plaintext-файл не создаётся.
+# apps/<сервис>/secrets.enc.env через `sops -d` и передаёт значения в
+# окружение процесса дословно через env(1) — plaintext-файл не создаётся.
 # Требует приватный age-ключ, поэтому работает только на сервере
 # (от имени artlab). Корневой .env и config.env сервиса подмешиваются
 # через --env-file, значения из secrets.enc.env имеют приоритет.
@@ -24,7 +24,7 @@ shift
 
 encrypted="$repo_root/apps/$service/secrets.enc.env"
 if [[ ! -f "$encrypted" ]]; then
-  echo "Ошибка: $encrypted не найден — сервис не мигрирован на SOPS" >&2
+  echo "Ошибка: $encrypted не найден — у сервиса нет зашифрованных секретов" >&2
   exit 1
 fi
 

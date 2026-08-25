@@ -77,7 +77,7 @@ docker logs --since=5m home-assistant 2>&1
 каталога сервиса, который целиком маунтится в контейнер; повторный запуск
 ничего не меняет). Креденшалы клиента (`OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`)
 лежат в закоммиченном зашифрованном `secrets.enc.env` (SOPS + age) и попадают
-в контейнер окружением (`sops exec-env` внутри `service_compose`);
+в контейнер окружением (секреты в окружении через `service_run`);
 `configuration.yaml` читает их через `!env_var`. Plaintext-файл секретов
 на диске не создаётся.
 

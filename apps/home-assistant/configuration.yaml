@@ -40,7 +40,7 @@ homeassistant:
 
 # SSO через ZITADEL (custom component hass-oidc-auth, ставится init.sh;
 # см. README). Креденшалы приходят из окружения (secrets.enc.env через
-# sops exec-env в service_compose).
+# service_run в service_compose).
 auth_oidc:
   client_id: !env_var OIDC_CLIENT_ID
   client_secret: !env_var OIDC_CLIENT_SECRET
