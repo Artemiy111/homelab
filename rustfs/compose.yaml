@@ -1,0 +1,66 @@
+name: rustfs
+
+services:
+  rustfs:
+    # digest тега 1.0.0-beta.12 (= latest на момент подключения).
+    image: rustfs/rustfs:1.0.0-beta.12@sha256:41fe89380f4120a337790c02af192c3fe7bb55c3edc2e6e9357b487b47c6ab21
+    container_name: rustfs
+    # Образ по умолчанию работает под uid 10001; запускаем под artlab,
+    # чтобы писать в bind mount без chown под root (как jellyfin/navidrome).
+    user: "1000:1000"
+
+    volumes:
+      - ${APPS_STORAGE_PATH:-/storage/apps}/rustfs/data:/data:Z
+
+    environment:
+      TZ: ${TZ:?set in root .env}
+      RUSTFS_VOLUMES: /data
+      RUSTFS_ADDRESS: 0.0.0.0:9000
+      RUSTFS_CONSOLE_ADDRESS: 0.0.0.0:9001
+      RUSTFS_CONSOLE_ENABLE: "true"
+      # Хосты, которые RustFS считает своими: включает path-style запросы
+      # к S3 API через Traefik (s3.${DOMAIN}/bucket/key).
+      RUSTFS_SERVER_DOMAINS: s3.${DOMAIN}
+      RUSTFS_ACCESS_KEY: ${RUSTFS_ACCESS_KEY:?set in rustfs/secrets.enc.env}
+      RUSTFS_SECRET_KEY: ${RUSTFS_SECRET_KEY:?set in rustfs/secrets.enc.env}
+
+    networks:
+      - traefiknet
+    restart: unless-stopped
+
+    healthcheck:
+      test: [ "CMD", "curl", "-fsS", "http://127.0.0.1:9000/health" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+    labels:
+      - traefik.enable=true
+      # S3 API.
+      - traefik.http.routers.s3.rule=Host(`s3.${DOMAIN}`)
+      - traefik.http.routers.s3.entrypoints=websecure
+      - traefik.http.routers.s3.service=s3
+      - traefik.http.services.s3.loadbalancer.server.port=9000
+      # Веб-консоль.
+      - traefik.http.routers.rustfs.rule=Host(`rustfs.${DOMAIN}`)
+      - traefik.http.routers.rustfs.entrypoints=websecure
+      - traefik.http.routers.rustfs.service=rustfs-console
+      - traefik.http.services.rustfs-console.loadbalancer.server.port=9001
+      # Консоль живёт на базовом пути /rustfs/console/; корень отдаёт 403,
+      # поэтому перенаправляем на базу.
+      - traefik.http.routers.rustfs-root.rule=Host(`rustfs.${DOMAIN}`) && Path(`/`)
+      - traefik.http.routers.rustfs-root.entrypoints=websecure
+      - traefik.http.routers.rustfs-root.service=rustfs-console
+      - traefik.http.routers.rustfs-root.middlewares=rustfs-root-redirect
+      - traefik.http.middlewares.rustfs-root-redirect.redirectregex.permanent=true
+      - traefik.http.middlewares.rustfs-root-redirect.redirectregex.regex=^https://rustfs\.${DOMAIN}/$$
+      - traefik.http.middlewares.rustfs-root-redirect.redirectregex.replacement=https://rustfs.${DOMAIN}/rustfs/console/
+      - traefik.docker.network=traefiknet
+
+    security_opt:
+      - no-new-privileges:true
+
+networks:
+  traefiknet:
+    external: true

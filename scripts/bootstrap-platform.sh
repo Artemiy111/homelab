@@ -51,6 +51,7 @@ else
     paperless
     pdf
     restic
+    rustfs
     seafile
     structurizr
     sure
