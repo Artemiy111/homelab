@@ -272,6 +272,14 @@ endpoints:
     conditions: *https-ok
     alerts: *alerts-all
 
+  - name: Open WebUI
+    group: Applications
+    url: https://ai.${DOMAIN}/health
+    interval: 60s
+    client: *https-client
+    conditions: *https-ok
+    alerts: *alerts-all
+
   - name: Immich
     group: Applications
     url: https://immich.${DOMAIN}/api/server/ping

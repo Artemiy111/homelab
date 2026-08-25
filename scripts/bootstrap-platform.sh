@@ -47,6 +47,7 @@ else
     navidrome
     netdata
     nextcloud
+    open-webui
     oauth2-proxy
     paperless
     pdf

@@ -5,6 +5,14 @@ http:
         average: 100
         burst: 50
 
+    # Для SPA (Open WebUI): первая загрузка вываливает сотню статических
+    # чанков одним махом и упирается в ratelimit-default, из-за чего
+    # приложение падает уже на клиенте.
+    ratelimit-spa:
+      rateLimit:
+        average: 400
+        burst: 200
+
     oauth2-proxy:
       forwardAuth:
         address: http://oauth2-proxy:4180

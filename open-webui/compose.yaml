@@ -1,0 +1,66 @@
+name: open-webui
+
+services:
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:v0.11.0@sha256:72c0ba641ba75e7aa52655cb242570906ececd09b1140fb736483038a22b3228
+    container_name: open-webui
+
+    volumes:
+      - ${APPS_STORAGE_PATH:-/storage/apps}/open-webui/data:/app/backend/data:Z
+
+    environment:
+      HOME: /tmp/open-webui
+      PYTHONDONTWRITEBYTECODE: "1"
+      TZ: ${TZ:?set TZ in root .env}
+      WEBUI_SECRET_KEY: ${WEBUI_SECRET_KEY:?set WEBUI_SECRET_KEY in secrets.enc.env}
+      DEFAULT_LOCALE: ${DEFAULT_LOCALE:-ru}
+      WEBUI_URL: https://ai.${DOMAIN}
+      # Пока движок не подключён: ни Ollama, ни OpenAI-совместимый API.
+      # Бэкенд (LocalAI или свой Ollama) включается позже через эти переменные.
+      ENABLE_OLLAMA_API: "false"
+      ENABLE_OPENAI_API: "false"
+      HF_HOME: /app/backend/data/cache/huggingface
+
+    networks:
+      - traefiknet
+    restart: unless-stopped
+
+    healthcheck:
+      test:
+        - CMD
+        - python3
+        - -c
+        - >-
+          import urllib.request as u, sys; sys.exit(0 if u.urlopen('http://127.0.0.1:8080/health', timeout=5).status == 200 else 1)
+      start_period: 5m
+      interval: 1m
+      timeout: 10s
+      retries: 3
+
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.open-webui.rule=Host(`ai.${DOMAIN}`)
+      - traefik.http.routers.open-webui.entrypoints=websecure
+      - traefik.http.routers.open-webui.middlewares=secure-headers@file,ratelimit-spa@file
+      - traefik.http.services.open-webui.loadbalancer.server.port=8080
+      - traefik.docker.network=traefiknet
+
+    user: "1000:1000"
+
+    cap_drop:
+      - ALL
+    cpus: 4.0
+    init: true
+    mem_limit: 4g
+    memswap_limit: 4g
+
+    pids_limit: 512
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:mode=1777,nosuid,nodev,size=1g
+
+networks:
+  traefiknet:
+    external: true
