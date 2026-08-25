@@ -18,9 +18,10 @@ services:
       RUSTFS_ADDRESS: 0.0.0.0:9000
       RUSTFS_CONSOLE_ADDRESS: 0.0.0.0:9001
       RUSTFS_CONSOLE_ENABLE: "true"
-      # Хосты, которые RustFS считает своими: включает path-style запросы
-      # к S3 API через Traefik (s3.${DOMAIN}/bucket/key).
-      RUSTFS_SERVER_DOMAINS: s3.${DOMAIN}
+      # Консоль (origin rustfs.${DOMAIN}) ходит из браузера на S3 API
+      # (s3.${DOMAIN}) — без этого health-check в /config блокирует CORS.
+      RUSTFS_CORS_ALLOWED_ORIGINS: https://rustfs.${DOMAIN}
+      RUSTFS_CONSOLE_CORS_ALLOWED_ORIGINS: https://rustfs.${DOMAIN}
       RUSTFS_ACCESS_KEY: ${RUSTFS_ACCESS_KEY:?set in rustfs/secrets.enc.env}
       RUSTFS_SECRET_KEY: ${RUSTFS_SECRET_KEY:?set in rustfs/secrets.enc.env}
 
@@ -37,22 +38,29 @@ services:
 
     labels:
       - traefik.enable=true
-      # S3 API.
+      # S3 API на собственном хосте.
       - traefik.http.routers.s3.rule=Host(`s3.${DOMAIN}`)
       - traefik.http.routers.s3.entrypoints=websecure
       - traefik.http.routers.s3.service=s3
       - traefik.http.services.s3.loadbalancer.server.port=9000
-      # Веб-консоль.
-      - traefik.http.routers.rustfs.rule=Host(`rustfs.${DOMAIN}`)
-      - traefik.http.routers.rustfs.entrypoints=websecure
-      - traefik.http.routers.rustfs.service=rustfs-console
+      # Консоль: только её base path.
+      - traefik.http.routers.rustfs-console.rule=Host(`rustfs.${DOMAIN}`) && PathPrefix(`/rustfs/console`)
+      - traefik.http.routers.rustfs-console.entrypoints=websecure
+      - traefik.http.routers.rustfs-console.service=rustfs-console
+      - traefik.http.routers.rustfs-console.priority=100
       - traefik.http.services.rustfs-console.loadbalancer.server.port=9001
-      # Консоль живёт на базовом пути /rustfs/console/; корень отдаёт 403,
-      # поэтому перенаправляем на базу.
-      - traefik.http.routers.rustfs-root.rule=Host(`rustfs.${DOMAIN}`) && Path(`/`)
+      # Подписанные S3-запросы браузерной консоли к её же хосту уходят на API:
+      # redirect или другой path ломают SigV4-подпись (SignatureDoesNotMatch).
+      - traefik.http.routers.rustfs-s3-signed.rule=Host(`rustfs.${DOMAIN}`) && HeaderRegexp(`Authorization`,`^AWS4-HMAC-SHA256`)
+      - traefik.http.routers.rustfs-s3-signed.entrypoints=websecure
+      - traefik.http.routers.rustfs-s3-signed.service=s3
+      - traefik.http.routers.rustfs-s3-signed.priority=110
+      # Корень хоста консоли — редирект на UI для людей (низший приоритет).
+      - traefik.http.routers.rustfs-root.rule=Host(`rustfs.${DOMAIN}`)
       - traefik.http.routers.rustfs-root.entrypoints=websecure
-      - traefik.http.routers.rustfs-root.service=rustfs-console
+      - traefik.http.routers.rustfs-root.service=s3
       - traefik.http.routers.rustfs-root.middlewares=rustfs-root-redirect
+      - traefik.http.routers.rustfs-root.priority=1
       - traefik.http.middlewares.rustfs-root-redirect.redirectregex.permanent=true
       - traefik.http.middlewares.rustfs-root-redirect.redirectregex.regex=^https://rustfs\.${DOMAIN}/$$
       - traefik.http.middlewares.rustfs-root-redirect.redirectregex.replacement=https://rustfs.${DOMAIN}/rustfs/console/
