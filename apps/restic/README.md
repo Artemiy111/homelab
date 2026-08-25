@@ -1,8 +1,8 @@
 # Restic
 
 Restic создаёт зашифрованные дедуплицированные снимки `$APPS_STORAGE_PATH` и рабочей
-копии конфигурационного репозитория. В копию входят локальные `.env`, но не
-входит `.git`. Сейчас репозиторий Restic по умолчанию находится в
+копии конфигурационного репозитория. В копию входит репозиторий целиком,
+включая зашифрованные `secrets.enc.env`, но не входит `.git`. Сейчас репозиторий Restic по умолчанию находится в
 `/storage/backups/restic` на том же диске сервера.
 
 Каталог `$APPS_STORAGE_PATH/local-ai/models` исключён: модели занимают около 203 ГБ,
@@ -20,7 +20,8 @@ bash scripts/bootstrap-platform.sh restic
 ```
 
 `init.sh` создаёт каталоги `$APPS_STORAGE_PATH/restic/{cache,restore}`,
-`/storage/backups/restic`, генерирует `RESTIC_PASSWORD` в `.env` и проверяет
+`/storage/backups/restic`, генерирует `RESTIC_PASSWORD` в зашифрованном
+`secrets.enc.env` и проверяет
 Compose-конфигурацию. Одноразовую инициализацию репозитория выполняет
 `docker compose run --rm init`.
 

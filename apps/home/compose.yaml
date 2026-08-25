@@ -9,7 +9,7 @@ services:
 
     environment:
       HOMEPAGE_ALLOWED_HOSTS: home.${DOMAIN}
-      HOMEPAGE_VAR_DOMAIN: ${DOMAIN:?set in home/.env}
+      HOMEPAGE_VAR_DOMAIN: ${DOMAIN:?set in apps/home secrets.enc.env}
       LOG_TARGETS: stdout
       PUID: "1000"
       PGID: "1000"

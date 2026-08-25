@@ -14,8 +14,6 @@ ensure_dirs 0750 \
   "$APPS_STORAGE_PATH"/netdata/lib \
   "$APPS_STORAGE_PATH"/netdata/cache
 
-# Публичная конфигурация сервиса — в закоммиченном config.env.
-
 # Креды scrape-целей с аутентификацией. Источник — secrets.enc.env
 # соответствующего сервиса (SOPS); публичный username dawarich — в config.env.
 read_secret_key() {

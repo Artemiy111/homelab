@@ -14,7 +14,7 @@ POST-запросы. Порт proxy и порты приложений на хо
 Интерфейсы защищены на Traefik через forward auth: middleware `oauth2-proxy@file`
 проверяет сессионную cookie и при её отсутствии отправляет браузер на вход в
 ZITADEL (`oauth2-proxy/README.md`). Отдельные секреты для этих интерфейсов не
-нужны, в `.env` остаются только хосты.
+нужны, хосты остаются в трекаемом `config.env`.
 
 ## Запуск
 
@@ -42,7 +42,7 @@ labels:
 
 ## Конфигурация Cup
 
-`cup.json` генерируется `init.sh` из `cup.tpl.json`. Токен Docker Hub хранится исключительно в `.env`
+`cup.json` генерируется `init.sh` из `cup.tpl.json`. Токен Docker Hub хранится исключительно в зашифрованном `secrets.enc.env`
 (переменные `CUP_DOCKERHUB_USERNAME` / `CUP_DOCKERHUB_TOKEN`, PAT с правами
 read-only) и не попадает в репозиторий: `init.sh` собирает из него строку
 `base64(логин:токен)` и подставляет в блок `registries.registry-1.docker.io`.

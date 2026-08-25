@@ -6,19 +6,19 @@ x-dawarich-environment: &dawarich-environment
   DATABASE_HOST: db
   DATABASE_PORT: "5432"
   DATABASE_USERNAME: ${POSTGRES_USER:-dawarich}
-  DATABASE_PASSWORD: ${POSTGRES_PASSWORD:?set in dawarich/.env}
+  DATABASE_PASSWORD: ${POSTGRES_PASSWORD:?set in apps/dawarich secrets.enc.env}
   DATABASE_NAME: ${POSTGRES_DB:-dawarich_production}
-  APPLICATION_HOSTS: dawarich.${DOMAIN:?set in root .env}
+  APPLICATION_HOSTS: dawarich.${DOMAIN:?set in root config.env}
   APPLICATION_PROTOCOL: https
-  TIME_ZONE: ${TZ:?set in dawarich/.env}
-  SECRET_KEY_BASE: ${SECRET_KEY_BASE:?set in dawarich/.env}
+  TIME_ZONE: ${TZ:?set in apps/dawarich secrets.enc.env}
+  SECRET_KEY_BASE: ${SECRET_KEY_BASE:?set in apps/dawarich secrets.enc.env}
   RAILS_LOG_TO_STDOUT: "true"
   SELF_HOSTED: "true"
   STORE_GEODATA: "true"
   STORAGE_BACKEND: local
   PROMETHEUS_EXPORTER_ENABLED: "true"
-  METRICS_USERNAME: ${DAWARICH_METRICS_USERNAME:?set in dawarich/.env}
-  METRICS_PASSWORD: ${DAWARICH_METRICS_PASSWORD:?set in dawarich/.env}
+  METRICS_USERNAME: ${DAWARICH_METRICS_USERNAME:?set in apps/dawarich secrets.enc.env}
+  METRICS_PASSWORD: ${DAWARICH_METRICS_PASSWORD:?set in apps/dawarich secrets.enc.env}
 
 services:
   redis:
@@ -58,7 +58,7 @@ services:
 
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-dawarich}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in dawarich/.env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in apps/dawarich secrets.enc.env}
       POSTGRES_DB: ${POSTGRES_DB:-dawarich_production}
 
     networks:
@@ -121,7 +121,7 @@ services:
         max-file: ${LOG_MAX_FILE:-5}
     labels:
       - traefik.enable=true
-      - traefik.http.routers.dawarich.rule=Host(`dawarich.${DOMAIN:?set in root .env}`)
+      - traefik.http.routers.dawarich.rule=Host(`dawarich.${DOMAIN:?set in root config.env}`)
       - traefik.http.routers.dawarich.entrypoints=websecure
       - traefik.http.routers.dawarich.middlewares=dawarich-security
       - traefik.http.services.dawarich.loadbalancer.server.port=3000
@@ -197,7 +197,7 @@ services:
       PGHOST: db
       PGDATABASE: ${POSTGRES_DB:-dawarich_production}
       PGUSER: ${POSTGRES_USER:-dawarich}
-      PGPASSWORD: ${POSTGRES_PASSWORD:?set in dawarich/.env}
+      PGPASSWORD: ${POSTGRES_PASSWORD:?set in apps/dawarich secrets.enc.env}
 
     networks:
       - backend

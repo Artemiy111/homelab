@@ -26,7 +26,7 @@ Forward auth перед приложениями без своей автори�
 
 1. В ZITADEL создать OIDC-приложение с redirect URI
    `https://oauth.example.com/oauth2/callback`.
-2. `bash ./init.sh` создаёт `oauth2-proxy/.env` со случайным
+2. `bash ./init.sh` создаёт `apps/oauth2-proxy/secrets.enc.env` со случайным
    `OAUTH2_PROXY_COOKIE_SECRET`; осталось вписать client_id и client_secret
    из шага 1.
 3. Запуск из корня репозитория — с секретами в окружении:

@@ -23,9 +23,4 @@ ensure_dirs 0770 \
   "$APPS_STORAGE_PATH"/jitsi/tmp/web-crontabs \
   "$APPS_STORAGE_PATH"/jitsi/tmp/web-load-test
 
-
-# Конфигурация и секреты приходят через окружение: bootstrap подмешивает
-# config.env и расшифровывает secrets.enc.env (через service_run). Plaintext .env
-# не создаётся.
-
 compose_config "$repo_root/apps/jitsi"

@@ -9,13 +9,13 @@ services:
       - ${APPS_STORAGE_PATH:-/storage/apps}/technitium/data:/var/lib/dns:Z
 
     environment:
-      DNS_ADMIN_PASSWORD: ${TECHNITIUM_ADMIN_PASSWORD:?set in technitium/.env}
+      DNS_ADMIN_PASSWORD: ${TECHNITIUM_ADMIN_PASSWORD:?set in apps/technitium secrets.enc.env}
       DNS_SERVER_NAME: dns.${DOMAIN}
-      TZ: ${TZ:?set in technitium/.env}
+      TZ: ${TZ:?set in apps/technitium secrets.enc.env}
 
     ports:
-      - "${SERVER_IP:?set in technitium/.env}:53:53/udp"
-      - "${SERVER_IP:?set in technitium/.env}:53:53/tcp"
+      - "${SERVER_IP:?set in apps/technitium secrets.enc.env}:53:53/udp"
+      - "${SERVER_IP:?set in apps/technitium secrets.enc.env}:53:53/tcp"
     networks:
       - default
       - traefiknet

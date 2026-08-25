@@ -11,7 +11,4 @@ ensure_dirs 0750 "$APPS_STORAGE_PATH"/victoria-metrics/vmdata
 # Grafana работает под user "1000:1000" — каталог создаётся от artlab (uid 1000).
 ensure_dirs 0750 "$APPS_STORAGE_PATH"/victoria-metrics/grafana
 
-# Конфигурация приходит через окружение: bootstrap подмешивает config.env
-# и расшифровывает secrets.enc.env (через service_run). Plaintext .env не создаётся.
-
 compose_config "$repo_root/apps/victoria-metrics"

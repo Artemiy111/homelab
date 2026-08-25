@@ -12,9 +12,4 @@ mkdir -p \
   "$APPS_STORAGE_PATH"/pdf/pipeline \
   "$APPS_STORAGE_PATH"/pdf/tessdata
 
-
-# Конфигурация и секреты приходят через окружение: bootstrap подмешивает
-# config.env и расшифровывает secrets.enc.env (через service_run). Plaintext .env
-# не создаётся.
-
 compose_config "$repo_root/apps/pdf"

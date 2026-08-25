@@ -7,6 +7,4 @@ source "$repo_root/scripts/lib/common.sh"
 
 ensure_dirs 0700 "$APPS_STORAGE_PATH/lute/data" "$APPS_STORAGE_PATH/lute/books"
 
-# Публичная конфигурация сервиса — в закоммиченном config.env.
-
 compose_config "$repo_root/apps/lute"

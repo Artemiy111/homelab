@@ -14,7 +14,7 @@ services:
     environment:
       HOME: /tmp/localai
       LOCALAI_ADDRESS: 0.0.0.0:8080
-      LOCALAI_API_KEY: ${LOCALAI_API_KEY:?set LOCALAI_API_KEY in local-ai/.env}
+      LOCALAI_API_KEY: ${LOCALAI_API_KEY:?set LOCALAI_API_KEY in local-ai/secrets.enc.env}
       LOCALAI_LOG_LEVEL: info
       LOCALAI_SUBTLE_KEY_COMPARISON: "true"
 

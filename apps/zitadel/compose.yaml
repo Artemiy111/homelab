@@ -12,8 +12,8 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-zitadel}
       POSTGRES_USER: ${POSTGRES_ADMIN_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_ADMIN_PASSWORD:?set in zitadel/.env}
-      POSTGRES_ZITADEL_PASSWORD: ${POSTGRES_ZITADEL_PASSWORD:?set in zitadel/.env}
+      POSTGRES_PASSWORD: ${POSTGRES_ADMIN_PASSWORD:?set in apps/zitadel secrets.enc.env}
+      POSTGRES_ZITADEL_PASSWORD: ${POSTGRES_ZITADEL_PASSWORD:?set in apps/zitadel secrets.enc.env}
 
     networks:
       - backend
@@ -50,9 +50,9 @@ services:
       ZITADEL_EXTERNALPORT: "443"
       ZITADEL_EXTERNALSECURE: "true"
       ZITADEL_TLS_ENABLED: "false"
-      ZITADEL_DATABASE_POSTGRES_DSN: postgres://${POSTGRES_ZITADEL_USER:-zitadel}:${POSTGRES_ZITADEL_PASSWORD:?set in zitadel/.env}@postgres:5432/${POSTGRES_DB:-zitadel}?sslmode=disable
-      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_USERNAME: ${ADMIN_USERNAME:?set in zitadel/.env}
-      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORD: ${ADMIN_PASSWORD:?set in zitadel/.env}
+      ZITADEL_DATABASE_POSTGRES_DSN: postgres://${POSTGRES_ZITADEL_USER:-zitadel}:${POSTGRES_ZITADEL_PASSWORD:?set in apps/zitadel secrets.enc.env}@postgres:5432/${POSTGRES_DB:-zitadel}?sslmode=disable
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_USERNAME: ${ADMIN_USERNAME:?set in apps/zitadel secrets.enc.env}
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORD: ${ADMIN_PASSWORD:?set in apps/zitadel secrets.enc.env}
       ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORDCHANGEREQUIRED: "false"
       ZITADEL_FIRSTINSTANCE_LOGINCLIENTPATPATH: /zitadel/bootstrap/login-client.pat
       ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_MACHINE_USERNAME: login-client
@@ -165,7 +165,7 @@ services:
       PGHOST: postgres
       PGDATABASE: ${POSTGRES_DB:-zitadel}
       PGUSER: ${POSTGRES_ADMIN_USER:-postgres}
-      PGPASSWORD: ${POSTGRES_ADMIN_PASSWORD:?set in zitadel/.env}
+      PGPASSWORD: ${POSTGRES_ADMIN_PASSWORD:?set in apps/zitadel secrets.enc.env}
 
     networks:
       - backend

@@ -14,8 +14,8 @@ services:
     environment:
       DISABLE_ADDITIONAL_FEATURES: "false"
       SECURITY_ENABLELOGIN: "true"
-      SECURITY_INITIALLOGIN_USERNAME: ${PDF_ADMIN_USERNAME:?set in pdf/.env}
-      SECURITY_INITIALLOGIN_PASSWORD: ${PDF_ADMIN_PASSWORD:?set in pdf/.env}
+      SECURITY_INITIALLOGIN_USERNAME: ${PDF_ADMIN_USERNAME:?set in apps/pdf secrets.enc.env}
+      SECURITY_INITIALLOGIN_PASSWORD: ${PDF_ADMIN_PASSWORD:?set in apps/pdf secrets.enc.env}
       SYSTEM_DEFAULTLOCALE: ${DEFAULT_LOCALE}
       SYSTEM_FRONTENDURL: https://pdf.${DOMAIN}
       SYSTEM_GOOGLEVISIBILITY: "false"

@@ -11,7 +11,7 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-playground}
       POSTGRES_USER: ${POSTGRES_USER:-playground}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in postgres/.env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in apps/postgres secrets.enc.env}
 
     networks:
       - backend
@@ -38,9 +38,9 @@ services:
         condition: service_healthy
 
     environment:
-      PGWEB_DATABASE_URL: postgres://${POSTGRES_USER:-playground}:${POSTGRES_PASSWORD:?set in postgres/.env}@db:5432/${POSTGRES_DB:-playground}?sslmode=disable
+      PGWEB_DATABASE_URL: postgres://${POSTGRES_USER:-playground}:${POSTGRES_PASSWORD:?set in apps/postgres secrets.enc.env}@db:5432/${POSTGRES_DB:-playground}?sslmode=disable
       PGWEB_AUTH_USER: ${PGWEB_AUTH_USER:-pgweb}
-      PGWEB_AUTH_PASS: ${PGWEB_AUTH_PASS:?set in postgres/.env}
+      PGWEB_AUTH_PASS: ${PGWEB_AUTH_PASS:?set in apps/postgres secrets.enc.env}
       PGWEB_LOCK_SESSION: "true"
 
     networks:

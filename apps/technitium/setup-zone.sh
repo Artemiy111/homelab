@@ -9,7 +9,8 @@ repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
 source "$repo_root/scripts/lib/common.sh"
 
 # shellcheck disable=SC1091
-source "$repo_root/apps/technitium/.env"
+# секреты сервиса — в окружение дословно (service_run без обёртки)
+while IFS= read -r kv; do export "$kv"; done < <(service_secret_args technitium)
 
 # IP-адрес контейнера в Docker-сети (доступен без проброса портов).
 container_ip=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' technitium 2>/dev/null || true)

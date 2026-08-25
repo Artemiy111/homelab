@@ -19,16 +19,16 @@ apps_dir="${apps_dir:-$repo_root/apps}"
 # Базовый домен homelab — единственный источник правды для имён хостов сервисов.
 # Каждый сервис доступен по адресу <sub>.$DOMAIN. Приоритет значения:
 #   1. переменная окружения DOMAIN;
-#   2. корневой .env (не отслеживается Git, копируется из .env.example);
+#   2. корневой config.env (не отслеживается Git, копируется из config.example.env);
 #   3. значение по умолчанию ниже (закоммичено).
-if [[ -f "$repo_root/.env" ]]; then
+if [[ -f "$repo_root/config.env" ]]; then
   # shellcheck disable=SC1090
-  source "$repo_root/.env"
+  source "$repo_root/config.env"
 fi
 
 # LAN IP-адрес сервера, к которому привязываются опубликованные порты (Traefik,
 # Technitium DNS, Gitea, 3x-ui, Jitsi) и на который указывают DNS/health-проверки.
-# Приоритет: переменная окружения SERVER_IP → корневой .env → автоопределение.
+# Приоритет: переменная окружения SERVER_IP → корневой config.env → автоопределение.
 detect_server_ip() {
   local ip
   ip="$(ip -4 route get 1.1.1.1 2>/dev/null | awk '{ for (i = 1; i <= NF; i++) if ($i == "src") { print $(i + 1); exit } }')"
@@ -46,7 +46,7 @@ detect_server_ip() {
 SERVER_IP="${SERVER_IP:-$(detect_server_ip || true)}"
 export SERVER_IP
 if [[ -z "$SERVER_IP" ]]; then
-  echo "Внимание: не удалось определить IP-адрес сервера; задайте SERVER_IP в корневом .env." >&2
+  echo "Внимание: не удалось определить IP-адрес сервера; задайте SERVER_IP в корневом config.env." >&2
 fi
 
 # Рендерит файл из шаблона через vals flatten: разворачивает ref+-ссылки
@@ -105,7 +105,7 @@ ensure_dirs() {
   chmod_if_owned "$mode" "$@"
 }
 
-# CIDR подсети docker-сети traefiknet (нужен некоторым сервисам в .env).
+# CIDR подсети docker-сети traefiknet (нужен некоторым сервисам в их config.env).
 traefik_network_cidr() {
   docker network inspect traefiknet \
     --format '{{range .IPAM.Config}}{{.Subnet}}{{end}}'
@@ -113,7 +113,7 @@ traefik_network_cidr() {
 
 # Проверяет корректность Compose-конфигурации сервиса. Подмешивает те же
 # env-файлы, что и реальный запуск (service_compose): иначе переменные из
-# корневого .env (TZ, DOMAIN) не видны интерполяции и строгие проверки ${VAR:?}
+# корневого config.env (TZ, DOMAIN) не видны интерполяции и строгие проверки ${VAR:?}
 # ложно падают. Дополнительные аргументы (например --profile) передаются в
 # docker compose.
 compose_config() {
@@ -127,11 +127,11 @@ compose_config() {
   service_run "$service" "${args[@]}" "$@" config --quiet
 }
 
-# Список трекаемых env-файлов сервиса (по одному на строку): корневой .env
+# Список env-файлов сервиса (по одному на строку): корневой config.env
 # и config.env сервиса, если существует.
 service_env_files() {
   local service="$1"
-  [[ -f "$repo_root/.env" ]] && printf '%s\n' "$repo_root/.env"
+  [[ -f "$repo_root/config.env" ]] && printf '%s\n' "$repo_root/config.env"
   [[ -f "$apps_dir/$service/config.env" ]] && printf '%s\n' "$apps_dir/$service/config.env"
 }
 

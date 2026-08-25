@@ -23,26 +23,19 @@ render_template \
   "$repo_root/apps/element/element-web/config.tpl.json" \
   "$repo_root/apps/element/element-web/config.json"
 
-# Конфигурация и секреты приходят через окружение: bootstrap подмешивает
-# config.env и расшифровывает secrets.enc.env (через service_run). Plaintext .env
-# не создаётся.
-
 traefik_network_cidr="$(traefik_network_cidr)"
 
 render_template \
   "$repo_root/apps/element/synapse/homeserver.tpl.yaml" \
   "$APPS_STORAGE_PATH/element/synapse/config/homeserver.yaml"
 
-
 render_template \
   "$repo_root/apps/element/livekit/config.tpl.yaml" \
   "$APPS_STORAGE_PATH/element/livekit/config.yaml"
 
-
 render_template \
   "$repo_root/apps/element/turn/turnserver.tpl.conf" \
   "$APPS_STORAGE_PATH/element/turn/turnserver.conf"
-
 
 cp "$repo_root/apps/element/sygnal/sygnal.tpl.yaml" \
   "$APPS_STORAGE_PATH/element/sygnal/sygnal.yaml"

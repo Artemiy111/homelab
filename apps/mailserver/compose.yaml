@@ -14,8 +14,8 @@ services:
       - ${APPS_STORAGE_PATH:-/storage/apps}/mailserver/data:/var/lib/stalwart:Z
 
     environment:
-      STALWART_RECOVERY_ADMIN: "${STALWART_ADMIN_USER:?set in mailserver/.env}:${STALWART_ADMIN_PASS:?set in mailserver/.env}"
-      STALWART_METRICS_PASSWORD: ${STALWART_METRICS_PASSWORD:?set in mailserver/.env}
+      STALWART_RECOVERY_ADMIN: "${STALWART_ADMIN_USER:?set in apps/mailserver secrets.enc.env}:${STALWART_ADMIN_PASS:?set in apps/mailserver secrets.enc.env}"
+      STALWART_METRICS_PASSWORD: ${STALWART_METRICS_PASSWORD:?set in apps/mailserver secrets.enc.env}
       STALWART_HOSTNAME: "mail.${DOMAIN}"
       STALWART_PUBLIC_URL: "https://mailserver.${DOMAIN}"
     user: "1000:1000"

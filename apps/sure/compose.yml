@@ -1,13 +1,13 @@
 name: sure
 
 x-db-env: &db_env
-  POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER in sure/.env}
-  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in sure/.env}
+  POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER in sure/secrets.enc.env}
+  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in sure/secrets.enc.env}
   POSTGRES_DB: ${POSTGRES_DB:-sure_production}
 
 x-rails-env: &rails_env
   <<: *db_env
-  SECRET_KEY_BASE: ${SECRET_KEY_BASE:?set SECRET_KEY_BASE in sure/.env}
+  SECRET_KEY_BASE: ${SECRET_KEY_BASE:?set SECRET_KEY_BASE in sure/secrets.enc.env}
   SELF_HOSTED: "true"
   RAILS_FORCE_SSL: "false"
   RAILS_ASSUME_SSL: "true"
@@ -116,8 +116,8 @@ services:
     environment:
       - POSTGRES_HOST=db
       - POSTGRES_DB=${POSTGRES_DB:-sure_production}
-      - POSTGRES_USER=${POSTGRES_USER:?set POSTGRES_USER in sure/.env}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in sure/.env}
+      - POSTGRES_USER=${POSTGRES_USER:?set POSTGRES_USER in sure/secrets.enc.env}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in sure/secrets.enc.env}
       - SCHEDULE=@daily
       - BACKUP_KEEP_DAYS=7
       - BACKUP_KEEP_WEEKS=4

@@ -17,12 +17,12 @@ services:
       - /etc/localtime:/etc/localtime:ro
 
     environment:
-      TZ: ${TZ:?set in root .env}
+      TZ: ${TZ:?set in root config.env}
       # Секреты SSO приходят из окружения: service_compose расшифровывает
       # secrets.enc.env через service_run; configuration.yaml читает их
       # через !env_var. Plaintext-файл секретов не создаётся.
-      OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:?set in home-assistant/secrets.enc.env}
-      OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET:?set in home-assistant/secrets.enc.env}
+      OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:?set in apps/home-assistant secrets.enc.env}
+      OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET:?set in apps/home-assistant secrets.enc.env}
     network_mode: host
     restart: unless-stopped
 

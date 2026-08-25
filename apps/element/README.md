@@ -79,7 +79,7 @@ bash scripts/bootstrap-platform.sh element
 > `bash scripts/bootstrap-platform.sh element`.
 
 
-`init.sh` создаёт отсутствующие секреты в игнорируемом `element/.env`,
+`init.sh` создаёт отсутствующие секреты в зашифрованном `apps/element/secrets.enc.env`,
 генерирует конфигурации в `$APPS_STORAGE_PATH/element` и сохраняет timezone
 `Asia/Yekaterinburg`.
 

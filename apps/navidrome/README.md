@@ -15,7 +15,7 @@ Navidrome индексирует локальную музыкальную би�
 bash scripts/bootstrap-platform.sh navidrome
 ```
 
-`init.sh` создаёт каталог данных и `.env` с правами `0600`, проверяет
+`init.sh` создаёт каталог данных и секреты в зашифрованном `secrets.enc.env`, проверяет
 Compose-конфигурацию. Каталог с музыкой `/storage/media/music` он не создаёт —
 при необходимости создайте его вручную (`mkdir -p /storage/media/music`).
 

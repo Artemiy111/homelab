@@ -33,8 +33,8 @@ bash scripts/bootstrap-platform.sh talk-hpb
 > `bash scripts/bootstrap-platform.sh talk-hpb`.
 
 
-`init.sh` создаёт игнорируемый `.env` с правами `0600` и случайными секретами.
-Повторный запуск не перезаписывает существующие секреты.
+`init.sh` генерирует секреты в зашифрованный `secrets.enc.env`.
+Повторный запуск их не перезаписывает.
 
 ## Настройка Nextcloud Talk
 
@@ -42,8 +42,8 @@ bash scripts/bootstrap-platform.sh talk-hpb
 Остаётся зарегистрировать HPB в самом Talk (выполняется на сервере):
 
 ```sh
-TALK_SECRET=$(grep -E '^SIGNALING_SECRET=' /home/artlab/projects/homelab/talk-hpb/.env | cut -d= -f2-)
-TURN_SECRET=$(grep -E '^TURN_SECRET=' /home/artlab/projects/homelab/talk-hpb/.env | cut -d= -f2-)
+TALK_SECRET=$(sops -d apps/talk-hpb/secrets.enc.env | grep -E '^SIGNALING_SECRET=' | cut -d= -f2-)
+TURN_SECRET=$(sops -d apps/talk-hpb/secrets.enc.env | grep -E '^TURN_SECRET=' | cut -d= -f2-)
 
 docker exec -u www-data nextcloud-app php occ talk:signaling:add \
   https://talk-signaling.example.com/standalone-signaling "$TALK_SECRET" --verify
@@ -126,12 +126,11 @@ SELinux и firewalld не отключать.
 - Видео: 15 Мбит/с — достаточно для 1440p@30fps с запасом.
 - Экран: 25 Мбит/с — для高质量 шаринга.
 
-Оба значения задаются в `.env` и применяются как в signaling server
+Оба значения задаются в секретах сервиса и применяются как в signaling server
 (`maxstreambitrate` / `maxscreenbitrate` в `signaling.conf`), так и в Janus MCU.
-Изменять синхронно в `init.sh`, `.env.example` и серверном `.env`.
+Изменять синхронно в `init.sh` и секретах сервиса.
 
 ## Обновление
 
-Менять `TALK_IMAGE_VERSION` одновременно в `init.sh`, `.env.example` и серверном
-`.env`, затем пересоздать контейнер (`docker compose up -d`) и повторить проверку
-звонка. Секреты в `.env` при этом не трогать.
+Менять `TALK_IMAGE_VERSION` одновременно в `init.sh` и `config.env`, затем пересоздать контейнер (`docker compose up -d`) и повторить проверку
+звонка. Секреты при этом не трогать.

@@ -12,11 +12,11 @@ services:
     command:
       - --provider=oidc
       - --oidc-issuer-url=https://id.${DOMAIN}
-      - --client-id=${OAUTH2_PROXY_CLIENT_ID:?set in oauth2-proxy/.env}
-      - --client-secret=${OAUTH2_PROXY_CLIENT_SECRET:?set in oauth2-proxy/.env}
-      - --cookie-secret=${OAUTH2_PROXY_COOKIE_SECRET:?set in oauth2-proxy/.env}
+      - --client-id=${OAUTH2_PROXY_CLIENT_ID:?set in apps/oauth2-proxy secrets.enc.env}
+      - --client-secret=${OAUTH2_PROXY_CLIENT_SECRET:?set in apps/oauth2-proxy secrets.enc.env}
+      - --cookie-secret=${OAUTH2_PROXY_COOKIE_SECRET:?set in apps/oauth2-proxy secrets.enc.env}
       - --cookie-secure=true
-      - --cookie-domain=.${DOMAIN:?set in oauth2-proxy/.env}
+      - --cookie-domain=.${DOMAIN:?set in apps/oauth2-proxy secrets.enc.env}
       - --email-domain=*
       - --upstream=static://202
       - --reverse-proxy=true
@@ -25,7 +25,7 @@ services:
       - --pass-user-headers=true
       - --pass-access-token=true
       - --redirect-url=https://oauth.${DOMAIN}/oauth2/callback
-      - --whitelist-domain=.${DOMAIN:?set in oauth2-proxy/.env}
+      - --whitelist-domain=.${DOMAIN:?set in apps/oauth2-proxy secrets.enc.env}
       - --http-address=0.0.0.0:4180
 
     labels:

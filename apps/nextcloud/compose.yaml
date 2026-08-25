@@ -4,13 +4,13 @@ x-nextcloud-environment: &nextcloud-environment
   POSTGRES_HOST: db
   POSTGRES_DB: ${POSTGRES_DB:-nextcloud}
   POSTGRES_USER: ${POSTGRES_USER:-nextcloud}
-  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in nextcloud/.env}
+  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in apps/nextcloud secrets.enc.env}
   REDIS_HOST: redis
-  NEXTCLOUD_ADMIN_USER: ${NEXTCLOUD_ADMIN_USER:?set in nextcloud/.env}
-  NEXTCLOUD_ADMIN_PASSWORD: ${NEXTCLOUD_ADMIN_PASSWORD:?set in nextcloud/.env}
+  NEXTCLOUD_ADMIN_USER: ${NEXTCLOUD_ADMIN_USER:?set in apps/nextcloud secrets.enc.env}
+  NEXTCLOUD_ADMIN_PASSWORD: ${NEXTCLOUD_ADMIN_PASSWORD:?set in apps/nextcloud secrets.enc.env}
   NEXTCLOUD_TRUSTED_DOMAINS: nextcloud.${DOMAIN}
   NEXTCLOUD_DEFAULT_LANGUAGE: ${DEFAULT_LOCALE}
-  TRUSTED_PROXIES: ${TRAEFIK_NETWORK_CIDR:?set in nextcloud/.env}
+  TRUSTED_PROXIES: ${TRAEFIK_NETWORK_CIDR:?set in apps/nextcloud secrets.enc.env}
   APACHE_DISABLE_REWRITE_IP: "1"
   OVERWRITEHOST: nextcloud.${DOMAIN}
   OVERWRITEPROTOCOL: https
@@ -18,7 +18,7 @@ x-nextcloud-environment: &nextcloud-environment
   NEXTCLOUD_INIT_HTACCESS: "true"
   PHP_MEMORY_LIMIT: 512M
   PHP_UPLOAD_LIMIT: 16G
-  TZ: ${TZ:?set in nextcloud/.env}
+  TZ: ${TZ:?set in apps/nextcloud secrets.enc.env}
 
 services:
   db:
@@ -31,7 +31,7 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-nextcloud}
       POSTGRES_USER: ${POSTGRES_USER:-nextcloud}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in nextcloud/.env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in apps/nextcloud secrets.enc.env}
 
     networks:
       - backend
@@ -154,7 +154,7 @@ services:
       PGHOST: db
       PGDATABASE: ${POSTGRES_DB:-nextcloud}
       PGUSER: ${POSTGRES_USER:-nextcloud}
-      PGPASSWORD: ${POSTGRES_PASSWORD:?set in nextcloud/.env}
+      PGPASSWORD: ${POSTGRES_PASSWORD:?set in apps/nextcloud secrets.enc.env}
 
     networks:
       - backend

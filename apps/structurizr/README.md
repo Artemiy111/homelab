@@ -14,7 +14,7 @@ Upstream сделал on-premises заглушкой: `structurizr/onpremises:la
 runtime-образ на `eclipse-temurin:21-alpine`. Пересборка при апдейте:
 
 ```sh
-bash apps/structurizr/init.sh   # рендерит .env и properties из общего DOMAIN
+bash apps/structurizr/init.sh   # рендерит properties из общего DOMAIN
 # в apps/structurizr/: обновить тег vYYYY.MM.DD в Dockerfile, затем
 docker compose build --pull
 docker compose up -d

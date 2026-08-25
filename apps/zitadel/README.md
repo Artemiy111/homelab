@@ -23,11 +23,11 @@ Postgres поднимается с двумя ролями: суперпольз
 Админ логинится как `admin@zitadel.id.example.com` (org по умолчанию —
 `zitadel`). Принудительная смена пароля выключена
 (`PASSWORDCHANGEREQUIRED=false`): пароль генерируется случайно и лежит в
-`.env`, менять его при первом входе не требуется.
+зашифрованных секретах, менять его при первом входе не требуется.
 
 `ZITADEL_FIRSTINSTANCE_*` применяется только на пустой базе.
 
-Masterkey хранится не в `.env`, а отдельным файлом
+Masterkey хранится отдельным файлом
 `$APPS_STORAGE_PATH/zitadel/masterkey` (создаёт `init.sh`, права `0600`);
 контейнер монтирует его read-only и читает через `--masterkeyFile`. Не менять
 ключ после инициализации: им зашифрованы секреты, замена делает данные
@@ -54,7 +54,7 @@ ZITADEL_PAT=... ./zitadel/zitadel-passkey-link.sh
 
 - Type: Web;
 - Redirect URI: `https://oauth.example.com/oauth2/callback`;
-- client_id и client_secret скопировать в `oauth2-proxy/.env`.
+- client_id и client_secret скопировать в `apps/oauth2-proxy/secrets.enc.env`.
 
 ## Резервное копирование
 
@@ -63,12 +63,12 @@ cd /home/artlab/projects/homelab/zitadel
 docker compose --profile tools run --rm backup-db
 ```
 
-Restic сохраняет `$APPS_STORAGE_PATH/zitadel` и локальный `zitadel/.env`.
+Restic сохраняет `$APPS_STORAGE_PATH/zitadel` и локальный `apps/zitadel/secrets.enc.env`.
 
 ## Обновление
 
 Проверять release notes: после 4.11 были passkey-регрессии (#11656, #11682),
-в 4.16.1 — #12473. `ZITADEL_VERSION` закреплён в `.env`; контейнеры `zitadel` и
+в 4.16.1 — #12473. `ZITADEL_VERSION` закреплён в `config.env`; контейнеры `zitadel` и
 `login` должны обновляться одним тегом.
 
 ```sh

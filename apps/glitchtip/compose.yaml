@@ -10,7 +10,7 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-glitchtip}
       POSTGRES_USER: ${POSTGRES_USER:-glitchtip}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in glitchtip/secrets.enc.env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in apps/glitchtip secrets.enc.env}
 
     networks:
       - backend
@@ -58,9 +58,9 @@ services:
         condition: service_healthy
 
     environment:
-      SECRET_KEY: ${SECRET_KEY:?set in glitchtip/secrets.enc.env}
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD:?set in glitchtip/secrets.enc.env}@postgres:5432/${POSTGRES_DB:-glitchtip}
-      DOMAIN: ${DOMAIN:?set in root .env}
+      SECRET_KEY: ${SECRET_KEY:?set in apps/glitchtip secrets.enc.env}
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD:?set in apps/glitchtip secrets.enc.env}@postgres:5432/${POSTGRES_DB:-glitchtip}
+      DOMAIN: ${DOMAIN:?set in root config.env}
       GLITCHTIP_CLIENT_ID: ${GLITCHTIP_CLIENT_ID:-}
       GLITCHTIP_CLIENT_SECRET: ${GLITCHTIP_CLIENT_SECRET:-}
 
@@ -89,10 +89,10 @@ services:
         condition: service_healthy
 
     environment:
-      SECRET_KEY: ${SECRET_KEY:?set in glitchtip/secrets.enc.env}
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD:?set in glitchtip/secrets.enc.env}@postgres:5432/${POSTGRES_DB:-glitchtip}
+      SECRET_KEY: ${SECRET_KEY:?set in apps/glitchtip secrets.enc.env}
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD:?set in apps/glitchtip secrets.enc.env}@postgres:5432/${POSTGRES_DB:-glitchtip}
       VALKEY_URL: ${VALKEY_URL:-redis://valkey:6379/0}
-      GLITCHTIP_DOMAIN: https://glitchtip.${DOMAIN:?set in root .env}
+      GLITCHTIP_DOMAIN: https://glitchtip.${DOMAIN:?set in root config.env}
       GLITCHTIP_INSTANCE_NAME: Homelab
       ENABLE_USER_REGISTRATION: ${ENABLE_USER_REGISTRATION:-false}
       ENABLE_ORGANIZATION_CREATION: ${ENABLE_ORGANIZATION_CREATION:-true}
@@ -115,7 +115,7 @@ services:
       - traefik.enable=true
       - traefik.docker.network=traefiknet
       - traefik.http.services.glitchtip.loadbalancer.server.port=8000
-      - traefik.http.routers.glitchtip.rule=Host(`glitchtip.${DOMAIN:?set in root .env}`)
+      - traefik.http.routers.glitchtip.rule=Host(`glitchtip.${DOMAIN:?set in root config.env}`)
       - traefik.http.routers.glitchtip.entrypoints=websecure
       - traefik.http.routers.glitchtip.service=glitchtip
       - traefik.http.routers.glitchtip.tls.certresolver=letsencrypt
@@ -138,10 +138,10 @@ services:
 
     environment:
       SERVER_ROLE: worker
-      SECRET_KEY: ${SECRET_KEY:?set in glitchtip/secrets.enc.env}
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD:?set in glitchtip/secrets.enc.env}@postgres:5432/${POSTGRES_DB:-glitchtip}
+      SECRET_KEY: ${SECRET_KEY:?set in apps/glitchtip secrets.enc.env}
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD:?set in apps/glitchtip secrets.enc.env}@postgres:5432/${POSTGRES_DB:-glitchtip}
       VALKEY_URL: ${VALKEY_URL:-redis://valkey:6379/0}
-      GLITCHTIP_DOMAIN: https://glitchtip.${DOMAIN:?set in root .env}
+      GLITCHTIP_DOMAIN: https://glitchtip.${DOMAIN:?set in root config.env}
 
     networks:
       - backend

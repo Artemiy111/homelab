@@ -14,10 +14,6 @@ ensure_dirs 0755 \
   "$APPS_STORAGE_PATH"/seafile/onlyoffice/lib \
   "$APPS_STORAGE_PATH"/seafile/onlyoffice/logs
 
-# Конфигурация и секреты приходят через окружение: bootstrap подмешивает
-# config.env и расшифровывает secrets.enc.env (через service_run). Plaintext
-# .env не создаётся.
-
 # Подключаем seahub_onlyoffice.py (примонтирован в compose.yaml) к настройкам
 # Seahub. Файл настроек создаёт контейнер от root, поэтому дописываем через
 # docker exec. Однократная операция: при следующих запусках строка уже есть.

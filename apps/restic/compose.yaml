@@ -4,7 +4,7 @@ x-restic: &restic
   image: restic/restic:0.19.1
   hostname: homelab
   environment:
-    RESTIC_PASSWORD: ${RESTIC_PASSWORD:?set in restic/.env}
+    RESTIC_PASSWORD: ${RESTIC_PASSWORD:?set in apps/restic secrets.enc.env}
     RESTIC_REPOSITORY: /repository
     RESTIC_CACHE_DIR: /cache
     RESTIC_HOST: homelab

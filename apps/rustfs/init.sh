@@ -9,8 +9,4 @@ ensure_dirs 0700 \
   "$APPS_STORAGE_PATH"/rustfs \
   "$APPS_STORAGE_PATH"/rustfs/data
 
-# Конфигурация и секреты приходят через окружение: bootstrap подмешивает
-# config.env и расшифровывает secrets.enc.env (через service_run). Plaintext .env
-# не создаётся.
-
 compose_config "$repo_root/apps/rustfs"

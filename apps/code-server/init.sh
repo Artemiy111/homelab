@@ -10,6 +10,4 @@ ensure_dirs 0750 \
   "$APPS_STORAGE_PATH"/code-server/home \
   "$APPS_STORAGE_PATH"/code-server/workspace
 
-# Публичная конфигурация сервиса — в закоммиченном config.env.
-
 compose_config "$repo_root/apps/code-server"

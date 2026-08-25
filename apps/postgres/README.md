@@ -16,7 +16,7 @@ bash scripts/bootstrap-platform.sh postgres
 
 pgweb откроется по адресу `https://postgres.example.com/` и сразу
 подключится к базе `playground`. Логин и пароль HTTP Basic Auth находятся в
-локальном файле `.env` (`PGWEB_AUTH_USER` и `PGWEB_AUTH_PASS`).
+секретах сервиса (`PGWEB_AUTH_USER` и `PGWEB_AUTH_PASS`).
 
 ## Вход в PostgreSQL из терминала
 

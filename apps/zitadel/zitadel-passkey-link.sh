@@ -25,9 +25,6 @@ die()  { printf '\033[1;31mОшибка: %s\033[0m\n' "$*" >&2; exit 1; }
 
 # --- Хост ------------------------------------------------------------------
 ZITADEL_HOST="${ZITADEL_HOST:-}"
-if [[ -z "$ZITADEL_HOST" && -f "$script_dir/.env" ]]; then
-  ZITADEL_HOST="$(sed -n 's/^ZITADEL_HOST=//p' "$script_dir/.env" | head -n1)"
-fi
 ZITADEL_HOST="${ZITADEL_HOST:-id.$DOMAIN}"
 
 API_BASE="https://${ZITADEL_HOST}/v2"

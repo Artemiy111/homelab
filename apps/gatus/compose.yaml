@@ -9,11 +9,11 @@ services:
       - ${APPS_STORAGE_PATH:-/storage/apps}/gatus/data:/data:Z
 
     environment:
-      DOMAIN: ${DOMAIN:?set in gatus/.env}
-      SERVER_IP: ${SERVER_IP:?set in gatus/.env}
-      NTFY_TOPIC: ${NTFY_TOPIC:?set in gatus/.env}
-      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:?set in gatus/.env}
-      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:?set in gatus/.env}
+      DOMAIN: ${DOMAIN:?set in apps/gatus secrets.enc.env}
+      SERVER_IP: ${SERVER_IP:?set in apps/gatus secrets.enc.env}
+      NTFY_TOPIC: ${NTFY_TOPIC:?set in apps/gatus secrets.enc.env}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:?set in apps/gatus secrets.enc.env}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:?set in apps/gatus secrets.enc.env}
       TELEGRAM_PROXY_URL: http://${SERVER_IP}:8440
 
     networks:

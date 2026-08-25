@@ -53,9 +53,9 @@ cd ../arcane
 docker compose start arcane
 ```
 
-Restic сохраняет и `$APPS_STORAGE_PATH/arcane/data`, и локальный `arcane/.env` из
-рабочей копии. Потеря `ENCRYPTION_KEY` делает данные Arcane недоступными,
-поэтому `.env` должен входить в защищённую копию конфигурации сервера.
+Restic сохраняет `$APPS_STORAGE_PATH/arcane/data`; зашифрованный `secrets.enc.env`
+уже в Git. Потеря `ENCRYPTION_KEY` делает данные Arcane недоступными,
+поэтому он должен входить в защищённую копию конфигурации сервера.
 
 ## Обновление
 

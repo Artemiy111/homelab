@@ -19,7 +19,7 @@ bash scripts/bootstrap-platform.sh jellyfin
 
 Compose передаёт AMD Radeon 680M как `/dev/dri/renderD128` и добавляет процесс в
 группу `render`. Если числовой GID этой группы изменится, обновить
-`JELLYFIN_RENDER_GROUP_ID` в `.env` по результату `getent group render`.
+`JELLYFIN_RENDER_GROUP_ID` в `config.env` по результату `getent group render`.
 
 В панели администратора Jellyfin аппаратное ускорение включается отдельно:
 `Playback` → `Transcoding` → `VA-API`, устройство

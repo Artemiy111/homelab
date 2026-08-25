@@ -10,9 +10,4 @@ mkdir -p \
   "$APPS_STORAGE_PATH"/restic/restore \
   /storage/backups/restic
 
-
-# Конфигурация и секреты приходят через окружение: bootstrap подмешивает
-# config.env и расшифровывает secrets.enc.env (через service_run). Plaintext .env
-# не создаётся.
-
 compose_config "$repo_root/apps/restic" --profile manual

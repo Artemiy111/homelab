@@ -20,14 +20,14 @@ bash scripts/bootstrap-platform.sh mailserver
 > `bash scripts/bootstrap-platform.sh mailserver`.
 
 
-`init.sh` создаёт каталоги данных, генерирует `.env` (домен подставляется из
-`DOMAIN`, случайный пароль администратора — в `STALWART_ADMIN_PASS`) и
-проверяет Compose-конфигурацию. Уже существующий `.env` не перезаписывается.
+`init.sh` создаёт каталоги данных и генерирует секреты в зашифрованном
+`secrets.enc.env` (домен подставляется из `DOMAIN`, случайный пароль
+администратора — в `STALWART_ADMIN_PASS`). Повторный запуск их не меняет.
 
 ## Управление
 
 Учётные данные администратора Stalwart (логин `admin`): в
-`mailserver/.env` → `STALWART_ADMIN_USER` / `STALWART_ADMIN_PASS`. Первый вход
+секреты сервиса — `STALWART_ADMIN_USER` / `STALWART_ADMIN_PASS`. Первый вход
 выполняется через консоль восстановления:
 
 ```sh
@@ -36,7 +36,7 @@ docker exec -it mailserver stalwart-cli recovery-login
 
 Полученный одноразовый URL открывает веб-интерфейс администрирования. После
 входа задайте пароль администратора сами и заведите пользователей
-(Accounts → Add account). Стартовый пароль из `.env` служит только для
+(Accounts → Add account). Стартовый пароль из секретов служит только для
 восстановления.
 
 ## Хранение данных

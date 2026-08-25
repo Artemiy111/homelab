@@ -42,8 +42,8 @@ services:
     environment:
       APP_URL: https://arcane.${DOMAIN}
       DOCKER_HOST: tcp://docker-socket-proxy:2375
-      ENCRYPTION_KEY: ${ENCRYPTION_KEY:?set in arcane/.env}
-      JWT_SECRET: ${JWT_SECRET:?set in arcane/.env}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:?set in apps/arcane secrets.enc.env}
+      JWT_SECRET: ${JWT_SECRET:?set in apps/arcane secrets.enc.env}
       PUID: 1000
       PGID: 1000
 

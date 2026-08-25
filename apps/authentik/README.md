@@ -15,7 +15,7 @@ bash scripts/bootstrap-platform.sh authentik
 > `bash scripts/bootstrap-platform.sh authentik`.
 
 
-`init.sh` создаст каталоги (включая `backups`), секретный ключ Authentik, пароль PostgreSQL, CIDR Traefik и `authentik/.env` с
+`init.sh` создаст каталоги (включая `backups`), секретный ключ Authentik, пароль PostgreSQL, CIDR Traefik и `apps/authentik/secrets.enc.env` с
 правами `0600`.
 
 Откройте `https://auth.example.com/if/flow/initial-setup/` и задайте
@@ -72,8 +72,7 @@ cd /home/artlab/projects/homelab/authentik
 docker compose --profile tools run --rm backup-db
 ```
 
-Restic сохраняет `$APPS_STORAGE_PATH/authentik` и локальный `authentik/.env` из
-рабочей копии. Для восстановления сначала восстановите snapshot в отдельный
+Restic сохраняет `$APPS_STORAGE_PATH/authentik`; секреты — зашифрованными в Git. Для восстановления сначала восстановите snapshot в отдельный
 каталог и проверьте содержимое; не заменяйте работающие данные без отдельного
 backup.
 

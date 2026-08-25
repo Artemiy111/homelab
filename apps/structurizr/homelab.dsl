@@ -26,7 +26,7 @@ workspace {
             tags "external"
         }
 
-        persistentStorage = softwareSystem "Persistent storage" "$APPS_STORAGE_PATH — данные контейнеров на диске хоста (переменная из корневого .env)" {
+        persistentStorage = softwareSystem "Persistent storage" "$APPS_STORAGE_PATH — данные контейнеров на диске хоста (переменная из корневого config.env)" {
             tags "external"
         }
 

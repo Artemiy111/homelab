@@ -53,7 +53,7 @@ repository находится на том же физическом диске �
 ## Обновление
 
 Перед обновлением создайте согласованный backup, прочитайте release notes и
-измените `DAWARICH_VERSION` одновременно в `.env.example` и серверном `.env`.
+измените `DAWARICH_VERSION` в `config.env`.
 Затем выполните:
 
 ```sh

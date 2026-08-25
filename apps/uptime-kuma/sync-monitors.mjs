@@ -251,7 +251,7 @@ async function main() {
   const configPath = process.env.UPTIME_KUMA_MONITORS_FILE || "/app/monitors.json";
 
   if (!username || !password) {
-    fail("Задайте UPTIME_KUMA_USERNAME и UPTIME_KUMA_PASSWORD в uptime-kuma/.env.");
+    fail("Задайте UPTIME_KUMA_USERNAME и UPTIME_KUMA_PASSWORD в окружении (секреты сервиса).");
   }
 
   const { monitors } = await loadConfig(configPath);

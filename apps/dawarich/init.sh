@@ -14,8 +14,4 @@ mkdir -p \
   "$APPS_STORAGE_PATH"/dawarich/storage \
   "$APPS_STORAGE_PATH"/dawarich/watched
 
-# Конфигурация и секреты приходят через окружение: bootstrap подмешивает
-# config.env и расшифровывает secrets.enc.env (через service_run). Plaintext .env
-# не создаётся.
-
 compose_config "$repo_root/apps/dawarich"

@@ -13,7 +13,7 @@ services:
       - ${APPS_STORAGE_PATH:-/storage/apps}/rustfs/data:/data:Z
 
     environment:
-      TZ: ${TZ:?set in root .env}
+      TZ: ${TZ:?set in root config.env}
       RUSTFS_VOLUMES: /data
       RUSTFS_ADDRESS: 0.0.0.0:9000
       RUSTFS_CONSOLE_ADDRESS: 0.0.0.0:9001
@@ -22,8 +22,8 @@ services:
       # (s3.${DOMAIN}) — без этого health-check в /config блокирует CORS.
       RUSTFS_CORS_ALLOWED_ORIGINS: https://rustfs.${DOMAIN}
       RUSTFS_CONSOLE_CORS_ALLOWED_ORIGINS: https://rustfs.${DOMAIN}
-      RUSTFS_ACCESS_KEY: ${RUSTFS_ACCESS_KEY:?set in rustfs/secrets.enc.env}
-      RUSTFS_SECRET_KEY: ${RUSTFS_SECRET_KEY:?set in rustfs/secrets.enc.env}
+      RUSTFS_ACCESS_KEY: ${RUSTFS_ACCESS_KEY:?set in apps/rustfs secrets.enc.env}
+      RUSTFS_SECRET_KEY: ${RUSTFS_SECRET_KEY:?set in apps/rustfs secrets.enc.env}
 
     networks:
       - traefiknet

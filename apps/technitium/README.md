@@ -36,7 +36,7 @@ bash scripts/bootstrap-platform.sh technitium
 ### Через веб-интерфейс
 
 Открыть `https://dns.${DOMAIN}/` (через Traefik). Войти под `admin`; пароль
-хранится в `technitium/.env` (`TECHNITIUM_ADMIN_PASSWORD`).
+хранится в `apps/technitium/secrets.enc.env` (`TECHNITIUM_ADMIN_PASSWORD`).
 
 1. Zones → New Zone → Primary → ввести `${DOMAIN}`.
 2. Добавить A-запись: Name `*`, Value `${SERVER_IP}`, TTL `3600`.

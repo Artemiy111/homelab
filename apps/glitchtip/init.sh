@@ -14,8 +14,4 @@ ensure_dirs 0755 \
   "$APPS_STORAGE_PATH"/glitchtip/postgresql \
   "$APPS_STORAGE_PATH"/glitchtip/valkey
 
-# Конфигурация и секреты приходят через окружение: bootstrap подмешивает
-# config.env и расшифровывает secrets.enc.env (через service_run). Plaintext .env
-# не создаётся.
-
 compose_config "$repo_root/apps/glitchtip"

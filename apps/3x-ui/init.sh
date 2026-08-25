@@ -10,8 +10,4 @@ ensure_dirs 0700 \
   "$APPS_STORAGE_PATH"/3x-ui/db \
   "$APPS_STORAGE_PATH"/3x-ui/log
 
-# Конфигурация и секреты приходят через окружение: bootstrap подмешивает
-# config.env и расшифровывает secrets.enc.env (через service_run). Plaintext .env
-# не создаётся.
-
 compose_config "$repo_root/apps/3x-ui"

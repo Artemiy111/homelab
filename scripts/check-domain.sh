@@ -5,7 +5,7 @@
 # Домен (example.com) может встречаться только в:
 #   - scripts/lib/common.sh      — единственный источник правды (значение по умолчанию);
 #   - scripts/check-domain.sh    — сам гвард (значение по умолчанию в $domain);
-#   - *.env.example и *.tpl.*    — шаблоны, из которых init.sh генерирует конфиги;
+#   - config.example.env и *.tpl.* — шаблоны, из которых init.sh генерирует конфиги;
 #   - *.md и apps/structurizr/homelab.dsl — документация.
 #
 # Во всех остальных файлах (compose, config.yaml, services.yaml, monitors.json,
@@ -26,7 +26,7 @@ is_allowed() {
     scripts/check-domain.sh) return 0 ;;
     apps/structurizr/homelab.dsl) return 0 ;;
     *.md) return 0 ;;
-    *.env.example) return 0 ;;
+    config.example.env) return 0 ;;
     # config.env — трекаемые дефолты сервиса (публичная конфигурация).
     # Производные от DOMAIN значения сюда НЕ пишутся: они собираются
     # в compose.yaml/шаблонах, поэтому allowlist для них нет.
