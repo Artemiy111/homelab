@@ -1,7 +1,7 @@
 # Home Assistant
 
-Home Assistant Container работает в сети хоста и использует адрес сервера. Интерфейс доступен через Traefik по адресу
-`https://ha.example.com`;
+Home Assistant Container работает в сети хоста и использует адрес сервера.
+URL: `https://ha.example.com`;
 
 `network_mode: host` нужен для локального обнаружения устройств через mDNS,
 SSDP и DHCP. Он также надёжнее отдельного `macvlan` на этом сервере: физическое

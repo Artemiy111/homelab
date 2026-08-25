@@ -1,14 +1,7 @@
 # code-server
 
-`code-server` предоставляет VS Code-подобную IDE в браузере. Контейнер
-доступен только через Traefik по адресу
-`https://code.example.com/`; порт приложения напрямую на хост не
-публикуется.
-
-Образ закреплён на версии `4.132.0`. Постоянные данные находятся в
-`$APPS_STORAGE_PATH/code-server`: настройки и расширения — в `home`, рабочие
-проекты — в `workspace`. Каталог `$APPS_STORAGE_PATH` входит в общий Restic
-snapshot.
+Code-server предоставляет VS Code-подобную IDE в браузере.
+URL: `https://code.example.com/`
 
 ## Запуск
 
@@ -20,9 +13,6 @@ docker compose up -d
 docker compose ps
 ```
 
-`init.sh` создаёт `.env` (хост, UID/GID и имя пользователя) и каталоги `home`
-и `workspace`.
-
 После первого запуска пароль можно получить так:
 
 ```sh
@@ -30,13 +20,10 @@ docker compose exec -T code-server sh -lc \
   'grep "^password:" /home/coder/.config/code-server/config.yaml'
 ```
 
-Пароль следует сохранить в менеджере паролей. Внешняя аутентификация не
-подключена: доступ защищён HTTPS Traefik и встроенной парольной авторизацией
-code-server.
+Пароль следует сохранить в менеджере паролей.
 
 ## Безопасность
 
-- Не добавляйте `ports` в Compose: доступ должен идти через `traefiknet`.
 - Не подключайте Docker socket без отдельной необходимости: это даёт IDE
   практически полный контроль над Docker-хостом.
 - Рабочее пространство намеренно отделено от отслеживаемой копии

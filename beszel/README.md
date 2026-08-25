@@ -1,13 +1,8 @@
 # Beszel
 
 Beszel собирает метрики хоста и Docker-контейнеров, хранит историю и отправляет
-уведомления. Hub доступен через Traefik по адресу
-`https://beszel.example.com/`; порты Hub и Agent на хосте не
-публикуются.
-
-Постоянные данные находятся в `$APPS_STORAGE_PATH/beszel`. Локальный Agent использует
-Unix-сокет для связи с Hub и подключает Docker socket с флагом `ro`. Из-за
-`network_mode: host` Agent также видит сетевые интерфейсы хоста.
+уведомления. 
+URL: `https://beszel.example.com/`
 
 ## Первый запуск
 
@@ -18,13 +13,10 @@ bash ./init.sh
 docker compose up -d
 ```
 
-`init.sh` создаёт каталоги `data`, `agent` и `socket` и заготовку `.env`.
-
-Откройте `https://beszel.example.com/` и создайте администратора. Затем:
+Откройте URL и создайте администратора. Затем:
 
 1. В Settings → Tokens создайте universal token.
-2. Нажмите Add System и скопируйте public key.
-3. Запишите значения в локальный `.env`:
+2. Запишите значения в `secrets.enc.env`:
 
 ```dotenv
 BESZEL_AGENT_KEY='ssh-ed25519 AAAA...'
@@ -56,9 +48,6 @@ bash ./superuser.sh <email>
 ```
 
 Пароль генерируется случайно и печатается один раз.
-
-Файл `.env` не отслеживается Git. Не добавляйте public key и token в
-`.env.example` или Compose-конфигурацию.
 
 Подключение `/var/run/docker.sock` даёт Agent широкие права над Docker daemon,
 даже если bind mount помечен `ro`. Используйте только доверенный официальный

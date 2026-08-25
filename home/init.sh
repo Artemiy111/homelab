@@ -5,9 +5,6 @@ set -euo pipefail
 repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$repo_root/scripts/lib/common.sh"
 
-
-# Публичная конфигурация сервиса — в закоммиченном config.env.
-
 render_template "$repo_root/home/config/settings.tpl.yaml" \
   "$repo_root/home/config/settings.yaml"
 

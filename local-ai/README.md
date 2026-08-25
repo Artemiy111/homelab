@@ -1,9 +1,6 @@
 # LocalAI
 
-LocalAI предоставляет OpenAI-совместимый API по адресу
-`https://localai.example.com`. Единственный ingress — Traefik: контейнер не
-публикует порт на хосте. Каждый запрос должен содержать API-ключ из
-`local-ai/.env`, например как `Authorization: Bearer <key>`.
+URL: `https://localai.example.com`
 
 Используется закреплённый CPU-образ `linux/amd64`. На сервере AMD Ryzen 7 6800H
 с восемью физическими ядрами и AVX2. LocalAI сам выбирает число потоков, а
@@ -13,9 +10,6 @@ Docker ограничивает весь контейнер 14 единицам�
 
 ## Первый запуск
 
-`init.sh` создаёт каталог `$APPS_STORAGE_PATH/local-ai/models`, формирует `.env`
-с хостом и сгенерированным `LOCALAI_API_KEY`. Остальные каталоги данных он не
-создаёт. Из каталога сервиса:
 
 ```sh
 bash ./init.sh

@@ -1,19 +1,9 @@
 # Arcane
 
-Arcane — веб-интерфейс управления Docker: контейнеры, образы, сети, тома и
-stacks. Интерфейс доступен через Traefik по адресу
-`https://arcane.example.com/`; порт 3552 на хосте не публикуется.
+Arcane — веб-интерфейс управления Docker.
+URL: `https://arcane.example.com/`
 
-Docker доступен не напрямую, а через ограниченный `docker-socket-proxy`
-(та же схема, что в `image-updates/`): прокси подключает `docker.sock` только
-для чтения и разрешает Arcane ограниченный набор операций API (контейнеры,
-образы, сети, тома, exec, POST). Секции `AUTH`, `SECRETS`, `BUILD`, `COMMIT`,
-`CONFIGS`, `NODES`, `PLUGINS`, `SERVICES`, `SESSION`, `SWARM`, `SYSTEM`,
-`TASKS` остаются закрытыми.
-
-Постоянные данные находятся в `$APPS_STORAGE_PATH/arcane/data`; SELinux-доступ
-обеспечивается меткой `:Z`. Контейнер Arcane стартует от root (так требует
-образ), затем понижает права до `PUID`/`PGID` (1000), поэтому в отличие от
+Контейнер Arcane стартует от root (так требует образ), затем понижает права до `PUID`/`PGID` (1000), поэтому в отличие от
 простых сервисов ему не задаётся `cap_drop: ALL` — для понижения привилегий
 нужны `CAP_SETUID`/`CAP_SETGID`. Self-upgrade не используется: обновления идут
 по общему процессу (закрепление версии и digest образа в `compose.yaml`).
@@ -29,10 +19,9 @@ docker compose up -d
 docker compose ps
 ```
 
-`init.sh` создаёт каталоги данных и `.env`. Откройте `https://arcane.example.com/` и войдите под учётными данными
+Откройте URL и войдите под учётными данными
 по умолчанию (`arcane` / `arcane-admin`); при первом входе Arcane потребует
-сменить пароль. Секреты `ENCRYPTION_KEY` и `JWT_SECRET` генерирует `init.sh`,
-они хранятся только в локальном `arcane/.env` (в Git не попадают).
+сменить пароль.
 
 ## Проверка
 

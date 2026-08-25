@@ -1,13 +1,7 @@
 # Dawarich
 
-Dawarich хранит и визуализирует историю местоположений. Веб-интерфейс доступен
-через Traefik по адресу `https://dawarich.example.com/`; порты
-приложения, PostgreSQL и Redis на хост не публикуются. Локальный wildcard DNS уже
-направляет этот адрес на Traefik.
-
-Образ Dawarich закреплён на версии `1.11.0`: проект активно развивается и не
-рекомендует автоматические обновления. Постоянные данные находятся в
-`$APPS_STORAGE_PATH/dawarich` и входят в общий Restic snapshot.
+Dawarich хранит и визуализирует историю местоположений.
+URL: `https://dawarich.example.com/`
 
 ## Первый запуск
 
@@ -19,9 +13,6 @@ docker compose pull
 docker compose up -d
 docker compose ps
 ```
-
-`init.sh` создаёт каталоги и `.env`, генерирует независимые секреты
-PostgreSQL и Rails и сохраняет их только на сервере с правами `0600`.
 
 На пустой базе встроенный seed Dawarich создаёт администратора
 `demo@dawarich.app` с паролем `safepassword`. Сразу после первого входа измените
@@ -38,30 +29,6 @@ curl --resolve dawarich.example.com:443:192.0.2.10 \
 ```
 
 Health endpoint должен вернуть JSON со `"status":"ok"`.
-
-## Полный сброс данных
-
-Команды ниже безвозвратно удаляют только данные Dawarich: пользователей, точки,
-настройки, семейства, PostgreSQL, Redis, загруженные файлы и локальные дампы.
-Сначала остановите Compose-проект, затем очистите содержимое bind-mount через
-одноразовый контейнер — PostgreSQL создаёт часть файлов с UID, недоступным
-обычному пользователю хоста:
-
-```sh
-cd /home/artlab/projects/homelab/dawarich
-docker compose down
-docker run --rm \
-  -v ${APPS_STORAGE_PATH:-/storage/apps}/dawarich:/data:Z \
-  alpine:3.22 \
-  sh -ec 'find /data -mindepth 1 -delete'
-bash ./init.sh
-docker compose up -d
-docker compose ps
-```
-
-Не используйте `docker compose down -v`: постоянные данные подключены как
-bind-mounts, а не именованные Docker volumes, поэтому эта команда их не удалит.
-После сброса войдите с начальными реквизитами выше и сразу замените их.
 
 ## Резервное копирование
 

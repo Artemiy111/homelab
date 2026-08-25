@@ -1,12 +1,7 @@
 # Authentik
 
-Authentik — отдельный identity provider. Интерфейс доступен только через
-Traefik по адресу
-`https://auth.example.com/`; порты контейнеров на хосте не публикуются.
-
-Данные приложения хранятся в `$APPS_STORAGE_PATH/authentik/data`, PostgreSQL — в
-`$APPS_STORAGE_PATH/authentik/postgresql`. Контейнер worker намеренно не получает
-Docker socket: при необходимости proxy outposts нужно разворачивать вручную.
+Authentik — тестовый identity provider. 
+URL: `https://auth.example.com/`
 
 ## Первый запуск
 

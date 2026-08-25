@@ -1,19 +1,9 @@
 # Jellyfin
 
-Jellyfin хранит конфигурацию в `$APPS_STORAGE_PATH/jellyfin`, читает общую медиатеку
-из `/storage/media` и доступен через Traefik по адресу
-`https://jellyfin.example.com/`. Порты контейнера на хосте не
-публикуются; локальный DNS уже направляет все поддомены зоны на Traefik.
-
-Образ закреплён на мажорной версии `jellyfin/jellyfin:10`: обновления внутри
-линейки 10 устанавливаются при явном `docker compose pull`, а переход на
-следующую мажорную версию требует изменения Compose-файла.
+URL: `https://jellyfin.example.com/`
+Читает общую медиатеку из `/storage/media`.
 
 ## Запуск
-
-`init.sh` создаёт каталоги `$APPS_STORAGE_PATH/jellyfin/config` и `cache`,
-формирует `.env` с хостом и GID группы `render`. Каталог медиатеки он не
-создаёт. Из каталога сервиса:
 
 ```sh
 bash ./init.sh

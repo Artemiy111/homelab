@@ -18,10 +18,6 @@ ZITADEL (`oauth2-proxy/README.md`). Отдельные секреты для э�
 
 ## Запуск
 
-`init.sh` создаёт каталог `$APPS_STORAGE_PATH/wud/store`, формирует `.env`
-с хостами и заготовками для Docker Hub и рендерит `cup.json`. Из каталога
-сервиса:
-
 ```sh
 bash ./init.sh
 docker compose up -d
@@ -31,9 +27,8 @@ docker compose ps
 Проверки Cup выполняются при первом запуске, далее обновления запрашиваются
 вручную кнопкой refresh в его интерфейсе: автоинтервал отключён, потому что Cup
 падал (exit code 1) на ошибках registry при автоматическом refresh. Локально
-собранные образы (например, `structurizr-structurizr`) исключены из проверок
-через `images.exclude` в `cup.json`. Чтобы исключить отдельный контейнер из
-WUD, добавьте ему label:
+собранные образы исключены из проверок через `images.exclude` в `cup.json`.
+Чтобы исключить отдельный контейнер из WUD, добавьте ему label:
 
 ```yaml
 labels:
@@ -45,8 +40,7 @@ labels:
 
 ## Конфигурация Cup
 
-`cup.json` генерируется `init.sh` из `cup.json.tpl` (сам файл в `.gitignore`,
-в Git только шаблон). Токен Docker Hub хранится исключительно в `.env`
+`cup.json` генерируется `init.sh` из `cup.tpl.json`. Токен Docker Hub хранится исключительно в `.env`
 (переменные `CUP_DOCKERHUB_USERNAME` / `CUP_DOCKERHUB_TOKEN`, PAT с правами
 read-only) и не попадает в репозиторий: `init.sh` собирает из него строку
 `base64(логин:токен)` и подставляет в блок `registries.registry-1.docker.io`.

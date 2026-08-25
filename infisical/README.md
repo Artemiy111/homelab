@@ -1,24 +1,9 @@
 # Infisical — self-hosted secrets manager
 
-Open-source secrets management platform (MIT CE). Хранение, ротация и
-доставка секретов через Web UI, CLI и SDK.
-
-## Архитектура
-
-- **PostgreSQL 14** — данные и зашифрованные секреты
-- **Redis 7** — кэш и очереди задач
-- **Infisical backend** — API + Web UI (порт 8080)
-
 ## Первый запуск
 
-`init.sh` создаёт каталоги данных, формирует локальный `infisical/.env`
-(пароль PostgreSQL, `ENCRYPTION_KEY`, `AUTH_SECRET` и `TRUSTED_PROXY_CIDRS`)
-и проверяет Compose-конфигурацию. Секреты не попадают в Git.
-
 ```sh
-cd /home/artlab/projects/homelab
-bash infisical/init.sh
-cd infisical
+bash ./init.sh
 docker compose up -d
 docker compose ps
 ```

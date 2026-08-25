@@ -1,27 +1,15 @@
 # GlitchTip
 
-GlitchTip — сбор ошибок приложений, совместимый с Sentry SDK. Веб-интерфейс
-доступен через Traefik по адресу `https://glitchtip.example.com/`; порты
-приложения, PostgreSQL и Valkey на хост не публикуются. Локальный wildcard DNS
-уже направляет этот адрес на Traefik.
-
-Образ закреплён на мажорной версии `6` (переменная `GLITCHTIP_VERSION`).
-Постоянные данные находятся в `$APPS_STORAGE_PATH/glitchtip` и входят в общий
-Restic snapshot.
+GlitchTip — сбор ошибок приложений, совместимый с Sentry SDK.
+URL: `https://glitchtip.example.com/`
 
 ## Первый запуск
-
-Из каталога `glitchtip` выполнить:
 
 ```sh
 bash ./init.sh
 docker compose up -d
 docker compose ps
 ```
-
-Секреты (`SECRET_KEY`, пароль PostgreSQL) лежат в зашифрованном
-`secrets.enc.env` (SOPS + age) и подставляются через `sops exec-env`
-(см. `scripts/compose-secrets.sh`). Plaintext `.env` не создаётся.
 
 Миграции БД выполняются one-shot контейнером `glitchtip-migrate` перед
 стартом `web` (зависимость `service_completed_successfully`); повторный запуск
@@ -42,8 +30,7 @@ docker compose ps
 `https://glitchtip.example.com/accounts/oidc/zitadel/login/callback/`,
 auth method `CODE` (Basic), grant Authorization Code. Контейнер `migrate`
 при каждом старте синхронизирует SocialApp с переменными окружения; если
-переменные пустые — пропуск. Смена секрета = правка `secrets.enc.env`
-и перезапуск проекта.
+переменные пустые — пропуск.
 
 При первом входе зарегистрировать учётную запись администратора. Регистрация
 новых пользователей закрыта (`ENABLE_USER_REGISTRATION=false`), создание
@@ -57,8 +44,7 @@ auth method `CODE` (Basic), grant Authorization Code. Контейнер `migrat
 https://<public-key>@glitchtip.example.com/<project-id>
 ```
 
-и указать его в Sentry SDK приложения. Для локальных клиентов, использующих
-Technitium DNS, домен резолвится в LAN без доступа в интернет.
+и указать его в Sentry SDK приложения.
 
 ## Проверка
 
