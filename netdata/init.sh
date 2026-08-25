@@ -16,20 +16,15 @@ ensure_dirs 0750 \
 
 # Публичная конфигурация сервиса — в закоммиченном config.env.
 
-# Креды scrape-целей с аутентификацией. Источник — secrets.enc.env соответствующего
-# сервиса (SOPS); dawarich ещё не мигрирован и читается из plaintext .env.
+# Креды scrape-целей с аутентификацией. Источник — secrets.enc.env
+# соответствующего сервиса (SOPS); публичный username dawarich — в config.env.
 read_secret_key() {
   local svc="$1" key="$2"
-  local secrets="$repo_root/$svc/secrets.enc.env"
-  if [[ -f "$secrets" ]]; then
-    sops -d "$secrets" | sed -n "s/^${key}=//p" | head -1
-  else
-    read_env_key "$repo_root/$svc/.env" "$key"
-  fi
+  sops -d "$repo_root/$svc/secrets.enc.env" | sed -n "s/^${key}=//p" | head -1
 }
 NETDATA_NAVIDROME_METRICS_PATH="$(read_secret_key navidrome NAVIDROME_METRICS_PATH)"
-NETDATA_DAWARICH_METRICS_USERNAME="$(read_env_key "$repo_root/dawarich/.env" DAWARICH_METRICS_USERNAME)"
-NETDATA_DAWARICH_METRICS_PASSWORD="$(read_env_key "$repo_root/dawarich/.env" DAWARICH_METRICS_PASSWORD)"
+NETDATA_DAWARICH_METRICS_USERNAME="$(sed -n "s/^DAWARICH_METRICS_USERNAME=//p" "$repo_root/dawarich/config.env" | head -1)"
+NETDATA_DAWARICH_METRICS_PASSWORD="$(read_secret_key dawarich DAWARICH_METRICS_PASSWORD)"
 NETDATA_FORGEJO_METRICS_TOKEN="$(read_secret_key forgejo FORGEJO_METRICS_TOKEN)"
 NETDATA_TECHNITIUM_METRICS_TOKEN="$(read_secret_key technitium TECHNITIUM_METRICS_TOKEN)"
 NETDATA_STALWART_METRICS_USERNAME="$(read_secret_key mailserver STALWART_METRICS_USERNAME)"

@@ -5,9 +5,6 @@ set -euo pipefail
 repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$repo_root/scripts/lib/common.sh"
 
-# common.sh задаёт TZ, но не экспортирует; compose читает её из окружения.
-export TZ="${TZ:-Asia/Yekaterinburg}"
-
 ensure_dirs 0700 \
   "$APPS_STORAGE_PATH"/rustfs \
   "$APPS_STORAGE_PATH"/rustfs/data

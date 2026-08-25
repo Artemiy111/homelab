@@ -7,7 +7,7 @@
 #   source "$repo_root/scripts/lib/common.sh"
 #
 # Скрипт задаёт $repo_root (если вызывающий ещё не задал) и определяет
-# функции: random_secret, chmod_if_owned, ensure_dirs, write_env_file,
+# функции: random_secret, random_password, chmod_if_owned, ensure_dirs,
 # traefik_network_cidr, compose_config, service_env_files, service_compose,
 # service_init, service_bootstrap.
 
@@ -22,19 +22,6 @@ if [[ -f "$repo_root/.env" ]]; then
   # shellcheck disable=SC1090
   source "$repo_root/.env"
 fi
-DOMAIN="${DOMAIN:-example.com}"
-export DOMAIN
-
-# Язык по умолчанию для приложений — единый источник правды для локалей.
-# Приоритет: переменная окружения DEFAULT_LOCALE → корневой .env → ru.
-DEFAULT_LOCALE="${DEFAULT_LOCALE:-ru}"
-export DEFAULT_LOCALE
-
-# Каталог данных приложений на хосте — единый источник правды для bind mounts
-# в Compose и каталогов, создаваемых init.sh. Приоритет: переменная окружения
-# APPS_STORAGE_PATH → корневой .env → /storage/apps.
-APPS_STORAGE_PATH="${APPS_STORAGE_PATH:-/storage/apps}"
-export APPS_STORAGE_PATH
 
 # LAN IP-адрес сервера, к которому привязываются опубликованные порты (Traefik,
 # Technitium DNS, Gitea, 3x-ui, Jitsi) и на который указывают DNS/health-проверки.
@@ -58,10 +45,6 @@ export SERVER_IP
 if [[ -z "$SERVER_IP" ]]; then
   echo "Внимание: не удалось определить IP-адрес сервера; задайте SERVER_IP в корневом .env." >&2
 fi
-
-# Часовой пояс контейнеров — единый источник правды (как DOMAIN/SERVER_IP).
-# Приоритет: переменная окружения TZ → корневой .env → значение ниже.
-TZ="${TZ:-Asia/Yekaterinburg}"
 
 # Рендерит файл из шаблона через vals flatten: разворачивает ref+-ссылки
 # (ref+envsubst://$VAR — переменные окружения, ref+sops://… — секреты),
@@ -119,91 +102,28 @@ ensure_dirs() {
   chmod_if_owned "$mode" "$@"
 }
 
-# Создаёт .env-файл. Содержимое передаётся через stdin (heredoc).
-# Новые файлы создаются с umask 077 (права 0600). Существующий файл не
-# перезаписывается целиком: если уже есть — показывает список переменных,
-# которые будут пропущены; если новый — список записываемых переменных.
-write_env_file() {
-  local env_file="$1"
-  local content
-  readarray -t content
-
-  local -a names=()
-  local line key
-  for line in "${content[@]}"; do
-    case "$line" in
-      '#'*|'') continue ;;
-    esac
-    key="${line%%=*}"
-    if [[ "$key" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]; then
-      names+=("$key")
-    fi
-  done
-
-  if [[ -e "$env_file" ]]; then
-    local -a skipped=()
-    for key in "${names[@]}"; do
-      if grep -q "^${key}=" "$env_file" 2>/dev/null; then
-        skipped+=("$key")
-      fi
-    done
-    if [[ ${#skipped[@]} -gt 0 ]]; then
-      echo "Пропуск: $env_file уже существует (${#skipped[@]} переменных пропущено: ${skipped[*]})"
-    fi
-  else
-    local old_umask
-    old_umask="$(umask)"
-    umask 077
-    printf '%s\n' "${content[@]}" >"$env_file"
-    umask "$old_umask"
-    echo "Создан: $env_file (${#names[@]} переменных: ${names[*]})"
-  fi
-  chmod 600 "$env_file"
-}
-
-# Добавляет или обновляет одну переменную в .env-файле. Нужна для ключей,
-# появившихся после первого создания файла (write_env_file существующие
-# файлы не изменяет). Значение со спецсимволом | не поддерживается.
-upsert_env() {
-  local env_file="$1" key="$2" value="$3"
-  if grep -q "^${key}=" "$env_file" 2>/dev/null; then
-    sed -i "s|^${key}=.*|${key}=${value}|" "$env_file"
-  else
-    printf '%s=%s\n' "$key" "$value" >>"$env_file"
-    chmod 600 "$env_file"
-  fi
-}
-
-# Читает значение одной переменной из .env-файла (пустая строка, если нет).
-read_env_key() {
-  local env_file="$1" key="$2"
-  sed -n "s/^${key}=//p" "$env_file" 2>/dev/null | head -1
-}
-
-# Генерирует секрет однократно: если ключ уже есть в .env, значение
-# сохраняется, иначе создаётся новое случайное.
-ensure_secret() {
-  local env_file="$1" key="$2" value
-  value="$(read_env_key "$env_file" "$key")"
-  if [[ -z "$value" ]]; then
-    value="$(random_secret)"
-    upsert_env "$env_file" "$key" "$value"
-  fi
-  printf '%s\n' "$value"
-}
-
 # CIDR подсети docker-сети traefiknet (нужен некоторым сервисам в .env).
 traefik_network_cidr() {
   docker network inspect traefiknet \
     --format '{{range .IPAM.Config}}{{.Subnet}}{{end}}'
 }
 
-# Проверяет корректность Compose-конфигурации сервиса.
-# Дополнительные аргументы (например --profile) передаются в docker compose.
+# Проверяет корректность Compose-конфигурации сервиса. Подмешивает те же
+# env-файлы, что и реальный запуск (service_compose): иначе переменные из
+# корневого .env (TZ, DOMAIN) не видны интерполяции и строгие проверки ${VAR:?}
+# ложно падают. Дополнительные аргументы (например --profile) передаются в
+# docker compose.
 compose_config() {
   local service_dir="$1"
   shift
-  docker compose --project-directory "$service_dir" --file "$service_dir/compose.yaml" "$@" config --quiet
+  local service
+  service="$(basename "$service_dir")"
+  local -a env_files=(--env-file "$repo_root/.env")
+  [[ -f "$repo_root/$service/config.env" ]] &&
+    env_files+=(--env-file "$repo_root/$service/config.env")
+  docker compose --project-directory "$service_dir" \
+    "${env_files[@]}" \
+    "$@" config --quiet
 }
 
 # Строка --env-file для сервиса: корневой .env плюс config.env сервиса,
