@@ -65,3 +65,6 @@ alias g='git'
 alias gs='git status'
 alias gp='git pull --ff-only'
 alias gc='git clone'
+
+# bun completions
+[ -s "/home/artlab/.bun/_bun" ] && source "/home/artlab/.bun/_bun"
