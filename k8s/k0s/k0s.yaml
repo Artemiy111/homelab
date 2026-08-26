@@ -1,0 +1,25 @@
+apiVersion: k0s.k0sproject.io/v1beta1
+kind: ClusterConfig
+metadata:
+  name: k0s
+spec:
+  api:
+    port: 6443
+
+  network:
+    provider: calico
+    podCIDR: 10.244.0.0/16
+    serviceCIDR: 10.96.0.0/12
+    calico:
+      mode: vxlan
+      overlay: Always
+      wireguard: false
+    kubeProxy:
+      disabled: false
+      mode: iptables
+
+  storage:
+    type: etcd
+
+  telemetry:
+    enabled: false

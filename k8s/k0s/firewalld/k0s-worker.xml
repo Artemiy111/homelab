@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<service>
+  <short>k0s-worker</short>
+  <description>k0s worker node</description>
+  <port protocol="tcp" port="179" />
+  <port protocol="udp" port="4789" />
+  <port protocol="tcp" port="10250" />
+</service>
