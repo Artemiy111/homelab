@@ -140,3 +140,24 @@
     - name: Убрать осиротевшие зависимости
       ansible.builtin.dnf5:
         autoremove: true
+
+    # --- Автообновления безопасности ---
+
+    - name: Скопировать конфигурацию dnf-automatic
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../etc/dnf/automatic.conf"
+        dest: /etc/dnf/automatic.conf
+        mode: "0644"
+      notify: restart dnf-automatic
+
+    - name: Включить и запустить таймер dnf-automatic
+      ansible.builtin.systemd:
+        name: dnf-automatic.timer
+        enabled: true
+        state: started
+
+  handlers:
+    - name: restart dnf-automatic
+      ansible.builtin.systemd:
+        name: dnf-automatic
+        state: restarted

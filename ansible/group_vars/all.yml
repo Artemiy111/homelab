@@ -55,6 +55,9 @@ host_packages:
   - samba
   - samba-client
 
+  # --- Автообновления ---
+  - dnf-automatic    # автоматические обновления безопасности
+
   # --- Прочее ---
   - sysstat          # утилита mpstat
   - fontconfig
