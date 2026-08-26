@@ -8,5 +8,9 @@
   },
   "peerDependencies": {
     "typescript": "^7"
+  },
+  "dependencies": {
+    "@effect/platform-bun": "^4.0.0-rc.112",
+    "effect": "^4.0.0-rc.112"
   }
 }
