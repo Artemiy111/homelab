@@ -1,0 +1,14 @@
+[DEFAULT]
+bantime = 3600
+findtime = 600
+maxretry = 5
+banaction = firewallcmd-rich-rules[actiontype=<multiport>]
+banaction_allports = firewallcmd-rich-rules[actiontype=<allports>]
+ignoreip = 127.0.0.1/8 ::1 100.64.0.0/10
+
+[sshd]
+enabled = true
+port = ssh
+logpath = /var/log/secure
+maxretry = 3
+bantime = 86400
