@@ -45,7 +45,7 @@ DNS разрешает зону <dns-provider> и все её поддомены
 
 - `apps/<сервис>/` — все разворачиваемые сервисы; один подкаталог — один
   сервис (`compose.yaml`, `config.env`, `secrets.enc.env`, `init.sh`).
-- `k8s/`, `ansible/`, `scripts/`, `docs/`, `dotfiles/` — платформенная
+- `k8s/`, `ansible/`, `scripts/`, `docs/`, `dotfiles/`, `etc/` — платформенная
   инфраструктура, не относящаяся к одному сервису.
 
 ## Запуск сервиса
