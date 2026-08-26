@@ -30,7 +30,6 @@ host_packages:
   - podman-compose
   - helm
   - k9s
-  - kubernetes1.34-client   # предоставляет kubectl; обновлять при смене версии в Fedora
   - ansible
 
   # --- Виртуализация ---
@@ -65,15 +64,6 @@ host_packages:
 # Группы пакетов (ставим отдельной задачей, префикс @ обязателен).
 host_groups:
   - "@virtualization"
-
-# Пакеты, которых на хосте быть не должно (были удалены вручную ранее).
-# Явное объявление фиксирует намерение и не даёт им вернуться.
-host_packages_absent:
-  - fish
-  - baobab
-  - nginx
-  - jenkins
-  - caddy
 
 # --- Шифрование секретов (SOPS) ---
 

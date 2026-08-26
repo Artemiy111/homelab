@@ -51,7 +51,6 @@
         state: enabled
         host: copr.fedorainfracloud.org
 
-    # age есть в официальных репозиториях Fedora (ставится с пакетом ниже).
     # Для sops официального репозитория нет — берём RPM из релиза GitHub.
     # RPM подписан cosign, а не GPG, поэтому проверка подписи отключена;
     # целостность фиксируется checksum URL-версии (см. group_vars/all.yml).
@@ -110,13 +109,6 @@
         path: /usr/local/bin/vals
         mode: "0755"
 
-    # --- Чистка устаревших репозиториев ---
-
-    - name: Удалить устаревший репозиторий Jenkins (пакет давно удалён)
-      ansible.builtin.file:
-        path: /etc/yum.repos.d/jenkins.repo
-        state: absent
-
     # --- Пакеты и группы ---
 
     - name: Установить пакеты хоста
@@ -129,17 +121,18 @@
         name: "{{ host_groups }}"
         state: present
 
-    - name: Убедиться, что запрещённые пакеты отсутствуют
-      ansible.builtin.dnf5:
-        name: "{{ host_packages_absent }}"
-        state: absent
-        autoremove: false
-
-    # Убирает «осиротевшие» пакеты, оставшиеся как зависимости.
-    # Безопасно (не трогает пакеты из списка), но можно закомментировать.
     - name: Убрать осиротевшие зависимости
       ansible.builtin.dnf5:
         autoremove: true
+
+    # --- Docker daemon.json ---
+
+    - name: Скопировать /etc/docker/daemon.json из репозитория
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../etc/docker/daemon.json"
+        dest: /etc/docker/daemon.json
+        mode: "0644"
+      notify: restart docker
 
     # --- Автообновления безопасности ---
 
@@ -157,6 +150,11 @@
         state: started
 
   handlers:
+    - name: restart docker
+      ansible.builtin.systemd:
+        name: docker
+        state: restarted
+
     - name: restart dnf-automatic
       ansible.builtin.systemd:
         name: dnf-automatic
