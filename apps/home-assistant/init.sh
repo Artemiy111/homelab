@@ -7,14 +7,18 @@ source "$repo_root/scripts/lib/common.sh"
 
 SERVICE_DIR="$repo_root"/apps/home-assistant
 OIDC_VERSION="${HOME_ASSISTANT_OIDC_VERSION:?set in home-assistant/config.env}"
-OIDC_DIR="$SERVICE_DIR"/custom_components/auth_oidc
-OIDC_STAMP="$SERVICE_DIR"/custom_components/.hass-oidc-auth.version
+COMPONENTS_DIR="${APPS_STORAGE_PATH:-/storage/apps}"/home-assistant/custom_components
+OIDC_DIR="$COMPONENTS_DIR"/auth_oidc
+OIDC_STAMP="$COMPONENTS_DIR"/.hass-oidc-auth.version
 
 export TZ="${TZ:-Asia/Yekaterinburg}"
 
-# Интеграция SSO ставится из релиза GitHub в маунт-каталог сервиса; версия
-# пинируется в закоммиченном config.env. Повторный запуск с той же версией —
-# no-op, с новой — обновление.
+# Интеграция SSO ставится из релиза GitHub в персистентный каталог
+# компонентов ($APPS_STORAGE_PATH/home-assistant/custom_components), который
+# mount'ится в контейнер как /config/custom_components — там же живут
+# интеграции, поставленные HACS. Версия пинируется в закоммиченном config.env.
+# Повторный запуск с той же версией — no-op, с новой — обновление.
+mkdir -p "$COMPONENTS_DIR"
 if [[ "$(cat "$OIDC_STAMP" 2>/dev/null || true)" != "$OIDC_VERSION" ]]; then
   echo "Установка hass-oidc-auth ${OIDC_VERSION}..."
   curl -fsSL -o /tmp/hass-oidc-auth.zip \

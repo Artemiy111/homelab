@@ -9,7 +9,10 @@ services:
       - ${APPS_STORAGE_PATH:-/storage/apps}/home-assistant:/config:Z
       # Управляемые файлы — маунты из каталога сервиса.
       - ./configuration.yaml:/config/configuration.yaml:Z,ro
-      - ./custom_components:/config/custom_components:Z,ro
+      # custom_components полностью живут в персистентном каталоге /config
+      # (= /storage/apps/home-assistant/custom_components): их ставят HACS и
+      # init.sh (auth_oidc). Раньше здесь был bind-mount ./custom_components,
+      # который заслонял персистентную папку и «прятал» интеграции (xiaomi_miot).
       # automations/scripts/scenes.yaml НЕ маунтятся файлами: HA пишет их
       # атомарно (tmp + rename), rename поверх файлового bind-mount даёт
       # EBUSY. Файлы живут в персистентном каталоге /config и попадают

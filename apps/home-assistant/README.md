@@ -11,9 +11,10 @@ MAC-адресов сетью и не позволяет контейнеру н
 ## Первый запуск
 
 Все управляемые файлы (`configuration.yaml`, `automations.yaml`, `scripts.yaml`,
-`scenes.yaml`, `custom_components/`) маунтятся из каталога сервиса; в
-`$APPS_STORAGE_PATH/home-assistant` живёт только собственное
-состояние HA (БД, `.storage`, blueprints, tts). Контейнер работает как root,
+`scenes.yaml`) маунтятся из каталога сервиса; в `$APPS_STORAGE_PATH/home-assistant`
+живёт собственное состояние HA (БД, `.storage`, blueprints, tts) и весь каталог
+`custom_components/` (интеграции, в т.ч. поставленные HACS, и `auth_oidc` из
+`init.sh`). Контейнер работает как root,
 поэтому владелец каталога данных для него не важен. Из каталога сервиса:
 
 ```sh
@@ -24,6 +25,15 @@ bash scripts/bootstrap-platform.sh home-assistant
 в `$APPS_STORAGE_PATH/home-assistant` и входят в общий Restic snapshot.
 Правки автоматизаций через UI попадают в `automations.yaml`/`scripts.yaml`
 маунта — на сервере они видны как diff рабочей копии репозитория.
+
+### HACS
+
+[HACS](https://hacs.xyz) ставится в персистентный `custom_components/` (не через
+Git — каталог компонентов целиком из `/storage`). HACS 2.x настраивается только
+через UI и **не требует** блока в `configuration.yaml`. Первый запуск — в UI
+(Settings → Devices & Services → Add Integration → HACS) и требует личный
+GitHub Personal Access Token (нужен HACS для скачивания/обновления интеграций
+с GitHub). Интеграции, поставленные HACS, живут там же и входят в Restic snapshot.
 
 ## Привилегии
 
@@ -70,8 +80,9 @@ docker logs --since=5m home-assistant 2>&1
 Интеграция ставится не через HACS: версия пинируется переменной
 `HOME_ASSISTANT_OIDC_VERSION` в закоммиченном `config.env`, установка и обновление
 выполняются идемпотентным `init.sh` (скачивает релиз в `custom_components/`
-каталога сервиса, который целиком маунтится в контейнер; повторный запуск
-ничего не меняет). Креденшалы клиента (`OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`)
+персистентного каталога данных — `$APPS_STORAGE_PATH/home-assistant/custom_components`,
+который целиком mount'ится в контейнер как `/config/custom_components`; повторный
+запуск ничего не меняет). Креденшалы клиента (`OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`)
 лежат в закоммиченном зашифрованном `secrets.enc.env` (SOPS + age) и попадают
 в контейнер окружением (секреты в окружении через `service_run`);
 `configuration.yaml` читает их через `!env_var`. Plaintext-файл секретов

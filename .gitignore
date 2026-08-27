@@ -11,7 +11,4 @@ apps/home/config/settings.yaml
 apps/element/element-web/config.json
 apps/netdata/config/go.d/prometheus.conf
 
-# Ставится init.sh из релиза hass-oidc-auth.
-apps/home-assistant/custom_components/
-
 __pycache__/
