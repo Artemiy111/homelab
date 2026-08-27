@@ -68,3 +68,14 @@ alias gc='git clone'
 
 # bun completions
 [ -s "/home/artlab/.bun/_bun" ] && source "/home/artlab/.bun/_bun"
+
+# kubectl (через k0s; автодополнение kubectl невозможно — k0s-сборка
+# не имеет внутренней команды __complete, нужной zsh-скрипту completion)
+export KUBECONFIG=/home/artlab/.kube/config
+alias kubectl='k0s kubectl'
+alias k='kubectl'
+
+# k0s completion
+if command -v k0s >/dev/null 2>&1; then
+  source <(k0s completion zsh)
+fi
