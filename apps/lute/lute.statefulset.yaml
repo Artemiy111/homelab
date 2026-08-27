@@ -1,0 +1,86 @@
+# Headless Service — обязателен для StatefulSet (serviceName должен совпадать)
+apiVersion: v1
+kind: Service
+metadata:
+  name: lute
+spec:
+  clusterIP: None          # headless: не балансирует, даёт стабильный DNS
+  selector:
+    app: lute
+  ports:
+    - port: 5001
+      targetPort: http
+      name: http
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: lute
+spec:
+  serviceName: lute        # ← должен совпадать с именем Service выше
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lute            # ← должен совпадать с labels в template
+  template:
+    metadata:
+      labels:
+        app: lute          # ← должен совпадать с selector.matchLabels
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: lute
+          image: "jzohrab/lute3:latest"
+          resources:
+            requests:
+              cpu: 0.01
+              memory: 32Mi
+            limits:
+              cpu: 0.5
+              memory: 512Mi
+          ports:
+            - containerPort: 5001
+              name: http
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 10
+            initialDelaySeconds: 30
+            failureThreshold: 5
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 30
+            failureThreshold: 3
+          securityContext:
+            capabilities:
+              drop: ["ALL"]
+              add: ["DAC_OVERRIDE"]
+          volumeMounts:
+            - name: data
+              mountPath: /lute_data
+            - name: backup
+              mountPath: /lute_backup
+      # hostPath — рабочий вариант для single-node (нет StorageClass).
+      # Для «настоящего» StatefulSet используй volumeClaimTemplates (см. ниже).
+      volumes:
+        - name: data
+          hostPath:
+            path: /storage/apps/lute/data/data
+        - name: backup
+          hostPath:
+            path: /storage/apps/lute/data/backups
+  # volumeClaimTemplates — правильный способ для StatefulSet (каждый pod
+  # получает свой PVC). Требует StorageClass (Longhorn/TopoLVM). Пока
+  # закомментировано, т.к. в кластере нет provisioner'а.
+  # volumeClaimTemplates:
+  #   - metadata:
+  #       name: data
+  #     spec:
+  #       accessModes: ["ReadWriteOnce"]
+  #       resources:
+  #         requests:
+  #           storage: 1Gi
