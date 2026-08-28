@@ -35,10 +35,10 @@ spec:
           image: "jzohrab/lute3:latest"
           resources:
             requests:
-              cpu: 0.02
+              cpu: 1m
               memory: 256Mi
             limits:
-              cpu: 0.2
+              cpu: 20m
               memory: 512Mi
           ports:
             - containerPort: 5001

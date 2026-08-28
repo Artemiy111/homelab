@@ -68,10 +68,10 @@ spec:
               type: RuntimeDefault
           resources:
             requests:
-              cpu: 0.005
+              cpu: 1m
               memory: 8Mi
             limits:
-              cpu: 0.1
+              cpu: 20m
               memory: 64Mi
           volumeMounts:
             # readOnlyRootFilesystem=true, поэтому точки записи nginx вынесены в emptyDir

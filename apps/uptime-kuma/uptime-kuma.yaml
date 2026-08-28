@@ -64,11 +64,11 @@ spec:
               type: RuntimeDefault
           resources:
             requests:
-              cpu: 0.05
+              cpu: 10m
               memory: 128Mi
             limits:
-              cpu: 0.5
-              memory: 512Mi
+              cpu: 50m
+              memory: 320Mi
           volumeMounts:
             - name: data
               mountPath: /app/data
