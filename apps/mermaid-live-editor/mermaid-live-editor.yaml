@@ -1,0 +1,96 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mermaid-live-editor
+spec:
+  type: ClusterIP
+  selector:
+    app: mermaid-live-editor
+  ports:
+    - name: web
+      port: 80
+      targetPort: 8080
+      protocol: TCP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mermaid-live-editor
+spec:
+  revisionHistoryLimit: 2
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mermaid-live-editor
+  template:
+    metadata:
+      labels:
+        app: mermaid-live-editor
+        tier: app
+    spec:
+      containers:
+        - name: mermaid-live-editor
+          # Приложение внутри образа слушает :8080 (nginx), а не :80.
+          # Образ = nginx; entrypoint стартует и делает chown cache-директорий на uid 101.
+          image: "ghcr.io/mermaid-js/mermaid-live-editor:latest@sha256:1983980bf4a9ef9966b8e067ae94d32af00d98997802bae1e9437f7bee4814cc"
+          ports:
+            - containerPort: 8080
+              name: http
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 3
+            initialDelaySeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 15
+            failureThreshold: 3
+          securityContext:
+            # Максимальный харденнинг. Не root (nginx uid 101), без повышения прав,
+            # read-only rootfs, seccomp RuntimeDefault. Все capability сброшены,
+            # добавлена только строго необходимая.
+            runAsUser: 101
+            runAsGroup: 101
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            # Только CAP_CHOWN: entrypoint делает chown /var/cache/nginx/* на nginx (uid 101).
+            # NET_BIND_SERVICE НЕ нужна — слушаем :8080 (порт > 1024, не привилегированный).
+            capabilities:
+              drop: ["ALL"]
+              add: ["CHOWN"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 0.005
+              memory: 8Mi
+            limits:
+              cpu: 0.1
+              memory: 64Mi
+          volumeMounts:
+            # readOnlyRootFilesystem=true, поэтому точки записи nginx вынесены в emptyDir
+            - name: tmp
+              mountPath: /tmp
+            - name: nginx-cache
+              mountPath: /var/cache/nginx
+            - name: nginx-run
+              mountPath: /var/run
+            - name: nginx-log
+              mountPath: /var/log/nginx
+      volumes:
+        - name: tmp
+          emptyDir:
+            medium: Memory
+            sizeLimit: 16Mi
+        - name: nginx-cache
+          emptyDir: {}
+        - name: nginx-run
+          emptyDir: {}
+        - name: nginx-log
+          emptyDir: {}

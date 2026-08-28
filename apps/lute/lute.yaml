@@ -1,31 +1,33 @@
-# Headless Service — обязателен для StatefulSet (serviceName должен совпадать)
+# ===== Service: выбирает pod'ы по label app=lute =====
 apiVersion: v1
 kind: Service
 metadata:
   name: lute
 spec:
-  clusterIP: None          # headless: не балансирует, даёт стабильный DNS
+  type: ClusterIP
   selector:
     app: lute
   ports:
-    - port: 5001
-      targetPort: http
-      name: http
+    - name: lute-web
+      port: 5001
+      targetPort: 5001
+      protocol: TCP
 ---
 apiVersion: apps/v1
-kind: StatefulSet
+kind: Deployment
 metadata:
   name: lute
 spec:
-  serviceName: lute        # ← должен совпадать с именем Service выше
+  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
-      app: lute            # ← должен совпадать с labels в template
+      app: lute
   template:
     metadata:
       labels:
-        app: lute          # ← должен совпадать с selector.matchLabels
+        app: lute
+        tier: app
     spec:
       restartPolicy: Always
       containers:
@@ -33,10 +35,10 @@ spec:
           image: "jzohrab/lute3:latest"
           resources:
             requests:
-              cpu: 0.01
-              memory: 32Mi
+              cpu: 0.02
+              memory: 256Mi
             limits:
-              cpu: 0.5
+              cpu: 0.2
               memory: 512Mi
           ports:
             - containerPort: 5001
@@ -64,8 +66,6 @@ spec:
               mountPath: /lute_data
             - name: backup
               mountPath: /lute_backup
-      # hostPath — рабочий вариант для single-node (нет StorageClass).
-      # Для «настоящего» StatefulSet используй volumeClaimTemplates (см. ниже).
       volumes:
         - name: data
           hostPath:
@@ -73,14 +73,3 @@ spec:
         - name: backup
           hostPath:
             path: /storage/apps/lute/data/backups
-  # volumeClaimTemplates — правильный способ для StatefulSet (каждый pod
-  # получает свой PVC). Требует StorageClass (Longhorn/TopoLVM). Пока
-  # закомментировано, т.к. в кластере нет provisioner'а.
-  # volumeClaimTemplates:
-  #   - metadata:
-  #       name: data
-  #     spec:
-  #       accessModes: ["ReadWriteOnce"]
-  #       resources:
-  #         requests:
-  #           storage: 1Gi

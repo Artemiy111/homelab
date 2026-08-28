@@ -1,0 +1,121 @@
+# ===== Service: выбирает pod'ы по label app=home =====
+apiVersion: v1
+kind: Service
+metadata:
+  name: home
+spec:
+  type: ClusterIP
+  selector:
+    app: home
+  ports:
+    - name: home-web
+      port: 3000
+      targetPort: 3000
+      protocol: TCP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: home
+spec:
+  revisionHistoryLimit: 2
+  replicas: 1
+  selector:
+    matchLabels:
+      app: home
+  template:
+    metadata:
+      labels:
+        app: home
+        tier: app
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        runAsNonRoot: true
+      initContainers:
+        # Аналог init.sh: рендерим settings.yaml через vals.
+        # DEFAULT_LOCALE берём из общего ConfigMap homelab-config (единый источник правды).
+        - name: render-settings
+          image: debian:12-slim
+          envFrom:
+            - configMapRef:
+                name: homelab-config
+          command:
+            - /bin/sh
+            - -c
+            - /vals eval < /app/config/settings.tpl.yaml > /app/config/settings.yaml
+          volumeMounts:
+            - name: config
+              mountPath: /app/config
+            - name: vals
+              mountPath: /vals
+              readOnly: true
+      containers:
+        - name: home
+          image: "ghcr.io/gethomepage/homepage:v1.13.2@sha256:a0b71c8e757298d02560186bab9fbe3fc2d375c523a62cc1019177b37e48aa28"
+          ports:
+            - containerPort: 3000
+              name: http
+          envFrom:
+            - configMapRef:
+                name: homelab-config
+          env:
+            - name: HOMEPAGE_ALLOWED_HOSTS
+              value: "*"
+            # Homepage резолвит {{HOMEPAGE_VAR_DOMAIN}} из этой переменной; берём из $(DOMAIN)
+            - name: HOMEPAGE_VAR_DOMAIN
+              value: "$(DOMAIN)"
+            - name: LOG_TARGETS
+              value: "stdout"
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+          statupProbe:
+            httpGet:
+              path: /api/healthcheck
+              port: http
+            initialDelaySeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /api/healthcheck
+              port: http
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /api/healthcheck
+              port: http
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 0.01
+              memory: 64Mi
+            limits:
+              cpu: 0.5
+              memory: 128Mi
+          volumeMounts:
+            - name: config
+              mountPath: /app/config
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: config
+          hostPath:
+            path: /home/artlab/projects/homelab/apps/home/config
+            type: Directory
+        - name: tmp
+          emptyDir:
+            medium: Memory
+            sizeLimit: 64Mi
+        - name: vals
+          hostPath:
+            path: /usr/local/bin/vals
+            type: File

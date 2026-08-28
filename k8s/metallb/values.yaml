@@ -1,0 +1,3 @@
+# MetalLB — только L2 (ARP), без BGP/frr-k8s
+frrk8s:
+  enabled: false
