@@ -76,3 +76,10 @@ sops_rpm_url: "https://github.com/getsops/sops/releases/download/v{{ sops_versio
 # Ставим из исходного кода, пин по тегу релиза (нужны golang и git).
 vals_version: "v0.46.0"
 vals_repo: "https://github.com/helmfile/vals.git"
+
+# --- kubeseal: клиент sealed-secrets (шифрование секретов для Kubernetes) ---
+# Версия обязана совпадать с версией контроллера (чарт sealed-secrets).
+kubeseal_version: "0.39.1"
+kubeseal_url: "https://github.com/bitnami/sealed-secrets/releases/download/v{{ kubeseal_version }}/kubeseal-{{ kubeseal_version }}-linux-amd64.tar.gz"
+# SHA256 из sealed-secrets_0.39.1_checksums.txt (целостность при скачивании).
+kubeseal_checksum: "sha256:785c8316370073426d6ce0b7e9e949bd7ba3709ef7f9e45a900aa07e5596db9c"
