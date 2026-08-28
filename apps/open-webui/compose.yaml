@@ -15,6 +15,7 @@ services:
       WEBUI_SECRET_KEY: ${WEBUI_SECRET_KEY:?set WEBUI_SECRET_KEY in secrets.enc.env}
       DEFAULT_LOCALE: ${DEFAULT_LOCALE:-ru}
       WEBUI_URL: https://ai.${DOMAIN}
+      WEBUI_DISABLE_TELEMETRY: "true"
       # Пока движок не подключён: ни Ollama, ни OpenAI-совместимый API.
       # Бэкенд (LocalAI или свой Ollama) включается позже через эти переменные.
       ENABLE_OLLAMA_API: "false"

@@ -9,7 +9,6 @@ energy:
 file:
 go2rtc:
 history:
-homeassistant_alerts:
 logbook:
 media_source:
 mobile_app:

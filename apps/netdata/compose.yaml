@@ -6,6 +6,9 @@ services:
     container_name: netdata
     hostname: homelab
 
+    environment:
+      DISABLE_TELEMETRY: "1"
+
     cap_add:
       - SYS_PTRACE
       - DAC_READ_SEARCH

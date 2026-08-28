@@ -17,6 +17,7 @@ services:
       LOCALAI_API_KEY: ${LOCALAI_API_KEY:?set LOCALAI_API_KEY in local-ai/secrets.enc.env}
       LOCALAI_LOG_LEVEL: info
       LOCALAI_SUBTLE_KEY_COMPARISON: "true"
+      LOCALAI_DISABLE_USAGE_STATS: "true"
 
     networks:
       - traefiknet
