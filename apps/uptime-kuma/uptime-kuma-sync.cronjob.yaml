@@ -65,18 +65,14 @@ spec:
                   type: RuntimeDefault
               volumeMounts:
                 - name: config
-                  mountPath: /app/sync-monitors.ts
-                  subPath: sync-monitors.ts
-                  readOnly: true
-                - name: config
-                  mountPath: /app/monitors.yaml
-                  subPath: monitors.yaml
+                  mountPath: /app
                   readOnly: true
                 - name: deps
                   mountPath: /opt/deps
           volumes:
             - name: config
-              configMap:
-                name: uptime-kuma-sync
+              hostPath:
+                path: /storage/apps/uptime-kuma-sync
+                type: Directory
             - name: deps
               emptyDir: {}
