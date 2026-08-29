@@ -1,0 +1,29 @@
+--- a/seahub/base/accounts.py
++++ b/seahub/base/accounts.py
+@@ -99,21 +99,21 @@
+         """
+         Creates and saves a User with given username and password.
+         """
+-        virtual_id = gen_user_virtual_id()
+-
++        # PATCH(oauth-sso): use real email as canonical id so Seafile generic
++        # OAuth get_old_user / RemoteUserBackend can link accounts by email.
+         # Lowercasing email address to avoid confusion.
+         email = email.lower()
+ 
+-        user = User(email=virtual_id)
++        user = User(email=email)
+         user.is_staff = is_staff
+         user.is_active = is_active
+         user.set_password(password)
+         user.save()
+ 
+         # Set email as contact email.
+-        Profile.objects.add_or_update(username=virtual_id, contact_email=email)
++        Profile.objects.add_or_update(username=email, contact_email=email)
+ 
+-        return self.get(email=virtual_id)
++        return self.get(email=email)
+ 
+     def update_role(self, email, role, is_manual_set=True):
+         """

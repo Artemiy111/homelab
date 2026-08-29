@@ -14,16 +14,9 @@ ensure_dirs 0755 \
   "$APPS_STORAGE_PATH"/seafile/onlyoffice/lib \
   "$APPS_STORAGE_PATH"/seafile/onlyoffice/logs
 
-# Подключаем seahub_onlyoffice.py (примонтирован в compose.yaml) к настройкам
-# Seahub. Файл настроек создаёт контейнер от root, поэтому дописываем через
-# docker exec. Однократная операция: при следующих запусках строка уже есть.
-if docker inspect --format '{{.State.Running}}' seafile 2>/dev/null | grep -qx true; then
-  docker exec seafile sh -c '
-    test -f "$1" || exit 0
-    grep -q "BEGIN HOMELAB ONLYOFFICE" "$1" && exit 0
-    printf "\n# BEGIN HOMELAB ONLYOFFICE\nexec(open(\"/shared/seafile/conf/seahub_onlyoffice.py\").read())\n# END HOMELAB ONLYOFFICE\n" >>"$1"
-    echo "Подключён seahub_onlyoffice.py — перезапустите seafile"
-  ' sh /shared/seafile/conf/seahub_settings.py
-fi
+# init.sh выполняется ДО `docker compose up -d` (создаёт каталоги хранилища и
+# проверяет Compose-конфигурацию). Всё, что требует уже запущенного контейнера
+# Seafile (подключение seahub_onlyoffice.py / seahub_oauth.py в seahub_settings.py),
+# вынесено в отдельный скрипт init-postinstall.sh, который запускают ПОСЛЕ `up -d`.
 
 compose_config "$repo_root/apps/seafile"

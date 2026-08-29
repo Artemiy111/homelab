@@ -185,9 +185,14 @@ service_init() {
   fi
 }
 
-# Полный цикл одного сервиса: init.sh + compose up -d.
+# Полный цикл одного сервиса: init.sh (до up) + compose up -d + опциональный
+# init-postinstall.sh (после up, если требует запущенный контейнер).
 service_bootstrap() {
   local service="$1"
   service_init "$service"
   service_compose "$service" up -d --remove-orphans
+  local post="$apps_dir/$service/init-postinstall.sh"
+  if [[ -f "$post" ]]; then
+    service_run "$service" bash "$post"
+  fi
 }

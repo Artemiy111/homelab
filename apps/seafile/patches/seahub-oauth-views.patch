@@ -1,0 +1,43 @@
+--- a/seahub/oauth/views.py
++++ b/seahub/oauth/views.py
+@@ -70,6 +70,14 @@
+         ENABLE_CUSTOM_OAUTH = False
+ 
+ 
++def _any_staff_user():
++    """PATCH(jit): True if any Seafile staff user already exists."""
++    try:
++        return bool(User.objects.get_superusers())
++    except Exception:
++        return False
++
++
+ def oauth_check(func):
+     """ Decorator for check if OAuth valid.
+     """
+@@ -207,8 +215,23 @@
+             email = old_user.username
+             is_new_user = False
+         except User.DoesNotExist:
+-            email = None
+-            is_new_user = True
++            # PATCH(jit): auto-provision unknown user on first SSO login
++            if getattr(settings, 'OAUTH_CREATE_UNKNOWN_USER', False):
++                is_staff = False
++                if getattr(settings, 'OAUTH_PROMOTE_FIRST_USER_TO_ADMIN', False):
++                    admin_email = os.environ.get('INIT_SEAFILE_ADMIN_EMAIL', '').strip().lower()
++                    if admin_email and old_email.lower() == admin_email:
++                        is_staff = True
++                try:
++                    User.objects.create_user(old_email, password=None, is_staff=is_staff, is_active=True)
++                except Exception as e:
++                    logger.error('JIT provisioning failed: %s' % e)
++                    return render_error(request, _('Error, please contact administrator.'))
++                email = old_email
++                is_new_user = True
++            else:
++                email = None
++                is_new_user = True
+     else:
+         email = None
+         is_new_user = True
