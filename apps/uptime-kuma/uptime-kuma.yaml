@@ -43,7 +43,8 @@ spec:
             httpGet:
               path: /
               port: http
-            initialDelaySeconds: 5
+            initialDelaySeconds: 15
+            periodSeconds: 5
           livenessProbe:
             httpGet:
               path: /
@@ -67,8 +68,8 @@ spec:
               cpu: 10m
               memory: 128Mi
             limits:
-              cpu: 50m
-              memory: 320Mi
+              cpu: 150m
+              memory: 448Mi
           volumeMounts:
             - name: data
               mountPath: /app/data
