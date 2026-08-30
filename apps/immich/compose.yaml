@@ -14,7 +14,7 @@ services:
     image: ghcr.io/immich-app/immich-server:${IMMICH_VERSION:-v3}
     container_name: immich-server
     depends_on:
-      - redis
+      - valkey
       - database
 
     # extends:
@@ -28,6 +28,7 @@ services:
 
     environment:
       DB_HOSTNAME: database
+      REDIS_HOSTNAME: valkey
       DB_PASSWORD: ${DB_PASSWORD:?set in apps/immich secrets.enc.env}
       DB_USERNAME: ${DB_USERNAME:-postgres}
       DB_DATABASE_NAME: ${DB_DATABASE_NAME:-immich}
@@ -36,7 +37,7 @@ services:
     networks:
       - default
       - traefiknet
-    restart: always
+    restart: unless-stopped
 
     healthcheck:
       disable: false
@@ -58,17 +59,17 @@ services:
     volumes:
       - model-cache:/cache
 
-    restart: always
+    restart: unless-stopped
 
     healthcheck:
       disable: false
 
-  redis:
+  valkey:
     image: docker.io/valkey/valkey:9@sha256:8e8d64b405ce18f41b8e5ee20aa4687a8ed0022d1298f2ce31cdcf3a76e09411
-    container_name: immich-redis
-    restart: always
+    container_name: immich-valkey
+    restart: unless-stopped
     healthcheck:
-      test: redis-cli ping || exit 1
+      test: valkey-cli ping | grep PONG
 
   database:
     image: ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0@sha256:bcf63357191b76a916ae5eb93464d65c07511da41e3bf7a8416db519b40b1c23
