@@ -63,6 +63,9 @@ services:
       ZITADEL_OIDC_DEFAULTLOGINURLV2: https://id.${DOMAIN}/ui/v2/login/login?authRequest=
       ZITADEL_OIDC_DEFAULTLOGOUTURLV2: https://id.${DOMAIN}/ui/v2/login/logout?post_logout_redirect=
       ZITADEL_SAML_DEFAULTLOGINURLV2: https://id.${DOMAIN}/ui/v2/login/login?samlRequest=
+      # SSRF-protection deny list (default from cmd/defaults.yaml), minus 192.0.2.10/16
+      # so ZITADEL can POST back-channel logout tokens to services on the LAN (e.g. immich.example.com -> 192.0.2.10).
+      ZITADEL_HTTPCLIENT_DENYLIST: "localhost,0.0.0.0/8,10.0.0.0/8,100.64.0.0/10,127.0.0.0/8,169.254.0.0/16,172.16.0.0/12,198.18.0.0/15,::/128,::1/128,fc00::/7,fe80::/10"
 
     volumes:
       - ${APPS_STORAGE_PATH:-/storage/apps}/zitadel/bootstrap:/zitadel/bootstrap:rw
