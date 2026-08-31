@@ -1,0 +1,94 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: gatus
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: gatus
+  ports:
+    - name: web
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gatus
+  namespace: default
+spec:
+  revisionHistoryLimit: 2
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gatus
+  template:
+    metadata:
+      labels:
+        app: gatus
+        tier: app
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        runAsNonRoot: true
+      containers:
+        - name: gatus
+          image: "ghcr.io/twin/gatus:v5.36.0@sha256:c5f210d095fa78e6efaa20ffeb14803f2ba4f10615e16a6d12087697149617f0"
+          ports:
+            - name: http
+              containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: homelab-config
+            - secretRef:
+                name: gatus
+          env:
+            - name: TELEGRAM_PROXY_URL
+              value: "http://$(SERVER_IP):8440"
+          startupProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 1m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 160Mi
+          volumeMounts:
+            - name: config
+              mountPath: /config
+              readOnly: true
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: config
+          hostPath:
+            path: /home/artlab/projects/homelab/apps/gatus/config
+            type: Directory
+        - name: data
+          hostPath:
+            path: /storage/apps/gatus/data
+            type: Directory
