@@ -16,8 +16,9 @@ Stirling PDF — веб-сервис для операций с PDF. Он дос
 bash scripts/bootstrap-platform.sh pdf
 ```
 
-`init.sh` создаёт каталоги состояния и генерирует учётные данные администратора
-в зашифрованном `secrets.enc.env`.
+`init.sh` создаёт каталоги состояния и проверяет конфигурацию Compose. Учётные
+данные администратора хранятся в зашифрованном `secrets.enc.env`
+(`PDF_ADMIN_USERNAME` и `PDF_ADMIN_PASSWORD`).
 
 Проверка состояния:
 

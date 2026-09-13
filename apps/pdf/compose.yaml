@@ -2,7 +2,7 @@ name: pdf
 
 services:
   stirling-pdf:
-    image: docker.stirlingpdf.com/stirlingtools/stirling-pdf:latest@sha256:3b3670fce70b396ec56ba380a3cc7858e0abf83fe13f31c88f7737847763a396
+    image: docker.stirlingpdf.com/stirlingtools/stirling-pdf:2.14.3@sha256:3b3670fce70b396ec56ba380a3cc7858e0abf83fe13f31c88f7737847763a396
     container_name: stirling-pdf
     volumes:
       - ${APPS_STORAGE_PATH:-/storage/apps}/pdf/tessdata:/usr/share/tessdata:Z
@@ -19,8 +19,8 @@ services:
       SYSTEM_DEFAULTLOCALE: ${DEFAULT_LOCALE}
       SYSTEM_FRONTENDURL: https://pdf.${DOMAIN}
       SYSTEM_GOOGLEVISIBILITY: "false"
-      PUID: 1000
-      PGID: 1000
+      PUID: "1000"
+      PGID: "1000"
       JAVA_CUSTOM_OPTS: "-Xmx640m"
 
     networks:

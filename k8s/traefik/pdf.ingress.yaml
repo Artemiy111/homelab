@@ -1,0 +1,20 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: stirlingpdf
+  namespace: default
+spec:
+  ingressClassName: traefik
+  tls:
+    - secretName: wildcard-tls
+  rules:
+    - host: pdf.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: stirlingpdf
+                port:
+                  number: 8080
