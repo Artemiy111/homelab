@@ -102,7 +102,7 @@ spec:
               mountPath: /logs
             - name: pipeline
               mountPath: /pipeline
-            - name: customFiles
+            - name: custom-files
               mountPath: /customFiles
       volumes:
         - name: tessdata
@@ -121,7 +121,7 @@ spec:
           hostPath:
             path: /storage/apps/pdf/pipeline
             type: Directory
-        - name: customFiles
+        - name: custom-files
           hostPath:
             path: /storage/apps/pdf/customFiles
             type: Directory
