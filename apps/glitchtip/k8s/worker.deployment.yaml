@@ -1,0 +1,135 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: glitchtip-worker
+spec:
+  revisionHistoryLimit: 2
+  replicas: 1
+  selector:
+    matchLabels:
+      app: glitchtip-worker
+  template:
+    metadata:
+      labels:
+        app: glitchtip-worker
+        tier: app
+    spec:
+      initContainers:
+        - name: migrate
+          image: "glitchtip/glitchtip:6@sha256:a3d8eb1b36c1e1603d55ab32711ea3dd8115874742a781a57391a62a16e0dff6"
+          env:
+            - name: DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-config
+                  key: DOMAIN
+            - name: POSTGRES_USER
+              value: glitchtip
+            - name: POSTGRES_DB
+              value: glitchtip
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: glitchtip
+                  key: POSTGRES_PASSWORD
+            - name: DATABASE_URL
+              value: "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@glitchtip-postgres:5432/$(POSTGRES_DB)"
+            - name: GLITCHTIP_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: glitchtip
+                  key: GLITCHTIP_CLIENT_ID
+            - name: GLITCHTIP_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: glitchtip
+                  key: GLITCHTIP_CLIENT_SECRET
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              ./manage.py migrate &&
+              ./manage.py shell -c "import os; from allauth.socialaccount.models import SocialApp; cid = os.environ.get('GLITCHTIP_CLIENT_ID') or ''; sec = os.environ.get('GLITCHTIP_CLIENT_SECRET') or ''; print('OIDC: client id/secret not set, skipping') if not (cid and sec) else SocialApp.objects.update_or_create(provider='openid_connect', provider_id='zitadel', defaults=dict(name='Zitadel', client_id=cid, secret=sec, settings={'server_url': 'https://id.' + os.environ['DOMAIN'] + '/.well-known/openid-configuration'}))"
+          securityContext:
+            runAsUser: 5000
+            runAsGroup: 5000
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 10m
+              memory: 128Mi
+            limits:
+              cpu: 250m
+              memory: 512Mi
+      containers:
+        - name: glitchtip-worker
+          image: "glitchtip/glitchtip:6@sha256:a3d8eb1b36c1e1603d55ab32711ea3dd8115874742a781a57391a62a16e0dff6"
+          envFrom:
+            - configMapRef:
+                name: homelab-config
+          env:
+            - name: SERVER_ROLE
+              value: worker
+            - name: DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-config
+                  key: DOMAIN
+            - name: POSTGRES_USER
+              value: glitchtip
+            - name: POSTGRES_DB
+              value: glitchtip
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: glitchtip
+                  key: POSTGRES_PASSWORD
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: glitchtip
+                  key: SECRET_KEY
+            - name: DATABASE_URL
+              value: "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@glitchtip-postgres:5432/$(POSTGRES_DB)"
+            - name: VALKEY_URL
+              value: "redis://glitchtip-valkey:6379/0"
+            - name: GLITCHTIP_DOMAIN
+              value: "https://glitchtip.$(DOMAIN)"
+          startupProbe:
+            exec:
+              command: ["sh", "-c", "grep -q runworker /proc/[0-9]*/cmdline"]
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            failureThreshold: 12
+          livenessProbe:
+            exec:
+              command: ["sh", "-c", "grep -q runworker /proc/[0-9]*/cmdline"]
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            exec:
+              command: ["sh", "-c", "grep -q runworker /proc/[0-9]*/cmdline"]
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          securityContext:
+            runAsUser: 5000
+            runAsGroup: 5000
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+            limits:
+              cpu: 300m
+              memory: 512Mi
