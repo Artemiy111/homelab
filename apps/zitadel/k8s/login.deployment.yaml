@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zitadel-login
+  namespace: default
+spec:
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
+  replicas: 1
+  selector:
+    matchLabels:
+      app: zitadel-login
+  template:
+    metadata:
+      labels:
+        app: zitadel-login
+    spec:
+      enableServiceLinks: false
+      containers:
+        - name: zitadel-login
+          image: "ghcr.io/zitadel/zitadel-login:v4.17.1@sha256:8035df2409afb35a3999482ee98e453261715f98d47e4b62e948e4a1ddf4345f"
+          ports:
+            - name: http
+              containerPort: 3000
+          env:
+            - name: DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-config
+                  key: DOMAIN
+            - name: TZ
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-config
+                  key: TZ
+            - name: ZITADEL_API_URL
+              value: http://zitadel:8080
+            - name: NEXT_PUBLIC_BASE_PATH
+              value: /ui/v2/login
+            - name: ZITADEL_SERVICE_USER_TOKEN_FILE
+              value: /zitadel/bootstrap/login-client.pat
+            - name: CUSTOM_REQUEST_HEADERS
+              value: "Host:id.$(DOMAIN),X-Forwarded-Proto:https"
+          startupProbe:
+            exec:
+              command: ["/bin/sh", "-c", "node /app/healthcheck.mjs http://localhost:3000/ui/v2/login/healthy"]
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            failureThreshold: 30
+          livenessProbe:
+            exec:
+              command: ["/bin/sh", "-c", "node /app/healthcheck.mjs http://localhost:3000/ui/v2/login/healthy"]
+            periodSeconds: 30
+            timeoutSeconds: 30
+            failureThreshold: 3
+          readinessProbe:
+            exec:
+              command: ["/bin/sh", "-c", "node /app/healthcheck.mjs http://localhost:3000/ui/v2/login/healthy"]
+            periodSeconds: 15
+            timeoutSeconds: 30
+            failureThreshold: 3
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+              add: ["CHOWN", "DAC_OVERRIDE", "FOWNER", "SETGID", "SETUID"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: "1"
+              memory: 256Mi
+          volumeMounts:
+            - name: bootstrap
+              mountPath: /zitadel/bootstrap
+              readOnly: true
+      volumes:
+        - name: bootstrap
+          hostPath:
+            path: /storage/apps/zitadel/bootstrap
+            type: Directory

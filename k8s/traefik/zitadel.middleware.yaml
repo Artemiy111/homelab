@@ -1,0 +1,19 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: zitadel-strip-api
+  namespace: default
+spec:
+  stripPrefix:
+    prefixes:
+      - /api
+    forceSlash: false
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: zitadel-root-rewrite
+  namespace: default
+spec:
+  replacePath:
+    path: /ui/v2/login/

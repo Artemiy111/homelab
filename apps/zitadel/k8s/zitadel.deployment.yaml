@@ -1,0 +1,160 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zitadel
+  namespace: default
+spec:
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
+  replicas: 1
+  selector:
+    matchLabels:
+      app: zitadel
+  template:
+    metadata:
+      labels:
+        app: zitadel
+    spec:
+      enableServiceLinks: false
+      initContainers:
+        - name: wait-for-db
+          image: "postgres:18-alpine@sha256:d3e1620b530c944afa6e887d22eb899824da68e19c52024bf98f5220c88a65b2"
+          command: ["/bin/sh", "-c", "until pg_isready -h zitadel-postgres -U postgres -d zitadel; do echo waiting for zitadel-postgres; sleep 3; done"]
+          securityContext:
+            runAsUser: 70
+            runAsGroup: 70
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+      containers:
+        - name: zitadel
+          image: "ghcr.io/zitadel/zitadel:v4.17.1@sha256:3ac6910685d48f32481f01f45e3e6215efe5a9df2c069591b481e9a101712db5"
+          # ENTRYPOINT образа — /app/zitadel, поэтому дополнительные команды
+          # передаём через args (в compose command приклеивался к entrypoint).
+          args:
+            - start-from-init
+            - --masterkeyFile
+            - /zitadel/masterkey
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-config
+                  key: DOMAIN
+            - name: TZ
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-config
+                  key: TZ
+            - name: POSTGRES_ZITADEL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: zitadel
+                  key: POSTGRES_ZITADEL_PASSWORD
+            - name: ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: zitadel
+                  key: ADMIN_PASSWORD
+            - name: ZITADEL_PORT
+              value: "8080"
+            - name: ZITADEL_EXTERNALDOMAIN
+              value: "id.$(DOMAIN)"
+            - name: ZITADEL_EXTERNALPORT
+              value: "443"
+            - name: ZITADEL_EXTERNALSECURE
+              value: "true"
+            - name: ZITADEL_TLS_ENABLED
+              value: "false"
+            - name: ZITADEL_DATABASE_POSTGRES_DSN
+              value: "postgres://zitadel:$(POSTGRES_ZITADEL_PASSWORD)@zitadel-postgres:5432/zitadel?sslmode=disable"
+            - name: ZITADEL_FIRSTINSTANCE_ORG_HUMAN_USERNAME
+              value: admin
+            - name: ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORD
+              value: "$(ADMIN_PASSWORD)"
+            - name: ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORDCHANGEREQUIRED
+              value: "false"
+            - name: ZITADEL_FIRSTINSTANCE_LOGINCLIENTPATPATH
+              value: /zitadel/bootstrap/login-client.pat
+            - name: ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_MACHINE_USERNAME
+              value: login-client
+            - name: ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_MACHINE_NAME
+              value: Automatically Initialized IAM_LOGIN_CLIENT
+            - name: ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_PAT_EXPIRATIONDATE
+              value: "2099-01-01T00:00:00Z"
+            - name: ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_REQUIRED
+              value: "true"
+            - name: ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_BASEURI
+              value: "https://id.$(DOMAIN)/ui/v2/login/"
+            - name: ZITADEL_OIDC_DEFAULTLOGINURLV2
+              value: "https://id.$(DOMAIN)/ui/v2/login/login?authRequest="
+            - name: ZITADEL_OIDC_DEFAULTLOGOUTURLV2
+              value: "https://id.$(DOMAIN)/ui/v2/login/logout?post_logout_redirect="
+            - name: ZITADEL_SAML_DEFAULTLOGINURLV2
+              value: "https://id.$(DOMAIN)/ui/v2/login/login?samlRequest="
+            # SSRF deny list без 192.0.2.10/16 (back-channel logout в LAN).
+            - name: ZITADEL_HTTPCLIENT_DENYLIST
+              value: "localhost,0.0.0.0/8,10.0.0.0/8,100.64.0.0/10,127.0.0.0/8,169.254.0.0/16,172.16.0.0/12,198.18.0.0/15,::/128,::1/128,fc00::/7,fe80::/10"
+          startupProbe:
+            exec:
+              command: ["/app/zitadel", "ready"]
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            failureThreshold: 30
+          livenessProbe:
+            exec:
+              command: ["/app/zitadel", "ready"]
+            periodSeconds: 30
+            timeoutSeconds: 30
+            failureThreshold: 3
+          readinessProbe:
+            exec:
+              command: ["/app/zitadel", "ready"]
+            periodSeconds: 15
+            timeoutSeconds: 30
+            failureThreshold: 3
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+              add: ["CHOWN", "DAC_OVERRIDE", "FOWNER", "SETGID", "SETUID"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi
+          volumeMounts:
+            - name: bootstrap
+              mountPath: /zitadel/bootstrap
+            - name: masterkey
+              mountPath: /zitadel/masterkey
+              readOnly: true
+      volumes:
+        - name: bootstrap
+          hostPath:
+            path: /storage/apps/zitadel/bootstrap
+            type: Directory
+        - name: masterkey
+          hostPath:
+            path: /storage/apps/zitadel/masterkey
+            type: File
