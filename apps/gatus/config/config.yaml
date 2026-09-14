@@ -52,8 +52,8 @@ endpoints:
     url: ${SERVER_IP}
     interval: 60s
     dns:
-      # uptime.* резолвится в k8s-VIP (192.0.2.10); берём имя, которое
-      # по-прежнему указывает на хост (SERVER_IP), — проверяем DNS Technitium.
+      # traefik.${DOMAIN} резолвится в IP узла (SERVER_IP) — проверяем DNS
+      # Technitium в k8s.
       query-name: traefik.${DOMAIN}
       query-type: A
     conditions:
@@ -128,8 +128,7 @@ endpoints:
   - name: Netdata
     group: Monitoring
     # UI закрыт forward auth (302 без авторизации), поэтому проверяем агент
-    # напрямую. Сервис ещё в Docker, но внутри кластера доступен по имени через
-    # мост apps/netdata/k8s/bridge.yaml.
+    # напрямую (netdata в k8s).
     url: http://netdata/api/v1/info
     interval: 60s
     client: &docker-client

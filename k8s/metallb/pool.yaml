@@ -1,3 +1,9 @@
+# MetalLB выведен (2026-09-14): single-node кластер, все ingress обслуживаются
+# через kube-proxy externalIPs 192.0.2.10, VIP .253 больше не используется.
+# Манифесты оставлены, чтобы восстановить LB при появлении второй ноды:
+#   helm install metallb metallb/metallb -n metallb -f values.yaml
+#   kubectl apply -f pool.yaml
+---
 apiVersion: metallb.io/v1beta1
 kind: IPAddressPool
 metadata:

@@ -17,7 +17,7 @@ spec:
         app: element-turn
     spec:
       # TURN слушает 3479 и relay 21000-21499 на LAN-адресе узла: произвольные
-      # UDP-порты MetalLB-VIP (.253) не обслуживает, клиенты идут на .254.
+      # UDP-порты на ingress-VIP (.254) не обслуживаются, клиенты идут на .254.
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
       enableServiceLinks: false

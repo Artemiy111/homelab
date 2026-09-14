@@ -17,7 +17,7 @@ spec:
         app: talk-hpb
     spec:
       # TURN/STUN 3478 и relay 20000-20499 публикуются напрямую на LAN-адресе
-      # узла: произвольные UDP-порты MetalLB-VIP (.253) не обслуживает.
+      # узла: произвольные UDP-порты на ingress-VIP (.254) не обслуживаются.
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
       enableServiceLinks: false

@@ -63,7 +63,7 @@ kubectl rollout restart deploy/structurizr
   `oauth2-proxy` (у open-core нет своей аутентификации) + `secure-headers` +
   `ratelimit-default`.
 
-DNS-запись `structurizr.${DOMAIN} → 192.0.2.10` указывает на MetalLB-VIP
+DNS-запись `structurizr.${DOMAIN} → 192.0.2.10` (IP узла) указывает на
 Traefik кластера, поэтому forward auth больше не обходится: он единственная
 защита сервиса.
 
