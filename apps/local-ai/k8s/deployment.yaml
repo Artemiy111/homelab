@@ -20,7 +20,7 @@ spec:
       terminationGracePeriodSeconds: 120
       containers:
         - name: local-ai
-          image: "localai/localai@sha256:78befe43707579dbe1b1d3f17d9788aa41ec493da30a6b6aabdf39e5efd23b7c"
+          image: "localai/localai:v4.8.0@sha256:78befe43707579dbe1b1d3f17d9788aa41ec493da30a6b6aabdf39e5efd23b7c"
           ports:
             - name: http
               containerPort: 8080

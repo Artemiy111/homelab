@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: navidrome
-          image: "deluan/navidrome@sha256:7c43af9f651654e97278be871705aae85a4ee0fa4b310337989699a8ada9b3ed"
+          image: "deluan/navidrome:0.63.1@sha256:7c43af9f651654e97278be871705aae85a4ee0fa4b310337989699a8ada9b3ed"
           ports:
             - name: http
               containerPort: 4533

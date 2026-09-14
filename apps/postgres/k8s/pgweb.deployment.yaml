@@ -20,7 +20,7 @@ spec:
         # pgweb падает с exit 1, если БД ещё не готова (в compose это
         # depends_on: service_healthy).
         - name: wait-for-db
-          image: "postgres@sha256:9a8afca54e7861fd90fab5fdf4c42477a6b1cb7d293595148e674e0a3181de15"
+          image: "postgres:18.4-alpine@sha256:9a8afca54e7861fd90fab5fdf4c42477a6b1cb7d293595148e674e0a3181de15"
           command: ["/bin/sh", "-c", "until pg_isready -h postgres-db -p 5432 -U playground; do echo waiting for postgres-db; sleep 2; done"]
           securityContext:
             runAsUser: 70
@@ -40,7 +40,7 @@ spec:
               memory: 64Mi
       containers:
         - name: pgweb
-          image: "ghcr.io/sosedoff/pgweb@sha256:a5256d416e2e8b92d69a4459058e3eca33a9f075d8325491644411d0bc3bd70b"
+          image: "ghcr.io/sosedoff/pgweb:0.17.0@sha256:a5256d416e2e8b92d69a4459058e3eca33a9f075d8325491644411d0bc3bd70b"
           ports:
             - name: http
               containerPort: 8081

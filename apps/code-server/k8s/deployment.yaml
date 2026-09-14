@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: code-server
-          image: "codercom/code-server@sha256:b88ed46a6ace76a0294a17a24f39aa88032ed0a3692c3d8ab5433b47ab57ccbf"
+          image: "codercom/code-server:4.132.0@sha256:b88ed46a6ace76a0294a17a24f39aa88032ed0a3692c3d8ab5433b47ab57ccbf"
           ports:
             - name: http
               containerPort: 8080
