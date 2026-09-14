@@ -4,6 +4,9 @@ metadata:
   name: gatus
   namespace: default
 spec:
+  # SQLite в hostPath: два пода при rolling update пишут в одну БД.
+  strategy:
+    type: Recreate
   revisionHistoryLimit: 2
   replicas: 1
   selector:
