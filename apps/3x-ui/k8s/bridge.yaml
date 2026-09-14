@@ -1,0 +1,36 @@
+# Мост k8s → Docker: Gatus ходит по имени `xui`, трафик уходит на
+# docker-контейнер через порт, опубликованный на шлюзе traefiknet
+# (см. `ports` в apps/3x-ui/compose.yaml). При миграции сервиса в k8s заменить
+# EndpointSlice на selector — имя и порт для Gatus не меняются.
+apiVersion: v1
+kind: Service
+metadata:
+  # Имя латиницей: DNS-метка Service не может начинаться с цифры, поэтому
+  # в кластере 3x-ui доступен как xui (Gatus: tcp://xui:2053).
+  name: xui
+  namespace: default
+spec:
+  type: ClusterIP
+  ports:
+    - name: panel
+      port: 2053
+      targetPort: panel
+      protocol: TCP
+---
+apiVersion: discovery.k8s.io/v1
+kind: EndpointSlice
+metadata:
+  name: xui-bridge
+  namespace: default
+  labels:
+    kubernetes.io/service-name: xui
+addressType: IPv4
+ports:
+  - name: panel
+    port: 18086
+    protocol: TCP
+endpoints:
+  - addresses:
+      - 172.20.0.1
+    conditions:
+      ready: true

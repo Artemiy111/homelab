@@ -31,6 +31,11 @@ services:
       - /var/log:/host/var/log:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
 
+    # Порт на шлюзе docker-сети: нужен мосту из k8s (apps/netdata/k8s/bridge.yaml),
+    # чтобы Gatus в кластере не зависел от docker-имён. Из LAN недостижим.
+    ports:
+      - "172.20.0.1:18081:19999"
+
     networks:
       - traefiknet
     restart: unless-stopped

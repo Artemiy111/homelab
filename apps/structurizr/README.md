@@ -42,6 +42,27 @@ docker compose up -d
 необходимости закрыть доступ стоит добавить Traefik middleware (например,
 basicauth) на роутер `structurizr`.
 
+## Мониторинг из k8s (мост)
+
+Gatus перенесён в Kubernetes и не видит docker-сеть `traefiknet`, поэтому не может
+обращаться к `structurizr:8080` по имени контейнера. Пока сервис остаётся в Docker,
+связь обеспечивает мост:
+
+- `compose.yaml` публикует порт на шлюзе docker-сети `traefiknet`:
+  `172.20.0.1:18080:8080`;
+- `k8s/bridge.yaml` создаёт Service `structurizr` **без selector** и
+  `EndpointSlice` с адресом `172.20.0.1:18080`.
+
+Gatus ходит по k8s-имени без порта — `http://structurizr/` (у Service `port: 80`).
+При миграции structurizr в k8s: удалить `k8s/bridge.yaml`, убрать `ports` из
+`compose.yaml` и заменить мост обычными `deployment.yaml` + `service.yaml` с
+selector — конфиг Gatus не меняется.
+
+Порт привязан к `172.20.0.1`, а не к LAN-адресу, поэтому из локальной сети он
+недостижим — значит, forward auth Traefik (единственная защита structurizr,
+у которого нет своей аутентификации) не обходится. Firewalld открывать порт не
+нужно: Docker публикует его через DNAT/FORWARD в обход INPUT-правил.
+
 ## Рабочие пространства (workspace)
 
 Диаграммы C4 всех сервисов homelab описаны в `homelab.dsl` в этом каталоге.

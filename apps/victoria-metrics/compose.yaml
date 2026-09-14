@@ -14,6 +14,11 @@ services:
     volumes:
       - ${APPS_STORAGE_PATH:-/storage/apps}/victoria-metrics/vmdata:/data:Z
 
+    # Порт на шлюзе docker-сети: мост из k8s (apps/victoria-metrics/k8s/bridge.yaml),
+    # чтобы Gatus в кластере не зависел от docker-имён. Из LAN недостижим.
+    ports:
+      - "172.20.0.1:18083:8428"
+
     networks:
       - traefiknet
     restart: unless-stopped
@@ -31,6 +36,10 @@ services:
       - -remoteWrite.url=http://victoriametrics:8428/api/v1/write
     volumes:
       - ./config/vmagent/scrape.yml:/etc/vmagent/scrape.yml:Z,ro
+
+    # Порт на шлюзе docker-сети: мост из k8s (apps/victoria-metrics/k8s/bridge.yaml).
+    ports:
+      - "172.20.0.1:18084:8429"
 
     depends_on:
       - victoriametrics
@@ -61,6 +70,10 @@ services:
     volumes:
       - ${APPS_STORAGE_PATH:-/storage/apps}/victoria-metrics/grafana:/var/lib/grafana:Z
       - ./config/grafana/provisioning:/etc/grafana/provisioning:Z,ro
+
+    # Порт на шлюзе docker-сети: мост из k8s (apps/victoria-metrics/k8s/bridge.yaml).
+    ports:
+      - "172.20.0.1:18082:3000"
 
     depends_on:
       - victoriametrics

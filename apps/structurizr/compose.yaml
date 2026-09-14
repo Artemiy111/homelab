@@ -10,6 +10,14 @@ services:
       - ${APPS_STORAGE_PATH:-/storage/apps}/structurizr:/usr/local/structurizr:Z,rw
       - ./structurizr.properties:/usr/local/structurizr/structurizr.properties:Z,ro
 
+    # Порт биндится на шлюз docker-сети traefiknet (172.20.0.1), а не на
+    # SERVER_IP: из подов он достижим, из LAN — нет (маршрута в 172.20.0.0/16
+    # ни у кого нет). Нужен только для моста из k8s (Service+EndpointSlice в
+    # apps/structurizr/k8s/bridge.yaml): Gatus в кластере не видит docker-сеть.
+    # Firewalld открывать порт не нужно — Docker публикует его через DNAT/FORWARD.
+    ports:
+      - "172.20.0.1:18080:8080"
+
     networks:
       - traefiknet
 
