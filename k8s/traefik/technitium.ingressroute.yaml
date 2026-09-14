@@ -11,9 +11,7 @@ spec:
     - match: Host(`dns.example.com`)
       kind: Rule
       services:
-        # hostNetwork-под: Traefik достигает его только через ClusterIP.
         - name: technitium
           port: 5380
-          nativeLB: true
   tls:
     secretName: wildcard-tls
