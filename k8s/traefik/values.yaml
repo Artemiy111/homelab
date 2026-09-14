@@ -5,6 +5,11 @@
 service:
   spec:
     type: LoadBalancer
+    # Помимо MetalLB-VIP (.253) Traefik слушает и .254 (IP узла) через
+    # kube-proxy externalIPs — на него указывают DNS-записи после вывода
+    # docker-Traefik.
+    externalIPs:
+      - 192.0.2.10
 
 ports:
   web:
