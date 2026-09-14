@@ -1,0 +1,169 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jitsi-prosody
+  namespace: default
+spec:
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jitsi-prosody
+  template:
+    metadata:
+      labels:
+        app: jitsi-prosody
+    spec:
+      enableServiceLinks: false
+      # s6-overlay требует, чтобы /run принадлежал пользователю контейнера;
+      # пустой emptyDir создаётся root-овым, поэтому чиним владельца до старта.
+      initContainers:
+        - name: fix-run-perms
+          image: "redis:8.10-alpine@sha256:978f0e01593e65eed801f2402944efcd936d43b5027e4908a7897baf88ed6241"
+          command: ["sh", "-c", "chown 1000:1000 /run && chmod 0750 /run"]
+          securityContext:
+            runAsUser: 0
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+              add: ["CHOWN", "FOWNER"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 100m
+              memory: 32Mi
+          volumeMounts:
+            - name: run
+              mountPath: /run
+      containers:
+        - name: prosody
+          image: "ghcr.io/jitsi/prosody:stable-11146-1@sha256:0e3d9ada40c03e6eef151348e0872dce7b4b1c16c173ff4a67afeae60aba2404"
+          ports:
+            - name: xmpp-client
+              containerPort: 5222
+            - name: xmpp-federation
+              containerPort: 5269
+            - name: xmpp-component
+              containerPort: 5347
+            - name: http
+              containerPort: 5280
+          env:
+            - name: TZ
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-config
+                  key: TZ
+            - name: JICOFO_AUTH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: jitsi
+                  key: JICOFO_AUTH_PASSWORD
+            - name: JICOFO_COMPONENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: jitsi
+                  key: JICOFO_COMPONENT_SECRET
+            - name: JVB_AUTH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: jitsi
+                  key: JVB_AUTH_PASSWORD
+            - name: AUTH_TYPE
+              value: internal
+            - name: ENABLE_AUTH
+              value: "1"
+            - name: ENABLE_GUESTS
+              value: "1"
+            - name: ENABLE_LOBBY
+              value: "1"
+            - name: ENABLE_XMPP_WEBSOCKET
+              value: "1"
+            - name: JICOFO_AUTH_USER
+              value: focus
+            - name: JVB_AUTH_USER
+              value: jvb
+            - name: XMPP_AUTH_DOMAIN
+              value: auth.meet.jitsi
+            - name: XMPP_DOMAIN
+              value: meet.jitsi
+            - name: XMPP_GUEST_DOMAIN
+              value: guest.meet.jitsi
+            - name: XMPP_INTERNAL_MUC_DOMAIN
+              value: internal-muc.meet.jitsi
+            - name: XMPP_INTERNAL_MUC_MODULES
+              value: ping
+            - name: XMPP_MUC_DOMAIN
+              value: muc.meet.jitsi
+            - name: XMPP_RECORDER_DOMAIN
+              value: recorder.meet.jitsi
+          startupProbe:
+            exec:
+              command: ["/bin/sh", "-c", "prosodyctl --config /run/prosody/config/prosody.cfg.lua status"]
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            failureThreshold: 60
+          livenessProbe:
+            exec:
+              command: ["/bin/sh", "-c", "prosodyctl --config /run/prosody/config/prosody.cfg.lua status"]
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            exec:
+              command: ["/bin/sh", "-c", "prosodyctl --config /run/prosody/config/prosody.cfg.lua status"]
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: plugins
+              mountPath: /prosody-plugins-custom
+            - name: storage
+              mountPath: /var/lib/prosody
+            - name: run
+              mountPath: /run
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: config
+          hostPath:
+            path: /storage/apps/jitsi/prosody/config
+            type: Directory
+        - name: plugins
+          hostPath:
+            path: /storage/apps/jitsi/prosody/prosody-plugins-custom
+            type: Directory
+        - name: storage
+          hostPath:
+            path: /storage/apps/jitsi/storage/prosody
+            type: Directory
+        - name: run
+          emptyDir:
+            sizeLimit: 16Mi
+        - name: tmp
+          emptyDir:
+            sizeLimit: 16Mi

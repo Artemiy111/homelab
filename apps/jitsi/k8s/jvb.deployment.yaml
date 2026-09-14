@@ -1,0 +1,152 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jitsi-jvb
+  namespace: default
+spec:
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jitsi-jvb
+  template:
+    metadata:
+      labels:
+        app: jitsi-jvb
+    spec:
+      # hostPort в Calico здесь не работает — медиамост публикует
+      # UDP-порт 10000 напрямую на LAN-адресе узла через hostNetwork.
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      enableServiceLinks: false
+      # s6-overlay требует, чтобы /run принадлежал пользователю контейнера;
+      # пустой emptyDir создаётся root-овым, поэтому чиним владельца до старта.
+      initContainers:
+        - name: fix-run-perms
+          image: "redis:8.10-alpine@sha256:978f0e01593e65eed801f2402944efcd936d43b5027e4908a7897baf88ed6241"
+          command: ["sh", "-c", "chown 1000:1000 /run && chmod 0750 /run"]
+          securityContext:
+            runAsUser: 0
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+              add: ["CHOWN", "FOWNER"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 100m
+              memory: 32Mi
+          volumeMounts:
+            - name: run
+              mountPath: /run
+      containers:
+        - name: jvb
+          image: "ghcr.io/jitsi/jvb:stable-11146-1@sha256:6a7cec66c6a2fdd8ffd3a90101a0f8e3297aff29494f258caf1bcfbd418a17f3"
+          ports:
+            - name: media
+              containerPort: 10000
+              protocol: UDP
+            - name: colibri
+              containerPort: 8080
+          env:
+            - name: SERVER_IP
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-config
+                  key: SERVER_IP
+            - name: DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-config
+                  key: DOMAIN
+            - name: TZ
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-config
+                  key: TZ
+            - name: JVB_AUTH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: jitsi
+                  key: JVB_AUTH_PASSWORD
+            - name: COLIBRI_REST_ENABLED
+              value: "true"
+            - name: JVB_ADVERTISE_IPS
+              value: "$(SERVER_IP)"
+            - name: JVB_AUTH_USER
+              value: jvb
+            - name: JVB_BREWERY_MUC
+              value: jvbbrewery
+            - name: JVB_DISABLE_STUN
+              value: "true"
+            - name: JVB_PORT
+              value: "10000"
+            - name: PUBLIC_URL
+              value: "https://meet.$(DOMAIN)"
+            - name: SENTRY_DSN
+              value: ""
+            - name: XMPP_AUTH_DOMAIN
+              value: auth.meet.jitsi
+            - name: XMPP_INTERNAL_MUC_DOMAIN
+              value: internal-muc.meet.jitsi
+            - name: XMPP_SERVER
+              value: prosody
+          startupProbe:
+            tcpSocket:
+              port: colibri
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            failureThreshold: 60
+          livenessProbe:
+            tcpSocket:
+              port: colibri
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            tcpSocket:
+              port: colibri
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "2"
+              memory: 1Gi
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: run
+              mountPath: /run
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: config
+          hostPath:
+            path: /storage/apps/jitsi/jvb
+            type: Directory
+        - name: run
+          emptyDir:
+            sizeLimit: 16Mi
+        - name: tmp
+          emptyDir:
+            sizeLimit: 16Mi

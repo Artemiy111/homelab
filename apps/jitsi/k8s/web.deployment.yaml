@@ -1,0 +1,187 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jitsi-web
+  namespace: default
+spec:
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jitsi-web
+  template:
+    metadata:
+      labels:
+        app: jitsi-web
+    spec:
+      enableServiceLinks: false
+      # s6-overlay требует, чтобы /run принадлежал пользователю контейнера;
+      # пустой emptyDir создаётся root-овым, поэтому чиним владельца до старта.
+      initContainers:
+        - name: fix-run-perms
+          image: "redis:8.10-alpine@sha256:978f0e01593e65eed801f2402944efcd936d43b5027e4908a7897baf88ed6241"
+          command: ["sh", "-c", "chown 1000:1000 /run && chmod 0750 /run"]
+          securityContext:
+            runAsUser: 0
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+              add: ["CHOWN", "FOWNER"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 100m
+              memory: 32Mi
+          volumeMounts:
+            - name: run
+              mountPath: /run
+      containers:
+        - name: web
+          image: "ghcr.io/jitsi/web:stable-11146-1@sha256:ff81559621732d3dfc4815f261d41fd826566833016ea772f4d43a77aa88fe9a"
+          ports:
+            - name: http
+              containerPort: 8000
+          env:
+            - name: DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-config
+                  key: DOMAIN
+            - name: TZ
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-config
+                  key: TZ
+            - name: DISABLE_HTTPS
+              value: "1"
+            - name: ENABLE_AUTH
+              value: "1"
+            - name: ENABLE_GUESTS
+              value: "1"
+            - name: ENABLE_HTTP_REDIRECT
+              value: "0"
+            - name: ENABLE_PREJOIN_PAGE
+              value: "1"
+            - name: ENABLE_WELCOME_PAGE
+              value: "1"
+            - name: ENABLE_XMPP_WEBSOCKET
+              value: "1"
+            - name: PUBLIC_URL
+              value: "https://meet.$(DOMAIN)"
+            - name: RESOLUTION
+              value: "1080"
+            - name: RESOLUTION_MIN
+              value: "180"
+            - name: RESOLUTION_WIDTH
+              value: "1920"
+            - name: RESOLUTION_WIDTH_MIN
+              value: "320"
+            - name: VIDEOQUALITY_BITRATE_AV1_FULL
+              value: "2500000"
+            - name: VIDEOQUALITY_BITRATE_H264_FULL
+              value: "3500000"
+            - name: VIDEOQUALITY_BITRATE_VP8_FULL
+              value: "3500000"
+            - name: VIDEOQUALITY_BITRATE_VP9_FULL
+              value: "2500000"
+            - name: XMPP_AUTH_DOMAIN
+              value: auth.meet.jitsi
+            - name: XMPP_BOSH_URL_BASE
+              value: http://prosody:5280
+            - name: XMPP_DOMAIN
+              value: meet.jitsi
+            - name: XMPP_GUEST_DOMAIN
+              value: guest.meet.jitsi
+            - name: XMPP_MUC_DOMAIN
+              value: muc.meet.jitsi
+            - name: XMPP_PORT
+              value: "5222"
+            - name: XMPP_RECORDER_DOMAIN
+              value: recorder.meet.jitsi
+          startupProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            failureThreshold: 60
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: storage
+              mountPath: /storage
+            - name: transcripts
+              mountPath: /usr/share/jitsi-meet/transcripts
+              readOnly: true
+            - name: crontabs
+              mountPath: /var/spool/cron/crontabs
+            - name: load-test
+              mountPath: /usr/share/jitsi-meet/load-test
+            - name: run
+              mountPath: /run
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: config
+          hostPath:
+            path: /storage/apps/jitsi/web
+            type: Directory
+        - name: storage
+          hostPath:
+            path: /storage/apps/jitsi/storage/web
+            type: Directory
+        - name: transcripts
+          hostPath:
+            path: /storage/apps/jitsi/storage/transcripts
+            type: Directory
+        - name: crontabs
+          hostPath:
+            path: /storage/apps/jitsi/tmp/web-crontabs
+            type: Directory
+        - name: load-test
+          hostPath:
+            path: /storage/apps/jitsi/tmp/web-load-test
+            type: Directory
+        - name: run
+          emptyDir:
+            sizeLimit: 16Mi
+        - name: tmp
+          emptyDir:
+            sizeLimit: 16Mi
