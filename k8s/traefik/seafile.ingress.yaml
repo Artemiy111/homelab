@@ -1,0 +1,20 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: seafile
+  namespace: default
+spec:
+  ingressClassName: traefik
+  tls:
+    - secretName: wildcard-tls
+  rules:
+    - host: seafile.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: seafile
+                port:
+                  number: 80

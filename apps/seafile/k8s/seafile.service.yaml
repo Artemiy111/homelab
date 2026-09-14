@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: seafile
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: seafile
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP

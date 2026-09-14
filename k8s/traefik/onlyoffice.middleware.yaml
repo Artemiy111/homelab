@@ -1,0 +1,11 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: onlyoffice-xfp
+  namespace: default
+spec:
+  headers:
+    customRequestHeaders:
+      # DocumentServer строит ссылки на документ с http:// на websocket-upgrade,
+      # где Traefik сам не проставляет X-Forwarded-Proto → mixed content.
+      X-Forwarded-Proto: https

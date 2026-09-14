@@ -1,0 +1,93 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: onlyoffice
+  namespace: default
+spec:
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
+  replicas: 1
+  selector:
+    matchLabels:
+      app: onlyoffice
+  template:
+    metadata:
+      labels:
+        app: onlyoffice
+    spec:
+      containers:
+        - name: onlyoffice
+          image: "onlyoffice/documentserver:9.3.0@sha256:87f7dc0836124b4732e690af626114069643a2b76b916d7dfd5f55b8f3e3c88f"
+          ports:
+            - name: http
+              containerPort: 80
+          env:
+            - name: JWT_ENABLED
+              value: "true"
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: seafile
+                  key: ONLYOFFICE_JWT_SECRET
+            - name: JWT_HEADER
+              value: Authorization
+            - name: JWT_IN_BODY
+              value: "true"
+            - name: ALLOW_PRIVATE_IP_ADDRESS
+              value: "true"
+          startupProbe:
+            httpGet:
+              path: /healthcheck
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /healthcheck
+              port: http
+            periodSeconds: 60
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /healthcheck
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+              add: ["CHOWN", "DAC_OVERRIDE", "FOWNER", "SETGID", "SETUID"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 200m
+              memory: 512Mi
+            limits:
+              cpu: "2"
+              memory: 2Gi
+          volumeMounts:
+            - name: logs
+              mountPath: /var/log/onlyoffice
+            - name: data
+              mountPath: /var/www/onlyoffice/Data
+            - name: lib
+              mountPath: /var/lib/onlyoffice
+      volumes:
+        - name: logs
+          hostPath:
+            path: /storage/apps/seafile/onlyoffice/logs
+            type: Directory
+        - name: data
+          hostPath:
+            path: /storage/apps/seafile/onlyoffice/data
+            type: Directory
+        - name: lib
+          hostPath:
+            path: /storage/apps/seafile/onlyoffice/lib
+            type: Directory
