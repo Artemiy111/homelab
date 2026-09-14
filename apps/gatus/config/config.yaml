@@ -39,7 +39,7 @@ endpoints:
     interval: 60s
     client: &https-client
       timeout: 10s
-      dns-resolver: tcp://${SERVER_IP}:53
+      dns-resolver: udp://${SERVER_IP}:53
     conditions: &https-ok
       - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > 168h"
