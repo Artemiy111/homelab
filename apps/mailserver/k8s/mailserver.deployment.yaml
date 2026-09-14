@@ -1,0 +1,118 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mailserver
+  namespace: default
+spec:
+  # hostPath-каталоги нельзя монтировать в два пода одновременно.
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mailserver
+  template:
+    metadata:
+      labels:
+        app: mailserver
+    spec:
+      enableServiceLinks: false
+      # Docker по умолчанию ставит ip_unprivileged_port_start=0, поэтому
+      # контейнер под uid 1000 биндит 25/587/993. В k8s повторяем это в поде.
+      securityContext:
+        sysctls:
+          - name: net.ipv4.ip_unprivileged_port_start
+            value: "0"
+      containers:
+        - name: mailserver
+          image: "stalwartlabs/stalwart:v0.16@sha256:a8108e19bd927e172d4d8c128907b8dfc93fd180ae8ee07dccdd42cb97eb9dfa"
+          ports:
+            - name: smtp
+              containerPort: 25
+            - name: submission
+              containerPort: 587
+            - name: imaps
+              containerPort: 993
+            - name: http
+              containerPort: 8080
+          env:
+            - name: DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-config
+                  key: DOMAIN
+            - name: TZ
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-config
+                  key: TZ
+            - name: STALWART_ADMIN_USER
+              value: admin
+            - name: STALWART_ADMIN_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: mailserver
+                  key: STALWART_ADMIN_PASS
+            - name: STALWART_METRICS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mailserver
+                  key: STALWART_METRICS_PASSWORD
+            - name: STALWART_RECOVERY_ADMIN
+              value: "$(STALWART_ADMIN_USER):$(STALWART_ADMIN_PASS)"
+            - name: STALWART_HOSTNAME
+              value: "mail.$(DOMAIN)"
+            - name: STALWART_PUBLIC_URL
+              value: "https://mailserver.$(DOMAIN)"
+          startupProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 60
+          livenessProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            runAsNonRoot: true
+            # У бинарника stalwart file-capability cap_net_bind_service: без
+            # no_new_privs он запускается и биндит привилегированные порты.
+            allowPrivilegeEscalation: true
+            capabilities:
+              drop: ["ALL"]
+              add: ["NET_BIND_SERVICE"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "2"
+              memory: 2Gi
+          volumeMounts:
+            - name: etc
+              mountPath: /etc/stalwart
+            - name: data
+              mountPath: /var/lib/stalwart
+      volumes:
+        - name: etc
+          hostPath:
+            path: /storage/apps/mailserver/etc
+            type: Directory
+        - name: data
+          hostPath:
+            path: /storage/apps/mailserver/data
+            type: Directory
