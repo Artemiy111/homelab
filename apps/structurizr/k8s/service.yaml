@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: structurizr
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: structurizr
+  ports:
+    # Gatus ходит на http://structurizr/ (порт 80).
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP

@@ -1,5 +1,8 @@
 name: structurizr
 
+# Structurizr перенесён в Kubernetes (apps/structurizr/k8s/). Compose оставлен
+# только для сборки образа: сервис в кластере использует образ
+# localhost/structurizr:2026.06.28, загруженный в containerd k0s.
 services:
   structurizr:
     build:
@@ -10,29 +13,6 @@ services:
       - ${APPS_STORAGE_PATH:-/storage/apps}/structurizr:/usr/local/structurizr:Z,rw
       - ./structurizr.properties:/usr/local/structurizr/structurizr.properties:Z,ro
 
-    # Порт биндится на шлюз docker-сети traefiknet (172.20.0.1), а не на
-    # SERVER_IP: из подов он достижим, из LAN — нет (маршрута в 172.20.0.0/16
-    # ни у кого нет). Нужен только для моста из k8s (Service+EndpointSlice в
-    # apps/structurizr/k8s/bridge.yaml): Gatus в кластере не видит docker-сеть.
-    # Firewalld открывать порт не нужно — Docker публикует его через DNAT/FORWARD.
-    ports:
-      - "172.20.0.1:18080:8080"
-
-    networks:
-      - traefiknet
-
     restart: unless-stopped
 
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.structurizr.rule=Host(`structurizr.${DOMAIN}`)
-      - traefik.http.routers.structurizr.entrypoints=websecure
-      - traefik.http.routers.structurizr.middlewares=oauth2-proxy@file,secure-headers@file,ratelimit-default@file
-      - traefik.http.services.structurizr.loadbalancer.server.port=8080
-      - traefik.docker.network=traefiknet
-
     user: "1000:1000"
-
-networks:
-  traefiknet:
-    external: true

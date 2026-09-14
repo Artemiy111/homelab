@@ -1,0 +1,89 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: structurizr
+  namespace: default
+spec:
+  # hostPath-каталоги нельзя монтировать в два пода одновременно.
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
+  replicas: 1
+  selector:
+    matchLabels:
+      app: structurizr
+  template:
+    metadata:
+      labels:
+        app: structurizr
+    spec:
+      enableServiceLinks: false
+      containers:
+        - name: structurizr
+          # Образ собирается из исходников (apps/structurizr/Dockerfile) и
+          # загружается в containerd k0s локально; в Git его нет.
+          image: "localhost/structurizr:2026.06.28"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: PORT
+              value: "8080"
+            - name: TZ
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-config
+                  key: TZ
+          startupProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 15
+            timeoutSeconds: 10
+            failureThreshold: 3
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 100m
+              memory: 384Mi
+            limits:
+              cpu: "2"
+              memory: 2Gi
+          volumeMounts:
+            - name: data
+              mountPath: /usr/local/structurizr
+            - name: properties
+              mountPath: /usr/local/structurizr/structurizr.properties
+              subPath: structurizr.properties
+              readOnly: true
+      volumes:
+        - name: data
+          hostPath:
+            path: /storage/apps/structurizr
+            type: Directory
+        - name: properties
+          configMap:
+            name: structurizr-properties

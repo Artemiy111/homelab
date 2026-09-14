@@ -1,7 +1,9 @@
 # Structurizr
 
-Structurizr vNext (open-core) — инструмент для диаграмм C4. Контейнер доступен
-через Traefik по адресу `https://structurizr.example.com/`.
+Structurizr vNext (open-core) — инструмент для диаграмм C4. Сервис развёрнут
+в Kubernetes (`apps/structurizr/k8s/`) и доступен через Traefik кластера по
+адресу `https://structurizr.example.com/` (за oauth2-proxy). В Docker
+(`compose.yaml`) осталась только сборка образа.
 
 ## Образ
 
@@ -17,8 +19,20 @@ runtime-образ на `eclipse-temurin:21-alpine`. Пересборка при
 bash apps/structurizr/init.sh   # рендерит properties из общего DOMAIN
 # в apps/structurizr/: обновить тег vYYYY.MM.DD в Dockerfile, затем
 docker compose build --pull
-docker compose up -d
 ```
+
+Готового образа в registry нет, а сервис работает в k8s, поэтому после сборки
+образ нужно загрузить в containerd k0s и перезапустить деплоймент:
+
+```sh
+docker tag structurizr-structurizr:latest localhost/structurizr:2026.06.28
+docker save localhost/structurizr:2026.06.28 \
+  | sudo ctr -a /run/k0s/containerd.sock -n k8s.io images import -
+kubectl rollout restart deploy/structurizr
+```
+
+Тег `localhost/structurizr:<версия>` должен совпадать с `image` в
+`k8s/deployment.yaml`.
 
 Контейнер запускается от `user: "1000:1000"` — совпадает с владельцем
 `$APPS_STORAGE_PATH/structurizr` на хосте (artlab), поэтому привилегии root не нужны
@@ -27,41 +41,31 @@ docker compose up -d
 
 ## Конфигурация
 
-Настройки лежат в `structurizr.properties.tpl`; `bash ./init.sh` генерирует из
-него `structurizr.properties` (домен из `DOMAIN`), который монтируется в
-`/usr/local/structurizr/structurizr.properties`: включён браузерный DSL-редактор
-и задан базовый URL за Traefik.
+Настройки (браузерный DSL-редактор + базовый URL за Traefik) заданы в ConfigMap
+`structurizr-properties` (`apps/structurizr/k8s/properties.configmap.yaml`),
+который монтируется в `/usr/local/structurizr/structurizr.properties`.
 
-> Примечание: в `$APPS_STORAGE_PATH/structurizr` лежит пустой файл
-> `structurizr.properties` (владелец root) — это артефакт Docker: он создаёт
-> файл-заготовку как точку монтирования внутри volume. Рабочий конфиг приходит
-> из репозитория; пустой файл можно игнорировать, но не удалять, пока
-> контейнер запущен.
+`structurizr.properties.tpl` + `init.sh` — легаси-путь для compose-сборки
+(`init.sh` рендерит `structurizr.properties` из `DOMAIN`); в k8s не используются.
 
-Внимание: open-core сборка не имеет встроенной аутентификации — при
-необходимости закрыть доступ стоит добавить Traefik middleware (например,
-basicauth) на роутер `structurizr`.
+Доступ закрыт forward auth (`oauth2-proxy`) на IngressRoute — своей
+аутентификации у open-core сборки нет.
 
-## Мониторинг из k8s (мост)
+## Развёртывание в Kubernetes
 
-Gatus перенесён в Kubernetes и не видит docker-сеть `traefiknet`, поэтому не может
-обращаться к `structurizr:8080` по имени контейнера. Пока сервис остаётся в Docker,
-связь обеспечивает мост:
+Сервис описан манифестами в `apps/structurizr/k8s/`:
 
-- `compose.yaml` публикует порт на шлюзе docker-сети `traefiknet`:
-  `172.20.0.1:18080:8080`;
-- `k8s/bridge.yaml` создаёт Service `structurizr` **без selector** и
-  `EndpointSlice` с адресом `172.20.0.1:18080`.
+- `deployment.yaml` — образ `localhost/structurizr:2026.06.28`
+  (`imagePullPolicy: IfNotPresent`), uid/gid 1000, `Recreate`, hostPath-данные
+  `/storage/apps/structurizr` + ConfigMap `structurizr-properties`;
+- `service.yaml` — ClusterIP, порт 80 → 8080 (Gatus ходит по `http://structurizr/`);
+- `k8s/traefik/structurizr.ingressroute.yaml` — `Host(structurizr…)` за
+  `oauth2-proxy` (у open-core нет своей аутентификации) + `secure-headers` +
+  `ratelimit-default`.
 
-Gatus ходит по k8s-имени без порта — `http://structurizr/` (у Service `port: 80`).
-При миграции structurizr в k8s: удалить `k8s/bridge.yaml`, убрать `ports` из
-`compose.yaml` и заменить мост обычными `deployment.yaml` + `service.yaml` с
-selector — конфиг Gatus не меняется.
-
-Порт привязан к `172.20.0.1`, а не к LAN-адресу, поэтому из локальной сети он
-недостижим — значит, forward auth Traefik (единственная защита structurizr,
-у которого нет своей аутентификации) не обходится. Firewalld открывать порт не
-нужно: Docker публикует его через DNAT/FORWARD в обход INPUT-правил.
+DNS-запись `structurizr.${DOMAIN} → 192.0.2.10` указывает на MetalLB-VIP
+Traefik кластера, поэтому forward auth больше не обходится: он единственная
+защита сервиса.
 
 ## Рабочие пространства (workspace)
 
