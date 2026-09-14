@@ -1,0 +1,114 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: local-ai
+  namespace: default
+spec:
+  # hostPath-каталоги нельзя монтировать в два пода одновременно.
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
+  replicas: 1
+  selector:
+    matchLabels:
+      app: local-ai
+  template:
+    metadata:
+      labels:
+        app: local-ai
+    spec:
+      terminationGracePeriodSeconds: 120
+      containers:
+        - name: local-ai
+          image: "localai/localai@sha256:78befe43707579dbe1b1d3f17d9788aa41ec493da30a6b6aabdf39e5efd23b7c"
+          ports:
+            - name: http
+              containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: homelab-config
+          env:
+            - name: LOCALAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: local-ai
+                  key: LOCALAI_API_KEY
+            - name: HOME
+              value: /tmp/localai
+            - name: LOCALAI_ADDRESS
+              value: 0.0.0.0:8080
+            - name: LOCALAI_LOG_LEVEL
+              value: info
+            - name: LOCALAI_SUBTLE_KEY_COMPARISON
+              value: "true"
+            - name: LOCALAI_DISABLE_USAGE_STATS
+              value: "true"
+          startupProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            failureThreshold: 60
+          livenessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            periodSeconds: 60
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            periodSeconds: 60
+            timeoutSeconds: 10
+            failureThreshold: 3
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            runAsNonRoot: true
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+            limits:
+              cpu: "4"
+              memory: 20Gi
+          volumeMounts:
+            - name: models
+              mountPath: /models
+            - name: backends
+              mountPath: /backends
+            - name: configuration
+              mountPath: /configuration
+            - name: data
+              mountPath: /data
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: models
+          hostPath:
+            path: /storage/apps/local-ai/models
+            type: Directory
+        - name: backends
+          hostPath:
+            path: /storage/apps/local-ai/backends
+            type: Directory
+        - name: configuration
+          hostPath:
+            path: /storage/apps/local-ai/configuration
+            type: Directory
+        - name: data
+          hostPath:
+            path: /storage/apps/local-ai/data
+            type: Directory
+        - name: tmp
+          emptyDir:
+            sizeLimit: 4Gi
