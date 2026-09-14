@@ -1,0 +1,19 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: element-livekit-strip
+  namespace: default
+spec:
+  stripPrefix:
+    prefixes:
+      - /livekit/sfu
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: element-rtc-auth-strip
+  namespace: default
+spec:
+  stripPrefix:
+    prefixes:
+      - /livekit/jwt

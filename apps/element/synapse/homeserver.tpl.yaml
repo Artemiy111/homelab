@@ -1,10 +1,10 @@
 server_name: "example.com"
-public_baseurl: https://element.ref+envsubst://$DOMAIN++/
+public_baseurl: https://element.ref+envsubst://$DOMAIN+/
 serve_server_wellknown: true
 extra_well_known_client_content:
   org.matrix.msc4143.rtc_foci:
     - type: livekit
-      livekit_service_url: https://element.ref+envsubst://$DOMAIN++/livekit/jwt
+      livekit_service_url: https://element.ref+envsubst://$DOMAIN+/livekit/jwt
 report_stats: false
 pid_file: /data/homeserver.pid
 # Метрики отдаются на отдельном listener (скрейп netdata внутри traefiknet).
@@ -33,13 +33,13 @@ database:
     user: ref+envsubst://$POSTGRES_USER
     password: ref+envsubst://$POSTGRES_PASSWORD
     database: ref+envsubst://$POSTGRES_DB
-    host: db
+    host: element-db
     cp_min: 5
     cp_max: 10
 
 redis:
   enabled: true
-  host: redis
+  host: element-redis
   port: 6379
 
 media_store_path: /data/media_store
@@ -89,15 +89,15 @@ experimental_features:
 max_event_delay_duration: 24h
 
 turn_uris:
-  - turn:element.ref+envsubst://$DOMAIN++:ref+envsubst://$TURN_PORT+?transport=udp
-  - turn:element.ref+envsubst://$DOMAIN++:ref+envsubst://$TURN_PORT+?transport=tcp
+  - turn:ref+envsubst://$SERVER_IP+:ref+envsubst://$TURN_PORT+?transport=udp
+  - turn:ref+envsubst://$SERVER_IP+:ref+envsubst://$TURN_PORT+?transport=tcp
 turn_shared_secret: ref+envsubst://$TURN_SECRET
 turn_user_lifetime: 1h
 
 matrix_rtc:
   transports:
     - type: livekit
-      livekit_service_url: https://element.ref+envsubst://$DOMAIN++/livekit/jwt
+      livekit_service_url: https://element.ref+envsubst://$DOMAIN+/livekit/jwt
 
 max_upload_size: 104857600
 max_image_pixels: 26214400

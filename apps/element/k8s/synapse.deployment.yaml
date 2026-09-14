@@ -1,0 +1,150 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: element-synapse
+  namespace: default
+spec:
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
+  replicas: 1
+  selector:
+    matchLabels:
+      app: element-synapse
+  template:
+    metadata:
+      labels:
+        app: element-synapse
+    spec:
+      # Synapse читает POSTGRES_-переменные и SYNAPSE_-настройки; лишние
+      # <SVC>_PORT из service-links не нужны.
+      enableServiceLinks: false
+      initContainers:
+        - name: wait-for-db
+          image: "postgres:18-alpine@sha256:d3e1620b530c944afa6e887d22eb899824da68e19c52024bf98f5220c88a65b2"
+          command: ["/bin/sh", "-c", "until pg_isready -h element-db -U synapse -d synapse; do echo waiting for element-db; sleep 3; done"]
+          securityContext:
+            runAsUser: 70
+            runAsGroup: 70
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+        - name: wait-for-redis
+          image: "redis:8.10-alpine@sha256:978f0e01593e65eed801f2402944efcd936d43b5027e4908a7897baf88ed6241"
+          command: ["/bin/sh", "-c", "until redis-cli -h element-redis ping | grep -q PONG; do echo waiting for element-redis; sleep 2; done"]
+          securityContext:
+            runAsUser: 999
+            runAsGroup: 999
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+      containers:
+        - name: synapse
+          image: "matrixdotorg/synapse:v1.159.0@sha256:edf259d2b575b669a3e81024918ab8d5cfb7d2fba5a53c9e09695f1abc5645cb"
+          ports:
+            - name: http
+              containerPort: 8080
+            - name: metrics
+              containerPort: 9009
+          env:
+            - name: DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-config
+                  key: DOMAIN
+            - name: TZ
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-config
+                  key: TZ
+            - name: SYNAPSE_SERVER_NAME
+              value: "example.com"
+            - name: SYNAPSE_REPORT_STATS
+              value: "no"
+            - name: SYNAPSE_CONFIG_DIR
+              value: /data
+            - name: SYNAPSE_CONFIG_FILE
+              value: /data/homeserver.yaml
+            - name: POSTGRES_HOST
+              value: element-db
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: POSTGRES_DB
+              value: synapse
+            - name: POSTGRES_USER
+              value: synapse
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: element
+                  key: POSTGRES_PASSWORD
+          startupProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+              add: ["CHOWN", "DAC_OVERRIDE", "FOWNER", "SETGID", "SETUID"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 200m
+              memory: 512Mi
+            limits:
+              cpu: "2"
+              memory: 2Gi
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: homeserver-config
+              mountPath: /data/homeserver.yaml
+              readOnly: true
+      volumes:
+        - name: data
+          hostPath:
+            path: /storage/apps/element/synapse/data
+            type: Directory
+        - name: homeserver-config
+          hostPath:
+            path: /storage/apps/element/synapse/config/homeserver.yaml
+            type: File

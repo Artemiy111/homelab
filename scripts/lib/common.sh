@@ -26,6 +26,11 @@ if [[ -f "$repo_root/config.env" ]]; then
   source "$repo_root/config.env"
 fi
 
+# Публикуем базовые переменные потомкам (vals flatten в render_template читает
+# DOMAIN/TZ/… именно из окружения): без экспорта шаблоны рендерятся с пустым
+# доменом.
+export DOMAIN DEFAULT_LOCALE APPS_STORAGE_PATH TZ
+
 # LAN IP-адрес сервера, к которому привязываются опубликованные порты (Traefik,
 # Technitium DNS, Gitea, 3x-ui, Jitsi) и на который указывают DNS/health-проверки.
 # Приоритет: переменная окружения SERVER_IP → корневой config.env → автоопределение.

@@ -27,7 +27,9 @@ services:
       TZ: ${TZ:-Asia/Yekaterinburg}
 
     networks:
-      - backend
+      backend:
+        aliases:
+          - element-db
     restart: unless-stopped
 
     healthcheck:
@@ -45,7 +47,9 @@ services:
       - ${APPS_STORAGE_PATH:-/storage/apps}/element/redis:/data:Z
 
     networks:
-      - backend
+      backend:
+        aliases:
+          - element-redis
     command: redis-server --save 60 1 --loglevel warning
 
     environment:

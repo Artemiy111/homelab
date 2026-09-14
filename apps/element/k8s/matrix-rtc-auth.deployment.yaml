@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: matrix-rtc-auth
+  namespace: default
+spec:
+  revisionHistoryLimit: 2
+  replicas: 1
+  selector:
+    matchLabels:
+      app: matrix-rtc-auth
+  template:
+    metadata:
+      labels:
+        app: matrix-rtc-auth
+    spec:
+      enableServiceLinks: false
+      containers:
+        - name: matrix-rtc-auth
+          image: "ghcr.io/element-hq/lk-jwt-service:0.4.4@sha256:9c715697c6f7c1f538f2ee41b7b59b04a8d06bf790a7cc8c8517ccac8d28813d"
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-config
+                  key: DOMAIN
+            - name: TZ
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-config
+                  key: TZ
+            - name: LIVEKIT_JWT_PORT
+              value: "8080"
+            - name: LIVEKIT_URL
+              value: "wss://element.$(DOMAIN)/livekit/sfu"
+            - name: LIVEKIT_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: element
+                  key: LIVEKIT_API_KEY
+            - name: LIVEKIT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: element
+                  key: LIVEKIT_API_SECRET
+            - name: LIVEKIT_FULL_ACCESS_HOMESERVERS
+              value: "$(DOMAIN)"
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: "1"
+              memory: 256Mi

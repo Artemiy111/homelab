@@ -10,7 +10,7 @@ rtc:
   # NAT path instead of LIVEKIT_EXTERNAL_IP passed on the command line.
   use_external_ip: false
 redis:
-  address: redis:6379
+  address: element-redis:6379
 keys:
   ref+envsubst://$LIVEKIT_API_KEY+: ref+envsubst://$LIVEKIT_API_SECRET
 logging:

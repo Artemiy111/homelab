@@ -1,0 +1,72 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: element
+  namespace: default
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    # Element Call: SFU signaling (strip префикса).
+    - match: Host(`element.example.com`) && PathPrefix(`/livekit/sfu`)
+      kind: Rule
+      priority: 110
+      middlewares:
+        - name: element-livekit-strip
+      services:
+        - name: livekit
+          port: 7880
+          nativeLB: true
+    # MatrixRTC authorization service (strip префикса).
+    - match: Host(`element.example.com`) && PathPrefix(`/livekit/jwt`)
+      kind: Rule
+      priority: 110
+      middlewares:
+        - name: element-rtc-auth-strip
+      services:
+        - name: matrix-rtc-auth
+          port: 8080
+    # Matrix client/federation API.
+    - match: Host(`element.example.com`) && PathPrefix(`/_matrix`)
+      kind: Rule
+      priority: 100
+      services:
+        - name: synapse
+          port: 8080
+    # Сам web-клиент Element.
+    - match: Host(`element.example.com`)
+      kind: Rule
+      priority: 1
+      services:
+        - name: element-web
+          port: 80
+  tls:
+    secretName: wildcard-tls
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: element-well-known
+  namespace: default
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`example.com`) && Path(`/.well-known/matrix/client`)
+      kind: Rule
+      services:
+        - name: synapse
+          port: 8080
+    - match: Host(`example.com`) && Path(`/.well-known/matrix/server`)
+      kind: Rule
+      services:
+        - name: synapse
+          port: 8080
+    # Federation delegation на порт 443 (нужен MatrixRTC authorization service).
+    - match: Host(`example.com`) && PathPrefix(`/_matrix/federation`)
+      kind: Rule
+      services:
+        - name: synapse
+          port: 8080
+  tls:
+    secretName: wildcard-tls

@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: element-turn
+  namespace: default
+spec:
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
+  replicas: 1
+  selector:
+    matchLabels:
+      app: element-turn
+  template:
+    metadata:
+      labels:
+        app: element-turn
+    spec:
+      # TURN слушает 3479 и relay 21000-21499 на LAN-адресе узла: произвольные
+      # UDP-порты MetalLB-VIP (.253) не обслуживает, клиенты идут на .254.
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      enableServiceLinks: false
+      containers:
+        - name: turn
+          image: "coturn/coturn:4.17@sha256:aa68aab64a3b929d57fc2924c98ea447bf996cf8dade2508e7b71eaf23f1f14e"
+          env:
+            - name: TZ
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-config
+                  key: TZ
+          securityContext:
+            allowPrivilegeEscalation: false
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: "1"
+              memory: 256Mi
+          volumeMounts:
+            - name: config
+              mountPath: /etc/turnserver.conf
+              readOnly: true
+      volumes:
+        - name: config
+          hostPath:
+            path: /storage/apps/element/turn/turnserver.conf
+            type: File
