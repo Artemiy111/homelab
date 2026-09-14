@@ -198,6 +198,15 @@
         enabled: true
         state: started
 
+    # --- Inotify: бюджет файловых наблюдателей для контейнеров ---
+
+    - name: Скопировать sysctl-настройку inotify
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../etc/sysctl.d/99-inotify.conf"
+        dest: /etc/sysctl.d/99-inotify.conf
+        mode: "0644"
+      notify: reload sysctl
+
     # --- Tailscale + kube-proxy: policy routing ---
     # Без этого правила ответы MetalLB/NodePort к tailnet-клиентам уходят в LAN
     # (enp2s0) вместо tailscale0. Причина — см. etc/systemd/tailscale-policy-route.service.
@@ -216,6 +225,12 @@
         daemon_reload: true
 
   handlers:
+    - name: reload sysctl
+      # Быстрое применение sysctl без ребута; выполняется только при изменении файла.
+      ansible.builtin.command:
+        cmd: sysctl --system
+      changed_when: true
+
     - name: restart docker
       ansible.builtin.systemd:
         name: docker
