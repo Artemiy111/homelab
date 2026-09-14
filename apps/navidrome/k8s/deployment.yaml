@@ -1,0 +1,93 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: navidrome
+  namespace: default
+spec:
+  # hostPath-каталоги нельзя монтировать в два пода одновременно.
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
+  replicas: 1
+  selector:
+    matchLabels:
+      app: navidrome
+  template:
+    metadata:
+      labels:
+        app: navidrome
+    spec:
+      containers:
+        - name: navidrome
+          image: "deluan/navidrome@sha256:7c43af9f651654e97278be871705aae85a4ee0fa4b310337989699a8ada9b3ed"
+          ports:
+            - name: http
+              containerPort: 4533
+          envFrom:
+            - configMapRef:
+                name: homelab-config
+          env:
+            - name: NAVIDROME_METRICS_PATH
+              valueFrom:
+                secretKeyRef:
+                  name: navidrome
+                  key: NAVIDROME_METRICS_PATH
+            - name: ND_DATAFOLDER
+              value: /data
+            - name: ND_MUSICFOLDER
+              value: /music
+            - name: ND_SCANNER_SCHEDULE
+              value: "@every 1h"
+            - name: ND_ENABLESHARING
+              value: "false"
+            - name: ND_PROMETHEUS_ENABLED
+              value: "true"
+            - name: ND_PROMETHEUS_METRICSPATH
+              value: "/metrics_$(NAVIDROME_METRICS_PATH)"
+          startupProbe:
+            httpGet:
+              path: /ping
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /ping
+              port: http
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /ping
+              port: http
+            periodSeconds: 30
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: music
+              mountPath: /music
+              readOnly: true
+      volumes:
+        - name: data
+          hostPath:
+            path: /storage/apps/navidrome/data
+            type: Directory
+        - name: music
+          hostPath:
+            path: /storage/media/music
+            type: Directory
