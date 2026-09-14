@@ -16,6 +16,9 @@ spec:
       labels:
         app: onlyoffice
     spec:
+      # Иначе Service `db` (nextcloud) инжектит DB_PORT=tcp://…:5432, и
+      # entrypoint OnlyOffice падает на `nc -z`.
+      enableServiceLinks: false
       containers:
         - name: onlyoffice
           image: "onlyoffice/documentserver:9.3.0@sha256:87f7dc0836124b4732e690af626114069643a2b76b916d7dfd5f55b8f3e3c88f"
