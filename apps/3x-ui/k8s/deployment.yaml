@@ -1,0 +1,143 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: 3x-ui
+  namespace: default
+spec:
+  # hostPath-каталоги нельзя монтировать в два пода одновременно.
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
+  replicas: 1
+  selector:
+    matchLabels:
+      app: 3x-ui
+  template:
+    metadata:
+      labels:
+        app: 3x-ui
+    spec:
+      enableServiceLinks: false
+      initContainers:
+        # Аналог compose-сервиса initialize: задаёт учётку и base path, только
+        # если база ещё не создана (иначе ничего не меняет).
+        - name: initialize
+          image: "ghcr.io/mhsanaei/3x-ui:v3.6.0@sha256:652ef431a2d351cfcc7b5dc91798de5c1dd50da8c1b44f9e3afee1c60817035e"
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              if [ ! -f /etc/x-ui/x-ui.db ]; then
+                /app/x-ui setting \
+                  -username "$XUI_ADMIN_USERNAME" \
+                  -password "$XUI_ADMIN_PASSWORD" \
+                  -webBasePath "$XUI_WEB_BASE_PATH"
+              fi
+          env:
+            - name: XUI_ADMIN_USERNAME
+              value: xui-admin
+            - name: XUI_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: 3x-ui
+                  key: XUI_ADMIN_PASSWORD
+            - name: XUI_WEB_BASE_PATH
+              valueFrom:
+                secretKeyRef:
+                  name: 3x-ui
+                  key: XUI_WEB_BASE_PATH
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          volumeMounts:
+            - name: db
+              mountPath: /etc/x-ui
+      containers:
+        - name: 3x-ui
+          image: "ghcr.io/mhsanaei/3x-ui:v3.6.0@sha256:652ef431a2d351cfcc7b5dc91798de5c1dd50da8c1b44f9e3afee1c60817035e"
+          ports:
+            - name: panel
+              containerPort: 2053
+            - name: inbound-tcp
+              containerPort: 8443
+              protocol: TCP
+            - name: inbound-udp
+              containerPort: 8443
+              protocol: UDP
+            - name: egress
+              containerPort: 8440
+          env:
+            - name: TZ
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-config
+                  key: TZ
+            - name: XUI_WEB_BASE_PATH
+              valueFrom:
+                secretKeyRef:
+                  name: 3x-ui
+                  key: XUI_WEB_BASE_PATH
+            - name: XUI_INIT_WEB_BASE_PATH
+              valueFrom:
+                secretKeyRef:
+                  name: 3x-ui
+                  key: XUI_WEB_BASE_PATH
+            - name: XRAY_VMESS_AEAD_FORCED
+              value: "false"
+            - name: XUI_ENABLE_FAIL2BAN
+              value: "true"
+            - name: XUI_SKIP_HSTS
+              value: "true"
+          startupProbe:
+            tcpSocket:
+              port: panel
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            failureThreshold: 30
+          livenessProbe:
+            tcpSocket:
+              port: panel
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            tcpSocket:
+              port: panel
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+              add: ["NET_ADMIN", "NET_RAW"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          volumeMounts:
+            - name: db
+              mountPath: /etc/x-ui
+            - name: log
+              mountPath: /var/log/x-ui
+      volumes:
+        - name: db
+          hostPath:
+            path: /storage/apps/3x-ui/db
+            type: Directory
+        - name: log
+          hostPath:
+            path: /storage/apps/3x-ui/log
+            type: Directory
