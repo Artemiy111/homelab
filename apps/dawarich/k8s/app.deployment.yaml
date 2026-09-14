@@ -1,0 +1,191 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dawarich
+  namespace: default
+spec:
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dawarich
+  template:
+    metadata:
+      labels:
+        app: dawarich
+    spec:
+      initContainers:
+        - name: wait-for-db
+          image: "postgis/postgis:17-3.5-alpine@sha256:61cb994f576480f5736974e5c9aff965d039d965301bcaec9c7ea72f94b61908"
+          command: ["/bin/sh", "-c", "until pg_isready -h dawarich-db -p 5432 -U dawarich; do echo waiting for dawarich-db; sleep 2; done"]
+          securityContext:
+            runAsUser: 70
+            runAsGroup: 70
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+        - name: wait-for-redis
+          image: "redis:7.4-alpine@sha256:e7723ff73d963f5cc6d9c4643ea3d989527a402a319239054e9472a7fb9219a2"
+          command: ["/bin/sh", "-c", "until redis-cli -h dawarich-redis ping | grep -q PONG; do echo waiting for dawarich-redis; sleep 2; done"]
+          securityContext:
+            runAsUser: 999
+            runAsGroup: 999
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+      containers:
+        - name: dawarich
+          image: "freikin/dawarich:1.11.0@sha256:4e3c55c4cd572373624e75c9e02075ff436c83a3ea952595ae0d4ffc4c7ae52b"
+          command: ["web-entrypoint.sh"]
+          args: ["bin/rails", "server", "-p", "3000", "-b", "::"]
+          ports:
+            - name: http
+              containerPort: 3000
+          envFrom:
+            - configMapRef:
+                name: homelab-config
+          env:
+            - name: DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-config
+                  key: DOMAIN
+            - name: TZ
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-config
+                  key: TZ
+            - name: RAILS_ENV
+              value: production
+            - name: REDIS_URL
+              value: "redis://dawarich-redis:6379"
+            - name: DATABASE_HOST
+              value: dawarich-db
+            - name: DATABASE_PORT
+              value: "5432"
+            - name: DATABASE_USERNAME
+              value: dawarich
+            - name: DATABASE_NAME
+              value: dawarich_production
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: dawarich
+                  key: POSTGRES_PASSWORD
+            - name: SECRET_KEY_BASE
+              valueFrom:
+                secretKeyRef:
+                  name: dawarich
+                  key: SECRET_KEY_BASE
+            - name: METRICS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: dawarich
+                  key: DAWARICH_METRICS_PASSWORD
+            - name: METRICS_USERNAME
+              value: netdata
+            - name: APPLICATION_HOSTS
+              value: "dawarich.$(DOMAIN)"
+            - name: APPLICATION_PROTOCOL
+              value: https
+            - name: RAILS_LOG_TO_STDOUT
+              value: "true"
+            - name: SELF_HOSTED
+              value: "true"
+            - name: STORE_GEODATA
+              value: "true"
+            - name: STORAGE_BACKEND
+              value: local
+            - name: PROMETHEUS_EXPORTER_ENABLED
+              value: "true"
+            - name: WEB_CONCURRENCY
+              value: "1"
+          startupProbe:
+            httpGet:
+              path: /api/v1/health
+              port: http
+              httpHeaders:
+                - name: X-Forwarded-Proto
+                  value: https
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            failureThreshold: 60
+          livenessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: http
+              httpHeaders:
+                - name: X-Forwarded-Proto
+                  value: https
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: http
+              httpHeaders:
+                - name: X-Forwarded-Proto
+                  value: https
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          securityContext:
+            allowPrivilegeEscalation: false
+            # Образ стартует как root и работает с hostPath, принадлежащими
+            # uid 1000; без DAC_OVERRIDE root не может удалять чужие файлы
+            # (rm public/assets: Permission denied).
+            capabilities:
+              drop: ["ALL"]
+              add: ["SETUID", "SETGID", "CHOWN", "DAC_OVERRIDE"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+            limits:
+              cpu: 500m
+              memory: 4Gi
+          volumeMounts:
+            - name: public
+              mountPath: /var/app/public
+            - name: watched
+              mountPath: /var/app/tmp/imports/watched
+            - name: storage
+              mountPath: /var/app/storage
+      volumes:
+        - name: public
+          hostPath:
+            path: /storage/apps/dawarich/public
+            type: Directory
+        - name: watched
+          hostPath:
+            path: /storage/apps/dawarich/watched
+            type: Directory
+        - name: storage
+          hostPath:
+            path: /storage/apps/dawarich/storage
+            type: Directory
