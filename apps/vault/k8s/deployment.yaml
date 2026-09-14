@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vault
+  namespace: default
+spec:
+  # hostPath-каталоги нельзя монтировать в два пода одновременно.
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vault
+  template:
+    metadata:
+      labels:
+        app: vault
+    spec:
+      # vault.hcl использует cluster_addr=http://vault:8201; имя пода даёт
+      # соответствующую запись в /etc/hosts.
+      hostname: vault
+      containers:
+        - name: vault
+          image: "hashicorp/vault@sha256:a296a888b118615dc01d5f1a6846e6d4a7277946caaed5b447008fff5fe06b54"
+          command: ["vault", "server", "-config=/vault/config/vault.hcl"]
+          ports:
+            - name: http
+              containerPort: 8200
+            - name: cluster
+              containerPort: 8201
+          envFrom:
+            - configMapRef:
+                name: homelab-config
+          env:
+            - name: VAULT_ADDR
+              value: "http://127.0.0.1:8200"
+            - name: VAULT_API_ADDR
+              value: "https://vault.$(DOMAIN)"
+          startupProbe:
+            exec:
+              # vault status: 0 — unsealed, 2 — sealed (тоже норма).
+              command: ["/bin/sh", "-c", "vault status >/dev/null 2>&1; s=$?; [ \"$s\" -eq 0 ] || [ \"$s\" -eq 2 ]"]
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 24
+          livenessProbe:
+            exec:
+              command: ["/bin/sh", "-c", "vault status >/dev/null 2>&1; s=$?; [ \"$s\" -eq 0 ] || [ \"$s\" -eq 2 ]"]
+            periodSeconds: 30
+            timeoutSeconds: 10
+          readinessProbe:
+            exec:
+              command: ["/bin/sh", "-c", "vault status >/dev/null 2>&1; s=$?; [ \"$s\" -eq 0 ] || [ \"$s\" -eq 2 ]"]
+            periodSeconds: 30
+            timeoutSeconds: 10
+          securityContext:
+            runAsUser: 100
+            runAsGroup: 1000
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          volumeMounts:
+            - name: data
+              mountPath: /vault/data
+            - name: config
+              mountPath: /vault/config
+              readOnly: true
+      volumes:
+        - name: data
+          hostPath:
+            path: /storage/apps/vault/data
+            type: Directory
+        - name: config
+          hostPath:
+            path: /home/artlab/projects/homelab/apps/vault/config
+            type: Directory
