@@ -1,0 +1,24 @@
+[Unit]
+Description=Tailscale policy routing: route tailnet destinations via table 52
+Documentation=file:/home/artlab/projects/homelab/docs/troubleshot/tailscale-k8s-ingress-access.md
+After=network-online.target tailscaled.service
+Wants=network-online.target
+PartOf=tailscaled.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+
+# Tailscale ставит правила policy routing с приоритетами 5210-5270:
+#   5210: from all fwmark 0x80000/0xff0000 lookup main
+#   5270: from all lookup 52
+# Форвардный трафик kube-proxy (DNAT/masquerade) к tailnet-клиенту несёт метку
+# fwmark 0x80000, поэтому матчится правило 5210, уходит в main и отправляется
+# через физический интерфейс (enp2s0) в LAN вместо tailscale0 — ответ не доходит.
+# Правило с приоритетом 5200 матчится по адресу назначения (не по метке) и,
+# будучи раньше fwmark-правил, отправляет пакеты к 100.64.0.0/10 в таблицу 52.
+ExecStart=/bin/sh -c '/usr/sbin/ip rule show | grep -q "to 100.64.0.0/10 lookup 52" || /usr/sbin/ip rule add to 100.64.0.0/10 lookup 52 priority 5200'
+ExecStop=-/usr/sbin/ip rule delete to 100.64.0.0/10 lookup 52 priority 5200
+
+[Install]
+WantedBy=multi-user.target

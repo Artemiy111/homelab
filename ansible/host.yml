@@ -192,6 +192,23 @@
         enabled: true
         state: started
 
+    # --- Tailscale + kube-proxy: policy routing ---
+    # Без этого правила ответы MetalLB/NodePort к tailnet-клиентам уходят в LAN
+    # (enp2s0) вместо tailscale0. Причина — см. etc/systemd/tailscale-policy-route.service.
+    - name: Скопировать systemd-юнит с policy routing для Tailscale
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../etc/systemd/tailscale-policy-route.service"
+        dest: /etc/systemd/system/tailscale-policy-route.service
+        mode: "0644"
+      notify: restart tailscale-policy-route
+
+    - name: Включить и запустить tailscale-policy-route
+      ansible.builtin.systemd:
+        name: tailscale-policy-route.service
+        enabled: true
+        state: started
+        daemon_reload: true
+
   handlers:
     - name: restart docker
       ansible.builtin.systemd:
@@ -206,4 +223,10 @@
     - name: restart fail2ban
       ansible.builtin.systemd:
         name: fail2ban
+        state: restarted
+
+    - name: restart tailscale-policy-route
+      ansible.builtin.systemd:
+        name: tailscale-policy-route.service
+        daemon_reload: true
         state: restarted
