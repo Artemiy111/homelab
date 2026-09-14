@@ -9,6 +9,8 @@ metadata:
 spec:
   type: ClusterIP
   externalIPs:
+    # .253 — старый MetalLB-VIP, .254 — IP узла (DNS forgejo.* теперь указывает на него).
+    - 192.0.2.10
     - 192.0.2.10
   selector:
     app: forgejo

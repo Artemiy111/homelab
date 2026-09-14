@@ -47,16 +47,6 @@ endpoints:
       - type: ntfy
       - type: telegram
 
-  - name: Traefik
-    group: Infrastructure
-    url: https://traefik.${DOMAIN}/dashboard/
-    interval: 60s
-    client: *https-client
-    conditions:
-      - "[STATUS] == 401"
-      - "[CERTIFICATE_EXPIRATION] > 168h"
-    alerts: *alerts-all
-
   - name: Technitium DNS
     group: Infrastructure
     url: ${SERVER_IP}
@@ -130,14 +120,6 @@ endpoints:
   - name: Beszel
     group: Monitoring
     url: https://beszel.${DOMAIN}/api/health
-    interval: 60s
-    client: *https-client
-    conditions: *https-ok
-    alerts: *alerts-all
-
-  - name: Arcane
-    group: Monitoring
-    url: https://arcane.${DOMAIN}/api/health
     interval: 60s
     client: *https-client
     conditions: *https-ok
