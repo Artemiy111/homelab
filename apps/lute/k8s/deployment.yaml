@@ -12,7 +12,6 @@ spec:
     metadata:
       labels:
         app: lute
-        tier: app
     spec:
       restartPolicy: Always
       containers:

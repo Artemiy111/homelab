@@ -12,7 +12,6 @@ spec:
     metadata:
       labels:
         app: mermaid-live-editor
-        tier: app
     spec:
       containers:
         - name: mermaid-live-editor

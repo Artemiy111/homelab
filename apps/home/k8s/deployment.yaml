@@ -12,7 +12,6 @@ spec:
     metadata:
       labels:
         app: home
-        tier: app
     spec:
       securityContext:
         runAsUser: 1000 

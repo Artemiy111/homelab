@@ -13,7 +13,6 @@ spec:
     metadata:
       labels:
         app: gatus
-        tier: app
     spec:
       securityContext:
         runAsUser: 1000

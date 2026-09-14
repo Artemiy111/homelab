@@ -14,7 +14,6 @@ spec:
     metadata:
       labels:
         app: uptime-kuma
-        tier: app
     spec:
       containers:
         - name: uptime-kuma

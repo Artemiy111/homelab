@@ -12,7 +12,6 @@ spec:
     metadata:
       labels:
         app: glitchtip-worker
-        tier: app
     spec:
       initContainers:
         - name: migrate
