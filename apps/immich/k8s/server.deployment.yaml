@@ -1,0 +1,151 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: immich-server
+  namespace: default
+spec:
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
+  replicas: 1
+  selector:
+    matchLabels:
+      app: immich-server
+  template:
+    metadata:
+      labels:
+        app: immich-server
+    spec:
+      # Immich читает IMMICH_PORT/DB_PORT/REDIS_PORT, а их инжектят service-links
+      # (Service immich и Service db/redis от nextcloud) в формате tcp://….
+      enableServiceLinks: false
+      initContainers:
+        - name: wait-for-db
+          image: "ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0@sha256:bcf63357191b76a916ae5eb93464d65c07511da41e3bf7a8416db519b40b1c23"
+          command: ["/bin/sh", "-c", "until pg_isready -h immich-db -U postgres -d immich; do echo waiting for immich-db; sleep 2; done"]
+          securityContext:
+            runAsUser: 999
+            runAsGroup: 999
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+        - name: wait-for-valkey
+          image: "valkey/valkey:9@sha256:8e8d64b405ce18f41b8e5ee20aa4687a8ed0022d1298f2ce31cdcf3a76e09411"
+          command: ["/bin/sh", "-c", "until valkey-cli -h immich-valkey ping | grep -q PONG; do echo waiting for immich-valkey; sleep 2; done"]
+          securityContext:
+            runAsUser: 999
+            runAsGroup: 999
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+      containers:
+        - name: immich-server
+          image: "ghcr.io/immich-app/immich-server:v3@sha256:b434cb9287eea1471c9974845914d4dd328c9c2d652e446ed4930f99944f0ceb"
+          ports:
+            - name: http
+              containerPort: 2283
+          env:
+            - name: TZ
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-config
+                  key: TZ
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: immich
+                  key: DB_PASSWORD
+            - name: DB_HOSTNAME
+              value: immich-db
+            - name: REDIS_HOSTNAME
+              value: immich-valkey
+            - name: DB_USERNAME
+              value: postgres
+            - name: DB_DATABASE_NAME
+              value: immich
+            - name: IMMICH_TELEMETRY_INCLUDE
+              value: all
+          startupProbe:
+            httpGet:
+              path: /api/server/ping
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            failureThreshold: 36
+          livenessProbe:
+            httpGet:
+              path: /api/server/ping
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /api/server/ping
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+              add: ["CHOWN", "DAC_OVERRIDE", "FOWNER", "SETGID", "SETUID"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 200m
+              memory: 512Mi
+            limits:
+              cpu: "2"
+              memory: 2Gi
+          volumeMounts:
+            - name: library
+              mountPath: /data
+            - name: media-user
+              mountPath: /mnt/Artemiy/Library
+              readOnly: true
+            - name: media-family
+              mountPath: /mnt/Family/Library
+              readOnly: true
+            - name: localtime
+              mountPath: /etc/localtime
+              readOnly: true
+      volumes:
+        - name: library
+          hostPath:
+            path: /storage/apps/immich/library
+            type: Directory
+        - name: media-user
+          hostPath:
+            path: /storage/media/visual/Artemiy/Library
+            type: Directory
+        - name: media-family
+          hostPath:
+            path: /storage/media/visual/Family/Library
+            type: Directory
+        - name: localtime
+          hostPath:
+            path: /etc/localtime
+            type: File
