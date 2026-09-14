@@ -77,7 +77,7 @@
 
     - name: Определить версию установленного vals
       ansible.builtin.command:
-        cmd: /usr/local/bin/vals --version
+        cmd: /usr/local/bin/vals version
       register: vals_installed
       failed_when: false
       changed_when: false
@@ -92,10 +92,16 @@
 
     # Пересобираем при смене пина или если бинарник отсутствует/битый/
     # другой версии. Main-пакет vals — ./cmd/vals (корень репозитория —
-    # библиотека). go build учитывает umask, поэтому права фиксируем ниже.
+    # библиотека). Версию в бинарник надо класть через -ldflags (как в
+    # Makefile проекта), иначе `vals version` показывает `dev` и задача
+    # не становится идемпотентной. go build учитывает umask, поэтому права
+    # фиксируем ниже.
     - name: Собрать vals из исходного кода
       ansible.builtin.command:
-        cmd: go build -trimpath -o /usr/local/bin/vals ./cmd/vals
+        cmd: >-
+          go build -trimpath
+          -ldflags "-X main.version={{ vals_version }} -X main.commit={{ vals_repo_state.after }}"
+          -o /usr/local/bin/vals ./cmd/vals
         chdir: /usr/local/src/vals
       when: >-
         vals_repo_state.changed
