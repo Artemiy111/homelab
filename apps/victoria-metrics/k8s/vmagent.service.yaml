@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: vmagent
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: vmagent
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP

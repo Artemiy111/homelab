@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: victoriametrics
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: victoriametrics
+  ports:
+    # Порт 80 сохранён для Gatus (http://victoriametrics/health).
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP
+    # Порт приложения: grafana datasource и vmagent remote write.
+    - name: vm
+      port: 8428
+      targetPort: http
+      protocol: TCP

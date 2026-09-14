@@ -12,3 +12,8 @@ spec:
       port: 80
       targetPort: http
       protocol: TCP
+    # Порт приложения: vmagent скрейпит /api/v1/allmetrics.
+    - name: scrape
+      port: 19999
+      targetPort: http
+      protocol: TCP
