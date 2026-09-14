@@ -1,0 +1,184 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: paperless
+  namespace: default
+spec:
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
+  replicas: 1
+  selector:
+    matchLabels:
+      app: paperless
+  template:
+    metadata:
+      labels:
+        app: paperless
+    spec:
+      # Иначе k8s инжектит PAPERLESS_PORT=tcp://<svc>:8000 от Service `paperless`,
+      # и приложение падает (granian ждёт целое число).
+      enableServiceLinks: false
+      initContainers:
+        - name: wait-for-db
+          image: "postgres:18-alpine@sha256:d3e1620b530c944afa6e887d22eb899824da68e19c52024bf98f5220c88a65b2"
+          command: ["/bin/sh", "-c", "until pg_isready -h paperless-db -p 5432 -U paperless; do echo waiting for paperless-db; sleep 2; done"]
+          securityContext:
+            runAsUser: 70
+            runAsGroup: 70
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+        - name: wait-for-broker
+          image: "valkey/valkey:9-alpine@sha256:ee91f7a174ac4d6a6b0685b3a60e321f0a9dbbb691f9b0e285be2ba1d1be8328"
+          command: ["/bin/sh", "-c", "until valkey-cli -h paperless-broker ping | grep -q PONG; do echo waiting for paperless-broker; sleep 2; done"]
+          securityContext:
+            runAsUser: 999
+            runAsGroup: 999
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+      containers:
+        - name: paperless
+          image: "paperlessngx/paperless-ngx:3.0@sha256:65a4cabf0169ea7fbd90ab7bb28ba3f8b5909613635acda1a03ad606f34b456b"
+          ports:
+            - name: http
+              containerPort: 8000
+          env:
+            - name: DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-config
+                  key: DOMAIN
+            - name: PAPERLESS_TIME_ZONE
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-config
+                  key: TZ
+            - name: PAPERLESS_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: paperless
+                  key: PAPERLESS_SECRET_KEY
+            - name: PAPERLESS_DBPASS
+              valueFrom:
+                secretKeyRef:
+                  name: paperless
+                  key: POSTGRES_PASSWORD
+            - name: PAPERLESS_URL
+              value: "https://paperless.$(DOMAIN)"
+            - name: PAPERLESS_CSRF_TRUSTED_ORIGINS
+              value: "https://paperless.$(DOMAIN)"
+            - name: PAPERLESS_OCR_LANGUAGE
+              value: rus
+            - name: PAPERLESS_OCR_LANGUAGES
+              value: rus
+            - name: PAPERLESS_REDIS
+              value: "redis://paperless-broker:6379"
+            - name: PAPERLESS_DBENGINE
+              value: postgresql
+            - name: PAPERLESS_DBHOST
+              value: paperless-db
+            - name: PAPERLESS_DBNAME
+              value: paperless
+            - name: PAPERLESS_DBUSER
+              value: paperless
+            - name: PAPERLESS_TIKA_ENABLED
+              value: "1"
+            - name: PAPERLESS_TIKA_GOTENBERG_ENDPOINT
+              value: "http://paperless-gotenberg:3000"
+            - name: PAPERLESS_TIKA_ENDPOINT
+              value: "http://paperless-tika:9998"
+            - name: PAPERLESS_CONSUMER_RECURSIVE
+              value: "true"
+            - name: PAPERLESS_CONSUMER_SUBDIRS_AS_TAGS
+              value: "true"
+            - name: PAPERLESS_CONSUMER_POLLING
+              value: "60"
+            - name: USERMAP_UID
+              value: "1000"
+            - name: USERMAP_GID
+              value: "1000"
+          startupProbe:
+            httpGet:
+              path: /api/health/
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            failureThreshold: 40
+          livenessProbe:
+            httpGet:
+              path: /api/health/
+              port: http
+            periodSeconds: 60
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /api/health/
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          securityContext:
+            # Образ стартует как root и роняет процессы до USERMAP_UID=1000;
+            # каталоги hostPath принадлежат uid 1000.
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+              add: ["CHOWN", "DAC_OVERRIDE", "FOWNER", "SETGID", "SETUID"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 200m
+              memory: 512Mi
+            limits:
+              cpu: "2"
+              memory: 2Gi
+          volumeMounts:
+            - name: data
+              mountPath: /usr/src/paperless/data
+            - name: media
+              mountPath: /usr/src/paperless/media
+            - name: export
+              mountPath: /usr/src/paperless/export
+            - name: consume
+              mountPath: /usr/src/paperless/consume
+      volumes:
+        - name: data
+          hostPath:
+            path: /storage/apps/paperless/data
+            type: Directory
+        - name: media
+          hostPath:
+            path: /storage/apps/paperless/media
+            type: Directory
+        - name: export
+          hostPath:
+            path: /storage/apps/paperless/export
+            type: Directory
+        - name: consume
+          hostPath:
+            path: /storage/apps/paperless/consume
+            type: Directory

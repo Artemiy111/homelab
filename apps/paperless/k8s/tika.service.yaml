@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: paperless-tika
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: paperless-tika
+  ports:
+    - name: http
+      port: 9998
+      targetPort: http
+      protocol: TCP
