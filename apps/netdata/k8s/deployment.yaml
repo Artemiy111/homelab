@@ -1,0 +1,173 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: netdata
+  namespace: default
+spec:
+  # hostPath/host-тома нельзя монтировать в два пода одновременно.
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
+  replicas: 1
+  selector:
+    matchLabels:
+      app: netdata
+  template:
+    metadata:
+      labels:
+        app: netdata
+    spec:
+      hostname: homelab
+      enableServiceLinks: false
+      containers:
+        - name: netdata
+          image: "netdata/netdata:v2.11.0@sha256:d9f6f14c2fb0517168bd9c5da952f6cb735df757919c37172695c2fbb63c3252"
+          ports:
+            - name: http
+              containerPort: 19999
+          env:
+            - name: DISABLE_TELEMETRY
+              value: "1"
+            - name: TZ
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-config
+                  key: TZ
+          startupProbe:
+            httpGet:
+              path: /api/v1/info
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /api/v1/info
+              port: http
+            periodSeconds: 60
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /api/v1/info
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+            # apps.plugin — setuid-binary из образа: no-new-privileges ломает
+            # сбор метрик процессов, поэтому escalation разрешён.
+            allowPrivilegeEscalation: true
+            capabilities:
+              add: ["SYS_PTRACE", "DAC_READ_SEARCH"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 200m
+              memory: 256Mi
+            limits:
+              cpu: "2"
+              memory: 1Gi
+          volumeMounts:
+            - name: config
+              mountPath: /etc/netdata
+            - name: lib
+              mountPath: /var/lib/netdata
+            - name: cache
+              mountPath: /var/cache/netdata
+            - name: docker-sd
+              mountPath: /etc/netdata/go.d/sd/docker.conf
+              readOnly: true
+            - name: health-alarm-notify
+              mountPath: /etc/netdata/health_alarm_notify.conf
+              readOnly: true
+            - name: host-root
+              mountPath: /host/root
+              readOnly: true
+              mountPropagation: HostToContainer
+            - name: host-passwd
+              mountPath: /host/etc/passwd
+              readOnly: true
+            - name: host-group
+              mountPath: /host/etc/group
+              readOnly: true
+            - name: localtime
+              mountPath: /etc/localtime
+              readOnly: true
+            - name: host-os-release
+              mountPath: /host/etc/os-release
+              readOnly: true
+            - name: host-proc
+              mountPath: /host/proc
+              readOnly: true
+              mountPropagation: HostToContainer
+            - name: host-sys
+              mountPath: /host/sys
+              readOnly: true
+              mountPropagation: HostToContainer
+            - name: host-var-log
+              mountPath: /host/var/log
+              readOnly: true
+            - name: docker-sock
+              mountPath: /var/run/docker.sock
+              readOnly: true
+      volumes:
+        - name: config
+          hostPath:
+            path: /storage/apps/netdata/config
+            type: Directory
+        - name: lib
+          hostPath:
+            path: /storage/apps/netdata/lib
+            type: Directory
+        - name: cache
+          hostPath:
+            path: /storage/apps/netdata/cache
+            type: Directory
+        - name: docker-sd
+          hostPath:
+            path: /home/artlab/projects/homelab/apps/netdata/config/go.d/sd/docker.conf
+            type: File
+        - name: health-alarm-notify
+          hostPath:
+            path: /home/artlab/projects/homelab/apps/netdata/config/health_alarm_notify.conf
+            type: File
+        - name: host-root
+          hostPath:
+            path: /
+            type: Directory
+        - name: host-passwd
+          hostPath:
+            path: /etc/passwd
+            type: File
+        - name: host-group
+          hostPath:
+            path: /etc/group
+            type: File
+        - name: localtime
+          hostPath:
+            path: /etc/localtime
+            type: File
+        - name: host-os-release
+          hostPath:
+            path: /etc/os-release
+            type: File
+        - name: host-proc
+          hostPath:
+            path: /proc
+            type: Directory
+        - name: host-sys
+          hostPath:
+            path: /sys
+            type: Directory
+        - name: host-var-log
+          hostPath:
+            path: /var/log
+            type: Directory
+        - name: docker-sock
+          hostPath:
+            path: /var/run/docker.sock
+            type: Socket

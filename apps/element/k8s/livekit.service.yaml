@@ -12,3 +12,8 @@ spec:
       port: 7880
       targetPort: http
       protocol: TCP
+    # Prometheus-метрики (скрейпит netdata в кластере).
+    - name: metrics
+      port: 6789
+      targetPort: metrics
+      protocol: TCP

@@ -12,3 +12,8 @@ spec:
       port: 2283
       targetPort: http
       protocol: TCP
+    # Prometheus-метрики (скрейпит netdata в кластере).
+    - name: metrics
+      port: 8081
+      targetPort: 8081
+      protocol: TCP
