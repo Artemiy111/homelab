@@ -1,0 +1,137 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sure-worker
+  namespace: default
+spec:
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sure-worker
+  template:
+    metadata:
+      labels:
+        app: sure-worker
+    spec:
+      initContainers:
+        - name: wait-for-db
+          image: "postgres:16@sha256:f992505e18f114c1e5102ac4dcf00f791b44462f6a423d899320f0bbf80e386f"
+          command: ["/bin/sh", "-c", "until pg_isready -h sure-db -p 5432 -U postgres; do echo waiting for sure-db; sleep 2; done"]
+          securityContext:
+            runAsUser: 999
+            runAsGroup: 999
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+        - name: wait-for-redis
+          image: "redis:8-alpine@sha256:978f0e01593e65eed801f2402944efcd936d43b5027e4908a7897baf88ed6241"
+          command: ["/bin/sh", "-c", "until redis-cli -h sure-redis ping | grep -q PONG; do echo waiting for sure-redis; sleep 2; done"]
+          securityContext:
+            runAsUser: 999
+            runAsGroup: 999
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+      containers:
+        - name: sure-worker
+          image: "ghcr.io/we-promise/sure:0.7.3@sha256:12361b7b309f867002b8a1f54200607ca1a321e1b57cf21890caaf83602c3cd0"
+          args: ["bundle", "exec", "sidekiq"]
+          env:
+            - name: DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-config
+                  key: DOMAIN
+            - name: POSTGRES_USER
+              value: postgres
+            - name: POSTGRES_PASSWORD
+              value: postgres
+            - name: POSTGRES_DB
+              value: sure_production
+            - name: SECRET_KEY_BASE
+              valueFrom:
+                secretKeyRef:
+                  name: sure
+                  key: SECRET_KEY_BASE
+            - name: OPENAI_ACCESS_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: sure
+                  key: OPENAI_ACCESS_TOKEN
+            - name: SELF_HOSTED
+              value: "true"
+            - name: RAILS_FORCE_SSL
+              value: "false"
+            - name: RAILS_ASSUME_SSL
+              value: "true"
+            - name: DB_HOST
+              value: sure-db
+            - name: DB_PORT
+              value: "5432"
+            - name: REDIS_URL
+              value: "redis://sure-redis:6379/1"
+            - name: OPENAI_MODEL
+              value: gpt-4o
+            - name: OPENAI_URI_BASE
+              value: "https://localai.$(DOMAIN)/v1"
+            - name: LLM_CONTEXT_WINDOW
+              value: "8192"
+            - name: OPENAI_REQUEST_TIMEOUT
+              value: "300"
+            - name: ASSISTANT_MAX_TOOL_CALL_ITERATIONS
+              value: "2"
+            - name: AI_RESPONSE_TIMEOUT
+              value: "1200"
+          livenessProbe:
+            exec:
+              command: ["/bin/sh", "-c", "pgrep -f sidekiq"]
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 100m
+              memory: 384Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          volumeMounts:
+            - name: storage
+              mountPath: /rails/storage
+      volumes:
+        - name: storage
+          hostPath:
+            path: /storage/apps/sure/data/app
+            type: Directory
