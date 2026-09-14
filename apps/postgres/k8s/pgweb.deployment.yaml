@@ -16,6 +16,28 @@ spec:
       labels:
         app: postgres-pgweb
     spec:
+      initContainers:
+        # pgweb падает с exit 1, если БД ещё не готова (в compose это
+        # depends_on: service_healthy).
+        - name: wait-for-db
+          image: "postgres@sha256:9a8afca54e7861fd90fab5fdf4c42477a6b1cb7d293595148e674e0a3181de15"
+          command: ["/bin/sh", "-c", "until pg_isready -h postgres-db -p 5432 -U playground; do echo waiting for postgres-db; sleep 2; done"]
+          securityContext:
+            runAsUser: 70
+            runAsGroup: 70
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
       containers:
         - name: pgweb
           image: "ghcr.io/sosedoff/pgweb@sha256:a5256d416e2e8b92d69a4459058e3eca33a9f075d8325491644411d0bc3bd70b"
