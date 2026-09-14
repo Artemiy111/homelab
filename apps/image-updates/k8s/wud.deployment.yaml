@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wud
+  namespace: default
+spec:
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wud
+  template:
+    metadata:
+      labels:
+        app: wud
+    spec:
+      enableServiceLinks: false
+      containers:
+        - name: wud
+          image: "ghcr.io/getwud/wud:8.3.1@sha256:42554d2cd50d5de7a47563170bd0629193dd1e086a1fd71d1ec10fc4c2409f5d"
+          ports:
+            - name: http
+              containerPort: 3000
+          env:
+            - name: TZ
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-config
+                  key: TZ
+            # Watcher ходит к Docker daemon через socket-proxy (только GET API).
+            - name: WUD_WATCHER_LOCAL_HOST
+              value: docker-socket-proxy
+            - name: WUD_WATCHER_LOCAL_PORT
+              value: "2375"
+            - name: WUD_WATCHER_LOCAL_CRON
+              value: "0 */6 * * *"
+            - name: WUD_WATCHER_LOCAL_WATCHEVENTS
+              value: "false"
+            - name: WUD_SERVER_FEATURE_DELETE
+              value: "false"
+          startupProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 120
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 60
+            timeoutSeconds: 5
+            failureThreshold: 3
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi
+          volumeMounts:
+            - name: store
+              mountPath: /store
+      volumes:
+        - name: store
+          hostPath:
+            path: /storage/apps/wud/store
+            type: Directory

@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: docker-socket-proxy
+  namespace: default
+spec:
+  revisionHistoryLimit: 2
+  replicas: 1
+  selector:
+    matchLabels:
+      app: docker-socket-proxy
+  template:
+    metadata:
+      labels:
+        app: docker-socket-proxy
+    spec:
+      enableServiceLinks: false
+      containers:
+        - name: docker-socket-proxy
+          image: "ghcr.io/tecnativa/docker-socket-proxy:v0.5.0@sha256:1f5038b54f06c3e18422902cf00ba21803d1c97805aae032e5e6673d532d3459"
+          ports:
+            - name: docker-api
+              containerPort: 2375
+          env:
+            - name: CONTAINERS
+              value: "1"
+            - name: EVENTS
+              value: "0"
+            - name: IMAGES
+              value: "1"
+            - name: INFO
+              value: "1"
+            - name: POST
+              value: "0"
+          startupProbe:
+            tcpSocket:
+              port: docker-api
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 30
+          livenessProbe:
+            tcpSocket:
+              port: docker-api
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            tcpSocket:
+              port: docker-api
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 20m
+              memory: 32Mi
+            limits:
+              cpu: 500m
+              memory: 128Mi
+          volumeMounts:
+            - name: docker-sock
+              mountPath: /var/run/docker.sock
+              readOnly: true
+      volumes:
+        - name: docker-sock
+          hostPath:
+            path: /var/run/docker.sock
+            type: Socket

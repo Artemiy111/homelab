@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: docker-socket-proxy
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: docker-socket-proxy
+  ports:
+    - name: docker-api
+      port: 2375
+      targetPort: docker-api
+      protocol: TCP

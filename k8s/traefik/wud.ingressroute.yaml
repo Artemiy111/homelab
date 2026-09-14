@@ -1,0 +1,20 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: wud
+  namespace: default
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`wud.example.com`)
+      kind: Rule
+      middlewares:
+        - name: oauth2-proxy
+        - name: secure-headers
+        - name: ratelimit-default
+      services:
+        - name: wud
+          port: 80
+  tls:
+    secretName: wildcard-tls
