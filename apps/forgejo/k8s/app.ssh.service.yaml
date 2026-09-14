@@ -1,6 +1,6 @@
 # Git over SSH остаётся на том же адресе forgejo.${DOMAIN}:2222: kube-proxy
-# принимает :2222 на MetalLB-VIP (externalIPs), который уже анонсируется по ARP
-# для Traefik, и DNAT'ит в под forgejo. Traefik порт 2222 не занимает.
+# принимает :2222 на IP узла (externalIPs) и DNAT'ит в под forgejo.
+# Traefik порт 2222 не занимает.
 apiVersion: v1
 kind: Service
 metadata:
@@ -9,8 +9,6 @@ metadata:
 spec:
   type: ClusterIP
   externalIPs:
-    # .253 — старый MetalLB-VIP, .254 — IP узла (DNS forgejo.* теперь указывает на него).
-    - 192.0.2.10
     - 192.0.2.10
   selector:
     app: forgejo

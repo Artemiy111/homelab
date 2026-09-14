@@ -4,13 +4,11 @@ metadata:
   name: mailserver-mail
   namespace: default
 spec:
-  # Почтовые порты публикуются на IP узла (.254) и на MetalLB-VIP (.253):
-  # .254 — как раньше через Docker (приём извне: роутер шлёт на .254:25),
-  # .253 — чтобы клиенты, идущие на mail.<домен>, попадали сюда.
+  # Почтовые порты публикуются на IP узла (.254) — как раньше через Docker
+  # (приём извне: роутер шлёт на .254:25; клиенты идут на mail.<домен>:25/993).
   # kube-proxy делает DNAT в PREROUTING, поэтому firewalld INPUT не мешает.
   type: ClusterIP
   externalIPs:
-    - 192.0.2.10
     - 192.0.2.10
   selector:
     app: mailserver
