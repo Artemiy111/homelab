@@ -1,0 +1,133 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: forgejo
+  namespace: default
+spec:
+  # hostPath-каталоги нельзя монтировать в два пода одновременно.
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
+  replicas: 1
+  selector:
+    matchLabels:
+      app: forgejo
+  template:
+    metadata:
+      labels:
+        app: forgejo
+    spec:
+      containers:
+        - name: forgejo
+          image: "data.forgejo.org/forgejo/forgejo:16-rootless@sha256:23ccc146e6dc2cd1f5c5435909baae64db873201717f1726490dae649283e6cd"
+          ports:
+            - name: http
+              containerPort: 3000
+            - name: ssh
+              containerPort: 2222
+          envFrom:
+            - configMapRef:
+                name: homelab-config
+          env:
+            - name: DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-config
+                  key: DOMAIN
+            - name: FORGEJO__database__DB_TYPE
+              value: postgres
+            - name: FORGEJO__database__HOST
+              value: forgejo-db:5432
+            - name: FORGEJO__database__NAME
+              value: forgejo
+            - name: FORGEJO__database__USER
+              value: forgejo
+            - name: FORGEJO__database__PASSWD
+              valueFrom:
+                secretKeyRef:
+                  name: forgejo
+                  key: POSTGRES_PASSWORD
+            - name: FORGEJO__server__DOMAIN
+              value: "forgejo.$(DOMAIN)"
+            - name: FORGEJO__server__ROOT_URL
+              value: "https://forgejo.$(DOMAIN)/"
+            - name: FORGEJO__server__SSH_DOMAIN
+              value: "forgejo.$(DOMAIN)"
+            - name: FORGEJO__server__SSH_PORT
+              value: "2222"
+            - name: FORGEJO__server__LFS_START_SERVER
+              value: "true"
+            # Обратный прокси — Traefik в кластере (pod CIDR k0s).
+            - name: FORGEJO__security__REVERSE_PROXY_TRUSTED_PROXIES
+              value: "10.244.0.0/16"
+            - name: FORGEJO__service__DISABLE_REGISTRATION
+              value: "true"
+            - name: FORGEJO__service__ENABLE_UPDATE_CHECKER
+              value: "false"
+            - name: FORGEJO__service__DEFAULT_USER_VISIBILITY
+              value: private
+            - name: FORGEJO__repository__DEFAULT_PRIVATE
+              value: private
+            - name: FORGEJO__openid__ENABLE_OPENID_SIGNIN
+              value: "false"
+            - name: FORGEJO__openid__ENABLE_OPENID_SIGNUP
+              value: "false"
+            - name: FORGEJO__actions__ENABLED
+              value: "false"
+            - name: FORGEJO__metrics__ENABLED
+              value: "true"
+            - name: FORGEJO__metrics__TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: forgejo
+                  key: FORGEJO_METRICS_TOKEN
+            - name: FORGEJO__i18n__DEFAULT_LOCALE
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-config
+                  key: DEFAULT_LOCALE
+          startupProbe:
+            httpGet:
+              path: /api/healthz
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /api/healthz
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /api/healthz
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 20m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 768Mi
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/gitea
+      volumes:
+        - name: data
+          hostPath:
+            path: /storage/apps/forgejo/data
+            type: Directory
