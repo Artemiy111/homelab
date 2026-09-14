@@ -1,0 +1,140 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: talk-hpb
+  namespace: default
+spec:
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
+  replicas: 1
+  selector:
+    matchLabels:
+      app: talk-hpb
+  template:
+    metadata:
+      labels:
+        app: talk-hpb
+    spec:
+      # TURN/STUN 3478 и relay 20000-20499 публикуются напрямую на LAN-адресе
+      # узла: произвольные UDP-порты MetalLB-VIP (.253) не обслуживает.
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      enableServiceLinks: false
+      containers:
+        - name: talk-hpb
+          image: "ghcr.io/nextcloud-releases/aio-talk:20260817_082005@sha256:6f9cc6a535175b27184af59b330bdc9b98469cff1e8dab198cd6e1864c71e805"
+          # Образ имеет ENTRYPOINT /start.sh, который пишет /conf/eturnal.yml и
+          # /conf/janus.jcfg, а затем запускает переданные args. При hostNetwork
+          # hostname -i не даёт IP, поэтому строки relay_* в конфиге eturnal
+          # удаляются — вставляем их сами: relay на LAN-IP узла и узкий диапазон
+          # портов. Также добавляем LAN-подсеть в whitelist_peers и переключаем
+          # Janus на localhost, чтобы не ходить через hairpin NAT.
+          args:
+            - /bin/sh
+            - -c
+            - >-
+              sed -i 's|^  whitelist_peers:|  whitelist_peers:\n  - "$(TALK_RELAY_NETWORK)"|' /conf/eturnal.yml
+              && awk -v ip="$(SERVER_IP)" -v mn="$(TALK_RELAY_MIN_PORT)" -v mx="$(TALK_RELAY_MAX_PORT)" '{print} /^  secret:/{print "  relay_ipv4_addr: \"" ip "\""; print "  relay_min_port: " mn; print "  relay_max_port: " mx}' /conf/eturnal.yml > /conf/eturnal.yml.tmp
+              && mv /conf/eturnal.yml.tmp /conf/eturnal.yml
+              && sed -i 's|turn_server = "[^"]*"|turn_server = "127.0.0.1"|' /conf/janus.jcfg
+              && exec supervisord -c /supervisord.conf
+          ports:
+            - name: turn-tcp
+              containerPort: 3478
+              protocol: TCP
+            - name: turn-udp
+              containerPort: 3478
+              protocol: UDP
+            - name: signaling
+              containerPort: 8081
+          env:
+            - name: DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-config
+                  key: DOMAIN
+            - name: SERVER_IP
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-config
+                  key: SERVER_IP
+            - name: TZ
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-config
+                  key: TZ
+            - name: INTERNAL_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: talk-hpb
+                  key: INTERNAL_SECRET
+            - name: SIGNALING_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: talk-hpb
+                  key: SIGNALING_SECRET
+            - name: TURN_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: talk-hpb
+                  key: TURN_SECRET
+            - name: AIO_LOG_LEVEL
+              value: warn
+            - name: NC_DOMAIN
+              value: "nextcloud.$(DOMAIN)"
+            - name: TALK_HOST
+              value: "talk-signaling.$(DOMAIN)"
+            - name: TURN_DOMAIN
+              value: "talk-signaling.$(DOMAIN)"
+            - name: TALK_PORT
+              value: "3478"
+            - name: TALK_RELAY_MIN_PORT
+              value: "20000"
+            - name: TALK_RELAY_MAX_PORT
+              value: "20499"
+            - name: TALK_RELAY_NETWORK
+              value: "192.0.2.10/24"
+            - name: TALK_MAX_STREAM_BITRATE
+              value: "15728640"
+            - name: TALK_MAX_SCREEN_BITRATE
+              value: "26214400"
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 200m
+              memory: 512Mi
+            limits:
+              cpu: "2"
+              memory: 2Gi
+          volumeMounts:
+            - name: conf
+              mountPath: /conf
+            - name: eturnal-run
+              mountPath: /opt/eturnal/run
+            - name: supervisord-log
+              mountPath: /var/log/supervisord
+            - name: supervisord-run
+              mountPath: /var/run/supervisord
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: conf
+          emptyDir: {}
+        - name: eturnal-run
+          emptyDir: {}
+        - name: supervisord-log
+          emptyDir: {}
+        - name: supervisord-run
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
