@@ -73,7 +73,8 @@ endpoints:
 
   - name: Gitea SSH
     group: Infrastructure
-    url: tcp://${SERVER_IP}:2222
+    # Forgejo в k8s: SSH-порт 2222 висит на k8s-VIP, доступен по имени сервиса.
+    url: tcp://forgejo.${DOMAIN}:2222
     interval: 60s
     conditions: &tcp-connected
       - "[CONNECTED] == true"
