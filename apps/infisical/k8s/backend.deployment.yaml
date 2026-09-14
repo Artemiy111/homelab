@@ -1,0 +1,135 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: infisical
+  namespace: default
+spec:
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
+  replicas: 1
+  selector:
+    matchLabels:
+      app: infisical
+  template:
+    metadata:
+      labels:
+        app: infisical
+    spec:
+      initContainers:
+        - name: wait-for-db
+          image: "postgres:14-alpine@sha256:727876d274666da0b92a445390ba093c84b8e9f8343e1c53cd4e9a7ab2d85310"
+          command: ["/bin/sh", "-c", "until pg_isready -h infisical-postgres -p 5432 -U infisical; do echo waiting for infisical-postgres; sleep 2; done"]
+          securityContext:
+            runAsUser: 70
+            runAsGroup: 70
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+        - name: wait-for-redis
+          image: "redis:7-alpine@sha256:e7723ff73d963f5cc6d9c4643ea3d989527a402a319239054e9472a7fb9219a2"
+          command: ["/bin/sh", "-c", "until redis-cli -h infisical-redis ping | grep -q PONG; do echo waiting for infisical-redis; sleep 2; done"]
+          securityContext:
+            runAsUser: 999
+            runAsGroup: 999
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+      containers:
+        - name: infisical
+          image: "infisical/infisical:v0.162.20@sha256:634d2f934eecf5b455500b6c04e99bd75a687706df7b046697fdad849587a6df"
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-config
+                  key: DOMAIN
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: infisical
+                  key: POSTGRES_PASSWORD
+            - name: ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: infisical
+                  key: ENCRYPTION_KEY
+            - name: AUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: infisical
+                  key: AUTH_SECRET
+            - name: NODE_ENV
+              value: production
+            - name: INFISICAL_HOST
+              value: "infisical.$(DOMAIN)"
+            - name: SITE_URL
+              value: "https://infisical.$(DOMAIN)"
+            - name: DB_CONNECTION_URI
+              value: "postgresql://infisical:$(POSTGRES_PASSWORD)@infisical-postgres:5432/infisical?sslmode=disable"
+            - name: REDIS_URL
+              value: "redis://infisical-redis:6379"
+            - name: HOST
+              value: "0.0.0.0"
+            # Обратный прокси — Traefik в кластере (pod CIDR k0s).
+            - name: TRUSTED_PROXY_CIDRS
+              value: "10.244.0.0/16"
+            - name: TELEMETRY_ENABLED
+              value: "false"
+          startupProbe:
+            httpGet:
+              path: /api/status
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            failureThreshold: 36
+          livenessProbe:
+            httpGet:
+              path: /api/status
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /api/status
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
