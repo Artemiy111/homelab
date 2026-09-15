@@ -74,6 +74,11 @@ spec:
                 secretKeyRef:
                   name: local-ai
                   key: LOCALAI_API_KEY
+            - name: HOME_ASSISTANT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: home-assistant
+                  key: HOME_ASSISTANT_TOKEN
           startupProbe:
             httpGet:
               path: /health

@@ -21,6 +21,9 @@ usb:
 webhook:
 zeroconf:
 
+# Prometheus-метрики на /api/prometheus (скрейпит vmagent, Bearer-токен).
+prometheus:
+
 # Files managed by the automation, script, and scene editors in the UI.
 automation: !include automations.yaml
 script: !include scripts.yaml

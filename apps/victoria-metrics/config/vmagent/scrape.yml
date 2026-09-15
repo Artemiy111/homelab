@@ -121,6 +121,15 @@ scrape_configs:
       - targets:
           - local-ai:8080
 
+  # Home Assistant отдаёт /api/prometheus за Bearer-токеном.
+  - job_name: home-assistant
+    metrics_path: /api/prometheus
+    authorization:
+      credentials: "%{HOME_ASSISTANT_TOKEN}"
+    static_configs:
+      - targets:
+          - home-assistant:8123
+
   # API-ключ Kuma передаётся как пароль basic auth без username.
   - job_name: uptime-kuma
     basic_auth:
