@@ -20,6 +20,55 @@ scrape_configs:
       - targets:
           - netdata:19999
 
+  - job_name: node-exporter
+    static_configs:
+      - targets:
+          - node-exporter:9100
+
+  # Состояние объектов кластера (kube_*): реплики, статусы Pod, Job, PVC.
+  - job_name: kube-state-metrics
+    static_configs:
+      - targets:
+          - kube-state-metrics:8080
+
+  # kubelet и встроенный в него cAdvisor: ресурсы контейнеров и Pod'ов
+  # (container_*). Цели находятся через service discovery (role: node) — по
+  # одной на каждую ноду, поэтому кластер может расти. kubelet на :10250
+  # требует bearer-токен SA с правом на non-resource URL'ы (/metrics,
+  # /metrics/cadvisor) — см. vmagent-rbac.yaml. insecure_skip_verify: у
+  # kubelet self-signed сертификат (так же по умолчанию делает
+  # kube-prometheus-stack).
+  - job_name: kubelet
+    scheme: https
+    bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+    tls_config:
+      insecure_skip_verify: true
+    kubernetes_sd_configs:
+      - role: node
+    relabel_configs:
+      - action: labelmap
+        regex: __meta_kubernetes_node_label_(.+)
+      - source_labels: [__meta_kubernetes_node_address_InternalIP]
+        regex: "(.+)"
+        target_label: __address__
+        replacement: "${1}:10250"
+
+  - job_name: cadvisor
+    scheme: https
+    metrics_path: /metrics/cadvisor
+    bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+    tls_config:
+      insecure_skip_verify: true
+    kubernetes_sd_configs:
+      - role: node
+    relabel_configs:
+      - action: labelmap
+        regex: __meta_kubernetes_node_label_(.+)
+      - source_labels: [__meta_kubernetes_node_address_InternalIP]
+        regex: "(.+)"
+        target_label: __address__
+        replacement: "${1}:10250"
+
   # Собственные метрики стека.
   - job_name: victoriametrics
     static_configs:
@@ -118,8 +167,11 @@ scrape_configs:
 
   # Приложения с аутентификацией (креды из окружения).
 
-  # LocalAI отдаёт /metrics за API-ключом (Bearer).
+  # LocalAI отдаёт /metrics за API-ключом (Bearer). disable_compression:
+  # LocalAI при Accept-Encoding: gzip сжимает ответ дважды (баг), и vmagent
+  # не может его распарсить — просим отдавать несжатый текст.
   - job_name: local-ai
+    disable_compression: true
     authorization:
       credentials: "%{LOCALAI_API_KEY}"
     static_configs:

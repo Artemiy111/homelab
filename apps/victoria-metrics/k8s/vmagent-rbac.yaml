@@ -1,0 +1,43 @@
+# Доступ vmagent к метрикам kubelet/cAdvisor. kubelet на :10250 проверяет
+# bearer-токен через webhook-авторизацию API-сервера, поэтому нужен
+# ServiceAccount с правом на non-resource URL'ы /metrics и /metrics/cadvisor.
+# Токен монтируется в под автоматически (automountServiceAccountToken).
+# nodes list/watch нужны service discovery (role: node), который находит
+# цели kubelet по нодам — кластер может расти без правки конфига.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: vmagent
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: vmagent-node-metrics
+rules:
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["nodes/metrics", "nodes/stats"]
+    verbs: ["get"]
+  - nonResourceURLs:
+      - /metrics
+      - /metrics/cadvisor
+      - /metrics/probes
+      - /metrics/resource
+      - /metrics/slis
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: vmagent-node-metrics
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: vmagent-node-metrics
+subjects:
+  - kind: ServiceAccount
+    name: vmagent
+    namespace: default

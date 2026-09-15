@@ -1,0 +1,40 @@
+# kube-state-metrics через Argo CD: состояние объектов кластера (Deployment,
+# Pod, Job, PVC и т.д.) как метрики kube_* — их не дают node-exporter и
+# cAdvisor. Ставим официальным чартом prometheus-community: ClusterRole,
+# Service и обновления — на апстриме.
+#
+# Этот компонент боевой (его скрейпит vmagent), а Argo сейчас пробный стенд
+# (целевой GitOps — Flux, см. k8s/argocd/README.md). Держать его ТОЛЬКО под
+# Argo: не дублировать манифестами для Flux, иначе два контроллера начнут
+# спорить за одни объекты.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kube-state-metrics
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://prometheus-community.github.io/helm-charts
+    chart: kube-state-metrics
+    targetRevision: 8.5.0
+    helm:
+      releaseName: kube-state-metrics
+      valuesObject:
+        # Однозный кластер: без limits контроллер может вытеснить приложения.
+        resources:
+          requests:
+            cpu: 50m
+            memory: 128Mi
+          limits:
+            cpu: "1"
+            memory: 512Mi
+        tolerations:
+          - operator: Exists
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

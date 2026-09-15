@@ -17,6 +17,7 @@ spec:
         app: vmagent
     spec:
       enableServiceLinks: false
+      serviceAccountName: vmagent
       containers:
         - name: vmagent
           image: "victoriametrics/vmagent:v1.150.0@sha256:3eff5874d59292714878dcb6aee14f048bf19b7312b727860ba5e7d29e2e0c07"

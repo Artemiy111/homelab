@@ -112,6 +112,33 @@ argocd account update-password
 5. **ApplicationSet** — генератор приложений из git-директорий и списка
    кластеров вместо ручного создания каждого Application.
 
+## kube-state-metrics (боевой компонент под Argo)
+
+`kube-state-metrics.yaml` — Application, который ставит официальный чарт
+`prometheus-community/kube-state-metrics` в namespace `default`. Он отдаёт
+метрики состояния объектов кластера (`kube_*`), которых нет у node-exporter.
+Это уже не пробный стенд, а рабочий компонент, поэтому держать его нужно
+**только** под Argo — не дублировать манифестами для будущего Flux.
+
+```sh
+kubectl apply -f k8s/argocd/kube-state-metrics.yaml
+argocd app get kube-state-metrics
+argocd app diff kube-state-metrics
+```
+
+`syncPolicy` автоматический (prune + selfHeal): Argo сам приводит кластер к
+состоянию чарта. Проверка self-heal — увести ресурс в сторону и дождаться
+возврата (сравнимо с ручным `helm upgrade`):
+
+```sh
+kubectl -n default scale deploy kube-state-metrics --replicas=3
+argocd app get kube-state-metrics
+```
+
+Метрики скрейпит vmagent (job `kube-state-metrics` в
+`apps/victoria-metrics/config/vmagent/scrape.yml`) — после синка нужно
+перезапустить vmagent.
+
 ## Отклонения от дефолтов чарта
 
 | Параметр | Дефолт | Здесь | Зачем |
