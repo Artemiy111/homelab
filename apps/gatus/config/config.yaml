@@ -5,7 +5,7 @@ storage:
   maximum-number-of-results: 1000
   maximum-number-of-events: 100
 
-# Prometheus-метрики на /metrics (скрейпятся netdata внутри traefiknet).
+# Prometheus-метрики на /metrics (скрейпит vmagent).
 metrics: true
 
 alerting:

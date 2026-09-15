@@ -7,7 +7,7 @@ extra_well_known_client_content:
       livekit_service_url: https://element.ref+envsubst://$DOMAIN+/livekit/jwt
 report_stats: false
 pid_file: /data/homeserver.pid
-# Метрики отдаются на отдельном listener (скрейп netdata внутри traefiknet).
+# Метрики отдаются на отдельном listener (скрейпит vmagent).
 enable_metrics: true
 listeners:
   - port: 8080

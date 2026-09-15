@@ -12,7 +12,7 @@ spec:
       port: 8080
       targetPort: http
       protocol: TCP
-    # Prometheus-метрики (скрейпит netdata в кластере).
+    # Prometheus-метрики (скрейпит vmagent).
     - name: metrics
       port: 9009
       targetPort: metrics
