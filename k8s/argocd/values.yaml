@@ -1,0 +1,117 @@
+# Argo CD — пробный стенд. Чарт argo/argo-cd 10.9.1 → Argo CD v3.5.3.
+#
+# ПРАВИЛО: здесь только ОТКЛОНЕНИЯ от дефолтов чарта, каждое с причиной.
+# Посмотреть все ~4900 строк дефолтов:
+#   helm show values argo/argo-cd --version 10.9.1
+#
+# ─── Почему в этом файле нет ничего про Traefik ──────────────────────────
+# Чарт не определяет ingress-контроллер и не должен: он лишь умеет рендерить
+# обычный networking.k8s.io/v1 Ingress, если включить server.ingress.enabled
+# (по умолчанию false). Даже у server.ingress.controller выбор всего из
+# generic | aws | gke — Traefik там не предусмотрен, потому что это
+# не аннотации, а отдельный CRD-провайдер.
+# Мы используем IngressRoute (см. k8s/traefik/argocd.ingressroute.yaml), поэтому
+# от Argo требуется ровно одно: отдавать HTTP-бэкенд, раз TLS терминирует
+# Traefik. За это отвечает configs.params."server.insecure" ниже.
+# ─────────────────────────────────────────────────────────────────────────
+
+global:
+  # Дефолт: argocd.example.com. Подставляется в генерируемые URL — статус-бейдж,
+  # ссылки в UI, редиректы SSO. Должно совпадать с Host() в IngressRoute.
+  domain: argocd.example.com
+
+configs:
+  # → argocd-cmd-params-cm. Ключ = имя флага без "--", точка в имени допустима.
+  params:
+    # Дефолт: false. Argo слушает HTTPS и сам следит за сертификатом.
+    # Нам нужно наоборот: TLS терминирует Traefik на 192.0.2.10 со своим
+    # wildcard-tls, значит бэкенд обязан быть plain HTTP.
+    server.insecure: true
+
+  # → argocd-cm.
+  cm:
+    # Дефолт: 120s. Как часто Argo ходит в git за новыми коммитами.
+    # На homelab с одним репо можно реактивнее; верни 120s, если заметишь
+    # лишнюю нагрузку на Forgejo.
+    timeout.reconciliation: 60s
+
+# ─── Ресурсы ─────────────────────────────────────────────────────────────
+# Дефолт у всех компонентов: resources: {} (не задано). Для однозной k0s это
+# плохо: без requests планировщик не знает, что размещает, а без limits один
+# разъехавшийся контроллер способен вытеснить рабочие приложения.
+# Значения скромные — Argo в non-HA режиме на небольшом кластере этого хватает.
+controller:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 1Gi
+
+server:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
+
+repoServer:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 1Gi
+
+# ─── Отключаем лишнее для пробного стенда ────────────────────────────────
+# dex — встроенный OIDC-провайдер. Дефолт: enabled: true (лишний под).
+# SSO у нас будет внешний (authentik) через configs.cm "oidc.config",
+# а для пробного стенда хватит локального admin.
+dex:
+  enabled: false
+
+# notifications-controller. Дефолт: enabled: true. Понадобится, когда захочется
+# алерты о рассинхроне в Matrix/Telegram; тогда верни true и настрой secret.
+notifications:
+  enabled: false
+
+# ─── Что осознанно НЕ трогаем (дефолты уже правильные) ───────────────────
+# crds.install: true    — CRD едут в templates/, поэтому обновляются при upgrade
+#                         (в Helm это работает только с 5.2.0+).
+# crds.keep: true       — при helm uninstall CRD остаются. Значит для полного
+#                         удаления их надо снести руками, иначе останется мусор.
+# server/controller/repoServer/applicationSet.replicas: 1
+#                       — non-HA и так одноподовый; в HA нужен redis-ha
+#                         и минимум 3 узла.
+# redis.enabled: true   — кэш repo-server, обязателен, не трогать.
+# server.service.type   — ClusterIP, то есть трафик внутрь идёт через Traefik.
+#                         Не менять на LoadBalancer/NodePort: MetalLB в кластере
+#                         больше нет, а externalIPs уже занят Traefik'ом.
+# applicationSet        — приезжает всегда (с чарта 6.9.0), не отключается.
+# global.networkPolicy.create: true
+#                       — дефолт с чарта 10.0.0. У argocd-server политика
+#                         разрешает ingress откуда угодно, поэтому Traefik
+#                         достучится; остальные компоненты общаются только
+#                         между собой. Calico политики реально применяет.
+# global.image.tag      — не фиксируем: версия образа приходит из appVersion
+#                         чарта, а версия чарта закреплена в --version.
+# server.ingress.enabled: false
+#                       — маршрутизация через IngressRoute в Traefik.
+
+# ─── Полезные ручки на будущее (сейчас закомментированы) ─────────────────
+# configs:
+#   cm:
+#     # Отключить локального admin, когда заработает OIDC. Открытая наружу
+#     # форма логина с одним статичным паролем — главный источник проблем.
+#     admin.enabled: false
+#     oidc.config: |
+#       name: authentik
+#       issuer: https://authentik.example.com/application/o/argocd/
+#       clientID: argocd
+#       clientSecret: $oidc.authentik.clientSecret
+#       requestedScopes: ["openid", "profile", "email", "groups"]
+#     # Нужно, если kustomization.yaml ссылается на файлы вне корня репозитория.
+#     kustomize.buildOptions: --load-restrictor LoadRestrictionsNone
+#   rbac:
+#     policy.default: role:readonly

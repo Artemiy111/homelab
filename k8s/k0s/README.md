@@ -163,14 +163,38 @@ k8s/k0s/
 └── README.md                         # This file
 ```
 
-## Дальнейшие шаги
+## Состояние кластера
 
-После установки k0s (Calico уже поднят из k0s.yaml):
-1. MetalLB — LoadBalancer для bare-metal
-2. ingress-nginx — Ingress controller
-3. Longhorn — distributed storage (опционально)
+Поверх k0s (Calico уже поднят из k0s.yaml):
 
-См. `docs/research/k8s/k0s-setup-guide-vanilla.md` для деталей.
+| Слой | Где |
+|---|---|
+| Ingress | Traefik — единый вход на `192.0.2.10` (`k8s/traefik/`) |
+| UI кластера | Headlamp (`k8s/headlamp/`) |
+| Секреты | sealed-secrets (`k8s/sealed-secrets/`) |
+| GitOps | Argo CD — пробный стенд (`k8s/argocd/README.md`); целевое решение — Flux |
+
+### Почему нет MetalLB
+
+LoadBalancer на однонодном кластере не нужен: тот же адрес `192.0.2.10`
+отдаётся через `externalIPs` сервиса Traefik (`k8s/traefik/values.yaml`),
+а MetalLB в L2-режиме пришлось бы отвечать ARP за отдельный VIP `.253`.
+
+Манифесты удалены 2026-09-15, но восстанавливаются, если появится вторая нода:
+
+```bash
+helm install metallb metallb/metallb -n metallb --create-namespace \
+  --set frrk8s.enabled=false
+```
+
+Пул адресов был `192.0.2.10/32` (IPAddressPool + L2Advertisement).
+Вернуть файлы: `git show 0fde47d:k8s/metallb/pool.yaml`.
+
+### Прочее
+
+- Longhorn (распределённое хранилище) на одной ноде смысла не имеет —
+  реплики некуда раскладывать. Хранилище сейчас — локальные пути узла.
+- См. `docs/research/k8s/k0s-setup-guide-vanilla.md` для деталей по установке.
 
 ## Источники
 
