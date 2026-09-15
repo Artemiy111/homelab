@@ -26,6 +26,14 @@ ports:
       default: true
     protocol: TCP
 
+# Prometheus-метрики Traefik. Чарт и так включает entrypoint metrics (:9100) и
+# --metrics.prometheus; отдельный Service (traefik-metrics) публикует порт для
+# скрейпа из кластера (vmagent). Метрики наружу не выходят.
+metrics:
+  prometheus:
+    service:
+      enabled: true
+
 ingressClass:
   enabled: true
   isDefaultClass: true

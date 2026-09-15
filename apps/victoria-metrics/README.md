@@ -1,64 +1,81 @@
 # VictoriaMetrics stack
 
 Долгосрочное хранение метрик в дополнение к Netdata: Netdata остаётся
-сборщиком посекундных метрик и UI «здесь и сейчас», VictoriaMetrics хранит
-историю. Дашборды строит Grafana — это отдельный сервис, см. `apps/grafana/`.
+сборщиком посекундных метрик хоста и контейнеров, VictoriaMetrics хранит
+историю всех сигналов. Дашборды строит Grafana — это отдельный сервис,
+см. `apps/grafana/`.
+
+Сервисы развёрнуты в Kubernetes (`apps/victoria-metrics/k8s/`).
 
 Состав:
 
-| Контейнер | Роль | Порт |
+| Deployment | Роль | Порт |
 |---|---|---|
-| `victoriametrics` | TSDB single-node (`victoria-metrics:v1.150.0`) | 8428, только внутри `traefiknet` |
-| `vmagent` | скрейпит netdata и self-метрики, пишет в VM (`vmagent:v1.150.0`) | 8429, только внутри `traefiknet` |
+| `victoriametrics` | TSDB single-node (`victoria-metrics:v1.150.0`) | 8428, ClusterIP |
+| `vmagent` | скрейпит приложения, netdata и self, пишет в VM (`vmagent:v1.150.0`) | 8429, ClusterIP |
 
 VM и vmagent наружу не публикуются: их UI нужен только для отладки, запросы
-идут через Grafana. DNS-запись не требуется — wildcard `*.${DOMAIN}` уже
-указывает на сервер (см. `technitium/README.md`).
+идут через Grafana. VMUI доступен по адресу `https://vm.example.com/` за
+`oauth2-proxy` (см. `k8s/traefik/victoriametrics.ingressroute.yaml`).
 
 ## Поток метрик
 
 ```
-netdata:19999 ──(prometheus scrape)──> vmagent ──(remote write)──> victoriametrics
+приложения /metrics ─┐
+netdata:19999 ───────┼──(scrape)──> vmagent ──(remote write)──> victoriametrics <── grafana
+victoriametrics ─────┤
+vmagent ─────────────┘
 ```
 
-vmagent забирает `/api/v1/allmetrics?format=prometheus` у netdata — вместе с
-хостом и Docker это автоматически включает все цели из
-`netdata/config/go.d/prometheus.conf` (traefik, forgejo, immich и т.д.).
-Скрейп-конфиг трекается в Git: `config/vmagent/scrape.yml`, секретов не
-содержит — все цели отдают метрики внутри `traefiknet`.
+vmagent забирает `/metrics` приложений **напрямую** — оригинальные имена и
+лейблы, без netdata-префиксов, поэтому работают готовые дашборды Grafana.
+Netdata скрейпится только за метриками хоста и контейнеров.
 
-Datasource Grafana (VictoriaMetrics) настраивается в самом сервисе Grafana:
-см. `apps/grafana/`.
+Скрейп-конфиг трекается в Git: `config/vmagent/scrape.yml` и **секретов не
+содержит**. Значения кредов подставляются vmagent из окружения по ссылкам
+`%{VAR}` (env-подстановка в `-promscrape.config`); окружение приходит из k8s
+Secrets и ConfigMap (см. `k8s/vmagent.deployment.yaml`).
+
+Цели: `netdata`, `victoriametrics`, `vmagent`, `traefik`, `authentik`, `wud`,
+`gatus`, `synapse`, `immich`, `livekit` (без аутентификации); `uptime-kuma`,
+`navidrome`, `dawarich`, `forgejo`, `technitium`, `stalwart` (креды из Secrets).
 
 ## Хранение
 
-Постоянные данные — `$APPS_STORAGE_PATH/victoria-metrics/vmdata`. Retention
-задаётся в `config.env` (`VM_RETENTION_PERIOD`, по умолчанию 180d).
+Постоянные данные — `$APPS_STORAGE_PATH/victoria-metrics/vmdata`, retention
+задан аргументом Deployment (`-retentionPeriod=180d`, `config.env`).
 
-## Первый запуск
+## Развёртывание в Kubernetes
 
-```sh
-bash scripts/bootstrap-platform.sh victoria-metrics
-```
+Манифесты в `apps/victoria-metrics/k8s/`:
 
-Или через bootstrap: каталог добавлен в `scripts/bootstrap-platform.sh`.
+- `victoriametrics.deployment.yaml`, `victoriametrics.service.yaml` — TSDB;
+- `vmagent.deployment.yaml`, `vmagent.service.yaml` — сборщик; монтирует
+  `config/vmagent/scrape.yml` (hostPath) и получает креды целей из Secrets;
+- `sealedsecret.yaml` — Secret `vmagent` (`UPTIME_KUMA_METRICS_API_KEY`); прочие
+  креды берутся из Secrets соответствующих сервисов (`navidrome`, `dawarich`,
+  `forgejo`, `technitium`, `mailserver`).
 
-## Проверка после запуска
-
-```sh
-docker compose ps
-curl -fsS 'http://localhost:8428/health'   # изнутри контейнера VM
-curl -fsS 'http://localhost:8429/health'   # изнутри контейнера vmagent
-```
-
-Наличие серий netdata в VM:
+Применение (от `artlab` на сервере, после `git pull --ff-only`):
 
 ```sh
-docker exec vmagent wget -qO- 'http://victoriametrics:8428/api/v1/query?query=up{job="netdata"}'
+kubectl apply -f apps/victoria-metrics/k8s/
+kubectl rollout restart deploy/vmagent   # после правки scrape.yml
 ```
 
-## Обновление конфигурации
+## Проверка
 
-- Скрейп-цели: править `config/vmagent/scrape.yml`, затем
-  `docker compose restart vmagent`.
-- Retention: править `config.env`, затем `docker compose up -d victoriametrics`.
+Наличие целей и их состояние:
+
+```sh
+kubectl exec deploy/victoriametrics -- wget -qO- \
+  'http://127.0.0.1:8428/api/v1/query?query=up' | grep -o '"job":"[^"]*"'
+```
+
+HTTP-маршрут VMUI (ожидаем 302 на oauth2-proxy):
+
+```sh
+curl --resolve vm.${DOMAIN}:443:192.0.2.10 \
+  -o /dev/null -sS -w '%{http_code}\n' \
+  https://vm.${DOMAIN}/
+```

@@ -1,12 +1,16 @@
-# Скрейп-конфиг vmagent. Секретов не содержит — все цели отдают метрики
-# внутри traefiknet без аутентификации (аутентификация наружу закрывает
-# Traefik + oauth2-proxy, внутренние порты на хосте не публикуются).
+# Скрейп-конфиг vmagent. vmagent забирает /metrics приложений напрямую и
+# пишет в VictoriaMetrics; секретов в файле нет — значения подставляются из
+# окружения по ссылкам %{VAR} (поддержка env в -promscrape.config:
+# https://docs.victoriametrics.com/victoriametrics/vmagent/#how-to-collect-metrics-in-prometheus-format).
+# Окружение приходит из k8s Secrets/ConfigMap (см. k8s/vmagent.deployment.yaml).
+#
+# Цели адресуются по именам Service'ов кластера. Приложения без аутентификации
+# отдают метрики внутри кластера открыто; креды нужны только помеченным целям.
 global:
   scrape_interval: 15s
 
 scrape_configs:
-  # Netdata уже агрегирует хост, Docker и приложения (см. netdata/README.md).
-  # Забираем его Prometheus-эндпоинт целиком.
+  # Хост, контейнеры и Docker: netdata агрегирует их и отдаёт Prometheus-формат.
   - job_name: netdata
     metrics_path: /api/v1/allmetrics
     params:
@@ -16,6 +20,7 @@ scrape_configs:
       - targets:
           - netdata:19999
 
+  # Собственные метрики стека.
   - job_name: victoriametrics
     static_configs:
       - targets:
@@ -25,3 +30,98 @@ scrape_configs:
     static_configs:
       - targets:
           - localhost:8429
+
+  # Ingress: метрики entrypoints/routers/services (helm-чарт публикует
+  # отдельный Service traefik-metrics в namespace traefik).
+  - job_name: traefik
+    static_configs:
+      - targets:
+          - traefik-metrics.traefik:9100
+
+  # Приложения, отдающие /metrics без аутентификации.
+  - job_name: authentik
+    static_configs:
+      - targets:
+          - authentik:9300
+
+  - job_name: wud
+    static_configs:
+      - targets:
+          - wud:3000
+
+  - job_name: gatus
+    static_configs:
+      - targets:
+          - gatus:8080
+
+  - job_name: synapse
+    metrics_path: /_synapse/metrics
+    static_configs:
+      - targets:
+          - synapse:9009
+
+  - job_name: immich
+    static_configs:
+      - targets:
+          - immich:8081
+
+  - job_name: livekit
+    static_configs:
+      - targets:
+          - livekit:6789
+
+  # Приложения с аутентификацией (креды из окружения).
+
+  # API-ключ Kuma передаётся как пароль basic auth без username.
+  - job_name: uptime-kuma
+    basic_auth:
+      password: "%{UPTIME_KUMA_METRICS_API_KEY}"
+    static_configs:
+      - targets:
+          - uptime-kuma:3001
+
+  # Секретный путь метрик Navidrome (ND_PROMETHEUS_ENABLED).
+  - job_name: navidrome
+    metrics_path: /metrics_%{NAVIDROME_METRICS_PATH}
+    static_configs:
+      - targets:
+          - navidrome:4533
+
+  # Dawarich редиректит внутренние запросы на публичный HTTPS-URL, поэтому
+  # скрейпим его через Traefik (basic auth).
+  - job_name: dawarich
+    scheme: https
+    metrics_path: /metrics
+    basic_auth:
+      username: netdata
+      password: "%{DAWARICH_METRICS_PASSWORD}"
+    static_configs:
+      - targets:
+          - dawarich.%{DOMAIN}
+
+  # Токен передаётся как Bearer (Forgejo [metrics] TOKEN).
+  - job_name: forgejo
+    authorization:
+      credentials: "%{FORGEJO_METRICS_TOKEN}"
+    static_configs:
+      - targets:
+          - forgejo:3000
+
+  # Technitium отдаёт метрики дашборда; Bearer-токен из secrets.
+  - job_name: technitium
+    metrics_path: /api/dashboard/metrics/text
+    authorization:
+      credentials: "%{TECHNITIUM_METRICS_TOKEN}"
+    static_configs:
+      - targets:
+          - technitium:5380
+
+  # Stalwart (почта): Telemetry → Metrics → Prometheus, basic auth.
+  - job_name: stalwart
+    metrics_path: /metrics/prometheus
+    basic_auth:
+      username: metrics
+      password: "%{STALWART_METRICS_PASSWORD}"
+    static_configs:
+      - targets:
+          - mailserver:8080

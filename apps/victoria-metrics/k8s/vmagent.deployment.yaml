@@ -26,12 +26,49 @@ spec:
           ports:
             - name: http
               containerPort: 8429
+          # Креды scrape-целей: vmagent подставляет %{VAR} из окружения в
+          # -promscrape.config. Секреты не хранятся в scrape.yml в Git.
           env:
             - name: TZ
               valueFrom:
                 configMapKeyRef:
                   name: homelab-config
                   key: TZ
+            - name: DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-config
+                  key: DOMAIN
+            - name: UPTIME_KUMA_METRICS_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: vmagent
+                  key: UPTIME_KUMA_METRICS_API_KEY
+            - name: NAVIDROME_METRICS_PATH
+              valueFrom:
+                secretKeyRef:
+                  name: navidrome
+                  key: NAVIDROME_METRICS_PATH
+            - name: DAWARICH_METRICS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: dawarich
+                  key: DAWARICH_METRICS_PASSWORD
+            - name: FORGEJO_METRICS_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: forgejo
+                  key: FORGEJO_METRICS_TOKEN
+            - name: TECHNITIUM_METRICS_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: technitium
+                  key: TECHNITIUM_METRICS_TOKEN
+            - name: STALWART_METRICS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mailserver
+                  key: STALWART_METRICS_PASSWORD
           startupProbe:
             httpGet:
               path: /health
