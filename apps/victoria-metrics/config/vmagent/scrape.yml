@@ -111,6 +111,11 @@ scrape_configs:
       - targets:
           - jellyfin-exporter:9594
 
+  - job_name: nextcloud
+    static_configs:
+      - targets:
+          - nextcloud-exporter:9205
+
   # Приложения с аутентификацией (креды из окружения).
 
   # LocalAI отдаёт /metrics за API-ключом (Bearer).
