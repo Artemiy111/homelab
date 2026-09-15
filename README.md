@@ -218,14 +218,6 @@ bash scripts/compose-secrets.sh <сервис> up -d
 
 ## Линтинг Compose-файлов
 
-Все `compose.yaml` приводятся к единому порядку полей (смысловая группировка
-ключей) через [dclint](https://github.com/zavoloklom/docker-compose-linter) с
-конфигом `.dclintrc` в корне. Проверка:
-
-```sh
-npx dclint . -r
-```
-
 Автоматическое приведение порядка полей:
 
 ```sh
@@ -240,7 +232,3 @@ python3 scripts/compose-format.py # Вставляет пустые строки
 ```sh
 bash scripts/check-domain.sh
 ```
-
-Скрипт падает, если `example.com` встречается вне разрешённых мест:
-источник правды (`scripts/lib/common.sh`), шаблоны (`.env.example`, `.tpl.*`) и
-документация (`.md`, `apps/structurizr/homelab.dsl`).
