@@ -143,6 +143,18 @@
         mode: "0755"
         remote_src: true
 
+    # --- argocd: CLI пробного стенда ---
+    # Отдельная секция, а не host_packages: в репозиториях Fedora пакета нет,
+    # а в релизе GitHub лежит сырой бинарник без архива. get_url с checksum
+    # идемпотентен — повторный прогон ничего не делает, пока файл совпадает.
+    # Если стенд снимается (k8s/argocd/README.md), убрать и эту секцию.
+    - name: Установить argocd CLI {{ argocd_version }} в /usr/local/bin
+      ansible.builtin.get_url:
+        url: "{{ argocd_cli_url }}"
+        dest: /usr/local/bin/argocd
+        checksum: "{{ argocd_cli_checksum }}"
+        mode: "0755"
+
     # --- Пакеты и группы ---
 
     - name: Установить пакеты хоста
