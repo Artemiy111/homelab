@@ -71,40 +71,22 @@ DNS-цепочка на сервере:
 
 ```
 containerd → systemd-resolved (127.0.0.53) → 192.0.2.10 (Keenetic)
-           → Technitium (Docker-контейнер на этом же сервере)
+           → 192.0.2.10:53 = Service technitium-dns (externalIPs)
+           → pod technitium в кластере (namespace default)
 ```
 
-**Ловушка:** Technitium крутится в Docker. Если Docker остановлен — DNS мертв,
-и k0s не может скачать образы. Решения:
+**Ловушка (курица и яйцо):** Technitium обслуживается кластером сам, а кластеру DNS
+нужен, чтобы тянуть образы. Пока Technitium лежит, хост не резолвит вообще ничего —
+включая `git pull`, которым этот же под можно было бы починить. Починить кластер
+обычным процессом доставки в этот момент нельзя.
 
-1. Поднять k0s **до** остановки Docker (Technitium ещё жив), либо
-2. Временно прописать на роутере upstream DNS `1.1.1.1` вместо форварда на Technitium, либо
-3. Запустить Technitium отдельно от Docker (напрямую на хосте).
+Разбор и варианты решения — issue [#6](https://github.com/Artemiy111/homelab/issues/6).
 
 Проверка до установки:
 
 ```bash
 getent hosts quay.io      # должен вернуть IP
 ```
-
-## ⚠️ Совместимость с Docker
-
-k0s и Docker **оба** пишут правила в nftables. При одновременной работе возможен
-конфликт (сотни «чужих» правил ломают сеть pod'ов).
-
-**Порядок запуска (важно):**
-1. Запустить k0s: `sudo k0s start`
-2. Дождаться `kubectl get pods -A` (все Running)
-3. Только потом запускать Docker: `sudo systemctl start docker`
-
-Если сеть k0s сломалась из-за правил Docker, почистить nftables:
-
-```bash
-sudo nft flush ruleset
-sudo k0s stop && sudo k0s start
-```
-
-> Полный сброс (всё заново): `sudo k0s stop && sudo k0s reset && sudo reboot`
 
 ## kubectl
 
