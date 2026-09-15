@@ -579,7 +579,7 @@ spec:
               containerPort: 9187
           env:
             - name: DATA_SOURCE_URI
-              value: "db:5432/nextcloud?sslmode=disable"
+              value: "nextcloud-db:5432/nextcloud?sslmode=disable"
             - name: DATA_SOURCE_USER
               value: "nextcloud"
             - name: DATA_SOURCE_PASS

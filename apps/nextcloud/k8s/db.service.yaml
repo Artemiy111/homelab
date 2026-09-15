@@ -1,8 +1,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  # Имя = db: так записано dbhost в персистентном config.php Nextcloud.
-  name: db
+  # Имя по общей схеме <app>-db. Хост в персистентном config.php Nextcloud
+  # (dbhost) должен совпадать — правится через `occ config:system:set dbhost`.
+  name: nextcloud-db
   namespace: default
 spec:
   type: ClusterIP

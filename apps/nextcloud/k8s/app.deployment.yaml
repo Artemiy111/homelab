@@ -19,7 +19,7 @@ spec:
       initContainers:
         - name: wait-for-db
           image: "postgres:18-alpine@sha256:d3e1620b530c944afa6e887d22eb899824da68e19c52024bf98f5220c88a65b2"
-          command: ["/bin/sh", "-c", "until pg_isready -h db -p 5432 -U nextcloud; do echo waiting for db; sleep 2; done"]
+          command: ["/bin/sh", "-c", "until pg_isready -h nextcloud-db -p 5432 -U nextcloud; do echo waiting for db; sleep 2; done"]
           securityContext:
             runAsUser: 70
             runAsGroup: 70
@@ -38,7 +38,7 @@ spec:
               memory: 64Mi
         - name: wait-for-redis
           image: "redis:8-alpine@sha256:978f0e01593e65eed801f2402944efcd936d43b5027e4908a7897baf88ed6241"
-          command: ["/bin/sh", "-c", "until redis-cli -h redis ping | grep -q PONG; do echo waiting for redis; sleep 2; done"]
+          command: ["/bin/sh", "-c", "until redis-cli -h nextcloud-redis ping | grep -q PONG; do echo waiting for redis; sleep 2; done"]
           securityContext:
             runAsUser: 999
             runAsGroup: 999
@@ -83,13 +83,13 @@ spec:
                   name: nextcloud
                   key: NEXTCLOUD_ADMIN_PASSWORD
             - name: POSTGRES_HOST
-              value: db
+              value: nextcloud-db
             - name: POSTGRES_DB
               value: nextcloud
             - name: POSTGRES_USER
               value: nextcloud
             - name: REDIS_HOST
-              value: redis
+              value: nextcloud-redis
             - name: NEXTCLOUD_ADMIN_USER
               value: nextcloud-admin
             - name: NEXTCLOUD_TRUSTED_DOMAINS

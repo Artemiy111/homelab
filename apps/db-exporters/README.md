@@ -38,7 +38,7 @@ MariaDB | `mysqld-exporter` (`v0.20.0`) | 9104 | 1
 | `glitchtip-postgres-exporter` | `glitchtip-postgres` | Secret `glitchtip`/`POSTGRES_PASSWORD` |
 | `immich-db-exporter` | `immich-db` | Secret `immich`/`DB_PASSWORD` |
 | `infisical-postgres-exporter` | `infisical-postgres` | Secret `infisical`/`POSTGRES_PASSWORD` |
-| `nextcloud-db-exporter` | `db` (Service nextcloud) | Secret `nextcloud`/`POSTGRES_PASSWORD` |
+| `nextcloud-db-exporter` | `nextcloud-db` | Secret `nextcloud`/`POSTGRES_PASSWORD` |
 | `paperless-db-exporter` | `paperless-db` | Secret `paperless`/`POSTGRES_PASSWORD` |
 | `postgres-db-exporter` | `postgres-db` | Secret `postgres`/`POSTGRES_PASSWORD` |
 | `sure-db-exporter` | `sure-db` | литерал `postgres` (как в самом DB-Deployment) |
@@ -50,9 +50,8 @@ MariaDB | `mysqld-exporter` (`v0.20.0`) | 9104 | 1
 ### Redis/Valkey (9)
 
 `dawarich-redis`, `element-redis`, `glitchtip-valkey`, `immich-valkey`,
-`infisical-redis`, `nextcloud-redis` (Service `redis`), `paperless-broker`,
-`seafile-redis`, `sure-redis` — все без аутентификации, экспортеру нужен только
-`REDIS_ADDR`.
+`infisical-redis`, `nextcloud-redis`, `paperless-broker`, `seafile-redis`,
+`sure-redis` — все без аутентификации, экспортеру нужен только `REDIS_ADDR`.
 
 ### MariaDB (1)
 
