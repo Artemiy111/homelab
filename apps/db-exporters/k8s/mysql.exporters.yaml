@@ -1,5 +1,3 @@
-# Экспортер MariaDB (Seafile): один инстанс, root-креды из Secret seafile
-# (см. apps/db-exporters/README.md).
 ---
 apiVersion: apps/v1
 kind: Deployment

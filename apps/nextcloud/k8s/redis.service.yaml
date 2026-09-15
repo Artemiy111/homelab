@@ -1,8 +1,6 @@
 apiVersion: v1
 kind: Service
 metadata:
-  # Имя по общей схеме <app>-redis. Хост в персистентном config.php Nextcloud
-  # (redis.host) должен совпадать — правится через `occ config:system:set redis host`.
   name: nextcloud-redis
   namespace: default
 spec:

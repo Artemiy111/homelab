@@ -1,5 +1,3 @@
-# Экспортеры Redis/Valkey: по одному поду на инстанс; аутентификации
-# у этих инстансов нет (см. apps/db-exporters/README.md).
 ---
 apiVersion: apps/v1
 kind: Deployment

@@ -1,5 +1,3 @@
-# Экспортеры PostgreSQL: по одному поду на базу, креды берутся из Secret
-# самой базы (см. apps/db-exporters/README.md).
 ---
 apiVersion: apps/v1
 kind: Deployment
