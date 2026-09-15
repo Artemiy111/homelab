@@ -208,8 +208,10 @@
       notify: reload sysctl
 
     # --- Tailscale + kube-proxy: policy routing ---
-    # Без этого правила ответы MetalLB/NodePort к tailnet-клиентам уходят в LAN
-    # (enp2s0) вместо tailscale0. Причина — см. etc/systemd/tailscale-policy-route.service.
+    # Без этого правила ответы сервисов кластера (externalIPs/NodePort) к
+    # tailnet-клиентам уходят в LAN (enp2s0) вместо tailscale0. Разбор:
+    # docs/troubleshot/tailscale-k8s-ingress-access.md, юнит —
+    # etc/systemd/tailscale-policy-route.service.
     - name: Скопировать systemd-юнит с policy routing для Tailscale
       ansible.builtin.copy:
         src: "{{ playbook_dir }}/../etc/systemd/tailscale-policy-route.service"

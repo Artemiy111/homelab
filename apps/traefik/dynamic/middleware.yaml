@@ -16,7 +16,8 @@ http:
     oauth2-proxy:
       forwardAuth:
         # oauth2-proxy переехал в k8s: forwardAuth ходит на его публичный
-        # host (→ MetalLB VIP .253). Traefik дописывает исходный URI.
+        # host через ingress Traefik кластера (192.0.2.10), где запрос
+        # принимает IngressRoute oauth2-proxy. Traefik дописывает исходный URI.
         address: https://oauth.example.com
         trustForwardHeader: true
         # Внутренний wildcard-сертификат не в системном CA контейнера.
