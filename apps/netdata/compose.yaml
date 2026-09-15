@@ -4,14 +4,6 @@ services:
   netdata:
     image: netdata/netdata:v2.11.0@sha256:d9f6f14c2fb0517168bd9c5da952f6cb735df757919c37172695c2fbb63c3252
     container_name: netdata
-    hostname: homelab
-
-    environment:
-      DISABLE_TELEMETRY: "1"
-
-    cap_add:
-      - SYS_PTRACE
-      - DAC_READ_SEARCH
 
     volumes:
       - ${APPS_STORAGE_PATH:-/storage/apps}/netdata/config:/etc/netdata:Z
@@ -28,6 +20,9 @@ services:
       - /sys:/host/sys:ro
       - /var/log:/host/var/log:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
+
+    environment:
+      DISABLE_TELEMETRY: "1"
 
     # Порт на шлюзе docker-сети: нужен мосту из k8s (apps/netdata/k8s/bridge.yaml),
     # чтобы Gatus в кластере не зависел от docker-имён. Из LAN недостижим.
@@ -52,6 +47,11 @@ services:
       - traefik.http.routers.netdata.middlewares=oauth2-proxy@file,secure-headers@file,ratelimit-default@file
       - traefik.http.services.netdata.loadbalancer.server.port=19999
       - traefik.docker.network=traefiknet
+
+    cap_add:
+      - SYS_PTRACE
+      - DAC_READ_SEARCH
+    hostname: homelab
 
 networks:
   traefiknet:

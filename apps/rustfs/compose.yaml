@@ -2,12 +2,8 @@ name: rustfs
 
 services:
   rustfs:
-    # digest тега 1.0.0-beta.12 (= latest на момент подключения).
     image: rustfs/rustfs:1.0.0-beta.12@sha256:41fe89380f4120a337790c02af192c3fe7bb55c3edc2e6e9357b487b47c6ab21
     container_name: rustfs
-    # Образ по умолчанию работает под uid 10001; запускаем под artlab,
-    # чтобы писать в bind mount без chown под root (как jellyfin/navidrome).
-    user: "1000:1000"
 
     volumes:
       - ${APPS_STORAGE_PATH:-/storage/apps}/rustfs/data:/data:Z
@@ -65,6 +61,9 @@ services:
       - traefik.http.middlewares.rustfs-root-redirect.redirectregex.regex=^https://rustfs\.${DOMAIN}/$$
       - traefik.http.middlewares.rustfs-root-redirect.redirectregex.replacement=https://rustfs.${DOMAIN}/rustfs/console/
       - traefik.docker.network=traefiknet
+    # Образ по умолчанию работает под uid 10001; запускаем под artlab,
+    # чтобы писать в bind mount без chown под root (как jellyfin/navidrome).
+    user: "1000:1000"
 
     security_opt:
       - no-new-privileges:true

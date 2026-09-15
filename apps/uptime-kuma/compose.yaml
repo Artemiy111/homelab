@@ -5,13 +5,13 @@ services:
     image: louislam/uptime-kuma:2
     container_name: uptime-kuma
 
+    volumes:
+      - ${APPS_STORAGE_PATH:-/storage/apps}/uptime-kuma/data:/app/data:Z
+
     environment:
       # Ограничение heap Node.js: без него RSS процесса со временем растёт до
       # гигабайта и больше (кэш heartbeats в памяти + V8 не отдаёт память ОС).
       - NODE_OPTIONS=--max-old-space-size=512
-
-    volumes:
-      - ${APPS_STORAGE_PATH:-/storage/apps}/uptime-kuma/data:/app/data:Z
 
     networks:
       - traefiknet

@@ -4,8 +4,30 @@ services:
   talk:
     image: ghcr.io/nextcloud-releases/aio-talk:${TALK_IMAGE_VERSION:?set in apps/talk-hpb secrets.enc.env}
     container_name: talk-hpb
-    read_only: true
-    init: true
+
+    environment:
+      AIO_LOG_LEVEL: warn
+      INTERNAL_SECRET: ${INTERNAL_SECRET:?set in apps/talk-hpb secrets.enc.env}
+      NC_DOMAIN: nextcloud.${DOMAIN}
+      SIGNALING_SECRET: ${SIGNALING_SECRET:?set in apps/talk-hpb secrets.enc.env}
+      TALK_HOST: talk-signaling.${DOMAIN}
+      TALK_MAX_STREAM_BITRATE: ${TALK_MAX_STREAM_BITRATE:-4194304}
+      TALK_MAX_SCREEN_BITRATE: ${TALK_MAX_SCREEN_BITRATE:-8388608}
+      TALK_PORT: ${TALK_PORT:-3478}
+      TURN_DOMAIN: talk-signaling.${DOMAIN}
+      TURN_SECRET: ${TURN_SECRET:?set in apps/talk-hpb secrets.enc.env}
+      TZ: ${TZ:?set in apps/talk-hpb secrets.enc.env}
+
+    ports:
+      - "${SERVER_IP:?set in apps/talk-hpb secrets.enc.env}:${TALK_PORT:-3478}:${TALK_PORT:-3478}/tcp"
+      - "${SERVER_IP:?set in apps/talk-hpb secrets.enc.env}:${TALK_PORT:-3478}:${TALK_PORT:-3478}/udp"
+      # TURN relay-порты eturnal: диапазон должен совпадать с TALK_RELAY_MIN/MAX_PORT
+      # из command выше — на каждый медиа-аллокацию тратится один порт.
+      - "${SERVER_IP:?set in apps/talk-hpb secrets.enc.env}:${TALK_RELAY_MIN_PORT:-20000}-${TALK_RELAY_MAX_PORT:-20499}:${TALK_RELAY_MIN_PORT:-20000}-${TALK_RELAY_MAX_PORT:-20499}/udp"
+      - "${SERVER_IP:?set in apps/talk-hpb secrets.enc.env}:${TALK_RELAY_MIN_PORT:-20000}-${TALK_RELAY_MAX_PORT:-20499}:${TALK_RELAY_MIN_PORT:-20000}-${TALK_RELAY_MAX_PORT:-20499}/tcp"
+
+    networks:
+      - traefiknet
 
     # /start.sh генерирует /conf/eturnal.yml с relay_ipv4_addr = IP контейнера
     # (недостижим из LAN), поэтому патчим его на LAN-IP сервера, сужаем диапазон
@@ -21,41 +43,7 @@ services:
       - /bin/sh
       - -c
       - >-
-        sed -i -e 's|^  relay_ipv4_addr: "[0-9.]*"|  relay_ipv4_addr: "${SERVER_IP}"\n  relay_min_port: ${TALK_RELAY_MIN_PORT:-20000}\n  relay_max_port: ${TALK_RELAY_MAX_PORT:-20499}|'
-        -e 's|^  whitelist_peers:|  whitelist_peers:\n  - "${TALK_RELAY_NETWORK:-192.0.2.10/24}"|' /conf/eturnal.yml
-        && sed -i 's|turn_server = "[^"]*"|turn_server = "127.0.0.1"|' /conf/janus.jcfg
-        && exec supervisord -c /supervisord.conf
-
-    tmpfs:
-      - /conf
-      - /opt/eturnal/run
-      - /var/log/supervisord
-      - /var/run/supervisord
-      - /tmp
-
-    ports:
-      - "${SERVER_IP:?set in apps/talk-hpb secrets.enc.env}:${TALK_PORT:-3478}:${TALK_PORT:-3478}/tcp"
-      - "${SERVER_IP:?set in apps/talk-hpb secrets.enc.env}:${TALK_PORT:-3478}:${TALK_PORT:-3478}/udp"
-      # TURN relay-порты eturnal: диапазон должен совпадать с TALK_RELAY_MIN/MAX_PORT
-      # из command выше — на каждый медиа-аллокацию тратится один порт.
-      - "${SERVER_IP:?set in apps/talk-hpb secrets.enc.env}:${TALK_RELAY_MIN_PORT:-20000}-${TALK_RELAY_MAX_PORT:-20499}:${TALK_RELAY_MIN_PORT:-20000}-${TALK_RELAY_MAX_PORT:-20499}/udp"
-      - "${SERVER_IP:?set in apps/talk-hpb secrets.enc.env}:${TALK_RELAY_MIN_PORT:-20000}-${TALK_RELAY_MAX_PORT:-20499}:${TALK_RELAY_MIN_PORT:-20000}-${TALK_RELAY_MAX_PORT:-20499}/tcp"
-
-    environment:
-      AIO_LOG_LEVEL: warn
-      INTERNAL_SECRET: ${INTERNAL_SECRET:?set in apps/talk-hpb secrets.enc.env}
-      NC_DOMAIN: nextcloud.${DOMAIN}
-      SIGNALING_SECRET: ${SIGNALING_SECRET:?set in apps/talk-hpb secrets.enc.env}
-      TALK_HOST: talk-signaling.${DOMAIN}
-      TALK_MAX_STREAM_BITRATE: ${TALK_MAX_STREAM_BITRATE:-4194304}
-      TALK_MAX_SCREEN_BITRATE: ${TALK_MAX_SCREEN_BITRATE:-8388608}
-      TALK_PORT: ${TALK_PORT:-3478}
-      TURN_DOMAIN: talk-signaling.${DOMAIN}
-      TURN_SECRET: ${TURN_SECRET:?set in apps/talk-hpb secrets.enc.env}
-      TZ: ${TZ:?set in apps/talk-hpb secrets.enc.env}
-
-    networks:
-      - traefiknet
+        sed -i -e 's|^  relay_ipv4_addr: "[0-9.]*"|  relay_ipv4_addr: "${SERVER_IP}"\n  relay_min_port: ${TALK_RELAY_MIN_PORT:-20000}\n  relay_max_port: ${TALK_RELAY_MAX_PORT:-20499}|' -e 's|^  whitelist_peers:|  whitelist_peers:\n  - "${TALK_RELAY_NETWORK:-192.0.2.10/24}"|' /conf/eturnal.yml && sed -i 's|turn_server = "[^"]*"|turn_server = "127.0.0.1"|' /conf/janus.jcfg && exec supervisord -c /supervisord.conf
     restart: unless-stopped
 
     labels:
@@ -66,6 +54,15 @@ services:
       - traefik.http.services.talk-signaling.loadbalancer.server.port=8081
       - traefik.http.middlewares.talk-signaling-strip.stripprefix.prefixes=/standalone-signaling
       - traefik.docker.network=traefiknet
+    init: true
+    read_only: true
+
+    tmpfs:
+      - /conf
+      - /opt/eturnal/run
+      - /var/log/supervisord
+      - /var/run/supervisord
+      - /tmp
 
 networks:
   traefiknet:

@@ -59,7 +59,6 @@ services:
   app:
     image: data.forgejo.org/forgejo/forgejo:16-rootless
     container_name: forgejo
-    user: "1000:1000"
 
     depends_on:
       db:
@@ -101,6 +100,7 @@ services:
       - traefik.http.middlewares.forgejo-security.headers.referrerPolicy=no-referrer
       - traefik.http.routers.forgejo.middlewares=forgejo-security
       - traefik.docker.network=traefiknet
+    user: "1000:1000"
 
   backup-db:
     image: postgres:18-alpine

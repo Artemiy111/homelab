@@ -18,7 +18,7 @@ services:
     restart: unless-stopped
 
     healthcheck:
-      test: ["CMD-SHELL", "mariadb-admin ping -h 127.0.0.1 -u root -p\"$${MARIADB_ROOT_PASSWORD}\" --silent"]
+      test: [ "CMD-SHELL", "mariadb-admin ping -h 127.0.0.1 -u root -p\"$${MARIADB_ROOT_PASSWORD}\" --silent" ]
       interval: 10s
       timeout: 5s
       retries: 15
@@ -37,7 +37,7 @@ services:
     restart: unless-stopped
 
     healthcheck:
-      test: ["CMD", "valkey-cli", "ping"]
+      test: [ "CMD", "valkey-cli", "ping" ]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -95,7 +95,7 @@ services:
     restart: unless-stopped
 
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1/api2/ping/ | grep -q pong"]
+      test: [ "CMD-SHELL", "curl -fsS http://127.0.0.1/api2/ping/ | grep -q pong" ]
       interval: 30s
       timeout: 10s
       retries: 10
@@ -138,7 +138,7 @@ services:
     restart: unless-stopped
 
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1/healthcheck | grep -q true"]
+      test: [ "CMD-SHELL", "curl -fsS http://127.0.0.1/healthcheck | grep -q true" ]
       interval: 30s
       timeout: 10s
       retries: 10
@@ -180,9 +180,7 @@ services:
 
     command:
       - >-
-        umask 077; mariadb-dump --host=db --user=root
-        --all-databases --single-transaction --routines --events
-        > /backups/seafile.sql.tmp && mv /backups/seafile.sql.tmp /backups/seafile.sql
+        umask 077; mariadb-dump --host=db --user=root --all-databases --single-transaction --routines --events > /backups/seafile.sql.tmp && mv /backups/seafile.sql.tmp /backups/seafile.sql
 
     entrypoint:
       - /bin/sh

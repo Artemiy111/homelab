@@ -24,10 +24,10 @@ services:
       retries: 10
       start_period: 15s
 
-    shm_size: 256mb
-
     security_opt:
       - no-new-privileges:true
+
+    shm_size: 256mb
 
   pgweb:
     image: ghcr.io/sosedoff/pgweb:0.17.0@sha256:a5256d416e2e8b92d69a4459058e3eca33a9f075d8325491644411d0bc3bd70b

@@ -66,12 +66,12 @@ services:
 
     networks:
       - backend
+
     command:
       - sh
       - -c
       - >-
-        ./manage.py migrate &&
-        ./manage.py shell -c "import os; from allauth.socialaccount.models import SocialApp; cid = os.environ.get('GLITCHTIP_CLIENT_ID') or ''; sec = os.environ.get('GLITCHTIP_CLIENT_SECRET') or ''; print('OIDC: client id/secret not set, skipping') if not (cid and sec) else SocialApp.objects.update_or_create(provider='openid_connect', provider_id='zitadel', defaults=dict(name='Zitadel', client_id=cid, secret=sec, settings={'server_url': 'https://id.' + os.environ['DOMAIN'] + '/.well-known/openid-configuration'}))"
+        ./manage.py migrate && ./manage.py shell -c "import os; from allauth.socialaccount.models import SocialApp; cid = os.environ.get('GLITCHTIP_CLIENT_ID') or ''; sec = os.environ.get('GLITCHTIP_CLIENT_SECRET') or ''; print('OIDC: client id/secret not set, skipping') if not (cid and sec) else SocialApp.objects.update_or_create(provider='openid_connect', provider_id='zitadel', defaults=dict(name='Zitadel', client_id=cid, secret=sec, settings={'server_url': 'https://id.' + os.environ['DOMAIN'] + '/.well-known/openid-configuration'}))"
     restart: "no"
     mem_limit: 512m
 
@@ -105,7 +105,7 @@ services:
     restart: unless-stopped
 
     healthcheck:
-      test: ["CMD", "python", "/code/healthcheck.py"]
+      test: [ "CMD", "python", "/code/healthcheck.py" ]
       interval: 30s
       timeout: 10s
       retries: 3

@@ -6,12 +6,14 @@ services:
     container_name: paperless-broker
     volumes:
       - ${APPS_STORAGE_PATH:-/storage/apps}/paperless/redis:/data:Z
+
     networks:
       - backend
     command: valkey-server --save 300 1 --loglevel warning
     restart: unless-stopped
+
     healthcheck:
-      test: ["CMD", "valkey-cli", "ping"]
+      test: [ "CMD", "valkey-cli", "ping" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -20,17 +22,21 @@ services:
   db:
     image: docker.io/library/postgres:18-alpine
     container_name: paperless-db
+
     volumes:
       - ${APPS_STORAGE_PATH:-/storage/apps}/paperless/postgresql:/var/lib/postgresql:Z
+
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-paperless}
       POSTGRES_USER: ${POSTGRES_USER:-paperless}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in apps/paperless secrets.enc.env}
+
     networks:
       - backend
     restart: unless-stopped
+
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}" ]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -40,6 +46,7 @@ services:
   webserver:
     image: docker.io/paperlessngx/paperless-ngx:3.0
     container_name: paperless-webserver
+
     depends_on:
       db:
         condition: service_healthy
@@ -49,11 +56,13 @@ services:
         condition: service_started
       tika:
         condition: service_started
+
     volumes:
       - ${APPS_STORAGE_PATH:-/storage/apps}/paperless/data:/usr/src/paperless/data:Z
       - ${APPS_STORAGE_PATH:-/storage/apps}/paperless/media:/usr/src/paperless/media:Z
       - ${APPS_STORAGE_PATH:-/storage/apps}/paperless/export:/usr/src/paperless/export:Z
       - ${APPS_STORAGE_PATH:-/storage/apps}/paperless/consume:/usr/src/paperless/consume:Z
+
     environment:
       PAPERLESS_SECRET_KEY: ${PAPERLESS_SECRET_KEY:?set in apps/paperless secrets.enc.env}
       PAPERLESS_URL: https://paperless.${DOMAIN}
@@ -75,16 +84,19 @@ services:
       PAPERLESS_CONSUMER_POLLING: "60"
       USERMAP_UID: ${USERMAP_UID:-1000}
       USERMAP_GID: ${USERMAP_GID:-1000}
+
     networks:
       - backend
       - traefiknet
     restart: unless-stopped
+
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8000/api/health/ || exit 1"]
+      test: [ "CMD-SHELL", "curl -fsS http://127.0.0.1:8000/api/health/ || exit 1" ]
       interval: 30s
       timeout: 10s
       retries: 5
       start_period: 60s
+
     labels:
       - traefik.enable=true
       - traefik.http.routers.paperless.rule=Host(`paperless.${DOMAIN}`)
@@ -100,17 +112,20 @@ services:
   gotenberg:
     image: docker.io/gotenberg/gotenberg:8.34
     container_name: paperless-gotenberg
+
+    networks:
+      - backend
+
     command:
       - "gotenberg"
       - "--chromium-disable-javascript=true"
       - "--chromium-allow-list=file:///tmp/.*"
-    networks:
-      - backend
     restart: unless-stopped
 
   tika:
     image: docker.io/apache/tika:3.3.1.0
     container_name: paperless-tika
+
     networks:
       - backend
     restart: unless-stopped

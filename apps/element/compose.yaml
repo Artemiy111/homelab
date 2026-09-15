@@ -33,7 +33,7 @@ services:
     restart: unless-stopped
 
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}" ]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -46,18 +46,18 @@ services:
     volumes:
       - ${APPS_STORAGE_PATH:-/storage/apps}/element/redis:/data:Z
 
+    environment:
+      TZ: ${TZ:-Asia/Yekaterinburg}
+
     networks:
       backend:
         aliases:
           - element-redis
     command: redis-server --save 60 1 --loglevel warning
-
-    environment:
-      TZ: ${TZ:-Asia/Yekaterinburg}
     restart: unless-stopped
 
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -87,7 +87,7 @@ services:
     restart: unless-stopped
 
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8080/health || exit 1"]
+      test: [ "CMD-SHELL", "curl -fsS http://127.0.0.1:8080/health || exit 1" ]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -122,7 +122,7 @@ services:
     restart: unless-stopped
 
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:80/ >/dev/null || exit 1"]
+      test: [ "CMD-SHELL", "wget -qO- http://127.0.0.1:80/ >/dev/null || exit 1" ]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -145,7 +145,6 @@ services:
 
     volumes:
       - ${APPS_STORAGE_PATH:-/storage/apps}/element/livekit/config.yaml:/etc/livekit/config.yaml:Z,ro
-    command: --config /etc/livekit/config.yaml --node-ip ${SERVER_IP}
 
     environment:
       TZ: ${TZ:-Asia/Yekaterinburg}
@@ -159,10 +158,11 @@ services:
       traefiknet:
         aliases:
           - livekit
+    command: --config /etc/livekit/config.yaml --node-ip ${SERVER_IP}
     restart: unless-stopped
 
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:7880 || exit 1"]
+      test: [ "CMD-SHELL", "wget -qO- http://127.0.0.1:7880 || exit 1" ]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -216,10 +216,10 @@ services:
 
     volumes:
       - ${APPS_STORAGE_PATH:-/storage/apps}/element/turn/turnserver.conf:/etc/turnserver.conf:Z,ro
-    network_mode: host
 
     environment:
       TZ: ${TZ:-Asia/Yekaterinburg}
+    network_mode: host
     restart: unless-stopped
     init: true
 
@@ -229,7 +229,6 @@ services:
   sygnal:
     image: matrixdotorg/sygnal:v0.17.0
     container_name: element-sygnal
-    profiles: [push]
 
     volumes:
       - ${APPS_STORAGE_PATH:-/storage/apps}/element/sygnal/sygnal.yaml:/sygnal.yaml:Z,ro
@@ -241,6 +240,7 @@ services:
       - backend
     restart: unless-stopped
     init: true
+    profiles: [ push ]
 
     security_opt:
       - no-new-privileges:true

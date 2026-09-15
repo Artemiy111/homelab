@@ -4,10 +4,6 @@ services:
   web:
     image: ghcr.io/jitsi/web:${JITSI_IMAGE_VERSION:?set in apps/jitsi secrets.enc.env}
     container_name: jitsi-web
-    read_only: true
-    tmpfs:
-      - /run:size=16M,mode=1750,exec
-      - /tmp:size=16M,mode=1777,noexec
 
     depends_on:
       - jvb
@@ -56,20 +52,15 @@ services:
       - traefik.http.routers.jitsi.entrypoints=websecure
       - traefik.http.services.jitsi.loadbalancer.server.port=8000
       - traefik.docker.network=traefiknet
-
-  prosody:
-    image: ghcr.io/jitsi/prosody:${JITSI_IMAGE_VERSION:?set in apps/jitsi secrets.enc.env}
-    container_name: jitsi-prosody
     read_only: true
+
     tmpfs:
       - /run:size=16M,mode=1750,exec
       - /tmp:size=16M,mode=1777,noexec
 
-    expose:
-      - "${XMPP_PORT:-5222}"
-      - "5269"
-      - "5347"
-      - "5280"
+  prosody:
+    image: ghcr.io/jitsi/prosody:${JITSI_IMAGE_VERSION:?set in apps/jitsi secrets.enc.env}
+    container_name: jitsi-prosody
 
     volumes:
       - ${APPS_STORAGE_PATH:-/storage/apps}/jitsi/prosody/config:/config:Z
@@ -102,19 +93,22 @@ services:
           - xmpp.meet.jitsi
     restart: unless-stopped
 
-  jicofo:
-    image: ghcr.io/jitsi/jicofo:${JITSI_IMAGE_VERSION:?set in apps/jitsi secrets.enc.env}
-    container_name: jitsi-jicofo
+    expose:
+      - "${XMPP_PORT:-5222}"
+      - "5269"
+      - "5347"
+      - "5280"
     read_only: true
     tmpfs:
       - /run:size=16M,mode=1750,exec
       - /tmp:size=16M,mode=1777,noexec
 
+  jicofo:
+    image: ghcr.io/jitsi/jicofo:${JITSI_IMAGE_VERSION:?set in apps/jitsi secrets.enc.env}
+    container_name: jitsi-jicofo
+
     depends_on:
       - prosody
-
-    ports:
-      - "127.0.0.1:${JICOFO_REST_PORT:-8888}:8888"
 
     volumes:
       - ${APPS_STORAGE_PATH:-/storage/apps}/jitsi/jicofo:/config:Z
@@ -137,24 +131,24 @@ services:
       XMPP_RECORDER_DOMAIN: recorder.meet.jitsi
       XMPP_SERVER: prosody
 
+    ports:
+      - "127.0.0.1:${JICOFO_REST_PORT:-8888}:8888"
+
     networks:
       - default
     restart: unless-stopped
-
-  jvb:
-    image: ghcr.io/jitsi/jvb:${JITSI_IMAGE_VERSION:?set in apps/jitsi secrets.enc.env}
-    container_name: jitsi-jvb
     read_only: true
+
     tmpfs:
       - /run:size=16M,mode=1750,exec
       - /tmp:size=16M,mode=1777,noexec
 
+  jvb:
+    image: ghcr.io/jitsi/jvb:${JITSI_IMAGE_VERSION:?set in apps/jitsi secrets.enc.env}
+    container_name: jitsi-jvb
+
     depends_on:
       - prosody
-
-    ports:
-      - "${SERVER_IP}:${JVB_PORT:-10000}:${JVB_PORT:-10000}/udp"
-      - "127.0.0.1:${JVB_COLIBRI_PORT:-8080}:8080"
 
     volumes:
       - ${APPS_STORAGE_PATH:-/storage/apps}/jitsi/jvb:/config:Z
@@ -174,9 +168,18 @@ services:
       XMPP_INTERNAL_MUC_DOMAIN: internal-muc.meet.jitsi
       XMPP_SERVER: prosody
 
+    ports:
+      - "127.0.0.1:${JVB_COLIBRI_PORT:-8080}:8080"
+      - "${SERVER_IP}:${JVB_PORT:-10000}:${JVB_PORT:-10000}/udp"
+
     networks:
       - default
     restart: unless-stopped
+    read_only: true
+
+    tmpfs:
+      - /run:size=16M,mode=1750,exec
+      - /tmp:size=16M,mode=1777,noexec
 
 networks:
   traefiknet:

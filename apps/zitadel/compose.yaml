@@ -33,16 +33,14 @@ services:
   zitadel:
     image: ghcr.io/zitadel/zitadel:${ZITADEL_VERSION:-v4.17.1}
     container_name: zitadel
-    user: "0"
 
     depends_on:
       postgres:
         condition: service_healthy
 
-    command:
-      - start-from-init
-      - --masterkeyFile
-      - /zitadel/masterkey
+    volumes:
+      - ${APPS_STORAGE_PATH:-/storage/apps}/zitadel/bootstrap:/zitadel/bootstrap:rw
+      - ${APPS_STORAGE_PATH:-/storage/apps}/zitadel/masterkey:/zitadel/masterkey:ro
 
     environment:
       ZITADEL_PORT: 8080
@@ -67,13 +65,14 @@ services:
       # so ZITADEL can POST back-channel logout tokens to services on the LAN (e.g. immich.example.com -> 192.0.2.10).
       ZITADEL_HTTPCLIENT_DENYLIST: "localhost,0.0.0.0/8,10.0.0.0/8,100.64.0.0/10,127.0.0.0/8,169.254.0.0/16,172.16.0.0/12,198.18.0.0/15,::/128,::1/128,fc00::/7,fe80::/10"
 
-    volumes:
-      - ${APPS_STORAGE_PATH:-/storage/apps}/zitadel/bootstrap:/zitadel/bootstrap:rw
-      - ${APPS_STORAGE_PATH:-/storage/apps}/zitadel/masterkey:/zitadel/masterkey:ro
-
     networks:
       - backend
       - traefiknet
+
+    command:
+      - start-from-init
+      - --masterkeyFile
+      - /zitadel/masterkey
     restart: unless-stopped
 
     healthcheck:
@@ -82,10 +81,6 @@ services:
       timeout: 30s
       retries: 12
       start_period: 20s
-    mem_limit: 512m
-
-    security_opt:
-      - no-new-privileges:true
 
     labels:
       - traefik.enable=true
@@ -103,24 +98,28 @@ services:
       - traefik.http.routers.zitadel-console.entrypoints=websecure
       - traefik.http.routers.zitadel-console.service=zitadel
       - traefik.http.routers.zitadel-console.priority=100
+    user: "0"
+    mem_limit: 512m
+
+    security_opt:
+      - no-new-privileges:true
 
   login:
     image: ghcr.io/zitadel/zitadel-login:${ZITADEL_VERSION:-v4.17.1}
     container_name: zitadel-login
-    user: "0"
 
     depends_on:
       zitadel:
         condition: service_healthy
+
+    volumes:
+      - ${APPS_STORAGE_PATH:-/storage/apps}/zitadel/bootstrap:/zitadel/bootstrap:ro
 
     environment:
       ZITADEL_API_URL: http://zitadel:8080
       NEXT_PUBLIC_BASE_PATH: /ui/v2/login
       ZITADEL_SERVICE_USER_TOKEN_FILE: /zitadel/bootstrap/login-client.pat
       CUSTOM_REQUEST_HEADERS: Host:id.${DOMAIN},X-Forwarded-Proto:https
-
-    volumes:
-      - ${APPS_STORAGE_PATH:-/storage/apps}/zitadel/bootstrap:/zitadel/bootstrap:ro
 
     networks:
       - backend
@@ -133,10 +132,6 @@ services:
       timeout: 30s
       retries: 12
       start_period: 20s
-    mem_limit: 256m
-
-    security_opt:
-      - no-new-privileges:true
 
     labels:
       - traefik.enable=true
@@ -152,6 +147,11 @@ services:
       - traefik.http.routers.zitadel-login.entrypoints=websecure
       - traefik.http.routers.zitadel-login.service=zitadel-login
       - traefik.http.routers.zitadel-login.priority=250
+    user: "0"
+    mem_limit: 256m
+
+    security_opt:
+      - no-new-privileges:true
 
   backup-db:
     image: postgres:18-alpine

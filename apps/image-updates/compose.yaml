@@ -33,11 +33,6 @@ services:
     volumes:
       - ${APPS_STORAGE_PATH:-/storage/apps}/wud/store:/store:Z
 
-    # Порт на шлюзе docker-сети: мост из k8s (apps/image-updates/k8s/bridge.yaml),
-    # чтобы Gatus в кластере не зависел от docker-имён. Из LAN недостижим.
-    ports:
-      - "172.20.0.1:18085:3000"
-
     environment:
       TZ: ${TZ:?set in apps/image-updates secrets.enc.env}
       WUD_SERVER_FEATURE_DELETE: false
@@ -45,6 +40,11 @@ services:
       WUD_WATCHER_LOCAL_HOST: docker-socket-proxy
       WUD_WATCHER_LOCAL_PORT: 2375
       WUD_WATCHER_LOCAL_WATCHEVENTS: false
+
+    # Порт на шлюзе docker-сети: мост из k8s (apps/image-updates/k8s/bridge.yaml),
+    # чтобы Gatus в кластере не зависел от docker-имён. Из LAN недостижим.
+    ports:
+      - "172.20.0.1:18085:3000"
 
     networks:
       - docker-api
