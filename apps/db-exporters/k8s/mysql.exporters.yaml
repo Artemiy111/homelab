@@ -1,0 +1,80 @@
+# Экспортер MariaDB (Seafile): один инстанс, root-креды из Secret seafile
+# (см. apps/db-exporters/README.md).
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: seafile-db-exporter
+  namespace: default
+spec:
+  revisionHistoryLimit: 2
+  replicas: 1
+  selector:
+    matchLabels:
+      app: seafile-db-exporter
+  template:
+    metadata:
+      labels:
+        app: seafile-db-exporter
+    spec:
+      enableServiceLinks: false
+      containers:
+        - name: mysqld-exporter
+          image: "quay.io/prometheus/mysqld-exporter:v0.20.0@sha256:abed8dac117b4ae5b70757f988e44795935b9a72c3b58d720c67ba688f8cb79e"
+          args:
+            - --mysqld.address=seafile-db:3306
+            - --mysqld.username=root
+          ports:
+            - name: metrics
+              containerPort: 9104
+          env:
+            - name: MYSQLD_EXPORTER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: seafile
+                  key: INIT_SEAFILE_MYSQL_ROOT_PASSWORD
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          securityContext:
+            runAsUser: 65534
+            runAsGroup: 65534
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: seafile-db-exporter
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: seafile-db-exporter
+  ports:
+    - name: metrics
+      port: 9104
+      targetPort: metrics
+      protocol: TCP

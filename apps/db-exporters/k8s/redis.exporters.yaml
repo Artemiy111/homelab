@@ -1,0 +1,650 @@
+# Экспортеры Redis/Valkey: по одному поду на инстанс; аутентификации
+# у этих инстансов нет (см. apps/db-exporters/README.md).
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dawarich-redis-exporter
+  namespace: default
+spec:
+  revisionHistoryLimit: 2
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dawarich-redis-exporter
+  template:
+    metadata:
+      labels:
+        app: dawarich-redis-exporter
+    spec:
+      enableServiceLinks: false
+      containers:
+        - name: redis-exporter
+          image: "docker.io/oliver006/redis_exporter:v1.91.1-alpine@sha256:30e56152988ca4bb3784e10debaac8905b78f6a7ff2bbd362a40b8c2a78eb1d6"
+          ports:
+            - name: metrics
+              containerPort: 9121
+          env:
+            - name: REDIS_ADDR
+              value: "redis://dawarich-redis:6379"
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          securityContext:
+            runAsUser: 59000
+            runAsGroup: 59000
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dawarich-redis-exporter
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: dawarich-redis-exporter
+  ports:
+    - name: metrics
+      port: 9121
+      targetPort: metrics
+      protocol: TCP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: element-redis-exporter
+  namespace: default
+spec:
+  revisionHistoryLimit: 2
+  replicas: 1
+  selector:
+    matchLabels:
+      app: element-redis-exporter
+  template:
+    metadata:
+      labels:
+        app: element-redis-exporter
+    spec:
+      enableServiceLinks: false
+      containers:
+        - name: redis-exporter
+          image: "docker.io/oliver006/redis_exporter:v1.91.1-alpine@sha256:30e56152988ca4bb3784e10debaac8905b78f6a7ff2bbd362a40b8c2a78eb1d6"
+          ports:
+            - name: metrics
+              containerPort: 9121
+          env:
+            - name: REDIS_ADDR
+              value: "redis://element-redis:6379"
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          securityContext:
+            runAsUser: 59000
+            runAsGroup: 59000
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: element-redis-exporter
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: element-redis-exporter
+  ports:
+    - name: metrics
+      port: 9121
+      targetPort: metrics
+      protocol: TCP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: glitchtip-valkey-exporter
+  namespace: default
+spec:
+  revisionHistoryLimit: 2
+  replicas: 1
+  selector:
+    matchLabels:
+      app: glitchtip-valkey-exporter
+  template:
+    metadata:
+      labels:
+        app: glitchtip-valkey-exporter
+    spec:
+      enableServiceLinks: false
+      containers:
+        - name: redis-exporter
+          image: "docker.io/oliver006/redis_exporter:v1.91.1-alpine@sha256:30e56152988ca4bb3784e10debaac8905b78f6a7ff2bbd362a40b8c2a78eb1d6"
+          ports:
+            - name: metrics
+              containerPort: 9121
+          env:
+            - name: REDIS_ADDR
+              value: "redis://glitchtip-valkey:6379"
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          securityContext:
+            runAsUser: 59000
+            runAsGroup: 59000
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: glitchtip-valkey-exporter
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: glitchtip-valkey-exporter
+  ports:
+    - name: metrics
+      port: 9121
+      targetPort: metrics
+      protocol: TCP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: immich-valkey-exporter
+  namespace: default
+spec:
+  revisionHistoryLimit: 2
+  replicas: 1
+  selector:
+    matchLabels:
+      app: immich-valkey-exporter
+  template:
+    metadata:
+      labels:
+        app: immich-valkey-exporter
+    spec:
+      enableServiceLinks: false
+      containers:
+        - name: redis-exporter
+          image: "docker.io/oliver006/redis_exporter:v1.91.1-alpine@sha256:30e56152988ca4bb3784e10debaac8905b78f6a7ff2bbd362a40b8c2a78eb1d6"
+          ports:
+            - name: metrics
+              containerPort: 9121
+          env:
+            - name: REDIS_ADDR
+              value: "redis://immich-valkey:6379"
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          securityContext:
+            runAsUser: 59000
+            runAsGroup: 59000
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: immich-valkey-exporter
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: immich-valkey-exporter
+  ports:
+    - name: metrics
+      port: 9121
+      targetPort: metrics
+      protocol: TCP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: infisical-redis-exporter
+  namespace: default
+spec:
+  revisionHistoryLimit: 2
+  replicas: 1
+  selector:
+    matchLabels:
+      app: infisical-redis-exporter
+  template:
+    metadata:
+      labels:
+        app: infisical-redis-exporter
+    spec:
+      enableServiceLinks: false
+      containers:
+        - name: redis-exporter
+          image: "docker.io/oliver006/redis_exporter:v1.91.1-alpine@sha256:30e56152988ca4bb3784e10debaac8905b78f6a7ff2bbd362a40b8c2a78eb1d6"
+          ports:
+            - name: metrics
+              containerPort: 9121
+          env:
+            - name: REDIS_ADDR
+              value: "redis://infisical-redis:6379"
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          securityContext:
+            runAsUser: 59000
+            runAsGroup: 59000
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: infisical-redis-exporter
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: infisical-redis-exporter
+  ports:
+    - name: metrics
+      port: 9121
+      targetPort: metrics
+      protocol: TCP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nextcloud-redis-exporter
+  namespace: default
+spec:
+  revisionHistoryLimit: 2
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nextcloud-redis-exporter
+  template:
+    metadata:
+      labels:
+        app: nextcloud-redis-exporter
+    spec:
+      enableServiceLinks: false
+      containers:
+        - name: redis-exporter
+          image: "docker.io/oliver006/redis_exporter:v1.91.1-alpine@sha256:30e56152988ca4bb3784e10debaac8905b78f6a7ff2bbd362a40b8c2a78eb1d6"
+          ports:
+            - name: metrics
+              containerPort: 9121
+          env:
+            - name: REDIS_ADDR
+              value: "redis://nextcloud-redis:6379"
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          securityContext:
+            runAsUser: 59000
+            runAsGroup: 59000
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nextcloud-redis-exporter
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: nextcloud-redis-exporter
+  ports:
+    - name: metrics
+      port: 9121
+      targetPort: metrics
+      protocol: TCP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: paperless-broker-exporter
+  namespace: default
+spec:
+  revisionHistoryLimit: 2
+  replicas: 1
+  selector:
+    matchLabels:
+      app: paperless-broker-exporter
+  template:
+    metadata:
+      labels:
+        app: paperless-broker-exporter
+    spec:
+      enableServiceLinks: false
+      containers:
+        - name: redis-exporter
+          image: "docker.io/oliver006/redis_exporter:v1.91.1-alpine@sha256:30e56152988ca4bb3784e10debaac8905b78f6a7ff2bbd362a40b8c2a78eb1d6"
+          ports:
+            - name: metrics
+              containerPort: 9121
+          env:
+            - name: REDIS_ADDR
+              value: "redis://paperless-broker:6379"
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          securityContext:
+            runAsUser: 59000
+            runAsGroup: 59000
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: paperless-broker-exporter
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: paperless-broker-exporter
+  ports:
+    - name: metrics
+      port: 9121
+      targetPort: metrics
+      protocol: TCP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: seafile-redis-exporter
+  namespace: default
+spec:
+  revisionHistoryLimit: 2
+  replicas: 1
+  selector:
+    matchLabels:
+      app: seafile-redis-exporter
+  template:
+    metadata:
+      labels:
+        app: seafile-redis-exporter
+    spec:
+      enableServiceLinks: false
+      containers:
+        - name: redis-exporter
+          image: "docker.io/oliver006/redis_exporter:v1.91.1-alpine@sha256:30e56152988ca4bb3784e10debaac8905b78f6a7ff2bbd362a40b8c2a78eb1d6"
+          ports:
+            - name: metrics
+              containerPort: 9121
+          env:
+            - name: REDIS_ADDR
+              value: "redis://seafile-redis:6379"
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          securityContext:
+            runAsUser: 59000
+            runAsGroup: 59000
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: seafile-redis-exporter
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: seafile-redis-exporter
+  ports:
+    - name: metrics
+      port: 9121
+      targetPort: metrics
+      protocol: TCP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sure-redis-exporter
+  namespace: default
+spec:
+  revisionHistoryLimit: 2
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sure-redis-exporter
+  template:
+    metadata:
+      labels:
+        app: sure-redis-exporter
+    spec:
+      enableServiceLinks: false
+      containers:
+        - name: redis-exporter
+          image: "docker.io/oliver006/redis_exporter:v1.91.1-alpine@sha256:30e56152988ca4bb3784e10debaac8905b78f6a7ff2bbd362a40b8c2a78eb1d6"
+          ports:
+            - name: metrics
+              containerPort: 9121
+          env:
+            - name: REDIS_ADDR
+              value: "redis://sure-redis:6379"
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          securityContext:
+            runAsUser: 59000
+            runAsGroup: 59000
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sure-redis-exporter
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: sure-redis-exporter
+  ports:
+    - name: metrics
+      port: 9121
+      targetPort: metrics
+      protocol: TCP

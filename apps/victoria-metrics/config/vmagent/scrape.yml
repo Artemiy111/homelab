@@ -125,3 +125,39 @@ scrape_configs:
     static_configs:
       - targets:
           - mailserver:8080
+
+  # Базы данных: экспортеры по одному на инстанс (apps/db-exporters).
+  # instance = имя экспортера, т.е. какая это база.
+  - job_name: postgres
+    static_configs:
+      - targets:
+          - authentik-postgresql-exporter:9187
+          - dawarich-db-exporter:9187
+          - element-db-exporter:9187
+          - forgejo-db-exporter:9187
+          - glitchtip-postgres-exporter:9187
+          - immich-db-exporter:9187
+          - infisical-postgres-exporter:9187
+          - nextcloud-db-exporter:9187
+          - paperless-db-exporter:9187
+          - postgres-db-exporter:9187
+          - sure-db-exporter:9187
+          - zitadel-postgres-exporter:9187
+
+  - job_name: redis
+    static_configs:
+      - targets:
+          - dawarich-redis-exporter:9121
+          - element-redis-exporter:9121
+          - glitchtip-valkey-exporter:9121
+          - immich-valkey-exporter:9121
+          - infisical-redis-exporter:9121
+          - nextcloud-redis-exporter:9121
+          - paperless-broker-exporter:9121
+          - seafile-redis-exporter:9121
+          - sure-redis-exporter:9121
+
+  - job_name: mysql
+    static_configs:
+      - targets:
+          - seafile-db-exporter:9104
