@@ -50,7 +50,10 @@ spec:
             - name: REDIS_HOST
               value: nextcloud-redis
             - name: NEXTCLOUD_ADMIN_USER
-              value: nextcloud-admin
+              valueFrom:
+                secretKeyRef:
+                  name: nextcloud
+                  key: NEXTCLOUD_ADMIN_USER
             - name: NEXTCLOUD_TRUSTED_DOMAINS
               value: "nextcloud.$(DOMAIN)"
             - name: NEXTCLOUD_DEFAULT_LANGUAGE

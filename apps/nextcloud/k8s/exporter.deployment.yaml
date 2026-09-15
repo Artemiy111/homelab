@@ -25,7 +25,10 @@ spec:
             - name: NEXTCLOUD_SERVER
               value: "http://nextcloud"
             - name: NEXTCLOUD_USERNAME
-              value: "nextcloud-admin"
+              valueFrom:
+                secretKeyRef:
+                  name: nextcloud
+                  key: NEXTCLOUD_ADMIN_USER
             - name: NEXTCLOUD_PASSWORD
               valueFrom:
                 secretKeyRef:
