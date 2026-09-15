@@ -40,7 +40,7 @@ spec:
             - name: GF_SECURITY_ADMIN_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: victoria-metrics
+                  name: grafana
                   key: GRAFANA_ADMIN_PASSWORD
             - name: GF_USERS_ALLOW_SIGN_UP
               value: "false"
@@ -92,14 +92,13 @@ spec:
             - name: grafana-data
               mountPath: /var/lib/grafana
             - name: provisioning
-              mountPath: /etc/grafana/provisioning
+              mountPath: /etc/grafana/provisioning/datasources
               readOnly: true
       volumes:
         - name: grafana-data
           hostPath:
-            path: /storage/apps/victoria-metrics/grafana
+            path: /storage/apps/grafana
             type: Directory
         - name: provisioning
-          hostPath:
-            path: /home/artlab/projects/homelab/apps/victoria-metrics/config/grafana/provisioning
-            type: Directory
+          configMap:
+            name: grafana-provisioning
