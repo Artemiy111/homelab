@@ -61,6 +61,12 @@ spec:
               value: "https://rustfs.$(DOMAIN)"
             - name: RUSTFS_CONSOLE_CORS_ALLOWED_ORIGINS
               value: "https://rustfs.$(DOMAIN)"
+            - name: RUSTFS_OBS_ENDPOINT
+              value: "http://otel-collector:4318"
+            - name: RUSTFS_OBS_METRICS_EXPORT_ENABLED
+              value: "true"
+            - name: RUSTFS_OBS_SERVICE_NAME
+              value: rustfs
           startupProbe:
             httpGet:
               path: /health

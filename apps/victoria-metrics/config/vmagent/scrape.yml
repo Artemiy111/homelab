@@ -70,7 +70,56 @@ scrape_configs:
       - targets:
           - livekit:6789
 
+  - job_name: grafana
+    static_configs:
+      - targets:
+          - grafana:80
+
+  - job_name: jitsi-jvb
+    static_configs:
+      - targets:
+          - jitsi-jvb:8080
+
+  - job_name: oauth2-proxy
+    static_configs:
+      - targets:
+          - oauth2-proxy:9100
+
+  - job_name: vault
+    metrics_path: /v1/sys/metrics
+    params:
+      format:
+        - prometheus
+    static_configs:
+      - targets:
+          - vault:8200
+
+  - job_name: infisical
+    static_configs:
+      - targets:
+          - infisical:9464
+
+  # OTLP-приёмник: приложения, отдающие метрики push'ем, попадают сюда
+  # (resource attributes в лейблах, напр. service_name="rustfs").
+  - job_name: otel-collector
+    static_configs:
+      - targets:
+          - otel-collector:8889
+
+  - job_name: jellyfin
+    static_configs:
+      - targets:
+          - jellyfin-exporter:9594
+
   # Приложения с аутентификацией (креды из окружения).
+
+  # LocalAI отдаёт /metrics за API-ключом (Bearer).
+  - job_name: local-ai
+    authorization:
+      credentials: "%{LOCALAI_API_KEY}"
+    static_configs:
+      - targets:
+          - local-ai:8080
 
   # API-ключ Kuma передаётся как пароль basic auth без username.
   - job_name: uptime-kuma

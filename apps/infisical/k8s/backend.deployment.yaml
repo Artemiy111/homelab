@@ -61,6 +61,8 @@ spec:
           ports:
             - name: http
               containerPort: 8080
+            - name: metrics
+              containerPort: 9464
           env:
             - name: DOMAIN
               valueFrom:
@@ -99,6 +101,10 @@ spec:
               value: "10.244.0.0/16"
             - name: TELEMETRY_ENABLED
               value: "false"
+            - name: OTEL_TELEMETRY_COLLECTION_ENABLED
+              value: "true"
+            - name: OTEL_EXPORT_TYPE
+              value: prometheus
           startupProbe:
             httpGet:
               path: /api/status

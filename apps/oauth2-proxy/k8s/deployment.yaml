@@ -36,9 +36,12 @@ spec:
             - --redirect-url=https://oauth.$(DOMAIN)/oauth2/callback
             - --whitelist-domain=.$(DOMAIN)
             - --http-address=0.0.0.0:4180
+            - --metrics-address=0.0.0.0:9100
           ports:
             - name: http
               containerPort: 4180
+            - name: metrics
+              containerPort: 9100
           env:
             - name: DOMAIN
               valueFrom:

@@ -12,3 +12,7 @@ spec:
       port: 4180
       targetPort: http
       protocol: TCP
+    - name: metrics
+      port: 9100
+      targetPort: metrics
+      protocol: TCP
