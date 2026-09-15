@@ -21,5 +21,15 @@ spec:
   storage:
     type: etcd
 
+  # Kubelet по умолчанию держит не больше 110 подов на ноду. Homelab давно
+  # перевалил за сотню (одни DB-экспортеры добавляют ~22 пода), ресурсов на
+  # ноде при этом с запасом. Профиль "default" применяется к встроенному
+  # worker'у контроллера (k0s controller --profile default). Применяется
+  # рестартом k0s (k0s stop && k0s start).
+  workerProfiles:
+    - name: default
+      values:
+        maxPods: 200
+
   telemetry:
     enabled: false
