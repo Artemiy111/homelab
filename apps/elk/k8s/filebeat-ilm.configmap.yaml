@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: filebeat-ilm
+  namespace: logging
+data:
+  # Дефолтная ILM-политика Filebeat имеет только фазу hot — данные хранятся вечно.
+  # Здесь добавляем delete. ВАЖНО: local-path НЕ ограничивает размер PVC, потолок —
+  # диск хоста. Замеренный рост ~450 МБ/день → 30 дней это ~14 ГБ, запас есть.
+  ilm-policy.json: |-
+    {
+      "policy": {
+        "phases": {
+          "hot": {
+            "min_age": "0ms",
+            "actions": {
+              "rollover": {
+                "max_primary_shard_size": "10gb",
+                "max_age": "1d"
+              }
+            }
+          },
+          "delete": {
+            "min_age": "30d",
+            "actions": {
+              "delete": {
+                "delete_searchable_snapshot": true
+              }
+            }
+          }
+        }
+      }
+    }

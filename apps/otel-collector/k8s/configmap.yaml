@@ -19,6 +19,16 @@ data:
         resource_to_telemetry_conversion:
           enabled: true
 
+    processors:
+      # RustFS отдаёт rustfs_scanner_directories_scanned_total дважды с одинаковыми
+      # лейблами (похоже на баг его OTel-инструментации). prometheus-экспортёр из-за
+      # этого на каждом сборе печатает ошибку со стектрейсом. Метрика малоценная —
+      # дропаем до фикса в апстриме.
+      filter/rustfs-dup:
+        metrics:
+          metric:
+            - 'name == "rustfs_scanner_directories_scanned_total"'
+
     extensions:
       health_check:
         endpoint: 0.0.0.0:13133
@@ -28,4 +38,5 @@ data:
       pipelines:
         metrics:
           receivers: [otlp]
+          processors: [filter/rustfs-dup]
           exporters: [prometheus]

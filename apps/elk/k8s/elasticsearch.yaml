@@ -1,0 +1,37 @@
+apiVersion: elasticsearch.k8s.elastic.co/v1
+kind: Elasticsearch
+metadata:
+  name: elk
+  namespace: logging
+spec:
+  # Версия, на которой гоняются e2e-тесты ECK 3.5.0 (E2E_STACK_VERSION в репо ECK).
+  version: 9.4.3
+  nodeSets:
+    - name: default
+      count: 1
+      config:
+        # Однонодовый кластер: все роли в одном процессе, реплик нет.
+        node.roles: ["master", "data", "ingest"]
+        # Иначе ES требует vm.max_map_count >= 262144 на хосте ноды.
+        node.store.allow_mmap: false
+      podTemplate:
+        spec:
+          containers:
+            - name: elasticsearch
+              resources:
+                # memory requests == limits → QoS Guaranteed, эвикция последней.
+                # ECK берёт heap как 50% от лимита памяти (здесь 1Gi).
+                requests:
+                  cpu: 500m
+                  memory: 2Gi
+                limits:
+                  memory: 2Gi
+      volumeClaimTemplates:
+        - metadata:
+            name: elasticsearch-data
+          spec:
+            accessModes: ["ReadWriteOnce"]
+            storageClassName: local-path
+            resources:
+              requests:
+                storage: 20Gi

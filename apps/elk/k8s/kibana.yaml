@@ -1,0 +1,25 @@
+apiVersion: kibana.k8s.elastic.co/v1
+kind: Kibana
+metadata:
+  name: elk
+  namespace: logging
+spec:
+  version: 9.4.3
+  count: 1
+  elasticsearchRef:
+    name: elk
+  podTemplate:
+    spec:
+      containers:
+        - name: kibana
+          env:
+            # Heap Kibana ECK не считает (в отличие от ES): дефолт ~1.4Gi не
+            # влезет в лимит 1.5Gi, поэтому ограничиваем вручную.
+            - name: NODE_OPTIONS
+              value: "--max-old-space-size=1024"
+          resources:
+            requests:
+              cpu: 200m
+              memory: 1Gi
+            limits:
+              memory: 1536Mi

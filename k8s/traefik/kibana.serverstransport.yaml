@@ -1,0 +1,10 @@
+apiVersion: traefik.io/v1alpha1
+kind: ServersTransport
+metadata:
+  name: kibana-insecure
+  # Traefik ищет ServersTransport в namespace сервиса (elk-kb-http), а не IngressRoute.
+  namespace: logging
+spec:
+  # ECK-сертификат Kibana подписан на DNS-имена сервиса, а Traefik ходит на pod-IP
+  # (IP SAN в сертификате нет) — проверку не пройти. TLS остаётся, верификация off.
+  insecureSkipVerify: true

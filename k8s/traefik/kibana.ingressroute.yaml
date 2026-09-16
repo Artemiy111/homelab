@@ -1,0 +1,24 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: kibana
+  namespace: default
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`kibana.example.com`)
+      kind: Rule
+      middlewares:
+        - name: oauth2-proxy
+        - name: secure-headers
+        # ratelimit-default намеренно НЕ подключён: Kibana грузит сотни бандлов
+        # параллельно и упирается в лимит (100/50) — приложение не догружается.
+      services:
+        # Сервис Kibana создаёт ECK: <kibana-name>-kb-http, порт 5601 (TLS).
+        - name: elk-kb-http
+          namespace: logging
+          port: 5601
+          serversTransport: kibana-insecure
+  tls:
+    secretName: wildcard-tls
