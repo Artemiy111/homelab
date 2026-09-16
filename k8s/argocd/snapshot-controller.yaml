@@ -1,0 +1,37 @@
+# CRD и контроллер CSI-снапшотов (external-snapshotter) — без них Longhorn
+# создаёт Longhorn-снапшоты, но объекты VolumeSnapshot в Kubernetes не работают.
+#
+# Версия обязана совпадать с csi-snapshotter sidecar из чарта Longhorn
+# (image.csi.snapshotter.tag, сейчас v8.6.0). Проверять при апгрейде Longhorn.
+#
+# ServerSideApply: CRD внешнего снапшоттера больше 256 КиБ и не лезут в
+# last-applied-configuration при client-side apply.
+# Prune=false: CRD кластерные — их удаление снесло бы все VolumeSnapshot.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: snapshot-controller
+  namespace: argocd
+spec:
+  project: default
+  sources:
+    - repoURL: https://github.com/kubernetes-csi/external-snapshotter.git
+      targetRevision: v8.6.0
+      path: client/config/crd
+    - repoURL: https://github.com/kubernetes-csi/external-snapshotter.git
+      targetRevision: v8.6.0
+      path: deploy/kubernetes/snapshot-controller
+      kustomize:
+        images:
+          # В апстримном манифесте тега v8.6.0 образ всё ещё v8.5.0 —
+          # выравниваем с sidecar Longhorn, как советует его документация.
+          - registry.k8s.io/sig-storage/snapshot-controller:v8.6.0
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kube-system
+  syncPolicy:
+    syncOptions:
+      - Prune=false
+      - ServerSideApply=true
+    automated:
+      selfHeal: true

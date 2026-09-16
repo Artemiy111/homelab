@@ -1,0 +1,69 @@
+# Longhorn — CSI-хранилище: снапшоты, бэкапы в S3, RWX через share-manager, UI.
+# Ставится официальным чартом из charts.longhorn.io; Argo рендерит его сам
+# (см. k8s/argocd/README.md). Default StorageClass в кластере остаётся
+# local-path — классы Longhorn описываются явно в k8s/longhorn/storageclasses.yaml
+# и применяются осознанно per-PVC.
+#
+# Подготовка узла (iscsid, NFSv4-клиент, SELinux-модуль, каталог данных) —
+# в ansible/host.yml, раздел «Longhorn». Без неё тома застревают в attach/detach.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: longhorn
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://charts.longhorn.io
+    chart: longhorn
+    targetRevision: 1.12.1
+    helm:
+      releaseName: longhorn
+      valuesObject:
+        # k0s держит kubelet в /var/lib/k0s/kubelet, а не в /var/lib/kubelet:
+        # драйвер монтирует staging-каталоги оттуда.
+        csi:
+          kubeletRootDir: /var/lib/k0s/kubelet
+          # Однозный кластер: дефолтные 3 реплики контроллеров просто повиснут
+          # в Pending. При второй ноде можно вернуть 3.
+          attacherReplicaCount: 1
+          provisionerReplicaCount: 1
+          resizerReplicaCount: 1
+          snapshotterReplicaCount: 1
+        persistence:
+          # Классы хранилища задаём файлами, а не чартом.
+          createStorageClass: false
+        defaultSettings:
+          defaultDataPath: /storage/apps/k8s/longhorn
+          # Данные лежат на корневой ФС: свободно ~16% (78 из 475 ГБ). При
+          # дефолтных 25% Longhorn сразу пометит диск unschedulable, а при
+          # 30% reserved — не даст разместить ни одной реплики. Оба значения
+          # читаются ТОЛЬКО при создании диска, поэтому важны на установке.
+          storageMinimalAvailablePercentage: 10
+          storageReservedPercentageForDefaultDisk: 5
+          # UI не должен стучаться в longhorn-upgrade-responder.
+          upgradeChecker: false
+        # GitOps: pre-upgrade Job создаёт ресурсы мимо Argo и приложение
+        # навсегда остаётся OutOfSync.
+        preUpgradeChecker:
+          jobEnabled: false
+        longhornUI:
+          # Чарт не умеет задавать resources для UI — только replicas.
+          replicas: 1
+        longhornManager:
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: longhorn-system
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      prune: true
+      selfHeal: true

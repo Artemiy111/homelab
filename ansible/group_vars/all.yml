@@ -54,6 +54,10 @@ host_packages:
   - samba
   - samba-client
 
+  # --- Longhorn (CSI-хранилище в k0s) ---
+  - iscsi-initiator-utils   # iscsid: iSCSI-тома Longhorn (V1 data engine)
+  - nfs-utils               # NFSv4-клиент: RWX-тома и s3/nfs backup target
+
   # --- Автообновления ---
   - dnf-automatic    # автоматические обновления безопасности
 
@@ -91,3 +95,17 @@ argocd_version: "3.5.3"
 argocd_cli_url: "https://github.com/argoproj/argo-cd/releases/download/v{{ argocd_version }}/argocd-linux-amd64"
 # SHA256 из cli_checksums.txt того же релиза (целостность при скачивании).
 argocd_cli_checksum: "sha256:b860f73f57cbddd993cd446f5236d797c1b1ac8554857b2683d2669f17e765b4"
+
+# --- Longhorn (CSI-хранилище, ставится через Argo: k8s/argocd/longhorn.yaml) ---
+
+# Каталог данных на узле (Longhorn node disk). Отдельного диска на сервере нет,
+# а корень — XFS, который нельзя ужать, поэтому выделенный LV пока невозможен:
+# данные живут на корневой ФС. При появлении диска путь менять на его точку
+# монтирования и переносить диск в UI Longhorn.
+longhorn_data_path: /storage/apps/k8s/longhorn
+
+# Fedora-сборка iscsi-initiator-utils создаёт каталоги в /var/lib/iscsi без
+# execute-бита, а обновлённый container-selinux не даёт iscsid_t capability
+# dac_override — тома Longhorn застревают в attach/detach loop
+# (https://longhorn.io/kb/troubleshooting-volume-attachment-fails-due-to-selinux-denials/).
+longhorn_selinux_cil: local_longhorn.cil

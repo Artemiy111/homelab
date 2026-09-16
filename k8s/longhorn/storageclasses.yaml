@@ -1,0 +1,37 @@
+# Классы Longhorn. Default в кластере остаётся local-path: Longhorn выбирается
+# явно через storageClassName. Число реплик — 1 (одна нода); при появлении
+# второй ноды значение поднять до 2.
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: longhorn
+provisioner: driver.longhorn.io
+# Retain: удаление PVC не уносит том — сначала проверяем, что бэкап на месте.
+# Освобождение тома требует ручной уборки (см. README).
+reclaimPolicy: Retain
+allowVolumeExpansion: true
+volumeBindingMode: Immediate
+parameters:
+  numberOfReplicas: "1"
+  staleReplicaTimeout: "30"
+  fsType: ext4
+  dataLocality: disabled
+---
+# RWX-тома Longhorn отдаёт через share-manager (NFS-сервер рядом с томом),
+# поэтому на каждом узле нужен NFSv4-клиент (ansible/host.yml).
+# migratable здесь намеренно НЕ включён: Longhorn разрешает его только вместе
+# с volumeMode: Block и только для live migration (KubeVirt), обычные общие
+# каталоги работают только с migratable: false.
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: longhorn-rwx
+provisioner: driver.longhorn.io
+reclaimPolicy: Retain
+allowVolumeExpansion: true
+volumeBindingMode: Immediate
+parameters:
+  numberOfReplicas: "1"
+  staleReplicaTimeout: "30"
+  fsType: ext4
+  dataLocality: disabled

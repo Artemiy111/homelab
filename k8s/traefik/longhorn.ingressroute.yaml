@@ -1,0 +1,25 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: longhorn
+  namespace: default
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`longhorn.example.com`)
+      kind: Rule
+      middlewares:
+        # У Longhorn UI нет собственной аутентификации вообще — без
+        # oauth2-proxy она была бы открыта в интернет как есть.
+        - name: oauth2-proxy
+        - name: secure-headers
+        # ratelimit-default намеренно НЕ подключён: UI — одна большая
+        # JS-бандл-страница и упирается в лимит, как Kibana.
+      services:
+        # Сервис UI живёт в longhorn-system (allowCrossNamespace включён).
+        - name: longhorn-frontend
+          namespace: longhorn-system
+          port: 80
+  tls:
+    secretName: wildcard-tls
