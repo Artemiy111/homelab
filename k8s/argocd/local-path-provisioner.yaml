@@ -18,6 +18,10 @@ spec:
         storageClass:
           # Дефолтный класс: PVC без явного storageClassName тоже биндится.
           defaultClass: true
+          # Teardown-скрипт провижионера — `rm -rf "$VOL_DIR"`, поэтому Delete
+          # сносит данные вместе с PVC. Retain оставляет PV в Released: каталог
+          # на диске цел, вернуть его можно, пересоздав PVC с тем же именем.
+          reclaimPolicy: Retain
         nodePathMap:
           - node: DEFAULT_PATH_FOR_NON_LISTED_NODES
             paths:

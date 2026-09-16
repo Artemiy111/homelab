@@ -1,14 +1,24 @@
 # Классы Longhorn. Default в кластере остаётся local-path: Longhorn выбирается
 # явно через storageClassName. Число реплик — 1 (одна нода); при появлении
 # второй ноды значение поднять до 2.
+#
+# Соглашение по политике: класс БЕЗ суффикса — это Delete (данные уходят вместе
+# с PVC, страховка — снапшоты и бэкапы), а `-retain` явно помечает Retain для
+# того, что нельзя потерять по опечатке в `kubectl delete pvc`.
+# Напоминание: reclaimPolicy у StorageClass неизменяем — смена политики это
+# удаление класса и создание заново (существующие PV сохраняют свою политику).
+#
+# Отдельного RWX-класса нет намеренно: режим доступа задаётся в PVC
+# (`accessModes`), а не в StorageClass — у класса такого поля вообще нет.
+# Longhorn отдаёт RWX-том через share-manager (NFSv4-сервер рядом с томом),
+# поэтому на узлах нужен NFSv4-клиент (ansible/host.yml). Класс-двойник ничего
+# не принуждал бы: запросить RWO на нём было бы можно, как и RWX на обычном.
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
   name: longhorn
 provisioner: driver.longhorn.io
-# Retain: удаление PVC не уносит том — сначала проверяем, что бэкап на месте.
-# Освобождение тома требует ручной уборки (см. README).
-reclaimPolicy: Retain
+reclaimPolicy: Delete
 allowVolumeExpansion: true
 volumeBindingMode: Immediate
 parameters:
@@ -17,15 +27,13 @@ parameters:
   fsType: ext4
   dataLocality: disabled
 ---
-# RWX-тома Longhorn отдаёт через share-manager (NFS-сервер рядом с томом),
-# поэтому на каждом узле нужен NFSv4-клиент (ansible/host.yml).
-# migratable здесь намеренно НЕ включён: Longhorn разрешает его только вместе
-# с volumeMode: Block и только для live migration (KubeVirt), обычные общие
-# каталоги работают только с migratable: false.
+# То же самое, но том переживает удаление PVC: PV уходит в Released, данные
+# остаются, вернуть их можно, сняв claimRef и создав PVC заново (см. README).
+# Для томов, у которых нет бэкапа и которые жалко, брать именно этот класс.
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
-  name: longhorn-rwx
+  name: longhorn-retain
 provisioner: driver.longhorn.io
 reclaimPolicy: Retain
 allowVolumeExpansion: true

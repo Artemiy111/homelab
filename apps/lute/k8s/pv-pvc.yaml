@@ -1,0 +1,83 @@
+# Статические local-тома Lute: данные и бэкапы — раздельно.
+#
+# Данные не копируются: PV указывает на существующие каталоги на хосте, поэтому
+# переключение pod'а с hostPath на PVC не меняет ни байта на диске. Обратная
+# сторона: `local` PV обязан иметь nodeAffinity, а деплой привязан к ноде.
+#
+# Про capacity: у статических local-томов это ЧИСЛО-ЯРЛЫК, а не квота. Оно
+# ничего не ограничивает (в отличие от CSI-драйверов с квотами) и не участвует в
+# планировании — требуется лишь чтобы PV было не меньше запроса PVC. Уменьшить
+# запрос у PVC потом нельзя (расширение есть только у динамических классов), так
+# что число фиксируется навсегда и служит только для чтения глазами. Здесь оно
+# выставлено по факту: данные Lute — сотни килобайт (lute.db + картинки).
+#
+# reclaimPolicy проставлен явно, хотя у ручных PV дефолт и так Retain
+# (SetDefaults_PersistentVolume в apiserver). Явное значение документирует
+# намерение и не зависит от дефолтов; из StorageClass политика для статики НЕ
+# берётся — там она применяется только к динамически создаваемым томам.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: lute-data-pv
+spec:
+  capacity:
+    storage: 50Mi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage-retain
+  local:
+    path: /storage/apps/lute/data/data
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - { key: kubernetes.io/hostname, operator: In, values: [homelab] }
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: lute-data
+spec:
+  storageClassName: local-storage-retain
+  volumeName: lute-data-pv
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Mi
+---
+# Каталог бэкапов Lute (Settings → backup_dir). Отдельный том, а не каталог
+# внутри данных: бэкап должен переживать порчу самого каталога данных, и позже
+# его можно увести на другой носитель (SSD/NFS), не трогая данные.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: lute-backup-pv
+spec:
+  capacity:
+    storage: 50Mi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage-retain
+  local:
+    path: /storage/apps/lute/data/backups
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - { key: kubernetes.io/hostname, operator: In, values: [homelab] }
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: lute-backup
+spec:
+  storageClassName: local-storage-retain
+  volumeName: lute-backup-pv
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Mi

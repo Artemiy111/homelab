@@ -112,6 +112,33 @@ argocd account update-password
 5. **ApplicationSet** — генератор приложений из git-директорий и списка
    кластеров вместо ручного создания каждого Application.
 
+## Обновление Application: спека живёт в кластере
+
+Application'ы применяются руками (`kubectl apply -f k8s/argocd/<name>.yaml`), app-of-apps
+здесь нет. Поэтому Argo читает желаемое состояние **из объекта в кластере**, а манифест в git
+нужен только чтобы не потерять это состояние: пока файл не применён, правка values в git
+ничего не меняет (приложение остаётся `Synced` на старой спеке).
+
+```sh
+kubectl apply -f k8s/argocd/local-path-provisioner.yaml   # обновить спеку
+argocd app sync local-path-provisioner                    # или ручной sync, см. ниже
+```
+
+Ещё две вещи, которые полезно знать до того, как что-то менять:
+
+- **Упавший sync не повторяется сам.** После ошибки контроллер логирует
+  `failed previous sync attempt ... will not retry` и ждёт новый revision или ручной sync,
+  даже при включённом `automated`. Форсировать из кластера (без CLI):
+  ```sh
+  kubectl -n argocd patch application local-path-provisioner --type merge \
+    -p '{"operation":{"sync":{"prune":true}}}'
+  ```
+  (`operation` — поле верхнего уровня Application, не в `spec`.)
+- **Immutable-поля Kubernetes не дают Argo починить дрейф** — типовая история: StorageClass
+  (`reclaimPolicy`, `volumeBindingMode`, `provisioner`, `parameters`) или Service (`clusterIP`).
+  Argo будет вечно `OutOfSync` с `field is immutable`; лечится удалением объекта, после чего
+  Argo создаёт его заново.
+
 ## kube-state-metrics (боевой компонент под Argo)
 
 `kube-state-metrics.yaml` — Application, который ставит официальный чарт

@@ -1,0 +1,16 @@
+# Класс для статических local-томов: провижионера нет, PV описываются руками
+# (apps/<сервис>/k8s/pv-pvc.yaml), PVC привязывается к PV по volumeName.
+#
+# Политику удержания такой класс не задаёт: «PersistentVolumes that are created
+# manually and managed via a StorageClass will have whatever reclaim policy they
+# were assigned at creation» (kubernetes.io/docs/concepts/storage/storage-classes).
+# То есть у статики reclaimPolicy берётся из самого PV, а поле в классе просто
+# игнорируется. Разделение «класс на Retain / класс на Delete» работает только
+# для динамических провижионеров (Longhorn, local-path), которые создают PV сами.
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: local-storage-retain
+provisioner: kubernetes.io/no-provisioner
+reclaimPolicy: Retain
+volumeBindingMode: WaitForFirstConsumer

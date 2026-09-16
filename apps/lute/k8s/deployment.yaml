@@ -52,8 +52,8 @@ spec:
               mountPath: /lute_backup
       volumes:
         - name: data
-          hostPath:
-            path: /storage/apps/lute/data/data
+          persistentVolumeClaim:
+            claimName: lute-data
         - name: backup
-          hostPath:
-            path: /storage/apps/lute/data/backups
+          persistentVolumeClaim:
+            claimName: lute-backup

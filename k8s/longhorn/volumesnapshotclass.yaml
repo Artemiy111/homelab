@@ -1,12 +1,33 @@
-# Обязательное условие для CSI-снапшотов: Longhorn создаёт VolumeSnapshotContent,
-# но контроллер снапшотов и CRD в кластер не ставит (ansible/host.yml тоже не
-# про это). Ставится один раз на кластер: k8s/argocd/snapshot-controller.yaml.
-# default-аннотация нужна, чтобы VolumeSnapshot без явного класса брал этот.
+# VolumeSnapshotClass'ы Longhorn.
+#
+# Параметр type обязателен: без него драйвер для обратной совместимости считает
+# снапшот бэкапом и падает с "backup target default is not available"
+# (longhorn-manager, csi/controller_server.go: "empty type is considered as
+# csiSnapshotTypeLonghornBackup"). Значения: snap — снапшот внутри кластера,
+# bak — бэкап в backup target, bi — backing image.
+#
+# default-класс делает in-cluster снапшот: VolumeSnapshot без явного класса
+# получает longhorn-snapshot, а не уходит в бэкапную ветку.
 apiVersion: snapshot.storage.k8s.io/v1
 kind: VolumeSnapshotClass
 metadata:
-  name: longhorn
+  name: longhorn-snapshot
   annotations:
     snapshot.storage.kubernetes.io/is-default-class: "true"
 driver: driver.longhorn.io
 deletionPolicy: Delete
+parameters:
+  type: snap
+---
+# Бэкапы: работают только когда настроен backup target (Settings → backup-target
+# + backup-target-credential-secret). До этого VolumeSnapshot с этим классом
+# будет висеть с ошибкой "backup target default is not available".
+apiVersion: snapshot.storage.k8s.io/v1
+kind: VolumeSnapshotClass
+metadata:
+  name: longhorn-backup
+driver: driver.longhorn.io
+deletionPolicy: Delete
+parameters:
+  type: bak
+  backupMode: incremental

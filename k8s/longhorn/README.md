@@ -6,8 +6,9 @@
 | Longhorn | v1.12.1 |
 | Namespace | `longhorn-system` |
 | UI | https://longhorn.example.com (за oauth2-proxy) |
-| Классы | `longhorn` (RWO), `longhorn-rwx` (RWX) — **не default** |
+| Классы | `longhorn` (Delete) и `longhorn-retain` (Retain) — **не default**; плюс `longhorn-static` (создаёт сам Longhorn для PV существующих томов, `Delete`) |
 | Реплик на том | 1 (кластер одноузловый) |
+| Снапшоты | VolumeSnapshotClass `longhorn-snapshot` (default, `type: snap`) и `longhorn-backup` (`type: bak`, нужен backup target) |
 | CSI-снапшоты | external-snapshotter v8.6.0 в `kube-system` (6 CRD, включая экспериментальные `groupsnapshot.storage.k8s.io` — так устроен апстримный каталог CRD) |
 
 Что даёт: снапшоты и бэкапы томов, клонирование PVC, расширение, RWX через share-manager,
@@ -17,14 +18,19 @@
 Longhorn подключается явным `storageClassName` в PVC. Тома Longhorn живут по своим правилам
 (1 реплика, свои пороги по диску), и смешивать их с молчаливым дефолтом не стоит.
 
+Соглашение по политике: класс **без суффикса — Delete** (том уходит вместе с PVC, страховка —
+снапшоты и бэкапы), а `-retain` явно помечает Retain для того, что нельзя потерять из-за
+опечатки в `kubectl delete pvc`. Пока не настроен backup target, `longhorn` = «удаление PVC
+стирает данные безвозвратно», поэтому для ценного без бэкапа брать `longhorn-retain`.
+
 ## Файлы
 
 | Файл | Что делает |
 |---|---|
 | `k8s/argocd/longhorn.yaml` | Argo Application: официальный чарт Longhorn |
 | `k8s/argocd/snapshot-controller.yaml` | CRD + контроллер CSI-снапшотов (`kube-system`) |
-| `k8s/longhorn/storageclasses.yaml` | StorageClass `longhorn` (RWO) и `longhorn-rwx` (RWX) |
-| `k8s/longhorn/volumesnapshotclass.yaml` | default `VolumeSnapshotClass` |
+| `k8s/longhorn/storageclasses.yaml` | StorageClass `longhorn` (Delete) и `longhorn-retain` (Retain) |
+| `k8s/longhorn/volumesnapshotclass.yaml` | VolumeSnapshotClass: `longhorn-snapshot` (default, `type: snap`) и `longhorn-backup` (`type: bak`) |
 | `k8s/traefik/longhorn.ingressroute.yaml` | UI за oauth2-proxy |
 | `ansible/host.yml`, `ansible/group_vars/all.yml`, `etc/selinux/local_longhorn.cil` | Подготовка узла: `iscsid`, NFSv4-клиент, каталог данных, SELinux-модуль |
 
@@ -86,18 +92,19 @@ kubectl -n longhorn-system get pods
 
 # Нода и её диск зарегистрированы: Nodes → longhorn-system/node-<hostname>
 kubectl -n longhorn-system get nodes.longhorn.io
-# Диск должен быть Schedulable (это и есть проверка порогов из values)
-kubectl -n longhorn-system get nodes.longhorn.io -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.status.diskStatus}{"\n"}{end}'
+# Оба условия должны быть True (проверка порогов из values)
+kubectl -n longhorn-system get nodes.longhorn.io \
+  -o jsonpath='{range .items[*]}{.metadata.name}{" "}{.status.conditions[?(@.type=="Ready")].status}{" "}{.status.conditions[?(@.type=="Schedulable")].status}{"\n"}{end}'
 
 # default StorageClass в кластере НЕ изменился
 kubectl get storageclass
 
-# Тестовый том
-kubectl apply -f - <<'EOF'
+# Тестовый том: RWO
+kubectl -n longhorn-test apply -f - <<'EOF'
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: longhorn-test
+  name: test-rwo
 spec:
   accessModes: [ReadWriteOnce]
   storageClassName: longhorn
@@ -105,25 +112,82 @@ spec:
     requests:
       storage: 1Gi
 EOF
-kubectl get pvc longhorn-test        # RWO, класс longhorn
 
-kubectl run longhorn-test --image=alpine --restart=Never \
-  --overrides='{"spec":{"volumes":[{"name":"v","persistentVolumeClaim":{"claimName":"longhorn-test"}}],"containers":[{"name":"c","image":"alpine","command":["sh","-c","echo ok > /mnt/hello && cat /mnt/hello"],"volumeMounts":[{"name":"v","mountPath":"/mnt"}]}]}}'
-kubectl logs longhorn-test           # ok
+kubectl -n longhorn-test apply -f - <<'EOF'
+apiVersion: v1
+kind: Pod
+metadata:
+  name: test-rwo
+spec:
+  restartPolicy: Never
+  containers:
+    - name: c
+      image: alpine:3.20
+      command: ["sh","-c","echo hello-from-longhorn > /data/hello.txt && cat /data/hello.txt"]
+      volumeMounts:
+        - { name: v, mountPath: /data }
+  volumes:
+    - name: v
+      persistentVolumeClaim: { claimName: test-rwo }
+EOF
+kubectl -n longhorn-test logs test-rwo          # hello-from-longhorn
 
-# CSI-снапшот (нужен шаг 2 из установки)
-kubectl apply -f - <<'EOF'
+# RWX: класс отдельный не нужен — режим берётся из PVC, а Longhorn отдаёт том
+# через share-manager (NFSv4). Два пода монтируют том, второй читает файл первого.
+kubectl -n longhorn-test apply -f - <<'EOF'
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: test-rwx
+spec:
+  accessModes: [ReadWriteMany]
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 1Gi
+EOF
+kubectl -n longhorn-test get pvc test-rwx    # Bound, RWX, рядом поднимается share-manager
+
+# Снапшот: класс обязателен (default — longhorn-snapshot)
+kubectl -n longhorn-test apply -f - <<'EOF'
 apiVersion: snapshot.storage.k8s.io/v1
 kind: VolumeSnapshot
 metadata:
-  name: longhorn-test
+  name: test-snap
 spec:
-  volumeSnapshotClassName: longhorn
+  volumeSnapshotClassName: longhorn-snapshot
   source:
-    persistentVolumeClaimName: longhorn-test
+    persistentVolumeClaimName: test-rwo
 EOF
-kubectl get volumesnapshot longhorn-test   # READYTOUSE=true, RESTORESIZE заполнен
+kubectl -n longhorn-test get volumesnapshot test-snap   # READYTOUSE=true, RESTORESIZE=1Gi
+# snapshotHandle выглядит как snap://<longhorn-volume>/snapshot-<uuid>
+
+# Восстановление из снапшота: PVC с dataSource
+kubectl -n longhorn-test apply -f - <<'EOF'
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: test-restore
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: longhorn
+  dataSource:
+    name: test-snap
+    kind: VolumeSnapshot
+    apiGroup: snapshot.storage.k8s.io
+  resources:
+    requests:
+      storage: 1Gi
+EOF
+kubectl -n longhorn-test get pvc test-restore    # Bound, данные из снапшота
 ```
+
+Этот сценарий (запись → RWX → снапшот → восстановление → чтение `hello-from-longhorn`
+из восстановленного тома) прогнан на кластере 2026-09-16 целиком.
+
+Убирать тестовое за собой: `kubectl delete ns longhorn-test`, затем Released-PV (`kubectl get pv`),
+затем тома в Longhorn (`kubectl -n longhorn-system delete volumes.longhorn.io <name>`) — PV и
+Longhorn-том живут отдельно, удаление PV не удаляет том.
 
 UI открывается через authentik; там же видны состояние томов, нод, дисков и бэкапов.
 
@@ -141,14 +205,40 @@ UI открывается через authentik; там же видны сост�
 Longhorn — thin provisioning: он *выделяет* больше, чем занимает, и до поры это не заметно.
 Заполнение корня означает падение узла, поэтому:
 
-- свободно сейчас ~78 ГБ из 475 ГБ (16%);
-- `storageReservedPercentageForDefaultDisk: 5` резервирует ~24 ГБ под систему;
+- фактические числа на 2026-09-16: `storageMaximum` 474.3G, `storageAvailable` ~73-78G;
+- `storageReservedPercentageForDefaultDisk: 5` даёт `spec.disks.*.storageReserved` ≈ 23.7 ГБ
+  (в `status.diskStatus` этого поля в v1.12.1 нет — смотреть в spec диска или в UI);
 - `storageMinimalAvailablePercentage: 10` требует держать свободными ~47 ГБ,
-  то есть Longhorn согласится выделить примерно 30 ГБ томов — и дальше остановится, а не убьёт узел;
-- точные числа видны на Node → Disk (`Capacity` / `Available` / `Schedulable`).
+  то есть под данные остаётся ~25-30 ГБ, дальше диск становится unschedulable, а не убивает узел;
+- потолок *выделения* шире (`StorageMax − Reserved` ≈ 450 ГБ), но он не спасёт от переполнения —
+  реальный ограничитель это свободное место.
 
 Держите объёмы Longhorn-томов небольшими, пока не появится отдельный диск. Когда появится —
 перенести каталог данных на его точку монтирования и пересоздать диск в UI.
+
+## Грабли, на которые уже наступили
+
+- **StorageClass почти неизменяем.** `reclaimPolicy`, `volumeBindingMode`, `provisioner` и
+  `parameters` — immutable ([валидация](https://github.com/kubernetes/kubernetes/blob/v1.36.0/pkg/apis/storage/validation/validation.go)):
+  `kubectl patch sc` вернёт `field is immutable`. Значит для смены политики класс надо
+  удалить и дать Argo создать его заново (`kubectl delete sc local-path` — существующие PV
+  и PVC не страдают). Argo из-за неизменяемого поля будет вечно `OutOfSync` с ошибкой в
+  `status.operationState.message`.
+- **`VolumeSnapshotClass` без параметра `type` считается бэкапным классом.** Драйвер Longhorn
+  для обратной совместимости трактует пустой `type` как `bak` («empty type is considered as
+  csiSnapshotTypeLonghornBackup»), после чего падает с `backup target default is not available`.
+  Для снапшота нужен `type: snap`; для бэкапа — `type: bak` и настроенный backup target.
+  Незавершённый `VolumeSnapshot` при этом трудно удалить: у него и у `VolumeSnapshotContent`
+  финалайзеры, которые снимаются вручную.
+- **Спека Application живёт в кластере, а не в git.** Argo читает свой `spec` (включая
+  `helm.valuesObject`) из объекта в `argocd`, поэтому после правки манифеста в
+  `k8s/argocd/*.yaml` нужно применить его руками — иначе git изменился, а Argo этого не видит.
+- **Упавший sync Argo сам не повторяет.** После ошибки контроллер пишет «failed previous sync
+  attempt … will not retry» и ждёт нового revision или ручного sync:
+  `kubectl -n argocd patch application <name> --type merge -p '{"operation":{"sync":{"prune":true}}}'`
+  (`operation` — поле верхнего уровня Application, не в `spec`).
+- **`longhorn-static` — не наш класс.** Его создаёт Longhorn (`defaultLonghornStaticStorageClass`)
+  для PV, которые вручную привязывают к уже существующим Longhorn-томам. Политика `Delete`.
 
 ## Бэкапы
 
@@ -185,7 +275,9 @@ Longhorn — thin provisioning: он *выделяет* больше, чем з�
 | UI: ошибка WebSocket handshake | forward-auth мешает upgrade | убрать oauth2-proxy из route и ходить через `kubectl -n longhorn-system port-forward svc/longhorn-frontend 8080:80` |
 | Правки `defaultSettings` в values не применились | Longhorn применяет их при первом создании настройки | менять через UI или `kubectl -n longhorn-system edit settings.longhorn.io <setting>` |
 | Argo: Application вечно `OutOfSync` | ресурсы вне git (hooks, jobs) | `preUpgradeChecker.jobEnabled: false` уже выставлен; post-upgrade/uninstall Job Argo видит как свои hooks |
-| Том `Released` после удаления PVC | `reclaimPolicy: Retain` в классах — так задумано | сначала проверить бэкап, затем удалить PV и том в UI |
+| Том `Released` после удаления PVC | использован класс `longhorn-retain` — так задумано | сначала проверить бэкап, затем удалить PV и том в UI |
+| `VolumeSnapshot` висит `readyToUse=false` с `backup target default is not available` | в VolumeSnapshotClass нет `type: snap` — драйвер ушёл в бэкапную ветку | использовать класс `longhorn-snapshot`; у зависшего снапшота снять финалайзеры с `VolumeSnapshot` и `VolumeSnapshotContent` |
+| `sc` не меняется: `reclaimPolicy: field is immutable` | поля StorageClass неизменяемы | удалить SC и дать Argo создать заново; при необходимости сделать ручной sync |
 
 Настройки Longhorn (включая backup target и пороги) — это CR `settings.longhorn.io` в
 `longhorn-system`, а не ConfigMap чарта: изменение values после установки их не перепишет.
@@ -202,7 +294,8 @@ kubectl -n argocd delete application snapshot-controller
 kubectl delete -f k8s/longhorn/storageclasses.yaml -f k8s/longhorn/volumesnapshotclass.yaml
 kubectl delete -f k8s/traefik/longhorn.ingressroute.yaml
 
-# 2. Данные: удалить PVC/PV (в классах Retain — вручную), тома в UI, потом ноды Longhorn.
+# 2. Данные: удалить PVC/PV (в `longhorn-retain` PV остаётся Released — убирать вручную),
+#    тома в UI, потом ноды Longhorn.
 #    Для полной зачистки — официальный uninstall-job:
 kubectl create -f https://raw.githubusercontent.com/longhorn/longhorn/v1.12.1/uninstall/uninstall.yaml
 kubectl -n longhorn-system logs -l job-name=longhorn-uninstall --follow
