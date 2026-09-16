@@ -16,8 +16,9 @@ data:
     exporters:
       prometheus:
         endpoint: 0.0.0.0:8889
-        resource_to_telemetry_conversion:
-          enabled: true
+        # Замена deprecated resource_to_telemetry_conversion: equivalent — included ["*"].
+        resource_constant_labels:
+          included: ["*"]
 
     processors:
       # RustFS отдаёт rustfs_scanner_directories_scanned_total дважды с одинаковыми
