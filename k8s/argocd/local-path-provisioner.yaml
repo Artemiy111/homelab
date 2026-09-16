@@ -1,0 +1,40 @@
+# local-path-provisioner: динамический StorageClass на локальном диске ноды.
+# k0s, в отличие от k3s, провижионер не содержит — без него PVC остаются Pending.
+# Чарт не опубликован в Helm-репозиторий, поэтому источник — git Rancher + path.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: local-path-provisioner
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/rancher/local-path-provisioner.git
+    path: deploy/chart/local-path-provisioner
+    targetRevision: v0.0.37
+    helm:
+      releaseName: local-path-provisioner
+      valuesObject:
+        storageClass:
+          # Дефолтный класс: PVC без явного storageClassName тоже биндится.
+          defaultClass: true
+        nodePathMap:
+          - node: DEFAULT_PATH_FOR_NON_LISTED_NODES
+            paths:
+              - /storage/apps/k8s/local-path
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: "1"
+            memory: 256Mi
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: local-path-storage
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      prune: true
+      selfHeal: true
