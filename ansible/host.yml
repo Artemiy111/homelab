@@ -259,7 +259,7 @@
         src: "{{ playbook_dir }}/../etc/selinux/{{ longhorn_selinux_cil }}"
         dest: "/tmp/{{ longhorn_selinux_cil }}"
         mode: "0644"
-      when: ansible_selinux.status | default('') == 'enabled'
+      when: ansible_facts.selinux.status | default('') == 'enabled'
 
     # Список модулей — единственный способ узнать, установлен ли модуль:
     # semodule -vi идемпотентности не даёт и всегда рапортует changed.
@@ -268,13 +268,13 @@
         cmd: semodule -l
       register: selinux_modules
       changed_when: false
-      when: ansible_selinux.status | default('') == 'enabled'
+      when: ansible_facts.selinux.status | default('') == 'enabled'
 
     - name: Установить SELinux-модуль, разрешающий iscsid_t dac_override
       ansible.builtin.command:
         cmd: "semodule -vi /tmp/{{ longhorn_selinux_cil }}"
       when:
-        - ansible_selinux.status | default('') == 'enabled'
+        - ansible_facts.selinux.status | default('') == 'enabled'
         - "'local_longhorn' not in (selinux_modules.stdout | default(''))"
 
   handlers:
