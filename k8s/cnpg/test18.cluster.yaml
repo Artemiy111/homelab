@@ -1,17 +1,18 @@
 # Одноразовый кластер для первого знакомства с оператором: один инстанс,
-# одна база из bootstrap и одна — через CRD Database.
+# служебная база из bootstrap и рабочая — через CRD Database.
 #
-# Порядок применения важен: сначала test18.secret.yaml, потом этот файл.
-# Без secret'а initdb не сможет создать владельца базы, и bootstrap упадёт.
+# Порядок применения: сначала test18.secret.yaml, потом этот файл. Секрет
+# нужен роли test18 из managed.roles (её создаёт уже оператор, не initdb),
+# поэтому без секрета роль и база просто не отреконсилятся.
 #
 # Класс хранилища — longhorn (Delete): для тестового кластера это удобно,
-# удаление Cluster уносит и том. В боевых кластерах (pg18 и др.) стоит
+# удаление Cluster уносит и том. В боевых кластерах (shared и др.) стоит
 # longhorn-retain, потому что там данные ценны.
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
   name: test18
-  namespace: default
+  namespace: databases
 spec:
   instances: 1
 
@@ -20,13 +21,27 @@ spec:
   # сам советует выключать PDB для одноинстансных кластеров.
   enablePDB: false
 
+  # minimal достаточно: коллация ICU, локали из образа не нужны (в system они
+  # понадобились бы только для libc-варианта с en_US.utf8, который не взлетел).
   imageName: ghcr.io/cloudnative-pg/postgresql:18.4-minimal-trixie
+
+  # Локаль окружения для процессов в поде. Нужна только для интерактивной
+  # работы: в образах CNPG LANG не задан, setlocale падает в POSIX/C, и psql с
+  # readline разваливает многобайтовый ввод («привет» превращается в мусор).
+  # C.utf8 — единственная UTF-8 локаль в minimal-образе (в Debian-варианте
+  # локалей больше). Это НЕ локаль базы: та задаётся в bootstrap.initdb ниже и
+  # в объектах Database. Правка pod-шаблона перезапускает инстанс.
+  env:
+    - name: LANG
+      value: C.utf8
 
   storage:
     storageClass: longhorn
-    # 100Mi мало: initdb + шаблонные базы + предвыделенный WAL съедят почти
-    # всё, и первый же checkpoint упрётся в заполненный том.
-    size: 1Gi
+    # Пол на пустом PG18 замерен в 39 МБ (три шаблонные базы + один сегмент
+    # WAL в 16 МБ). Но дефолты CNPG (wal_level=logical, wal_keep_size=512MB)
+    # позволяют WAL вырасти сильно больше одного сегмента, и 100Mi оказалось
+    # мало. 256Mi — пол с запасом.
+    size: 256Mi
 
   resources:
     requests:
@@ -37,40 +52,41 @@ spec:
       memory: 1Gi
 
   postgresql:
+    # Стендбаев нет, а дефолт CNPG wal_keep_size=512MB — это запас WAL под них:
+    # такой потолок заставлял бы том переживать всплеск WAL в полгигабайта.
+    # 64MB — несколько сегментов на всплеск и ничего лишнего.
     parameters:
-      # ~25% от memory limit инстанса.
-      shared_buffers: 256MB
+      wal_keep_size: "64MB"
 
   bootstrap:
     initdb:
-      # initdb всегда создаёт одну базу. Здесь это служебная app, а нужная
-      # testdb18 приезжает отдельным CRD Database ниже — так видно обе механики.
-      database: app
-      # Владельца создаёт initdb, его имя должно совпадать с username в секрете.
-      owner: test18
+      # database/owner/secret не задаём: оператор создаст служебные app/app со
+      # случайным паролем. Так ни одно приложение не получает особого статуса —
+      # та же схема, что в боевых кластерах.
       encoding: UTF8
-      # Локаль как на источниках: при логическом переносе другая коллация
-      # меняет порядок текстовых сортировок. См. k8s/cnpg/README.md.
-      localeCollate: en_US.utf8
-      localeCType: en_US.utf8
+      # Коллация — ICU, а не libc-локаль из образа:
+      #   * не зависит от того, какие локали запечены в образ (в minimal их нет
+      #     вовсе, и libc-вариант падал с "invalid locale name");
+      #   * одинаковые правила на любой машине;
+      #   * версия коллации отслеживается, значит REINDEX предсказуем.
+      # und — нейтральная (общая таблица Unicode): и кириллица, и латиница
+      # сортируются корректно. ru-RU отличался бы только тем, что кириллица шла
+      # бы перед латиницей — проверено на живых базах.
+      localeProvider: icu
+      icuLocale: und
+      # ctype ICU не заменяет — он всегда из libc. В minimal-образе доступны
+      # только C, C.utf8 и POSIX, поэтому берём C.utf8: в нём есть
+      # Unicode-регистр, то есть upper()/lower() работают с кириллицей.
+      # С просто C регистр не менялся бы (как в базе element).
+      localeCType: C.utf8
       dataChecksums: true
-      secret:
-        name: test18-db-auth
----
-# Вторая база — декларативно. Это та же механика, на которой держатся боевые
-# кластеры: баз в спеке Cluster'а нет, spec.managed знает только roles/services.
-apiVersion: postgresql.cnpg.io/v1
-kind: Database
-metadata:
-  name: testdb18
-  namespace: default
-spec:
-  cluster:
-    name: test18
-  # Без name и owner объект не примет валидация CRD — оба обязательны.
-  name: testdb18
-  owner: test18
-  encoding: UTF8
-  localeCollate: en_US.utf8
-  localeCType: en_US.utf8
-  databaseReclaimPolicy: retain
+
+  managed:
+    roles:
+      # Единственный источник ролей приложений. Пароль — из того самого
+      # открытого тестового секрета: имя username обязано совпадать с ролью.
+      - name: test18
+        ensure: present
+        login: true
+        passwordSecret:
+          name: test18-db-auth

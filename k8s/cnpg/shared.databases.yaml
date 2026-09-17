@@ -1,0 +1,108 @@
+# Базы кластера shared.
+#
+# Отдельные объекты Database, потому что в спеке Cluster'а баз нет — spec.managed
+# управляет только ролями и сервисами. Владельцы и пароли объявлены в
+# shared.cluster.yaml (managed.roles), здесь — сами базы.
+# Локаль задаётся один раз в bootstrap.initdb и наследуется из template1.
+#
+# databaseReclaimPolicy: retain задан явно: удаление CR не должно уносить базу.
+# Это дефолт оператора, но policy про данные лучше видеть в манифесте.
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: nextcloud
+  namespace: databases
+spec:
+  cluster:
+    name: shared
+  name: nextcloud
+  owner: nextcloud
+  encoding: UTF8
+  databaseReclaimPolicy: retain
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: forgejo
+  namespace: databases
+spec:
+  cluster:
+    name: shared
+  name: forgejo
+  owner: forgejo
+  encoding: UTF8
+  databaseReclaimPolicy: retain
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: paperless
+  namespace: databases
+spec:
+  cluster:
+    name: shared
+  name: paperless
+  owner: paperless
+  encoding: UTF8
+  databaseReclaimPolicy: retain
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: glitchtip
+  namespace: databases
+spec:
+  cluster:
+    name: shared
+  name: glitchtip
+  owner: glitchtip
+  encoding: UTF8
+  databaseReclaimPolicy: retain
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: playground
+  namespace: databases
+spec:
+  cluster:
+    name: shared
+  name: playground
+  owner: playground
+  encoding: UTF8
+  databaseReclaimPolicy: retain
+---
+# Локали здесь не переопределяются: все базы наследуют ICU und из template1.
+# Отдельный случай synapse (на источнике он создан с --locale=C) убран: имя
+# локали на источнике оказалось фантомным (musl-образ такой локали не имеет),
+# а Matrix не зависит от порядка сортировки текста. Если понадобится
+# кодпоинтовый порядок — это provider builtin + C.UTF-8, но тогда база
+# создаётся из template0: провайдер отличается от template1.
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: synapse
+  namespace: databases
+spec:
+  cluster:
+    name: shared
+  name: synapse
+  owner: synapse
+  encoding: UTF8
+  databaseReclaimPolicy: retain
+---
+# authentik — тестовый стенд. База объявлена, пока стенд жив; при снятии
+# стенда удаляется вместе с ролью (ensure: absent в managed.roles).
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: authentik
+  namespace: databases
+spec:
+  cluster:
+    name: shared
+  name: authentik
+  owner: authentik
+  encoding: UTF8
+  databaseReclaimPolicy: retain

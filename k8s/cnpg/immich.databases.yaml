@@ -1,0 +1,32 @@
+# База Immich. Расширения объявлены здесь: их создаёт оператор от имени
+# суперпользователя, поэтому роли immich не нужны суперправа, а миграции
+# Immich находят расширения уже установленными.
+#
+# Список взят из официального примера immich-charts
+# (local/cloudnative-pg-database.yaml):
+#   vector — тип vector и операторы (pgvector, есть в standard-образе);
+#   vchord — векторный индекс (бинари смонтированы образом — см. cluster);
+#   earthdistance, cube — contrib, нужны Immich для гео-поиска.
+# Раньше здесь стояли имена из образа Immich (vectorchord, vectors), а не имена
+# расширений PostgreSQL — такие CREATE EXTENSION не нашёл бы.
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: immich
+  namespace: immich
+spec:
+  cluster:
+    name: immich
+  name: immich
+  owner: immich
+  encoding: UTF8
+  databaseReclaimPolicy: retain
+  extensions:
+    - name: vector
+      ensure: present
+    - name: vchord
+      ensure: present
+    - name: earthdistance
+      ensure: present
+    - name: cube
+      ensure: present

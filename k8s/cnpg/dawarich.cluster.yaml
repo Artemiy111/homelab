@@ -1,0 +1,79 @@
+# dawarich — отдельный кластер из-за PostGIS.
+#
+# Расширения ставим через Image Volume Extensions (IVE): полное содержимое
+# extension-образа монтируется в контейнер read-only. Требования — PostgreSQL 18
+# и Kubernetes 1.35+ (у нас 1.36), поэтому базу поднимаем сразу на 18 мажоре.
+#
+# Источник — PostgreSQL 17 + PostGIS 3.5. Мажорный скачок 17 → 18 при логическом
+# переносе (pg_dump/pg_restore) допустим и обычен: дамп переживает мажоры.
+# Если решим не рисковать, есть вариант без IVE — готовый образ
+# ghcr.io/cloudnative-pg/postgis с нужной версией (Method 2 в документации).
+#
+# Расширение объявляется в двух местах и это не дублирование:
+#   - здесь, в postgresql.extensions — что смонтировать в контейнер (бинари);
+#   - в Database, в spec.extensions — что выполнить как CREATE EXTENSION в базе.
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: dawarich
+  namespace: dawarich
+spec:
+  instances: 1
+  # Одноинстансный кластер: PDB заблокировал бы drain ноды (switchover'а нет).
+  enablePDB: false
+  # minimal достаточно: коллация ICU, а не локали из образа. Важно именно для
+  # IVE: расширение монтируется в контейнер поверх минимального образа.
+  imageName: ghcr.io/cloudnative-pg/postgresql:18.4-minimal-trixie
+
+  # Локаль окружения: без неё setlocale падает в POSIX/C и psql в поде
+  # разваливает многобайтовый ввод. Локаль баз задана в bootstrap.initdb.
+  env:
+    - name: LANG
+      value: C.utf8
+
+  storage:
+    storageClass: longhorn-retain
+    # На источнике 93 МБ плюс служебный пол 39 МБ (замер на пустом PG18).
+    # Расширяется на ходу.
+    size: 512Mi
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+
+  postgresql:
+    # Стендбаев нет, а дефолт CNPG wal_keep_size=512MB — это запас WAL под них:
+    # такой потолок заставлял бы том переживать всплеск WAL в полгигабайта.
+    # 64MB — несколько сегментов на всплеск и ничего лишнего.
+    parameters:
+      wal_keep_size: "64MB"
+    extensions:
+      - name: postgis
+        image:
+          reference: ghcr.io/cloudnative-pg/postgis-extension:3.6.2-18-trixie
+        # Обязательно для postgis: без system в пути библиотека не найдётся.
+        ld_library_path:
+          - system
+
+  bootstrap:
+    initdb:
+      # Служебные app/app со случайным паролем: ни одно приложение не выделяем.
+      # Реальные роли — в managed.roles, базы — объектами Database.
+      encoding: UTF8
+      localeProvider: icu
+      icuLocale: und
+      # ctype ICU не заменяет: он всегда из libc.
+      localeCType: C.utf8
+      dataChecksums: true
+
+  managed:
+    roles:
+      - name: dawarich
+        ensure: present
+        login: true
+        passwordSecret:
+          name: dawarich-db-auth

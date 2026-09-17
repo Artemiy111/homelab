@@ -1,0 +1,92 @@
+# immich — выделенный кластер CloudNativePG под фото- и видеотеку.
+#
+# Почему отдельно от shared: VectorChord требует shared_preload_libraries, а это
+# параметр кластера — библиотека грузится во всех его базах, включая те, которым
+# векторный поиск не нужен. «Кому надо — использует» здесь не работает, поэтому
+# vchord обязан жить в своём кластере (docs/adr/0002).
+#
+# Раньше здесь стоял образ Immich на PostgreSQL 14: он запирал базу на мажоре
+# без ICU и привязывал её к релизному циклу Immich. Теперь база на 18, а
+# расширение приезжает отдельным OCI-образом.
+#
+# Image Volume Extensions. cloudnative-pg монтирует образ расширения в контейнер
+# read-only (нужны PostgreSQL 18+, k8s 1.35+ и containerd 2.1+), а CREATE
+# EXTENSION выполняет оператор по объявлению в Database. Это официальный рецепт
+# самого Immich: у immich-app/immich-charts в local/cloudnative-pg.yaml ровно
+# такой кластер.
+#
+# Образ — standard, а не minimal: vchord тянет за собой pgvector
+# (CREATE EXTENSION vchord CASCADE), а pgvector, все локали и JIT есть только в
+# standard. Остальным кластерам хватает minimal.
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: immich
+  namespace: immich
+spec:
+  instances: 1
+  # Одноинстансный кластер: PDB заблокировал бы drain ноды (switchover'а нет).
+  enablePDB: false
+  imageName: ghcr.io/cloudnative-pg/postgresql:18.4-standard-trixie
+
+  # Локаль окружения: без неё setlocale падает в POSIX/C и psql в поде
+  # разваливает многобайтовый ввод. Локаль баз задана в bootstrap.initdb.
+  env:
+    - name: LANG
+      value: C.utf8
+
+  storage:
+    storageClass: longhorn-retain
+    # На источнике 287 МБ. Растёт вместе с библиотекой (эмбеддинги), поэтому
+    # 1Gi, а не «на вырост»: объём расширяется на ходу одной правкой size,
+    # а сжать нельзя.
+    size: 1Gi
+
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      cpu: "2"
+      memory: 2Gi
+
+  postgresql:
+    # Стендбаев нет, а дефолт CNPG wal_keep_size=512MB — это запас WAL под них:
+    # такой потолок заставлял бы том переживать всплеск WAL в полгигабайта.
+    # 64MB — несколько сегментов на всплеск и ничего лишнего.
+    parameters:
+      wal_keep_size: "64MB"
+    # Кластерный параметр — именно из-за него кластер выделен. Имя с .so, как в
+    # примере Immich.
+    shared_preload_libraries:
+      - "vchord.so"
+    extensions:
+      - name: vchord
+        image:
+          reference: ghcr.io/tensorchord/vchord-scratch:pg18-v1.1.1
+        # Пути относительны точки монтирования (/extensions/vchord).
+        dynamic_library_path:
+          - /usr/lib/postgresql/18/lib
+        extension_control_path:
+          - /usr/share/postgresql/18/
+
+  bootstrap:
+    initdb:
+      # Служебные app/app со случайным паролем: ни один сервис не выделяем.
+      # Реальные роли — в managed.roles, базы — объектами Database.
+      encoding: UTF8
+      localeProvider: icu
+      icuLocale: und
+      # ctype ICU не заменяет: он всегда из libc.
+      localeCType: C.utf8
+      dataChecksums: true
+
+  managed:
+    roles:
+      # Имя роли не postgres: его оператор резервирует за собой. Поэтому в
+      # Immich DB_USERNAME тоже меняется на immich, а не только хост.
+      - name: immich
+        ensure: present
+        login: true
+        passwordSecret:
+          name: immich-db-auth

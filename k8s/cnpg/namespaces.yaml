@@ -1,0 +1,26 @@
+# Namespace'ы раскладки баз по владельцу (docs/adr/0001).
+#
+# databases — нейтральный дом общего кластера: он обслуживает несколько
+# сервисов, поэтому не принадлежит ни одному из них.
+# Остальные три — namespace'ы сервисов, которым принадлежат их выделенные
+# кластеры. Сами сервисы переедут сюда позже; пока namespace нужен кластеру.
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: databases
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: zitadel
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: immich
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dawarich

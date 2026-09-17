@@ -1,0 +1,144 @@
+# shared — общий кластер CloudNativePG для тихих сервисов на PostgreSQL 18.
+#
+# Имя не содержит версии: версия живёт в imageName, а имя кластера — это
+# префикс StatefulSet, Service'ов, PVC и секретов и он же DNS-эндпоинт для
+# потребителей. Переименование означало бы пересоздание кластера и правку строк
+# подключения у всех, поэтому мажорный апгрейд делается на месте сменой
+# imageName (docs/adr/0003).
+#
+# Почему вместе: мелкие базы одного мажора без расширений. У Postgres нет
+# лимитов CPU/RAM на отдельную базу, поэтому в общий кластер собирают только
+# тихие базы. Immich (vectorchord с shared_preload_libraries), dawarich
+# (PostGIS) и zitadel (blast radius) вынесены в свои кластеры — обоснование в
+# docs/adr/0002.
+#
+# Базы объявляются НЕ здесь, а объектами Database (shared.databases.yaml):
+# spec.managed умеет только roles/services, баз в нём нет.
+#
+# Служебная база. bootstrap.initdb всегда создаёт одну базу. Чтобы не выделять
+# ни один сервис, оставлены дефолтные app/app со случайным паролем: все роли
+# объявлены в managed.roles, все базы — объектами Database. Одна механика на
+# всех, ни у кого нет особого статуса.
+#
+# Локаль. На источниках имена локалей (en_US.utf8) оказались фантомными: образы
+# на musl такой локали не имеют, и PostgreSQL не мог определить версию коллации.
+# Поэтому новая база строится не «как источник», а на честных правилах: ICU с
+# нейтральной локалью und — не зависит от локалей в образе, одинакова везде,
+# версия коллации отслеживается. ctype (регистр) ICU не заменяет, он из libc,
+# поэтому явно взят C.utf8 — единственная UTF-8 локаль в minimal-образе.
+#
+# Пароли. Роли ссылаются на <app>-db-auth (kubernetes.io/basic-auth, ключи
+# username/password) в ЭТОМ namespace: Secret читается только из namespace
+# кластера, а потребители ходят cross-namespace. Secret'ы создаются на сервере,
+# где лежит приватный ключ SOPS, и коммитятся зашифрованными. До их появления
+# роли и базы не отреконсилятся.
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: shared
+  namespace: databases
+spec:
+  # Однонодный кластер: реплике некуда встать, а инстансы — это уровень HA
+  # одного кластера, не количество баз. Вторая нода появится — вернём 2-3.
+  instances: 1
+
+  # При instances: 1 switchover невозможен, поэтому дефолтный PDB запрещает
+  # drain ноды целиком: k0s-апгрейд или обслуживание узла повиснут навсегда.
+  # Оператор сам советует выключать PDB для одноинстансных кластеров.
+  # Цена: drain останавливает базу. Именно поэтому до переноса реальных данных
+  # нужны бэкапы (см. README). С 3 инстансами на двух нодах — вернуть true.
+  enablePDB: false
+
+  # minimal достаточно: коллация ICU, а не локали из образа.
+  imageName: ghcr.io/cloudnative-pg/postgresql:18.4-minimal-trixie
+
+  # Локаль окружения — только для процессов в поде. Без неё setlocale падает в
+  # POSIX/C, и psql в интерактивном режиме разваливает многобайтовый ввод.
+  # Это НЕ локаль баз: та задана в bootstrap.initdb и в объектах Database.
+  env:
+    - name: LANG
+      value: C.utf8
+
+  storage:
+    # Данные баз ценны, а backup target в Longhorn ещё не настроен: без него
+    # удаление PVC стирает данные безвозвратно. Отсюда -retain.
+    storageClass: longhorn-retain
+    # Замеры на источнике: 8-42 МБ на базу, 132 МБ на все семь. Пол задаёт не
+    # нагрузка, а служебный минимум: замерено 39 МБ на пустом PG18 (три
+    # шаблонные базы по ~7.4 МБ + global + сегмент WAL в 16 МБ). Итого ~171 МБ,
+    # значит 1Gi — примерно вшестеро. «На вырост» не резервируем: объём
+    # расширяется на ходу (allowVolumeExpansion: true), а сжать том нельзя,
+    # поэтому лишний запас не бесплатен — Longhorn считает запрошенные размеры
+    # при планировании.
+    size: 1Gi
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+
+  postgresql:
+    # Стендбаев нет, а дефолт CNPG wal_keep_size=512MB — это запас WAL под них:
+    # такой потолок заставлял бы том переживать всплеск WAL в полгигабайта.
+    # 64MB — несколько сегментов на всплеск и ничего лишнего.
+    parameters:
+      wal_keep_size: "64MB"
+
+  bootstrap:
+    initdb:
+      # database/owner/secret не задаём: оператор создаст служебные app/app
+      # со случайным паролем (секрет <cluster>-app). Ни один сервис его не
+      # использует — все реальные роли и базы объявлены декларативно ниже.
+      encoding: UTF8
+      localeProvider: icu
+      icuLocale: und
+      # ctype ICU не заменяет: он всегда из libc.
+      localeCType: C.utf8
+      # Контрольные суммы страниц данных.
+      dataChecksums: true
+
+  managed:
+    roles:
+      # login обязателен: без него роль не сможет подключиться.
+      # Это единственный источник ролей сервисов — служебная app не в счёт.
+      - name: nextcloud
+        ensure: present
+        login: true
+        passwordSecret:
+          name: nextcloud-db-auth
+      - name: forgejo
+        ensure: present
+        login: true
+        passwordSecret:
+          name: forgejo-db-auth
+      - name: synapse
+        ensure: present
+        login: true
+        passwordSecret:
+          name: element-db-auth
+      - name: paperless
+        ensure: present
+        login: true
+        passwordSecret:
+          name: paperless-db-auth
+      - name: glitchtip
+        ensure: present
+        login: true
+        passwordSecret:
+          name: glitchtip-db-auth
+      - name: playground
+        ensure: present
+        login: true
+        passwordSecret:
+          name: postgres-db-auth
+      # authentik — тестовый стенд IdP. Живёт здесь, пока стенд нужен; при
+      # снятии стенда роль сюда же меняется на ensure: absent, а Database
+      # удаляется (docs/adr/0002).
+      - name: authentik
+        ensure: present
+        login: true
+        passwordSecret:
+          name: authentik-db-auth

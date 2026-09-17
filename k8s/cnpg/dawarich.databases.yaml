@@ -1,0 +1,17 @@
+# База dawarich. Расширение postgis создаёт оператор от имени суперпользователя,
+# поэтому роли dawarich суперправа не нужны (бинари смонтированы — см. cluster).
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: dawarich-production
+  namespace: dawarich
+spec:
+  cluster:
+    name: dawarich
+  name: dawarich_production
+  owner: dawarich
+  encoding: UTF8
+  databaseReclaimPolicy: retain
+  extensions:
+    - name: postgis
+      ensure: present

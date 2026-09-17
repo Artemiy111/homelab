@@ -1,0 +1,72 @@
+# zitadel — выделенный кластер CloudNativePG под IdP.
+#
+# Почему отдельно от shared, при том же мажоре и без расширений: blast radius.
+# Падение IdP роняет всё, что логинится, поэтому его апгрейды, рестарты и
+# failover не должны совпадать с бытовыми сервисами (docs/adr/0002). Раньше
+# здесь же жил тестовый authentik — он переехал в shared, и теперь кластер
+# обслуживает ровно один сервис.
+#
+# Кластер живёт в namespace своего владельца (docs/adr/0001).
+#
+# Zitadel — не суперпользователь: его initdb-скрипт создаёт непривилегированную
+# роль и делает её владельцем базы (apps/zitadel/initdb/). В CNPG это ровно
+# managed-роль + Database с owner, а суперпользователь остаётся у оператора.
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: zitadel
+  namespace: zitadel
+spec:
+  instances: 1
+  # Одноинстансный кластер: PDB заблокировал бы drain ноды (switchover'а нет).
+  enablePDB: false
+  # minimal достаточно: коллация ICU, а не локали из образа.
+  imageName: ghcr.io/cloudnative-pg/postgresql:18.4-minimal-trixie
+
+  # Локаль окружения: без неё setlocale падает в POSIX/C и psql в поде
+  # разваливает многобайтовый ввод. Локаль баз задана в bootstrap.initdb.
+  env:
+    - name: LANG
+      value: C.utf8
+
+  storage:
+    storageClass: longhorn-retain
+    # На источнике 20 МБ, но пол задаёт не нагрузка, а служебный минимум:
+    # замерено 39 МБ на пустом PG18 (три шаблонные базы + global + сегмент WAL
+    # в 16 МБ). Итого ~59 МБ; 256Mi — вчетверо. Расширяется на ходу, сжать
+    # нельзя.
+    size: 256Mi
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+
+  postgresql:
+    # Стендбаев нет, а дефолт CNPG wal_keep_size=512MB — это запас WAL под них:
+    # такой потолок заставлял бы том переживать всплеск WAL в полгигабайта.
+    # 64MB — несколько сегментов на всплеск и ничего лишнего.
+    parameters:
+      wal_keep_size: "64MB"
+
+  bootstrap:
+    initdb:
+      # Служебные app/app со случайным паролем: ни один сервис не выделяем.
+      # Реальные роли — в managed.roles, базы — объектами Database.
+      encoding: UTF8
+      localeProvider: icu
+      icuLocale: und
+      # ctype ICU не заменяет: он всегда из libc.
+      localeCType: C.utf8
+      dataChecksums: true
+
+  managed:
+    roles:
+      - name: zitadel
+        ensure: present
+        login: true
+        passwordSecret:
+          name: zitadel-db-auth

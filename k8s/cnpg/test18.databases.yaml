@@ -1,0 +1,21 @@
+# Рабочая база кластера test18.
+#
+# Отдельным файлом, как у боевых кластеров (shared.databases.yaml и т.д.), и
+# применяется ПОСЛЕ того, как Cluster поднялся. Причина не только в порядке:
+# если Database уже существует, а кластер пересоздать, оператор один раз
+# увидит «cluster resource has been deleted, skipping reconciliation», оставит
+# статус applied: false и сам больше не пошевелится — нужен новый reconcile.
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: testdb18
+  namespace: databases
+spec:
+  cluster:
+    name: test18
+  # Без name и owner объект не примет валидация CRD — оба обязательны.
+  name: testdb18
+  owner: test18
+  encoding: UTF8
+  # Локали не переопределяем: база наследует ICU und из template1.
+  databaseReclaimPolicy: retain
