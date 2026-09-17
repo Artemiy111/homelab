@@ -155,6 +155,23 @@
         checksum: "{{ argocd_cli_checksum }}"
         mode: "0755"
 
+    # --- kubectl-cnpg: плагин оператора CloudNativePG ---
+    # В релизах CNPG есть RPM, но подписан он cosign, а не GPG, поэтому dnf
+    # подпись всё равно не проверит. Скачиваем RPM с sha256 из checksums.txt
+    # релиза и ставим локальным файлом — так целостность проверяется.
+    - name: Скачать RPM kubectl-cnpg {{ kubectl_cnpg_version }}
+      ansible.builtin.get_url:
+        url: "{{ kubectl_cnpg_rpm_url }}"
+        dest: "/tmp/kubectl-cnpg-{{ kubectl_cnpg_version }}.rpm"
+        mode: "0644"
+        checksum: "{{ kubectl_cnpg_rpm_checksum }}"
+
+    - name: Установить kubectl-cnpg
+      ansible.builtin.dnf5:
+        name: "/tmp/kubectl-cnpg-{{ kubectl_cnpg_version }}.rpm"
+        state: present
+        disable_gpg_check: true
+
     # --- Пакеты и группы ---
 
     - name: Установить пакеты хоста

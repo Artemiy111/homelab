@@ -1,0 +1,58 @@
+# CloudNativePG — оператор PostgreSQL: кластеры, failover, бэкапы, PITR.
+# Ставится официальным чартом cloudnative-pg из cloudnative-pg.github.io/charts;
+# Argo рендерит его сам (см. k8s/argocd/README.md).
+#
+# Оператор кластерный (config.clusterWide, дефолт true): одна установка
+# обслуживает все Cluster'ы во всех namespace. Поэтому его namespace
+# (cnpg-system) не совпадает с namespace баз (default) — так и задумано.
+#
+# Сами кластеры и базы живут в k8s/cnpg/ отдельными манифестами. Argo ими не
+# управляет: CRD оператора должны существовать раньше, а порядок «сначала
+# оператор, потом CR» Argo в одном приложении не гарантирует.
+#
+# Мониторинг: monitoring.podMonitorEnabled оставлен дефолтным false. В кластере
+# нет CRD prometheus-operator (monitoring.coreos.com), PodMonitor'ы некому
+# читать, а с версии 1.30 поле вообще deprecated. Метрики при этом доступны:
+# instance manager каждого инстанса отдаёт /metrics на 9187, и vmagent заберёт
+# их через pod-discovery (задача после установки, см. k8s/cnpg/README.md).
+# Grafana-дашборд из чарта не ставим: UI уже есть, дашборд принесём сами.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cloudnative-pg
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://cloudnative-pg.github.io/charts
+    chart: cloudnative-pg
+    targetRevision: 0.29.0
+    helm:
+      releaseName: cloudnative-pg
+      valuesObject:
+        # Дефолт у чарта: resources: {} (не задано). Для однонодного кластера
+        # это плохо: без requests планировщик не знает, что размещает, а без
+        # limits разъехавшийся оператор способен вытеснить сами базы.
+        resources:
+          requests:
+            cpu: 50m
+            memory: 128Mi
+          limits:
+            cpu: "1"
+            memory: 512Mi
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: cnpg-system
+  syncPolicy:
+    syncOptions:
+      # CRD оператора больше 256 КиБ и не лезут в last-applied-configuration
+      # при client-side apply. Как у snapshot-controller.
+      - ServerSideApply=true
+      # Prune=false: CRD кластерные. Их удаление снесло бы все Cluster'ы
+      # (а с ними базы), поэтому авто-prune для этого приложения выключен.
+      - Prune=false
+      - CreateNamespace=true
+    automated:
+      # selfHeal оставляем: дрейф Deployment'а оператора Argo вернёт сам.
+      # prune не включаем — см. выше.
+      selfHeal: true

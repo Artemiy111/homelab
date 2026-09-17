@@ -1,0 +1,76 @@
+# Одноразовый кластер для первого знакомства с оператором: один инстанс,
+# одна база из bootstrap и одна — через CRD Database.
+#
+# Порядок применения важен: сначала test18.secret.yaml, потом этот файл.
+# Без secret'а initdb не сможет создать владельца базы, и bootstrap упадёт.
+#
+# Класс хранилища — longhorn (Delete): для тестового кластера это удобно,
+# удаление Cluster уносит и том. В боевых кластерах (pg18 и др.) стоит
+# longhorn-retain, потому что там данные ценны.
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: test18
+  namespace: default
+spec:
+  instances: 1
+
+  # При instances: 1 switchover невозможен, поэтому дефолтный PDB запрещает
+  # drain ноды целиком: обслуживание узла или k0s-апгрейд повиснут. Оператор
+  # сам советует выключать PDB для одноинстансных кластеров.
+  enablePDB: false
+
+  imageName: ghcr.io/cloudnative-pg/postgresql:18.4-minimal-trixie
+
+  storage:
+    storageClass: longhorn
+    # 100Mi мало: initdb + шаблонные базы + предвыделенный WAL съедят почти
+    # всё, и первый же checkpoint упрётся в заполненный том.
+    size: 1Gi
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+
+  postgresql:
+    parameters:
+      # ~25% от memory limit инстанса.
+      shared_buffers: 256MB
+
+  bootstrap:
+    initdb:
+      # initdb всегда создаёт одну базу. Здесь это служебная app, а нужная
+      # testdb18 приезжает отдельным CRD Database ниже — так видно обе механики.
+      database: app
+      # Владельца создаёт initdb, его имя должно совпадать с username в секрете.
+      owner: test18
+      encoding: UTF8
+      # Локаль как на источниках: при логическом переносе другая коллация
+      # меняет порядок текстовых сортировок. См. k8s/cnpg/README.md.
+      localeCollate: en_US.utf8
+      localeCType: en_US.utf8
+      dataChecksums: true
+      secret:
+        name: test18-db-auth
+---
+# Вторая база — декларативно. Это та же механика, на которой держатся боевые
+# кластеры: баз в спеке Cluster'а нет, spec.managed знает только roles/services.
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: testdb18
+  namespace: default
+spec:
+  cluster:
+    name: test18
+  # Без name и owner объект не примет валидация CRD — оба обязательны.
+  name: testdb18
+  owner: test18
+  encoding: UTF8
+  localeCollate: en_US.utf8
+  localeCType: en_US.utf8
+  databaseReclaimPolicy: retain

@@ -96,6 +96,14 @@ argocd_cli_url: "https://github.com/argoproj/argo-cd/releases/download/v{{ argoc
 # SHA256 из cli_checksums.txt того же релиза (целостность при скачивании).
 argocd_cli_checksum: "sha256:b860f73f57cbddd993cd446f5236d797c1b1ac8554857b2683d2669f17e765b4"
 
+# --- kubectl-cnpg: плагин оператора CloudNativePG (k8s/cnpg) ---
+# Версию держать не ниже версии оператора в кластере (сейчас 1.30.0 —
+# appVersion чарта cloudnative-pg 0.29.0): старый плагин не знает новых полей CR.
+kubectl_cnpg_version: "1.30.0"
+kubectl_cnpg_rpm_url: "https://github.com/cloudnative-pg/cloudnative-pg/releases/download/v{{ kubectl_cnpg_version }}/kubectl-cnpg_{{ kubectl_cnpg_version }}_linux_x86_64.rpm"
+# SHA256 из cnpg-{{ kubectl_cnpg_version }}-checksums.txt того же релиза.
+kubectl_cnpg_rpm_checksum: "sha256:80879096796b25f850c06942c0a59b5d89655d9d9afbaf89e2460c9faa51d519"
+
 # --- Longhorn (CSI-хранилище, ставится через Argo: k8s/argocd/longhorn.yaml) ---
 
 # Каталог данных на узле (Longhorn node disk). Отдельного диска на сервере нет,

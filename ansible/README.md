@@ -40,6 +40,9 @@ ansible-playbook host.yml --check --diff
 - Добавить пакет — дописать в `host_packages` в `group_vars/all.yml`.
 - Запретить пакет — перенести его из `host_packages` в `host_packages_absent`.
 - Новая группа — в `host_groups` с префиксом `@` (например `"@development-tools"`).
+- Инструмент, которого нет в репозиториях Fedora (CLI операторов, клиенты) —
+  отдельная секция в `host.yml` с пином версии и checksum в `group_vars/all.yml`:
+  так сделаны `sops`, `kubeseal`, `argocd`, `kubectl-cnpg`.
 
 После правки прогнать плейбук — он идемпотентен, лишние запуски ничего не
 ломают.
