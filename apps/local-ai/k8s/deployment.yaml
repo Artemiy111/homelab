@@ -77,7 +77,8 @@ spec:
           resources:
             requests:
               cpu: 100m
-              memory: 512Mi
+              # Фактическое потребление ~85 МиБ: движок пока не подключён.
+              memory: 256Mi
             limits:
               cpu: "4"
               memory: 20Gi

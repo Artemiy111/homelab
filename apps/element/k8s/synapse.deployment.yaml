@@ -129,7 +129,8 @@ spec:
           resources:
             requests:
               cpu: 200m
-              memory: 512Mi
+              # Фактическое потребление ~110 МиБ; request — бронь, а не лимит.
+              memory: 256Mi
             limits:
               cpu: "2"
               memory: 2Gi
