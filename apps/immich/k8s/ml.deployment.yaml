@@ -54,7 +54,7 @@ spec:
               cpu: 200m
               # Фактическое потребление ~240 МиБ. 1Gi был шаблонным дефолтом и
               # впустую держал бюджет memory requests узла.
-              memory: 512Mi
+              memory: 320Mi
             limits:
               cpu: "4"
               memory: 6Gi
