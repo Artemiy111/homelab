@@ -72,27 +72,6 @@ Health endpoint должен вернуть JSON со `"status":"pass"`. Пер�
 может завершиться сообщением о невозможности shell-доступа — для Forgejo это
 нормально, если пользователь распознан.
 
-## Резервное копирование
-
-Forgejo меняет базу и Git-репозитории независимо, поэтому для согласованного снимка
-на время дампа и Restic backup приложение нужно остановить:
-
-```sh
-cd /home/artlab/projects/homelab/forgejo
-docker compose stop app
-docker compose --profile tools run --rm backup-db
-cd ../restic
-docker compose run --rm backup
-cd ../forgejo
-docker compose start app
-```
-
-Дамп PostgreSQL сохраняется в `$APPS_STORAGE_PATH/forgejo/backups/forgejo.dump`, а
-репозитории, LFS-объекты, вложения, конфигурация и SSH-ключи — в
-`$APPS_STORAGE_PATH/forgejo/data`. Оба каталога входят в общий Restic snapshot. Локальный
-Restic repository находится на том же физическом диске и не защищает от его
-поломки или потери.
-
 ## Обновление
 
 Перед обновлением создайте согласованный backup. Затем измените фиксированный тег

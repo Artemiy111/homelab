@@ -59,19 +59,6 @@ cd /home/artlab/projects/homelab/uptime-kuma
 docker compose --profile tools run --rm configure
 ```
 
-## Резервное копирование
-
-Перед общим Restic backup создайте согласованный dump PostgreSQL:
-
-```sh
-cd /home/artlab/projects/homelab/authentik
-docker compose --profile tools run --rm backup-db
-```
-
-Restic сохраняет `$APPS_STORAGE_PATH/authentik`; секреты — зашифрованными в Git. Для восстановления сначала восстановите snapshot в отдельный
-каталог и проверьте содержимое; не заменяйте работающие данные без отдельного
-backup.
-
 ## Обновление
 
 Перед обновлением создайте dump PostgreSQL и прочитайте release notes. Версия

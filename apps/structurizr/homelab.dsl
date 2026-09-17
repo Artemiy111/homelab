@@ -34,10 +34,6 @@ workspace {
             tags "external"
         }
 
-        resticRepo = softwareSystem "Restic repository" "/storage/backups/restic — зашифрованные локальные снимки" {
-            tags "external"
-        }
-
         spotify = softwareSystem "Spotify" "Метаданные треков для импорта spotDL" {
             tags "external"
         }
@@ -96,10 +92,6 @@ workspace {
             }
 
             socketproxy = softwareSystem "Docker Socket Proxy" "Ограниченный прокси docker.sock (read-only, без POST)" {
-                tags "monitoring"
-            }
-
-            restic = softwareSystem "Restic" "CLI-бэкапы $APPS_STORAGE_PATH и конфига в зашифрованный локальный репозиторий" {
                 tags "monitoring"
             }
         }
@@ -288,9 +280,6 @@ workspace {
         spotdl -> mediaLibrary "пишет в /storage/media/music" "host bind mount"
         spotdl -> spotify "запрашивает метаданные треков" "Web API"
         spotdl -> youtube "скачивает аудио" "yt-dlp"
-
-        restic -> persistentStorage "бэкапит $APPS_STORAGE_PATH и конфиг репозитория" "host bind mount"
-        restic -> resticRepo "создаёт шифрованные снимки" "Restic"
     }
 
     views {
@@ -304,11 +293,6 @@ workspace {
 
         systemLandscape "Infra-001" "Инфраструктура" {
             include element.tag==infra dockerEngine letsencrypt dns_provider cloudflare
-            autoLayout tb 250 100
-        }
-
-        systemLandscape "Monitoring-001" "Мониторинг и обновления" {
-            include element.tag==monitoring dockerEngine persistentStorage resticRepo
             autoLayout tb 250 100
         }
 

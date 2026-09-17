@@ -22,7 +22,7 @@ bash scripts/bootstrap-platform.sh home-assistant
 ```
 
 После запуска завершите onboarding в веб-интерфейсе. Постоянные данные находятся
-в `$APPS_STORAGE_PATH/home-assistant` и входят в общий Restic snapshot.
+в `$APPS_STORAGE_PATH/home-assistant`.
 Правки автоматизаций через UI попадают в `automations.yaml`/`scripts.yaml`
 маунта — на сервере они видны как diff рабочей копии репозитория.
 
@@ -33,7 +33,7 @@ Git — каталог компонентов целиком из `/storage`). H
 через UI и **не требует** блока в `configuration.yaml`. Первый запуск — в UI
 (Settings → Devices & Services → Add Integration → HACS) и требует личный
 GitHub Personal Access Token (нужен HACS для скачивания/обновления интеграций
-с GitHub). Интеграции, поставленные HACS, живут там же и входят в Restic snapshot.
+с GitHub). Интеграции, поставленные HACS, живут там же.
 
 ## Привилегии
 

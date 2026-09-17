@@ -69,11 +69,6 @@ docker compose pull
 docker compose up -d
 ```
 
-SQLite-база и настройки находятся в `$APPS_STORAGE_PATH/3x-ui/db` и попадают в общий
-Restic backup каталога `$APPS_STORAGE_PATH`. `init.sh` закрывает каталоги 3x-ui
-режимом `0700`, поскольку база содержит клиентские конфигурации и ключевой
-материал.
-
 ## Egress-прокси (порт 8440)
 
 На порту `XUI_EGRESS_PORT` (по умолчанию `8440`) работает HTTP forward proxy.

@@ -51,7 +51,6 @@ else
     oauth2-proxy
     paperless
     pdf
-    restic
     rustfs
     seafile
     structurizr

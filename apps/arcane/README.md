@@ -35,24 +35,6 @@ Health endpoint должен вернуть `200`. Docker-соединение �
 контейнерами, можно в интерфейсе (список контейнеров и действия
 start/stop/restart).
 
-## Резервное копирование
-
-Для согласованного снимка SQLite остановите Arcane на время общего Restic
-backup:
-
-```sh
-cd /home/artlab/projects/homelab/arcane
-docker compose stop arcane
-cd ../restic
-docker compose run --rm backup
-cd ../arcane
-docker compose start arcane
-```
-
-Restic сохраняет `$APPS_STORAGE_PATH/arcane/data`; зашифрованный `secrets.enc.env`
-уже в Git. Потеря `ENCRYPTION_KEY` делает данные Arcane недоступными,
-поэтому он должен входить в защищённую копию конфигурации сервера.
-
 ## Обновление
 
 Перед обновлением создайте согласованный backup. Затем закрепите новую версию

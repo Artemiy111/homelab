@@ -10,7 +10,7 @@ PostgreSQL и Redis на хост не публикуются.
 - `db` — PostgreSQL;
 - `redis` — кеш, сессии и блокировки файлов;
 - `cron` — рекомендуемый Nextcloud планировщик фоновых заданий;
-- `backup-db` — одноразовый дамп PostgreSQL перед Restic backup.
+- `backup-db` — одноразовый дамп PostgreSQL.
 
 Постоянное состояние находится в `$APPS_STORAGE_PATH/nextcloud`. Каталог `html`
 разделяется контейнерами `app` и `cron`; SELinux для него использует shared-label
@@ -68,21 +68,19 @@ SMTP намеренно не задаётся в Compose: его следует 
 
 ## Резервное копирование
 
-Перед общим Restic backup создать атомарно заменяемый дамп базы:
+Создать атомарно заменяемый дамп базы:
 
 ```sh
 docker compose --profile tools run --rm backup-db
 ls -lh ${APPS_STORAGE_PATH:-/storage/apps}/nextcloud/backups/nextcloud.dump
 ```
 
-После этого запускать `restic/backup`. Restic уже читает весь `$APPS_STORAGE_PATH`,
-поэтому в снимок попадут дамп, пользовательские файлы, конфигурация и приложения.
-Restic repository находится на том же физическом диске и не защищает от его
-поломки или потери.
+Дамп, пользовательские файлы, конфигурация и приложения находятся в
+`$APPS_STORAGE_PATH/nextcloud`.
 
 ## Обновление
 
-Сначала создать дамп базы и Restic snapshot. Обновления maintenance-релизов
+Сначала создать дамп базы. Обновления maintenance-релизов
 делать изменением фиксированного тега обоих образов Nextcloud в `compose.yaml`.
 Major-версии обновлять последовательно, не пропуская версии.
 

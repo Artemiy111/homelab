@@ -52,15 +52,6 @@ ZITADEL_PAT=... ./zitadel/zitadel-passkey-link.sh
 - Redirect URI: `https://oauth.example.com/oauth2/callback`;
 - client_id и client_secret скопировать в `apps/oauth2-proxy/secrets.enc.env`.
 
-## Резервное копирование
-
-```sh
-cd /home/artlab/projects/homelab/zitadel
-docker compose --profile tools run --rm backup-db
-```
-
-Restic сохраняет `$APPS_STORAGE_PATH/zitadel` и локальный `apps/zitadel/secrets.enc.env`.
-
 ## Обновление
 
 Проверять release notes: после 4.11 были passkey-регрессии (#11656, #11682),

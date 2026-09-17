@@ -27,25 +27,6 @@ curl --resolve dawarich.example.com:443:192.0.2.10 \
 
 Health endpoint должен вернуть JSON со `"status":"ok"`.
 
-## Резервное копирование
-
-Для согласованной копии остановите процессы, меняющие данные, создайте дамп
-PostgreSQL, затем запустите общий Restic backup:
-
-```sh
-cd /home/artlab/projects/homelab/dawarich
-docker compose stop app sidekiq
-docker compose --profile tools run --rm backup-db
-cd ../restic
-docker compose run --rm backup
-cd ../dawarich
-docker compose start app sidekiq
-```
-
-Дамп сохраняется в `$APPS_STORAGE_PATH/dawarich/backups/dawarich.dump`. Restic
-repository находится на том же физическом диске и не защищает от его поломки
-или потери. Исходные файлы импорта не следует удалять после загрузки в Dawarich.
-
 ## Обновление
 
 Перед обновлением создайте согласованный backup, прочитайте release notes и

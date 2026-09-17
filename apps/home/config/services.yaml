@@ -115,10 +115,6 @@
         icon: mdi-heart-pulse
         href: https://uptime.{{HOMEPAGE_VAR_DOMAIN}}/
         description: Декларативный status page
-    - Restic:
-        icon: mdi-backup-restore
-        href: https://restic.net/
-        description: Зашифрованные резервные копии
     - Mermaid Live Editor:
         icon: mdi-chart-sankey
         href: https://mermaid.{{HOMEPAGE_VAR_DOMAIN}}/

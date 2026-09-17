@@ -16,7 +16,7 @@ services:
       # automations/scripts/scenes.yaml НЕ маунтятся файлами: HA пишет их
       # атомарно (tmp + rename), rename поверх файлового bind-mount даёт
       # EBUSY. Файлы живут в персистентном каталоге /config и попадают
-      # в Restic-бэкап.
+      # в бэкап.
       - /etc/localtime:/etc/localtime:ro
 
     environment:
