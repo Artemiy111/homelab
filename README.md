@@ -1,43 +1,164 @@
 # Домашний сервер
 
-Конфигурация домашнего сервера Fedora 44 по адресу `192.0.2.10`.
+Конфигурация домашнего сервера Fedora Server 44 по адресу `192.0.2.10`.
+Всё рабочее окружение — один узел Kubernetes (k0s); декларативные манифесты
+лежат в этом репозитории, а кластер приводится к ним применением манифестов
+и через GitOps-стенд. Репозиторий ведётся как учебный проект по
+production-практикам DevOps.
 
-## Системные сервисы
+## Платформа
 
-| Сервис | Назначение | Адрес в локальной сети |
+| Компонент | Роль | Каталог |
 | --- | --- | --- |
-| Traefik | Обратный прокси и обнаружение сервисов | `https://traefik.example.com/dashboard/` |
-| Homepage | Стартовая страница сервисов homelab | `https://home.example.com/` |
-| Technitium DNS | Локальный DNS-сервер и блокировка рекламы | `https://dns.example.com/` |
-| Uptime Kuma | Мониторинг доступности | `https://uptime.example.com/` |
-| Beszel | Метрики хоста и Docker-контейнеров | `https://beszel.example.com/` |
-| Arcane | Управление Docker (контейнеры, образы, сети, тома) | `https://arcane.example.com/` |
-| WUD | Отслеживание обновлений Docker images | `https://wud.example.com/` |
-| Cup | Лёгкая независимая проверка обновлений Docker images | `https://cup.example.com/` |
-| 3x-ui | Управление личным Xray-прокси | `https://xui.example.com/<секретный-путь>/` |
-| Immich | Фото- и видеотека | `https://immich.example.com/` |
-| Jellyfin | Домашний медиасервер | `https://jellyfin.example.com/` |
-| Jitsi Meet | Приватные видеоконференции | `https://meet.example.com/` |
-| Nextcloud | Файлы, синхронизация, календарь и контакты | `https://nextcloud.example.com/` |
-| Seafile | Файловая синхронизация, обмен файлами и редактирование DOCX/XLSX | `https://seafile.example.com/` |
-| Forgejo | Приватный Git-сервис | `https://forgejo.example.com/` |
-| code-server | VS Code в браузере | `https://code.example.com/` |
-| Authentik | Identity provider и SSO | `https://auth.example.com/` |
-| Zitadel | Identity provider и SSO (основной) | `https://id.example.com/` |
-| Dawarich | История местоположений и карта перемещений | `https://dawarich.example.com/` |
-| GlitchTip | Сбор ошибок приложений (Sentry SDK) | `https://glitchtip.example.com/` |
-| Stirling PDF | Операции с PDF и OCR | `https://pdf.example.com/` |
-| Open WebUI | Чат-интерфейс для LLM (пока без движка) | `https://ai.example.com/` |
-| Tailscale | Удалённый доступ и маршрут в домашнюю сеть | Tailnet |
+| k0s | Single-node Kubernetes: Calico CNI, embedded etcd, CoreDNS | `k8s/k0s/` |
+| Traefik | Единый ingress: 80/443 на `192.0.2.10` через `externalIPs` | `k8s/traefik/` |
+| Technitium DNS | Локальный DNS, wildcard-зона `*.example.com` | `apps/technitium/` |
+| sealed-secrets | Секреты в Git в зашифрованном виде | `k8s/sealed-secrets/` |
+| Longhorn | CSI-хранилище: снапшоты, клоны, RWX, бэкапы | `k8s/longhorn/` |
+| Argo CD | GitOps-стенд для части платформенных компонентов | `k8s/argocd/` |
+| Headlamp | Веб-UI кластера | `k8s/headlamp/` |
+| Tailscale | Удалённый доступ и маршрут в домашнюю сеть | `apps/tailscale/` |
+| Ansible | Декларативные пакеты и подготовка хоста | `ansible/` |
 
-Сервисы работают только в локальной сети и используют HTTPS. Не следует
-пробрасывать на роутере порты 53, 80 и 443. Для локальных клиентов Technitium
-DNS разрешает зону <dns-provider> и все её поддомены в `192.0.2.10`. Публичный DNS,
-динамическое обновление адреса и публикация сервисов не требуются: удалённый
-доступ проходит через Tailscale.
+## Сервисы
 
-Удалённый доступ без публикации портов в интернете настраивается через
-[Tailscale](apps/tailscale/README.md).
+Сервисы работают только в локальной сети и через Tailscale, по HTTPS, и
+маршрутизируются Traefik'ом. Локальный Technitium DNS разрешает зону
+`example.com` и все её поддомены в `192.0.2.10`, поэтому проброс портов
+53, 80 и 443 на роутере не требуется.
+
+Общие для сервисов значения (`DOMAIN`, `DEFAULT_LOCALE`) приходят из
+кластерного ConfigMap `homelab-config` (в Git не трекается); хосты в манифестах
+заданы литерально.
+
+### Инфраструктура
+
+| Сервис | Назначение | Хост |
+| --- | --- | --- |
+| Zitadel | Identity provider и SSO (основной) | `id.example.com` |
+| Authentik | Identity provider и SSO (тестовый стенд) | `auth.example.com` |
+| oauth2-proxy | Forward auth для сервисов без своего входа | `oauth.example.com` |
+| Technitium DNS | DNS-сервер и блокировка рекламы | `dns.example.com` |
+| Homepage | Стартовая страница сервисов | `home.example.com` |
+| Headlamp | Веб-UI кластера | `headlamp.example.com` |
+| Argo CD | GitOps-контроллер | `argocd.example.com` |
+| Longhorn | UI хранилища | `longhorn.example.com` |
+| Vault | HashiCorp Vault: секреты, transit, PKI | `vault.example.com` |
+| Infisical | Self-hosted secrets manager | `infisical.example.com` |
+| RustFS | S3-совместимое объектное хранилище | `s3.example.com` |
+| PostgreSQL | Веб-админка PostgreSQL (pgweb) | `postgres.example.com` |
+| WUD | Отслеживание обновлений образов | `wud.example.com` |
+| 3x-ui | Управление личным Xray-прокси | `xui.example.com` |
+| Forgejo | Приватный Git-сервис | `forgejo.example.com` |
+| code-server | VS Code в браузере | `code.example.com` |
+
+### Приложения
+
+| Сервис | Назначение | Хост |
+| --- | --- | --- |
+| Immich | Фото- и видеотека | `immich.example.com` |
+| Jellyfin | Домашний медиасервер | `jellyfin.example.com` |
+| Navidrome | Музыкальная библиотека | `music.example.com` |
+| Jitsi Meet | Приватные видеоконференции | `meet.example.com` |
+| Element / Matrix | Чат: Synapse + Element Call (LiveKit) | `element.example.com` |
+| Nextcloud | Файлы, синхронизация, календарь и контакты | `nextcloud.example.com` |
+| Talk HPB | Signaling для Nextcloud Talk | `talk-signaling.example.com` |
+| Seafile | Файловая синхронизация и обмен файлами | `seafile.example.com` |
+| OnlyOffice | Редактирование DOCX/XLSX для Seafile | `onlyoffice.example.com` |
+| Home Assistant | Автоматизация дома | `ha.example.com` |
+| Mailserver | Почта Stalwart + веб-почта Bulwark | `mailserver.example.com` |
+| Paperless | Документы и OCR | `paperless.example.com` |
+| Stirling PDF | Операции с PDF и OCR | `pdf.example.com` |
+| Dawarich | История местоположений и карта перемещений | `dawarich.example.com` |
+| Lute | Изучение языков через чтение | `lute.example.com` |
+| Sure | Личные финансы | `sure.example.com` |
+| Mermaid Live Editor | Редактор диаграмм | `mermaid.example.com` |
+| Structurizr | Архитектурные диаграммы | `structurizr.example.com` |
+| Open WebUI | Чат-интерфейс для LLM (движок пока не подключён) | `ai.example.com` |
+| LocalAI | Локальный OpenAI-совместимый инференс (CPU) | `localai.example.com` |
+
+### Наблюдаемость
+
+| Сервис | Назначение | Хост |
+| --- | --- | --- |
+| VictoriaMetrics | Долгосрочное хранение метрик (TSDB) | `vm.example.com` |
+| Grafana | Дашборды поверх VictoriaMetrics | `grafana.example.com` |
+| Netdata | Посекундные метрики хоста и контейнеров | `netdata.example.com` |
+| Gatus | Декларативный status page | `uptime.example.com` |
+| Uptime Kuma | Мониторинг доступности | `kuma.example.com` |
+| Beszel | Метрики хоста | `beszel.example.com` |
+| GlitchTip | Сбор ошибок приложений (Sentry SDK) | `glitchtip.example.com` |
+| Elasticsearch + Kibana | Централизованные логи (Filebeat) | `kibana.example.com` |
+| node-exporter | Метрики узла (`node_*`) для vmagent | без UI |
+| db-exporters | Экспортеры PostgreSQL / Redis / MariaDB | без UI |
+| otel-collector | Приём OTLP и отдача в Prometheus-формате | без UI |
+
+## Структура репозитория
+
+- `apps/<сервис>/` — один каталог на сервис:
+  - `k8s/` — Kubernetes-манифесты: Deployment, Service, SealedSecret, PVC и т.д.;
+  - `README.md` — как развернуть, проверить и эксплуатировать;
+  - `config.env` — публичная конфигурация сервиса (plaintext, tracked);
+  - `secrets.enc.env` — наследие Docker Compose (SOPS + age); в доставке не
+    участвует, поддерживается как расшифровываемый реестр значений секретов.
+- `k8s/<компонент>/` — платформенные манифесты и values (k0s, traefik,
+  sealed-secrets, storage, argocd, headlamp).
+- `k8s/traefik/<сервис>.ingress*.yaml` — маршрут Traefik для сервиса.
+- `ansible/` — пакеты и подготовка хоста.
+- `etc/`, `dotfiles/`, `scripts/`, `docs/` — конфиги ОС, шелл, скрипты и
+  документация.
+
+Историческое наследие миграции: `apps/<сервис>/compose.yaml`, `init.sh` и
+скрипты в `scripts/` относятся к Docker Compose и постепенно выводятся из
+эксплуатации. Единственный процесс доставки изменений — Kubernetes-манифесты.
+## Доставка изменений
+
+Источник правды — рабочая копия на macOS, порядок всегда следующий:
+
+1. Изменить манифесты локально и закоммитить.
+2. На сервере: `git pull --ff-only`.
+3. Применить затронутое:
+   ```sh
+   kubectl apply -f apps/<сервис>/k8s/
+   kubectl apply -f k8s/traefik/<сервис>.ingress*.yaml
+   ```
+4. Проверить health, DNS и HTTP-маршрут.
+
+Платформенные компоненты (Traefik, sealed-secrets, Longhorn, Argo CD)
+поставляются Helm'ом; порядок их установки и обновления описан в
+`k8s/<компонент>/README.md` и `k8s/argocd/README.md`.
+
+## Секреты
+
+Доставка секретов в кластер — только SealedSecret
+(`apps/<сервис>/k8s/sealedsecret.yaml`). Контроллер sealed-secrets в
+`kube-system` (ставится плейбуком `ansible/sealed-secrets.yml`) расшифровывает
+их в обычные Secret внутри кластера.
+
+Файлы `apps/<сервис>/secrets.enc.env` (SOPS + age) — наследие эпохи Docker
+Compose, в доставке они не участвуют, но поддерживаются в актуальном состоянии
+как расшифровываемый реестр значений: SealedSecret необратим, а `secrets.enc.env`
+позволяет достать исходные значения. Приватный age-ключ существует только на
+сервере, в Git лежит лишь публичный.
+
+Plaintext-файлы с секретами в репозитории не хранятся. Подробности —
+`docs/agents/server-access.md`.
+
+## Хранилище
+
+- `local-path` — StorageClass по умолчанию для небольших данных;
+- `longhorn` / `longhorn-retain` — CSI-тома со снапшотами, клонами, RWX и
+  бэкапами (класс без суффикса → `Delete`, `-retain` → `Retain`);
+- `local-storage-retain` — статические PV, привязанные к узлу.
+
+Соглашения, ограничения одноузлового Longhorn и типовые сбои —
+`k8s/longhorn/README.md`.
+
+## Удалённый доступ
+
+Tailscale устанавливается на хост и даёт SSH и доступ к `192.0.2.10` и всей
+подсети `192.0.2.10/24` без проброса портов. Настройка и проверка —
+`apps/tailscale/README.md`.
 
 ## Временный доступ к веб-панели роутера
 
@@ -70,163 +191,3 @@ curl -o /dev/null -sS -w '%{http_code}\n' http://<tailscale-ip-сервера>:1
 доступна любому устройству в tailnet. Поэтому только временно. Постоянный
 доступ требует отдельного решения — SELinux-модуль для `ssh -L` либо
 публикация панели через Traefik с авторизацией.
-
-## Структура репозитория
-
-- `apps/<сервис>/` — все разворачиваемые сервисы; один подкаталог — один
-  сервис (`compose.yaml`, `config.env`, `secrets.enc.env`, `init.sh`).
-- `k8s/`, `ansible/`, `scripts/`, `docs/`, `dotfiles/`, `etc/` — платформенная
-  инфраструктура, не относящаяся к одному сервису.
-
-## Запуск сервиса
-
-Единственная точка входа для запуска и перезапуска — оркестратор из корня
-репозитория:
-
-```sh
-bash scripts/bootstrap-platform.sh <сервис>   # один сервис
-bash scripts/bootstrap-platform.sh            # все сервисы по порядку
-```
-
-Он сам собирает окружение команды в правильном порядке:
-
-1. корневой `config.env` — копия `config.example.env` (`DOMAIN`, `TZ`, `SERVER_IP`);
-2. трекаемый plaintext `apps/<сервис>/config.env`;
-3. секреты `apps/<сервис>/secrets.enc.env` — расшифровываются через
-   `sops -d` и передаются в окружение процесса дословно через `env(1)`
-   (plaintext-файлы не создаются);
-4. `apps/<сервис>/init.sh` — каталоги данных, рендер `*.tpl.*`, проверка конфига;
-5. `docker compose up -d`.
-
-Любая последующая команда Compose этого сервиса требует того же окружения —
-выполняйте её через обёртку:
-
-```sh
-bash scripts/compose-secrets.sh <сервис> ps
-bash scripts/compose-secrets.sh <сервис> logs -f <container>
-```
-
-«Голый» `docker compose …` внутри каталога сервиса упадёт на строгих
-`${VAR:?}`-проверках или запустит контейнеры без секретов. Подробности запуска
-конкретного сервиса — в его `apps/<сервис>/README.md`.
-
-## Общий домен сервисов
-
-Базовый домен `example.com` задаётся в одном месте и подставляется во
-все адреса вида `<sub>.<DOMAIN>`.
-
-Статические конфиги, не умеющие читать переменные окружения рендерятся `init.sh` из `.tpl`-шаблонов через
-`vals flatten`: плейсхолдеры вида `ref+envsubst://$DOMAIN` разворачиваются
-из окружения, формат и комментарии шаблона сохраняются. Секретные значения
-в шаблонах можно подтягивать напрямую через `ref+sops://`-ссылки на
-`secrets.enc.env`.
-После смены домена заново выполните `bash scripts/bootstrap-platform.sh`.
-
-## IP-адрес сервера
-
-LAN-адрес `192.0.2.10`, к которому привязываются опубликованные порты и на который указывают DNS- и
-health-проверки, задаётся переменной `SERVER_IP`.
-По умолчанию `scripts/lib/common.sh` определяет его автоматически как
-адрес-источник маршрута по умолчанию (`ip route get 1.1.1.1`). Если нужно
-переопределить (например, несколько сетевых интерфейсов), задайте `SERVER_IP`
-в корневом `config.env` или в переменной окружения.
-
-## Часовой пояс
-
-Часовой пояс контейнеров задаётся переменной `TZ`. Compose требует её через `${TZ:?...}`; значение подставляется при запуске из окружения.
-
-## Порядок запуска
-
-1. Установить Docker Engine и плагин Compose.
-2. Оставить SELinux в режиме enforcing, а firewalld — включённым.
-3. Создать общую сеть прокси: `docker network create traefiknet`.
-4. Скопировать `config.example.env` в `config.env` и заменить
-   значения-заглушки. Общий домен задаётся один раз — см. раздел
-   «Общий домен сервисов».
-5. Запустить `traefik`, затем остальное.
-6. Настроить DHCP-сервер роутера так, чтобы он выдавал `192.0.2.10` как DNS.
-
-Первичную подготовку можно выполнить командой:
-
-```sh
-bash scripts/bootstrap-platform.sh
-```
-
-Этот скрипт-оркестратор выполняет общую подготовку (каталог `/storage/media`,
-сеть `traefiknet`) и запускает скрипт инициализации каждого сервиса из его
-каталога. С аргументами инициализирует только перечисленные сервисы — так
-поднимается один сервис с первого раза (каталоги данных, миграции, запуск):
-
-```sh
-bash scripts/bootstrap-platform.sh glitchtip
-```
-
-Отдельный сервис можно подготовить напрямую:
-
-```sh
-bash apps/traefik/init.sh
-```
-
-Скрипты идемпотентны; сгенерированные секреты хранятся только на сервере —
-зашифрованными в `secrets.enc.env`. Общие функции находятся в
-`scripts/lib/common.sh`.
-
-Каждый сервис управляется из своего каталога в `apps/` (один подкаталог —
-один сервис):
-
-```sh
-cd apps/traefik
-docker compose config
-docker compose up -d
-```
-
-## Секреты (SOPS + age)
-
-Секреты сервисов хранятся в Git в зашифрованном виде: `<сервис>/secrets.enc.env`
-(SOPS поверх age, dotenv-формат). Правила шифрования — `.sops.yaml` в корне;
-публичный age-ключ закоммичен там же. Приватный ключ существует только на
-сервере (`~artlab/.config/sops/age/keys.txt`, `0600`): расшифровка возможна
-только там, зашифровать новый файл можно и локально.
-
-Граница «секрет/не секрет» — файловая, без эвристик:
-
-| Файл | Статус | Содержимое |
-|---|---|---|
-| `apps/<сервис>/config.env` | tracked, plaintext | публичная конфигурация сервиса |
-| `apps/<сервис>/secrets.enc.env` | tracked, зашифрован целиком | только секреты |
-
-Приоритет значений при запуске: корневой `config.env` → `apps/<сервис>/config.env` → секреты
-`secrets.enc.env` (высший).
-
-Plaintext-файлы `.env` с секретами не существуют ни у одного сервиса:
-расшифрованные значения передаются в окружение процесса дословно через
-`env(1)` (см. `service_run` в `scripts/lib/common.sh`). Запуск:
-
-```sh
-bash scripts/compose-secrets.sh <сервис> config --quiet
-bash scripts/compose-secrets.sh <сервис> up -d
-```
-
-`bootstrap-platform.sh` выполняет `init.sh` и `docker compose` каждого
-сервиса в окружении его секретов. Установка бинарников `sops` и `age`
-выполняется Ansible (`ansible/host.yml`).
-
-Старые и экспериментальные каталоги приложений сохранены для последующего
-разбора. `apps/wg-easy/` пока не разворачивается.
-
-## Линтинг Compose-файлов
-
-Автоматическое приведение порядка полей:
-
-```sh
-# ОБЯЗАТЕЛЬНО запускать оба скрипта
-npx dclint . -r --fix
-python3 scripts/compose-format.py # Вставляет пустые строки между смысловыми группами 
-```
-## Проверка домена
-
-Базовый домен не должен хардкодиться в конфигах. Проверка:
-
-```sh
-bash scripts/check-domain.sh
-```
