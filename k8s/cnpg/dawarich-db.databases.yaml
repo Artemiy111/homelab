@@ -7,7 +7,7 @@ metadata:
   namespace: dawarich
 spec:
   cluster:
-    name: dawarich
+    name: dawarich-db
   name: dawarich_production
   owner: dawarich
   encoding: UTF8

@@ -1,4 +1,4 @@
-# База кластера zitadel.
+# База кластера zitadel-db.
 apiVersion: postgresql.cnpg.io/v1
 kind: Database
 metadata:
@@ -6,7 +6,7 @@ metadata:
   namespace: zitadel
 spec:
   cluster:
-    name: zitadel
+    name: zitadel-db
   name: zitadel
   owner: zitadel
   encoding: UTF8

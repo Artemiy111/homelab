@@ -16,7 +16,7 @@ metadata:
   namespace: immich
 spec:
   cluster:
-    name: immich
+    name: immich-db
   name: immich
   owner: immich
   encoding: UTF8

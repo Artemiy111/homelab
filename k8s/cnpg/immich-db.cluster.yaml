@@ -1,4 +1,6 @@
-# immich — выделенный кластер CloudNativePG под фото- и видеотеку.
+# immich-db — выделенный кластер CloudNativePG под фото- и видеотеку.
+#
+# Суффикс -db потому, что кластер живёт в namespace сервиса (docs/adr/0003).
 #
 # Почему отдельно от shared: VectorChord требует shared_preload_libraries, а это
 # параметр кластера — библиотека грузится во всех его базах, включая те, которым
@@ -21,7 +23,7 @@
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
-  name: immich
+  name: immich-db
   namespace: immich
 spec:
   instances: 1

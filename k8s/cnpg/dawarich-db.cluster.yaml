@@ -1,4 +1,6 @@
-# dawarich — отдельный кластер из-за PostGIS.
+# dawarich-db — выделенный кластер из-за PostGIS.
+#
+# Суффикс -db потому, что кластер живёт в namespace сервиса (docs/adr/0003).
 #
 # Расширения ставим через Image Volume Extensions (IVE): полное содержимое
 # extension-образа монтируется в контейнер read-only. Требования — PostgreSQL 18
@@ -15,7 +17,7 @@
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
-  name: dawarich
+  name: dawarich-db
   namespace: dawarich
 spec:
   instances: 1

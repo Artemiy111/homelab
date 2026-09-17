@@ -1,4 +1,8 @@
-# zitadel — выделенный кластер CloudNativePG под IdP.
+# zitadel-db — выделенный кластер CloudNativePG под IdP.
+#
+# Суффикс -db потому, что кластер живёт в namespace сервиса и рядом будут поды
+# самого приложения: без суффикса `zitadel-1` и `zitadel-<hash>` не различить.
+# В `databases` суффикс не нужен — там и так только базы (docs/adr/0003).
 #
 # Почему отдельно от shared, при том же мажоре и без расширений: blast radius.
 # Падение IdP роняет всё, что логинится, поэтому его апгрейды, рестарты и
@@ -14,7 +18,7 @@
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
-  name: zitadel
+  name: zitadel-db
   namespace: zitadel
 spec:
   instances: 1
