@@ -241,8 +241,10 @@ scrape_configs:
       - targets:
           - mailserver:8080
 
-  # Базы данных: экспортеры по одному на инстанс (apps/db-exporters).
-  # instance = имя экспортера, т.е. какая это база.
+  # Базы данных: экспортеры по одному на инстанс (apps/db-exporters),
+  # у playground-базы экспортер — сайдкар в поде базы (apps/postgres), поэтому
+  # цель — сервис базы, а не отдельный экспортер.
+  # instance = адрес цели, т.е. какая это база.
   - job_name: postgres
     static_configs:
       - targets:
@@ -255,7 +257,7 @@ scrape_configs:
           - infisical-postgres-exporter:9187
           - nextcloud-db-exporter:9187
           - paperless-db-exporter:9187
-          - postgres-db-exporter:9187
+          - postgres-db:9187
           - sure-db-exporter:9187
           - zitadel-postgres-exporter:9187
 

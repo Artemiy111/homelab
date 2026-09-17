@@ -19,15 +19,22 @@ Prometheus-экспортеры для всех баз homelab: по одном�
 - **sidecar** (экспортер контейнером рядом с БД) — production-паттерн без
   лишних подов, но правит все DB-Deployment'ы и Service'ы и роллаутит базы.
 
+Исключение — playground-база (`apps/postgres`): у неё экспортер вынесен
+**сайдкаром** — второй контейнер `postgres-exporter` в том же поде,
+подключение через `localhost:5432`. Это пилотный шаг к CNPG, где экспортер
+встроен в `instance-manager` и сайдкар не нужен. Цель в scrape — сервис базы
+(`postgres-db:9187`), а различать базы внутри кластера потом придётся по
+`datname`, а не по имени экспортера.
+
 ## Состав
 
 Тип | Под | Порт | Инстансы
 ---|---|---|---
-PostgreSQL | `postgres-exporter` (`v0.20.1`) | 9187 | 12
+PostgreSQL | `postgres-exporter` (`v0.20.1`) | 9187 | 11
 Redis/Valkey | `redis-exporter` (`v1.91.1`) | 9121 | 9
 MariaDB | `mysqld-exporter` (`v0.20.0`) | 9104 | 1
 
-### PostgreSQL (12)
+### PostgreSQL (11)
 
 | Экспортер | База | Пароль |
 |---|---|---|
@@ -40,7 +47,6 @@ MariaDB | `mysqld-exporter` (`v0.20.0`) | 9104 | 1
 | `infisical-postgres-exporter` | `infisical-postgres` | Secret `infisical`/`POSTGRES_PASSWORD` |
 | `nextcloud-db-exporter` | `nextcloud-db` | Secret `nextcloud`/`POSTGRES_PASSWORD` |
 | `paperless-db-exporter` | `paperless-db` | Secret `paperless`/`POSTGRES_PASSWORD` |
-| `postgres-db-exporter` | `postgres-db` | Secret `postgres`/`POSTGRES_PASSWORD` |
 | `sure-db-exporter` | `sure-db` | литерал `postgres` (как в самом DB-Deployment) |
 | `zitadel-postgres-exporter` | `zitadel-postgres` | Secret `zitadel`/`POSTGRES_ADMIN_PASSWORD` |
 

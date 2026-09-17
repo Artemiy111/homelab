@@ -43,6 +43,29 @@ psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"
 docker compose exec db sh -lc 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT version();"'
 ```
 
+## Метрики
+
+Экспортер `postgres-exporter` поднят **сайдкаром** — вторым контейнером в том
+же поде `postgres-db`, рядом с базой. Поэтому он подключается к ней через
+`localhost:5432` (а не по Service) и живёт ровно столько же, сколько база:
+рестарт пода перезапускает обоих.
+
+У сайдкара только `livenessProbe`, без `readinessProbe`: под Ready, только
+когда готовы все контейнеры, поэтому неготовая readiness экспортера сделала бы
+под базы NotReady и выкинула бы его из endpoints Service — при полностью живой
+базе.
+
+Порт `9187` объявлен в поде и продублирован в сервисе `postgres-db` (порт
+`metrics`). Оттуда его скрейпит vmagent — цель `postgres-db:9187` в
+`apps/victoria-metrics/config/vmagent/scrape.yml`.
+
+Проверка:
+
+```sh
+kubectl logs deploy/postgres-db -c postgres-exporter
+kubectl exec deploy/postgres-db -c postgres-exporter -- wget -qO- localhost:9187/metrics | head
+```
+
 ## Остановка
 
 ```sh
