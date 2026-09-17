@@ -1,0 +1,36 @@
+# Общая конфигурация кластера: значения, которые одинаковы для всех сервисов.
+# Читается через configMapKeyRef из подов по имени `homelab-config`.
+#
+# ConfigMap привязан к namespace, поэтому сервису в своём namespace нужен свой
+# экземпляр — отсюда два документа ниже. Пока дублирование ручное: при переезде
+# сервиса в новый namespace сюда добавляется ещё один документ. Убирается это
+# reflector'ом (копирует по аннотации) или выносом значений в манифесты.
+#
+# Секретов здесь нет: DOMAIN и так в каждом Ingress, SERVER_IP — в README.
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: homelab-config
+  namespace: default
+data:
+  # Домен, под которым живут сервисы; wildcard-зона в Technitium.
+  DOMAIN: example.com
+  # Внешний адрес сервера: его отдаёт Traefik через externalIPs.
+  SERVER_IP: 192.0.2.10
+  TZ: Asia/Yekaterinburg
+  DEFAULT_LOCALE: ru
+  # Куда смонтированы постоянные данные на хосте (hostPath старых сервисов).
+  APPS_STORAGE_PATH: /storage/apps
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: homelab-config
+  namespace: paperless
+data:
+  DOMAIN: example.com
+  SERVER_IP: 192.0.2.10
+  TZ: Asia/Yekaterinburg
+  DEFAULT_LOCALE: ru
+  APPS_STORAGE_PATH: /storage/apps
