@@ -79,3 +79,32 @@ alias k='kubectl'
 if command -v k0s >/dev/null 2>&1; then
   source <(k0s completion zsh)
 fi
+
+# kubectl-cnpg completion
+if command -v kubectl-cnpg >/dev/null 2>&1; then
+  source <(kubectl-cnpg completion zsh)
+fi
+
+# `k cnpg ...` (алиасы k/kubectl → `k0s kubectl`) отдаём дополнению плагина:
+# zsh разворачивает алиасы в словах, поэтому строку перехватывает функция k0s,
+# а скрипт плагина не вызывается — он всегда зовёт `${words[1]} __complete`,
+# то есть в words[1] обязан быть сам бинарь. Остальное (kubectl, k0s) уходит
+# в k0s как раньше.
+_kubectl_cnpg_proxy() {
+  local off=0
+  if [[ $words[2] == kubectl && $words[3] == cnpg ]]; then
+    off=4
+  elif [[ $words[2] == cnpg ]]; then
+    off=3
+  fi
+  if (( ! off )); then
+    (( $+functions[_k0s] )) && _k0s
+    return
+  fi
+  words=(kubectl-cnpg "${words[off,-1]}")
+  (( CURRENT = CURRENT - off + 2 ))
+  (( CURRENT < 2 )) && CURRENT=2
+  (( CURRENT > $#words )) && words+=("")
+  _kubectl-cnpg
+}
+compdef _kubectl_cnpg_proxy k0s k kubectl
