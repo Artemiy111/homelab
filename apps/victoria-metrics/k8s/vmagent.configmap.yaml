@@ -1,0 +1,295 @@
+# Скрейп-конфиг vmagent. Раньше лежал отдельным файлом и монтировался
+# hostPath'ом прямо из рабочей копии репозитория: после git pull под держал
+# старый inode, и конфиг не подхватывался до рестарта. ConfigMap убирает
+# зависимость от хоста и обновляется в поде сам (vmagent следит за файлом и
+# перечитывает его без рестарта).
+#
+# Внутри — только ссылки %{VAR}: значения приходят из окружения пода
+# (k8s/vmagent.deployment.yaml), секретов в самом конфиге нет.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vmagent-scrape
+  namespace: default
+data:
+  scrape.yml: |
+    # Скрейп-конфиг vmagent. vmagent забирает /metrics приложений напрямую и
+    # пишет в VictoriaMetrics; секретов в файле нет — значения подставляются из
+    # окружения по ссылкам %{VAR} (поддержка env в -promscrape.config:
+    # https://docs.victoriametrics.com/victoriametrics/vmagent/#how-to-collect-metrics-in-prometheus-format).
+    # Окружение приходит из k8s Secrets/ConfigMap (см. k8s/vmagent.deployment.yaml).
+    #
+    # Цели адресуются по именам Service'ов кластера. Приложения без аутентификации
+    # отдают метрики внутри кластера открыто; креды нужны только помеченным целям.
+    global:
+      scrape_interval: 15s
+
+    scrape_configs:
+      # Хост, контейнеры и Docker: netdata агрегирует их и отдаёт Prometheus-формат.
+      - job_name: netdata
+        metrics_path: /api/v1/allmetrics
+        params:
+          format:
+            - prometheus
+        static_configs:
+          - targets:
+              - netdata:19999
+
+      - job_name: node-exporter
+        static_configs:
+          - targets:
+              - node-exporter:9100
+
+      # Состояние объектов кластера (kube_*): реплики, статусы Pod, Job, PVC.
+      - job_name: kube-state-metrics
+        static_configs:
+          - targets:
+              - kube-state-metrics:8080
+
+      # kubelet и встроенный в него cAdvisor: ресурсы контейнеров и Pod'ов
+      # (container_*). Цели находятся через service discovery (role: node) — по
+      # одной на каждую ноду, поэтому кластер может расти. kubelet на :10250
+      # требует bearer-токен SA с правом на non-resource URL'ы (/metrics,
+      # /metrics/cadvisor) — см. vmagent-rbac.yaml. insecure_skip_verify: у
+      # kubelet self-signed сертификат (так же по умолчанию делает
+      # kube-prometheus-stack).
+      - job_name: kubelet
+        scheme: https
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+        tls_config:
+          insecure_skip_verify: true
+        kubernetes_sd_configs:
+          - role: node
+        relabel_configs:
+          - action: labelmap
+            regex: __meta_kubernetes_node_label_(.+)
+          - source_labels: [__meta_kubernetes_node_address_InternalIP]
+            regex: "(.+)"
+            target_label: __address__
+            replacement: "${1}:10250"
+
+      - job_name: cadvisor
+        scheme: https
+        metrics_path: /metrics/cadvisor
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+        tls_config:
+          insecure_skip_verify: true
+        kubernetes_sd_configs:
+          - role: node
+        relabel_configs:
+          - action: labelmap
+            regex: __meta_kubernetes_node_label_(.+)
+          - source_labels: [__meta_kubernetes_node_address_InternalIP]
+            regex: "(.+)"
+            target_label: __address__
+            replacement: "${1}:10250"
+
+      # Собственные метрики стека.
+      - job_name: victoriametrics
+        static_configs:
+          - targets:
+              - victoriametrics:8428
+
+      - job_name: vmagent
+        static_configs:
+          - targets:
+              - localhost:8429
+
+      # Ingress: метрики entrypoints/routers/services (helm-чарт публикует
+      # отдельный Service traefik-metrics в namespace traefik).
+      - job_name: traefik
+        static_configs:
+          - targets:
+              - traefik-metrics.traefik:9100
+
+      # Приложения, отдающие /metrics без аутентификации.
+      - job_name: authentik
+        static_configs:
+          - targets:
+              - authentik:9300
+
+      - job_name: wud
+        static_configs:
+          - targets:
+              - wud:3000
+
+      - job_name: gatus
+        static_configs:
+          - targets:
+              - gatus:8080
+
+      - job_name: synapse
+        metrics_path: /_synapse/metrics
+        static_configs:
+          - targets:
+              - synapse:9009
+
+      - job_name: immich
+        static_configs:
+          - targets:
+              - immich:8081
+
+      - job_name: livekit
+        static_configs:
+          - targets:
+              - livekit:6789
+
+      - job_name: grafana
+        static_configs:
+          - targets:
+              - grafana:80
+
+      - job_name: jitsi-jvb
+        static_configs:
+          - targets:
+              - jitsi-jvb:8080
+
+      - job_name: oauth2-proxy
+        static_configs:
+          - targets:
+              - oauth2-proxy:9100
+
+      - job_name: vault
+        metrics_path: /v1/sys/metrics
+        params:
+          format:
+            - prometheus
+        static_configs:
+          - targets:
+              - vault:8200
+
+      - job_name: infisical
+        static_configs:
+          - targets:
+              - infisical:9464
+
+      # OTLP-приёмник: приложения, отдающие метрики push'ем, попадают сюда
+      # (resource attributes в лейблах, напр. service_name="rustfs").
+      - job_name: otel-collector
+        static_configs:
+          - targets:
+              - otel-collector:8889
+
+      - job_name: jellyfin
+        static_configs:
+          - targets:
+              - jellyfin-exporter:9594
+
+      - job_name: nextcloud
+        static_configs:
+          - targets:
+              - nextcloud-exporter:9205
+
+      # Приложения с аутентификацией (креды из окружения).
+
+      # LocalAI отдаёт /metrics за API-ключом (Bearer). disable_compression:
+      # LocalAI при Accept-Encoding: gzip сжимает ответ дважды (баг), и vmagent
+      # не может его распарсить — просим отдавать несжатый текст.
+      - job_name: local-ai
+        disable_compression: true
+        authorization:
+          credentials: "%{LOCALAI_API_KEY}"
+        static_configs:
+          - targets:
+              - local-ai:8080
+
+      # Home Assistant отдаёт /api/prometheus за Bearer-токеном.
+      - job_name: home-assistant
+        metrics_path: /api/prometheus
+        authorization:
+          credentials: "%{HOME_ASSISTANT_TOKEN}"
+        static_configs:
+          - targets:
+              - home-assistant:8123
+
+      # API-ключ Kuma передаётся как пароль basic auth без username.
+      - job_name: uptime-kuma
+        basic_auth:
+          password: "%{UPTIME_KUMA_METRICS_API_KEY}"
+        static_configs:
+          - targets:
+              - uptime-kuma:3001
+
+      # Секретный путь метрик Navidrome (ND_PROMETHEUS_ENABLED).
+      - job_name: navidrome
+        metrics_path: /metrics_%{NAVIDROME_METRICS_PATH}
+        static_configs:
+          - targets:
+              - navidrome:4533
+
+      # Dawarich редиректит внутренние запросы на публичный HTTPS-URL, поэтому
+      # скрейпим его через Traefik (basic auth).
+      - job_name: dawarich
+        scheme: https
+        metrics_path: /metrics
+        basic_auth:
+          username: netdata
+          password: "%{DAWARICH_METRICS_PASSWORD}"
+        static_configs:
+          - targets:
+              - dawarich.%{DOMAIN}
+
+      # Токен передаётся как Bearer (Forgejo [metrics] TOKEN).
+      - job_name: forgejo
+        authorization:
+          credentials: "%{FORGEJO_METRICS_TOKEN}"
+        static_configs:
+          - targets:
+              - forgejo:3000
+
+      # Technitium отдаёт метрики дашборда; Bearer-токен из secrets.
+      - job_name: technitium
+        metrics_path: /api/dashboard/metrics/text
+        authorization:
+          credentials: "%{TECHNITIUM_METRICS_TOKEN}"
+        static_configs:
+          - targets:
+              - technitium:5380
+
+      # Stalwart (почта): Telemetry → Metrics → Prometheus, basic auth.
+      - job_name: stalwart
+        metrics_path: /metrics/prometheus
+        basic_auth:
+          username: metrics
+          password: "%{STALWART_METRICS_PASSWORD}"
+        static_configs:
+          - targets:
+              - mailserver:8080
+
+      # Базы данных: экспортеры по одному на инстанс (apps/db-exporters),
+      # у playground-базы экспортер — сайдкар в поде базы (apps/postgres), поэтому
+      # цель — сервис базы, а не отдельный экспортер.
+      # instance = адрес цели, т.е. какая это база.
+      - job_name: postgres
+        static_configs:
+          - targets:
+              - authentik-postgresql-exporter:9187
+              - dawarich-db-exporter:9187
+              - element-db-exporter:9187
+              - forgejo-db-exporter:9187
+              - glitchtip-postgres-exporter:9187
+              - immich-db-exporter:9187
+              - infisical-postgres-exporter:9187
+              - nextcloud-db-exporter:9187
+              - paperless-db-exporter.paperless.svc:9187
+              - postgres-db:9187
+              - sure-db-exporter:9187
+              - zitadel-postgres-exporter:9187
+
+      - job_name: redis
+        static_configs:
+          - targets:
+              - dawarich-redis-exporter:9121
+              - element-redis-exporter:9121
+              - glitchtip-valkey-exporter:9121
+              - immich-valkey-exporter:9121
+              - infisical-redis-exporter:9121
+              - nextcloud-redis-exporter:9121
+              - paperless-broker-exporter.paperless.svc:9121
+              - seafile-redis-exporter:9121
+              - sure-redis-exporter:9121
+
+      - job_name: mysql
+        static_configs:
+          - targets:
+              - seafile-db-exporter:9104

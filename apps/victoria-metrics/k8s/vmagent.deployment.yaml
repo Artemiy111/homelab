@@ -118,10 +118,9 @@ spec:
               memory: 512Mi
           volumeMounts:
             - name: scrape-config
-              mountPath: /etc/vmagent/scrape.yml
+              mountPath: /etc/vmagent
               readOnly: true
       volumes:
         - name: scrape-config
-          hostPath:
-            path: /home/artlab/projects/homelab/apps/victoria-metrics/config/vmagent/scrape.yml
-            type: File
+          configMap:
+            name: vmagent-scrape
