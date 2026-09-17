@@ -16,13 +16,11 @@ spec:
       labels:
         app: paperless
     spec:
-      # Иначе k8s инжектит PAPERLESS_PORT=tcp://<svc>:8000 от Service `paperless`,
-      # и приложение падает (granian ждёт целое число).
-      enableServiceLinks: false
+      enableServiceLinks: false # иначе инжектит PAPERLESS_PORT
       initContainers:
         - name: wait-for-db
           image: "postgres:18-alpine@sha256:d3e1620b530c944afa6e887d22eb899824da68e19c52024bf98f5220c88a65b2"
-          command: ["/bin/sh", "-c", "until pg_isready -h paperless-db -p 5432 -U paperless; do echo waiting for paperless-db; sleep 2; done"]
+          command: ["/bin/sh", "-c", "until pg_isready -h shared-rw.databases.svc.cluster.local -p 5432 -U paperless; do echo waiting for db; sleep 2; done"]
           securityContext:
             runAsUser: 70
             runAsGroup: 70
@@ -98,7 +96,7 @@ spec:
             - name: PAPERLESS_DBENGINE
               value: postgresql
             - name: PAPERLESS_DBHOST
-              value: paperless-db
+              value: shared-rw.databases.svc.cluster.local
             - name: PAPERLESS_DBNAME
               value: paperless
             - name: PAPERLESS_DBUSER

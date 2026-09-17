@@ -656,7 +656,7 @@ spec:
               containerPort: 9187
           env:
             - name: DATA_SOURCE_URI
-              value: "paperless-db:5432/paperless?sslmode=disable"
+              value: "shared-rw.databases.svc.cluster.local:5432/paperless?sslmode=require"
             - name: DATA_SOURCE_USER
               value: "paperless"
             - name: DATA_SOURCE_PASS
