@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: paperless-db
-  namespace: default
+  namespace: paperless
 spec:
   strategy:
     type: Recreate

@@ -1,0 +1,25 @@
+# Файловые данные paperless: data, media, export, consume — одним томом
+# (в поде монтируются через subPath). postgresql сюда не переезжает: база
+# уходит в CNPG. redis тоже не здесь: это кэш.
+#
+# volumeName НЕ задаём: это статическая привязка к существующему PV, а у нас
+# динамический провижининг Longhorn. С volumeName PVC завис бы в Pending
+# навсегда, потому что PV paperless-pv никто не создаёт.
+#
+# longhorn-retain, а не longhorn: backup target в Longhorn ещё не настроен, и
+# без него удаление PVC стирает данные безвозвратно.
+#
+# 256Mi: сейчас занято 12 МБ (всё в data, media пуста). Мало, но media растёт
+# вместе с документами, а объём расширяется на ходу одной правкой.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: paperless-pvc
+  namespace: paperless
+spec:
+  storageClassName: longhorn-retain
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 256Mi

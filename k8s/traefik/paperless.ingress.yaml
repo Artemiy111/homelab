@@ -2,7 +2,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: paperless
-  namespace: default
+  namespace: paperless
 spec:
   ingressClassName: traefik
   tls:

@@ -256,7 +256,7 @@ scrape_configs:
           - immich-db-exporter:9187
           - infisical-postgres-exporter:9187
           - nextcloud-db-exporter:9187
-          - paperless-db-exporter:9187
+          - paperless-db-exporter.paperless.svc:9187
           - postgres-db:9187
           - sure-db-exporter:9187
           - zitadel-postgres-exporter:9187
@@ -270,7 +270,7 @@ scrape_configs:
           - immich-valkey-exporter:9121
           - infisical-redis-exporter:9121
           - nextcloud-redis-exporter:9121
-          - paperless-broker-exporter:9121
+          - paperless-broker-exporter.paperless.svc:9121
           - seafile-redis-exporter:9121
           - sure-redis-exporter:9121
 

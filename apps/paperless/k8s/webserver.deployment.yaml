@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: paperless
-  namespace: default
+  namespace: paperless
 spec:
   strategy:
     type: Recreate
@@ -142,7 +142,7 @@ spec:
             failureThreshold: 3
           securityContext:
             # Образ стартует как root и роняет процессы до USERMAP_UID=1000;
-            # каталоги hostPath принадлежат uid 1000.
+            # каталоги тома принадлежат uid 1000.
             allowPrivilegeEscalation: false
             capabilities:
               drop: ["ALL"]
@@ -157,28 +157,19 @@ spec:
               cpu: "2"
               memory: 2Gi
           volumeMounts:
-            - name: data
+            - name: paperless-data
               mountPath: /usr/src/paperless/data
-            - name: media
+              subPath: data
+            - name: paperless-data
               mountPath: /usr/src/paperless/media
-            - name: export
+              subPath: media
+            - name: paperless-data
               mountPath: /usr/src/paperless/export
-            - name: consume
+              subPath: export
+            - name: paperless-data
               mountPath: /usr/src/paperless/consume
+              subPath: consume
       volumes:
-        - name: data
-          hostPath:
-            path: /storage/apps/paperless/data
-            type: Directory
-        - name: media
-          hostPath:
-            path: /storage/apps/paperless/media
-            type: Directory
-        - name: export
-          hostPath:
-            path: /storage/apps/paperless/export
-            type: Directory
-        - name: consume
-          hostPath:
-            path: /storage/apps/paperless/consume
-            type: Directory
+        - name: paperless-data
+          persistentVolumeClaim:
+            claimName: paperless-pvc
