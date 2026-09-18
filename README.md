@@ -38,6 +38,7 @@ production-практикам DevOps.
 | Zitadel | Identity provider и SSO (основной) | `id.example.com` |
 | Authentik | Identity provider и SSO (тестовый стенд) | `auth.example.com` |
 | oauth2-proxy | Forward auth для сервисов без своего входа | `oauth.example.com` |
+| Traefik dashboard | Панель ingress и API | `traefik.example.com` |
 | Technitium DNS | DNS-сервер и блокировка рекламы | `dns.example.com` |
 | Homepage | Стартовая страница сервисов | `home.example.com` |
 | Headlamp | Веб-UI кластера | `headlamp.example.com` |
