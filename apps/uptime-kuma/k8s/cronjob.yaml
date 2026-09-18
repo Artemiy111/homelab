@@ -50,6 +50,14 @@ spec:
                   value: "http://uptime-kuma:3001"
                 - name: UPTIME_KUMA_MONITORS_FILE
                   value: "/app/monitors.yaml"
+                # Внутренний IP узла от k8s, а не хардкод в configmap. Нужен
+                # мониторам Home Assistant и Technitium DNS: они ходят на
+                # опубликованные порты узла, а Downward API даёт тот же адрес
+                # без ручного дублирования. Явный env перекрывает envFrom.
+                - name: SERVER_IP
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: status.hostIP
               envFrom:
                 - configMapRef:
                     name: homelab-config

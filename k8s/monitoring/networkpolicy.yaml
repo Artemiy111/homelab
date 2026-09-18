@@ -1,7 +1,8 @@
 # Базовый NetworkPolicy для namespace monitoring: default-deny ingress плюс
-# явные разрешения. traefik — UI (grafana, vm, netdata, wud); gatus сам
-# проверяет свои внутренние сервисы (victoriametrics, vmagent, netdata,
-# grafana, wud) и kube-state-metrics из default. Egress не ограничивается.
+# явные разрешения. traefik — UI (grafana, vm, netdata, wud); gatus и
+# uptime-kuma проверяют внутренние сервисы (victoriametrics, vmagent, netdata,
+# grafana, wud) напрямую по k8s-именам; kube-state-metrics приходит из default.
+# Egress не ограничивается.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -28,6 +29,10 @@ spec:
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: traefik
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: uptime-kuma
     - from:
         - namespaceSelector:
             matchLabels:

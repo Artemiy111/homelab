@@ -35,3 +35,7 @@ spec:
           podSelector:
             matchLabels:
               app: gatus
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: uptime-kuma

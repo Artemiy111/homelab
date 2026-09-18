@@ -99,9 +99,9 @@ monitors:
     interval: 60
     maxretries: 2
   - name: Structurizr
-    description: Backend Structurizr в Docker-сети; публичный маршрут закрыт forward auth.
+    description: Backend Structurizr в кластере; публичный маршрут закрыт forward auth.
     type: http
-    url: http://structurizr:8080/
+    url: http://structurizr.structurizr.svc.cluster.local/
     interval: 60
     maxretries: 2
   - name: Lute
@@ -111,18 +111,18 @@ monitors:
     interval: 60
     maxretries: 2
   - name: 3x-ui
-    description: Доступность web backend 3x-ui внутри Docker-сети; публичный путь
+    description: Доступность web backend 3x-ui внутри кластера; публичный путь
       панели намеренно не хранится в репозитории.
     type: port
-    hostname: 3x-ui
+    hostname: xui.3x-ui.svc.cluster.local
     port: 2053
     interval: 60
     maxretries: 2
   - name: Sure
-    description: Веб-интерфейс Sure на опубликованном LAN-порту; сервис пока не
-      подключён к Traefik.
+    description: Веб-интерфейс Sure через локальный DNS, TLS и Traefik; корень
+      отдаёт 302 на страницу входа.
     type: http
-    url: http://{{SERVER_IP}}:40060/
+    url: https://sure.{{DOMAIN}}/
     interval: 60
     maxretries: 2
   - name: Mailserver
@@ -192,29 +192,29 @@ monitors:
     interval: 60
     maxretries: 2
   - name: Netdata
-    description: Агент Netdata в Docker-сети; публичный маршрут закрыт forward auth.
+    description: Агент Netdata в кластере; публичный маршрут закрыт forward auth.
     type: http
-    url: http://netdata:19999/api/v1/info
+    url: http://netdata.monitoring.svc.cluster.local/api/v1/info
     interval: 60
     maxretries: 2
   - name: VictoriaMetrics
-    description: TSDB VictoriaMetrics в Docker-сети; наружу не публикуется, /health
-      отдаёт 200 и тело OK.
+    description: TSDB VictoriaMetrics в кластере; наружу не публикуется, /health
+      отдаёт 200.
     type: http
-    url: http://victoriametrics:8428/health
+    url: http://victoriametrics.monitoring.svc.cluster.local/health
     interval: 60
     maxretries: 2
   - name: vmagent
-    description: Сборщик метрик vmagent в Docker-сети; наружу не публикуется,
-      /health отдаёт 200 и тело OK.
+    description: Сборщик метрик vmagent в кластере; наружу не публикуется,
+      /health отдаёт 200.
     type: http
-    url: http://vmagent:8429/health
+    url: http://vmagent.monitoring.svc.cluster.local/health
     interval: 60
     maxretries: 2
   - name: Grafana
-    description: Health API Grafana в Docker-сети; публичный маршрут закрыт forward auth.
+    description: Health API Grafana в кластере; публичный маршрут закрыт forward auth.
     type: http
-    url: http://grafana:3000/api/health
+    url: http://grafana.monitoring.svc.cluster.local/api/health
     interval: 60
     maxretries: 2
   - name: Uptime Kuma
@@ -232,15 +232,9 @@ monitors:
     interval: 60
     maxretries: 2
   - name: WUD
-    description: Health endpoint WUD в Docker-сети; публичный маршрут закрыт forward auth.
+    description: Health endpoint WUD в кластере; публичный маршрут закрыт forward auth.
     type: http
-    url: http://wud:3000/health
-    interval: 60
-    maxretries: 2
-  - name: Cup
-    description: Backend Cup в Docker-сети; публичный маршрут закрыт forward auth.
-    type: http
-    url: http://cup:8000/
+    url: http://wud.monitoring.svc.cluster.local/health
     interval: 60
     maxretries: 2
   - name: Homepage
@@ -270,9 +264,10 @@ monitors:
     interval: 60
     maxretries: 2
   - name: Gitea SSH
-    description: Доступность опубликованного SSH-порта Gitea.
+    description: Доступность опубликованного SSH-порта Forgejo через DNS-имя;
+      порт слушает узел, но имя берётся то же, что у остальных маршрутов.
     type: port
-    hostname: "{{SERVER_IP}}"
+    hostname: "forgejo.{{DOMAIN}}"
     port: 2222
     interval: 60
     maxretries: 2
