@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: mail
-  namespace: default
+  namespace: mailserver
 spec:
   strategy:
     type: Recreate

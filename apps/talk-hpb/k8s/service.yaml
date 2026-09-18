@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: talk-hpb
-  namespace: default
+  namespace: talk-hpb
 spec:
   type: ClusterIP
   selector:

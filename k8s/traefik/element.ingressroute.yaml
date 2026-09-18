@@ -2,7 +2,7 @@ apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
   name: element
-  namespace: default
+  namespace: element
 spec:
   entryPoints:
     - websecure
@@ -13,6 +13,7 @@ spec:
       priority: 110
       middlewares:
         - name: element-livekit-strip
+          namespace: default
       services:
         - name: livekit
           port: 7880
@@ -23,6 +24,7 @@ spec:
       priority: 110
       middlewares:
         - name: element-rtc-auth-strip
+          namespace: default
       services:
         - name: matrix-rtc-auth
           port: 8080
@@ -45,7 +47,7 @@ apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
   name: element-well-known
-  namespace: default
+  namespace: element
 spec:
   entryPoints:
     - websecure

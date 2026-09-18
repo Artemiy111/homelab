@@ -24,7 +24,7 @@ spec:
               containerPort: 9187
           env:
             - name: DATA_SOURCE_URI
-              value: "authentik-postgresql:5432/authentik?sslmode=disable"
+              value: "authentik-postgresql.authentik.svc.cluster.local:5432/authentik?sslmode=disable"
             - name: DATA_SOURCE_USER
               value: "authentik"
             - name: DATA_SOURCE_PASS
@@ -182,7 +182,7 @@ spec:
               containerPort: 9187
           env:
             - name: DATA_SOURCE_URI
-              value: "element-db:5432/synapse?sslmode=disable"
+              value: "element-db.element.svc.cluster.local:5432/synapse?sslmode=disable"
             - name: DATA_SOURCE_USER
               value: "synapse"
             - name: DATA_SOURCE_PASS

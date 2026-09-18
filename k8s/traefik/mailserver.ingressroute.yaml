@@ -2,7 +2,7 @@ apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
   name: mailserver
-  namespace: default
+  namespace: mailserver
 spec:
   entryPoints:
     - websecure
@@ -18,7 +18,7 @@ apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
   name: mail
-  namespace: default
+  namespace: mailserver
 spec:
   entryPoints:
     - websecure

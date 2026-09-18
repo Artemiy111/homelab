@@ -2,7 +2,7 @@ apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
   name: oauth2-proxy
-  namespace: default
+  namespace: oauth2-proxy
 spec:
   entryPoints:
     - websecure
@@ -11,6 +11,7 @@ spec:
       kind: Rule
       middlewares:
         - name: secure-headers
+          namespace: default
       services:
         - name: oauth2-proxy
           port: 4180

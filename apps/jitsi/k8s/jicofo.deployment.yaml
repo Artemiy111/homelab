@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: jitsi-jicofo
-  namespace: default
+  namespace: jitsi
 spec:
   strategy:
     type: Recreate

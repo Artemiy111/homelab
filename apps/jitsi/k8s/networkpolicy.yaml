@@ -1,0 +1,40 @@
+# Базовый NetworkPolicy: default-deny ingress + явные разрешения.
+# traefik — jitsi-web; метрики jvb (8080) скрейпит vmagent из monitoring.
+# jvb — hostNetwork (UDP 10000), политика к нему не применяется.
+# Egress не ограничивается.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: jitsi
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress
+  namespace: jitsi
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector: {}
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: traefik
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+          podSelector:
+            matchLabels:
+              app: vmagent
+      ports:
+        - port: 8080
+          protocol: TCP

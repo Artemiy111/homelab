@@ -2,7 +2,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: seafile
-  namespace: default
+  namespace: seafile
 spec:
   ingressClassName: traefik
   rules:

@@ -96,7 +96,7 @@ spec:
               containerPort: 9121
           env:
             - name: REDIS_ADDR
-              value: "redis://element-redis:6379"
+              value: "redis://element-redis.element.svc.cluster.local:6379"
           livenessProbe:
             httpGet:
               path: /metrics
@@ -528,7 +528,7 @@ spec:
               containerPort: 9121
           env:
             - name: REDIS_ADDR
-              value: "redis://seafile-redis:6379"
+              value: "redis://seafile-redis.seafile.svc.cluster.local:6379"
           livenessProbe:
             httpGet:
               path: /metrics

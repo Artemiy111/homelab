@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: mailserver-mail
-  namespace: default
+  namespace: mailserver
 spec:
   # Почтовые порты публикуются на IP узла (.254) — как раньше через Docker
   # (приём извне: роутер шлёт на .254:25; клиенты идут на mail.<домен>:25/993).

@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: element-redis
-  namespace: default
+  namespace: element
 spec:
   strategy:
     type: Recreate

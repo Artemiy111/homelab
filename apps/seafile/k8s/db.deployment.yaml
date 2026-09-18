@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: seafile-db
-  namespace: default
+  namespace: seafile
 spec:
   strategy:
     type: Recreate

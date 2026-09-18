@@ -1,0 +1,29 @@
+# Базовый NetworkPolicy: default-deny ingress + явные разрешения.
+# talk-hpb — hostNetwork (TURN-релей), политика к нему не применяется;
+# оставлено для консистентности и на случай не-hostNetwork подов.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: talk-hpb
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress
+  namespace: talk-hpb
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector: {}
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: traefik

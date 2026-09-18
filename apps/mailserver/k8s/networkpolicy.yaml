@@ -1,0 +1,50 @@
+# NetworkPolicy: default-deny ingress + явные разрешения.
+# SMTP/IMAP публикуются через externalIPs (25/587/993) и должны принимать
+# клиентов из интернета — открыты всем. Веб (8080) — только traefik,
+# метрики скрейпит vmagent из monitoring. Egress не ограничивается.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: mailserver
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress
+  namespace: mailserver
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector: {}
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: traefik
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+          podSelector:
+            matchLabels:
+              app: vmagent
+      ports:
+        - port: 8080
+          protocol: TCP
+    - from:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+      ports:
+        - port: 25
+          protocol: TCP
+        - port: 587
+          protocol: TCP
+        - port: 993
+          protocol: TCP
