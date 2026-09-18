@@ -1,0 +1,39 @@
+# MariaDB-инстанс Seafile под управлением mariadb-operator.
+#
+# Это ОТДЕЛЬНЫЙ от приложения ресурс: seafile пока продолжает ходить в старый
+# seafile-db (hostPath + Deployment). Здесь поднимается пустой инстанс — заготовка
+# под миграцию, а не замена «на горячую».
+#
+# Имя намеренно не seafile-db: оператор создаёт Service с именем CR, а
+# seafile-db уже занят старым Deployment'ом. Host для приложения будет
+# seafile-mariadb.
+#
+# Образ закреплён на 10.11 (тот же, что в старом поде): дефолт оператора —
+# MariaDB 12.3, а мажорный прыжок при миграции не нужен и не проверялся Seafile.
+#
+# root-пароль берём из существующего Secret seafile — не плодим секреты и
+# сохраняем тот же root-пароль, что у старой базы.
+apiVersion: k8s.mariadb.com/v1alpha1
+kind: MariaDB
+metadata:
+  name: seafile-mariadb
+  namespace: seafile
+spec:
+  replicas: 1
+  image: "mariadb:10.11@sha256:8020e05c4c498d06c87f0a1db010eb79bd6f8fb30e9b763d4690c34ce1e61008"
+  port: 3306
+  rootPasswordSecretKeyRef:
+    name: seafile
+    key: INIT_SEAFILE_MYSQL_ROOT_PASSWORD
+  storage:
+    size: 2Gi
+    # longhorn-retain (reclaimPolicy: Retain): PVC переживёт удаление
+    # StatefulSet, данные не уедут вместе с CR.
+    storageClassName: longhorn-retain
+  resources:
+    requests:
+      cpu: 50m
+      memory: 256Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi

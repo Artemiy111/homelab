@@ -1,0 +1,48 @@
+# Три логические БД Seafile внутри seafile-mariadb. Создаются пустыми;
+# данные окажутся в них на этапе миграции.
+#
+# cleanupPolicy: Skip — при удалении CR оператор НЕ выполняет DROP DATABASE.
+# Плата за декларативность здесь слишком высока: опечатка в манифесте не должна
+# удалять метаданные Seafile.
+#
+# Чарсет/коллация повторяют старую базу (utf8mb3 / utf8mb3_general_ci — в
+# MariaDB `utf8` это синоним utf8mb3), чтобы после восстановления дампа не
+# ловить смену кодировки.
+apiVersion: k8s.mariadb.com/v1alpha1
+kind: Database
+metadata:
+  name: ccnet-db
+  namespace: seafile
+spec:
+  mariaDbRef:
+    name: seafile-mariadb
+  name: ccnet_db
+  characterSet: utf8mb3
+  collate: utf8mb3_general_ci
+  cleanupPolicy: Skip
+---
+apiVersion: k8s.mariadb.com/v1alpha1
+kind: Database
+metadata:
+  name: seafile-db
+  namespace: seafile
+spec:
+  mariaDbRef:
+    name: seafile-mariadb
+  name: seafile_db
+  characterSet: utf8mb3
+  collate: utf8mb3_general_ci
+  cleanupPolicy: Skip
+---
+apiVersion: k8s.mariadb.com/v1alpha1
+kind: Database
+metadata:
+  name: seahub-db
+  namespace: seafile
+spec:
+  mariaDbRef:
+    name: seafile-mariadb
+  name: seahub_db
+  characterSet: utf8mb3
+  collate: utf8mb3_general_ci
+  cleanupPolicy: Skip

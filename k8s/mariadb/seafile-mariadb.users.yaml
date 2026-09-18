@@ -1,0 +1,68 @@
+# Пользователь Seafile и его права — зеркало текущей базы:
+# ALL PRIVILEGES на три БД ccnet_db / seafile_db / seahub_db.
+#
+# Пароль берём из существующего Secret seafile, чтобы при переключении
+# SEAFILE_MYSQL_DB_HOST приложению не пришлось менять учётные данные.
+#
+# maxUserConnections: 0 = без персонального лимита (в MariaDB 0 значит «как
+# глобальный max_connections»). CRD по умолчанию ставит 10, для Seafile это
+# может оказаться тесно, поэтому повторяем поведение старой базы.
+apiVersion: k8s.mariadb.com/v1alpha1
+kind: User
+metadata:
+  name: seafile
+  namespace: seafile
+spec:
+  mariaDbRef:
+    name: seafile-mariadb
+  name: seafile
+  passwordSecretKeyRef:
+    name: seafile
+    key: SEAFILE_MYSQL_DB_PASSWORD
+  host: "%"
+  maxUserConnections: 0
+---
+apiVersion: k8s.mariadb.com/v1alpha1
+kind: Grant
+metadata:
+  name: seafile-ccnet-db
+  namespace: seafile
+spec:
+  mariaDbRef:
+    name: seafile-mariadb
+  privileges:
+    - "ALL PRIVILEGES"
+  database: ccnet_db
+  table: "*"
+  username: seafile
+  host: "%"
+---
+apiVersion: k8s.mariadb.com/v1alpha1
+kind: Grant
+metadata:
+  name: seafile-seafile-db
+  namespace: seafile
+spec:
+  mariaDbRef:
+    name: seafile-mariadb
+  privileges:
+    - "ALL PRIVILEGES"
+  database: seafile_db
+  table: "*"
+  username: seafile
+  host: "%"
+---
+apiVersion: k8s.mariadb.com/v1alpha1
+kind: Grant
+metadata:
+  name: seafile-seahub-db
+  namespace: seafile
+spec:
+  mariaDbRef:
+    name: seafile-mariadb
+  privileges:
+    - "ALL PRIVILEGES"
+  database: seahub_db
+  table: "*"
+  username: seafile
+  host: "%"
