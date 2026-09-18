@@ -44,3 +44,14 @@ data:
   TZ: Asia/Yekaterinburg
   DEFAULT_LOCALE: ru
   APPS_STORAGE_PATH: /storage/apps
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: homelab-config
+  namespace: home
+data:
+  DOMAIN: example.com
+  TZ: Asia/Yekaterinburg
+  DEFAULT_LOCALE: ru
+  APPS_STORAGE_PATH: /storage/apps
