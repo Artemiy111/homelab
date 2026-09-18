@@ -1,0 +1,30 @@
+# Базовый NetworkPolicy для namespace сервиса: default-deny ingress плюс
+# явные разрешения. Под Home Assistant — hostNetwork (нужен для обнаружения
+# устройств), поэтому Calico политику к нему по сути не применяет; документируем
+# намерение и закроем остальные поды namespace, если появятся. Egress открыт.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: home-assistant
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress
+  namespace: home-assistant
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector: {}
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: traefik
