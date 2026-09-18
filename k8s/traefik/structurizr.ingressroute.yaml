@@ -11,10 +11,13 @@ spec:
     - match: Host(`structurizr.example.com`)
       kind: Rule
       middlewares:
-        # Префикс namespace обязателен: middleware живут в default.
-        - name: default-oauth2-proxy
-        - name: default-secure-headers
-        - name: default-ratelimit-default
+        # Middleware'ы остаются в default: ссылаемся cross-namespace явным namespace.
+        - name: oauth2-proxy
+          namespace: default
+        - name: secure-headers
+          namespace: default
+        - name: ratelimit-default
+          namespace: default
       services:
         - name: structurizr
           port: 80
