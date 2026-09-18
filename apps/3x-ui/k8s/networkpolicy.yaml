@@ -38,6 +38,8 @@ spec:
       ports:
         - port: 8440
           protocol: TCP
+        - port: 2053
+          protocol: TCP
     - from:
         - ipBlock:
             cidr: 0.0.0.0/0

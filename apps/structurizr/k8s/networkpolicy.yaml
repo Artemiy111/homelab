@@ -35,6 +35,3 @@ spec:
           podSelector:
             matchLabels:
               app: gatus
-      ports:
-        - port: 80
-          protocol: TCP
