@@ -4,7 +4,7 @@ metadata:
   # Имя латиницей: DNS-метка Service не может начинаться с цифры, поэтому
   # в кластере 3x-ui доступен как xui (Gatus: tcp://xui:2053).
   name: xui
-  namespace: default
+  namespace: 3x-ui
 spec:
   type: ClusterIP
   selector:

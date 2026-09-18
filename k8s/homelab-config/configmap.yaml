@@ -143,3 +143,13 @@ data:
   DOMAIN: example.com
   TZ: Asia/Yekaterinburg
   DEFAULT_LOCALE: ru
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: homelab-config
+  namespace: 3x-ui
+data:
+  DOMAIN: example.com
+  TZ: Asia/Yekaterinburg
+  DEFAULT_LOCALE: ru

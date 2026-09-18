@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: 3x-ui
-  namespace: default
+  namespace: 3x-ui
 spec:
   # hostPath-каталоги нельзя монтировать в два пода одновременно.
   strategy:

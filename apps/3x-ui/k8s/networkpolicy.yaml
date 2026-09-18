@@ -1,0 +1,48 @@
+# NetworkPolicy для namespace сервиса: default-deny ingress плюс явные
+# разрешения. Специфика 3x-ui — порты наружу через externalIPs:
+#   - 8443 (inbound Xray) должен принимать клиентов из интернета, поэтому
+#     разрешаем 0.0.0.0/0; default-deny здесь всё равно ограничивает остальное;
+#   - 8440 (forward proxy) нужен gatus из default;
+#   - панель 2053 доступна только через traefik.
+# Egress не ограничивается.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: 3x-ui
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress
+  namespace: 3x-ui
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector: {}
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: traefik
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: default
+      ports:
+        - port: 8440
+          protocol: TCP
+    - from:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+      ports:
+        - port: 8443
+          protocol: TCP
+        - port: 8443
+          protocol: UDP
