@@ -2,6 +2,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: mermaid-live-editor
+  namespace: mermaid-live-editor
 spec:
   ingressClassName: traefik
   rules:

@@ -2,6 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: mermaid-live-editor
+  namespace: mermaid-live-editor
 spec:
   type: ClusterIP
   selector:
