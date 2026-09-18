@@ -54,7 +54,7 @@ spec:
       volumes:
         - name: data
           persistentVolumeClaim:
-            claimName: lute-data-pvc
+            claimName: lute-data
         - name: backup
           persistentVolumeClaim:
-            claimName: lute-backup-pvc
+            claimName: lute-backup

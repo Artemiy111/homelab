@@ -1,7 +1,9 @@
+# Данные Paperless: один том, разбитый на подкаталоги через subPath
+# (data/media/export/consume). Имя по схеме <сервис>-<назначение>.
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: paperless-pvc
+  name: paperless-data
   namespace: paperless
 spec:
   storageClassName: longhorn-retain
@@ -9,4 +11,6 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 256Mi
+      # Документы, индекс поиска, логи и OCR-очередь. Сейчас ~16 МБ, запас под
+      # рост библиотеки и индекса; том расширяется на ходу (allowVolumeExpansion).
+      storage: 1Gi

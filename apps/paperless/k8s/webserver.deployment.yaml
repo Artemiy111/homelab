@@ -170,4 +170,4 @@ spec:
       volumes:
         - name: paperless-data
           persistentVolumeClaim:
-            claimName: paperless-pvc
+            claimName: paperless-data

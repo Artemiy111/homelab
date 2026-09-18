@@ -1,7 +1,16 @@
+# Данные Lute: том данных и том бэкапов.
+#
+# Схема имён — <сервис>-<назначение> (как forgejo-data): суффикс -pvc не нужен,
+# тип ресурса виден из объекта. Раньше тома были статическими local PV с
+# именами lute-data-pvc/lute-backup-pvc и путями /storage/apps/lute/data;
+# после перехода на Longhorn старые каталоги и PV удалены.
+#
+# Размеры не «на вырост», а по факту: lute.db с картинками — сотни килобайт,
+# бэкапы — десятки. Запас оставлен на историю ручных бэкапов и картинки.
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: lute-data-pvc
+  name: lute-data
   namespace: lute
 spec:
   storageClassName: longhorn-retain
@@ -9,12 +18,14 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 64Mi
+      storage: 256Mi
 ---
+# Каталог бэкапов Lute (Settings → backup_dir). Отдельный том, чтобы копии
+# переживали порчу данных и их можно было увести на другой носитель.
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: lute-backup-pvc
+  name: lute-backup
   namespace: lute
 spec:
   storageClassName: longhorn-retain
@@ -22,4 +33,4 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 64Mi
+      storage: 128Mi
