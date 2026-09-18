@@ -46,12 +46,16 @@ spec:
           rootless: true
         gitea:
           admin:
-            # Пароль — в SealedSecret'е apps/forgejo/k8s/admin.sealedsecret.yaml.
+            # Служебный админ forgejo-admin (почта admin@example.com), не
+            # личный аккаунт: роль в сервисе и человек — разные сущности.
+            # Логин не может быть `admin` — Forgejo резервирует это имя
+            # («name is reserved»). Пароль — в SealedSecret'е
+            # apps/forgejo/k8s/admin.sealedsecret.yaml.
             # keepUpdated перетирал бы пароль при каждом рестарте пода, поэтому
             # initialOnlyNoReset: выставляем один раз, дальше правит человек.
             existingSecret: forgejo-admin
             passwordMode: initialOnlyNoReset
-            email: user@example.com
+            email: admin@example.com
           config:
             server:
               # Наружу SSH отдаётся на 2222 (service.ssh.port ниже), внутри
@@ -59,6 +63,12 @@ spec:
               SSH_PORT: 2222
               SSH_LISTEN_PORT: 2222
               LFS_START_SERVER: true
+              # PROTOCOL — про листенер самого Forgejo, а не про внешний адрес:
+              # с `https` он пытается поднять TLS на :3000 и падает
+              # («Failed to load https cert file»). TLS терминирует Traefik,
+              # поэтому здесь http, а внешний адрес задаёт ROOT_URL.
+              PROTOCOL: http
+              ROOT_URL: https://forgejo.example.com
             database:
               DB_TYPE: postgres
               HOST: shared-rw.databases.svc.cluster.local
@@ -113,22 +123,13 @@ spec:
             port: 2222
             externalIPs:
               - 192.0.2.10
+        # Ingress — свой файл (k8s/traefik/forgejo.ingress.yaml), как у
+        # остальных сервисов. Встроенный выключен: он собирал ROOT_URL из
+        # наличия ingress.tls, а Argo считал объект нездоровым, потому что
+        # Traefik не пишет status.loadBalancer. Поэтому ROOT_URL и PROTOCOL
+        # заданы явно и не зависят от чарта.
         ingress:
-          enabled: true
-          className: traefik
-          annotations:
-            # Traefik не пишет status.loadBalancer у Ingress, а Argo считает
-            # такой Ingress вечно Progressing. Аннотация отключает проверку
-            # здоровья только у этого объекта; когда Ingress'ов под Argo
-            # станет много, чище завести resource.customizations.health
-            # в argocd-cm (k8s/argocd/values.yaml) и убрать аннотацию.
-            argocd.argoproj.io/ignore-healthcheck: "true"
-          hosts:
-            - host: forgejo.example.com
-              paths:
-                - path: /
-                  pathType: Prefix
-                  port: http
+          enabled: false
         resources:
           requests:
             cpu: 20m

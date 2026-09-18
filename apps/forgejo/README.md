@@ -59,16 +59,26 @@ app.ini через `FORGEJO__database__PASSWD` из `gitea.additionalConfigFromE
 | SealedSecret | Что внутри | Кто читает |
 |---|---|---|
 | `apps/forgejo/k8s/secrets.sealedsecret.yaml` | `POSTGRES_PASSWORD`, `FORGEJO_METRICS_TOKEN` | чарт (env → app.ini) |
-| `apps/forgejo/k8s/admin.sealedsecret.yaml` | `username`, `password` админа | чарт (init-контейнер) |
+| `apps/forgejo/k8s/admin.sealedsecret.yaml` | `username` (`forgejo-admin`), `password` админа | чарт (init-контейнер) |
 
 Перезапечатать можно только на сервере: `kubeseal` привязан к namespace и
 имени, а приватный ключ контроллера доступен лишь там
 (`docs/agents/server-access.md`).
 
-**Про пароль админа:** режим `initialOnlyNoReset` — чарт выставляет пароль при
-создании пользователя и больше его не трогает. Смени его после первого входа
-(Settings → Account → Password). Режим `keepUpdated` (дефолт чарта) не годится:
-он перетирал бы пароль при каждом рестарте пода.
+**Про админа:** это служебная учётка (`forgejo-admin`, почта
+`admin@example.com`), а не личный аккаунт человека: роль в сервисе и
+человек — разные сущности, у них разные пароли и разные последствия утечки.
+Логин `admin` использовать нельзя — Forgejo резервирует это имя («name is
+reserved»), поэтому имя с суффиксом сервиса; почта при этом короткая.
+
+Режим `initialOnlyNoReset`: чарт выставляет пароль при создании пользователя и
+больше его не трогает (режим `keepUpdated` перетирал бы пароль при каждом
+рестарте пода). Важно: чарт создаёт админа только если такого пользователя ещё
+нет — на живом стенде он его не создал, потому что в базе уже был другой админ;
+после пересоздания базы учётки заведены руками (`forgejo admin user create`).
+
+Пользователи: `forgejo-admin` (служебный админ) и `user` (личный, без прав
+админа).
 
 Осторожно с именами: чарт создаёт Secret с именем релиза (`forgejo`) для своих
 init-скриптов, поэтому секреты сервиса названы `forgejo-secrets` и
