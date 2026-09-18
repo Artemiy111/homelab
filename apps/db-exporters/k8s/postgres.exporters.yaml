@@ -419,9 +419,9 @@ spec:
               containerPort: 9187
           env:
             - name: DATA_SOURCE_URI
-              value: "immich-db-legacy:5432/immich?sslmode=disable"
+              value: "immich-db-rw.immich.svc.cluster.local:5432/immich?sslmode=disable"
             - name: DATA_SOURCE_USER
-              value: "postgres"
+              value: "immich"
             - name: DATA_SOURCE_PASS
               valueFrom:
                 secretKeyRef:
