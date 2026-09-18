@@ -2,7 +2,7 @@
 # Читается через configMapKeyRef из подов по имени `homelab-config`.
 #
 # ConfigMap привязан к namespace, поэтому сервису в своём namespace нужен свой
-# экземпляр — отсюда два документа ниже. Пока дублирование ручное: при переезде
+# экземпляр — отсюда документы ниже. Пока дублирование ручное: при переезде
 # сервиса в новый namespace сюда добавляется ещё один документ. Убирается это
 # reflector'ом (копирует по аннотации) или выносом значений в манифесты.
 #
@@ -28,6 +28,18 @@ kind: ConfigMap
 metadata:
   name: homelab-config
   namespace: paperless
+data:
+  DOMAIN: example.com
+  SERVER_IP: 192.0.2.10
+  TZ: Asia/Yekaterinburg
+  DEFAULT_LOCALE: ru
+  APPS_STORAGE_PATH: /storage/apps
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: homelab-config
+  namespace: structurizr
 data:
   DOMAIN: example.com
   SERVER_IP: 192.0.2.10
