@@ -4,8 +4,6 @@ metadata:
   name: mermaid-live-editor
 spec:
   ingressClassName: traefik
-  tls:
-    - secretName: wildcard-tls
   rules:
     - host: mermaid.example.com
       http:

@@ -7,8 +7,6 @@ metadata:
     traefik.ingress.kubernetes.io/router.middlewares: default-onlyoffice-xfp@kubernetescrd
 spec:
   ingressClassName: traefik
-  tls:
-    - secretName: wildcard-tls
   rules:
     - host: onlyoffice.example.com
       http:

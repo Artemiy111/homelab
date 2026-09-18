@@ -4,8 +4,6 @@ metadata:
   name: lute
 spec:
   ingressClassName: traefik
-  tls:
-    - secretName: wildcard-tls
   rules:
     - host: lute.example.com
       http:

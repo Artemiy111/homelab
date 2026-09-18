@@ -17,5 +17,3 @@ spec:
       services:
         - name: structurizr
           port: 80
-  tls:
-    secretName: wildcard-tls

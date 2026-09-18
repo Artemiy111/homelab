@@ -13,8 +13,6 @@ spec:
       services:
         - name: mailserver
           port: 8080
-  tls:
-    secretName: wildcard-tls
 ---
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
@@ -31,5 +29,3 @@ spec:
       services:
         - name: mail
           port: 3000
-  tls:
-    secretName: wildcard-tls

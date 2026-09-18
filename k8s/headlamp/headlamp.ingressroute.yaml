@@ -20,5 +20,3 @@ spec:
         - name: headlamp
           namespace: headlamp
           port: 80
-  tls:
-    secretName: wildcard-tls

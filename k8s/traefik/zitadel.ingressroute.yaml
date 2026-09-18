@@ -41,5 +41,3 @@ spec:
         - name: zitadel
           port: 8080
           scheme: h2c
-  tls:
-    secretName: wildcard-tls

@@ -16,5 +16,3 @@ spec:
       services:
         - name: netdata
           port: 80
-  tls:
-    secretName: wildcard-tls

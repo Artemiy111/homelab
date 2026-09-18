@@ -15,5 +15,3 @@ spec:
         - name: home-assistant
           port: 8123
           nativeLB: true
-  tls:
-    secretName: wildcard-tls

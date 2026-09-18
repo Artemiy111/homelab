@@ -16,5 +16,3 @@ spec:
       services:
         - name: wud
           port: 80
-  tls:
-    secretName: wildcard-tls

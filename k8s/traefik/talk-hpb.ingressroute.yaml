@@ -16,5 +16,3 @@ spec:
         - name: talk-hpb
           port: 8081
           nativeLB: true
-  tls:
-    secretName: wildcard-tls

@@ -13,5 +13,3 @@ spec:
       services:
         - name: technitium
           port: 5380
-  tls:
-    secretName: wildcard-tls

@@ -22,6 +22,12 @@ ports:
     protocol: TCP
   websecure:
     port: 8443
+    # TLS включён на самом entrypoint (chart-дефолт, но фиксируем явно, чтобы не
+    # зависеть молча). Маршруты не указывают `tls`: сертификат берётся из
+    # TLSStore default, единственная копия секрета — в namespace traefik.
+    http:
+      tls:
+        enabled: true
     expose:
       default: true
     protocol: TCP

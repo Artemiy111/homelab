@@ -4,8 +4,6 @@ metadata:
   name: uptime-kuma
 spec:
   ingressClassName: traefik
-  tls:
-    - secretName: wildcard-tls
   rules:
     - host: kuma.example.com
       http:

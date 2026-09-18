@@ -1,0 +1,10 @@
+# Стора с именем default — специальный: он глобальный, и при отсутствии
+# сертификата под запрошенный SNI Traefik отдаёт этот (traefik v3.7).
+apiVersion: traefik.io/v1alpha1
+kind: TLSStore
+metadata:
+  name: default
+  namespace: traefik
+spec:
+  defaultCertificate:
+    secretName: wildcard-tls

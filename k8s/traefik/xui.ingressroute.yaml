@@ -13,5 +13,3 @@ spec:
       services:
         - name: xui
           port: 2053
-  tls:
-    secretName: wildcard-tls

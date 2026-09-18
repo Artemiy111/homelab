@@ -5,8 +5,6 @@ metadata:
   namespace: default
 spec:
   ingressClassName: traefik
-  tls:
-    - secretName: wildcard-tls
   rules:
     - host: pdf.example.com
       http:

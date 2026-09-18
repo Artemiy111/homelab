@@ -20,5 +20,3 @@ spec:
           namespace: logging
           port: 5601
           serversTransport: kibana-insecure
-  tls:
-    secretName: wildcard-tls

@@ -17,5 +17,3 @@ spec:
       services:
         - name: victoriametrics
           port: 8428
-  tls:
-    secretName: wildcard-tls
