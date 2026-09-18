@@ -56,8 +56,8 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /data
+              subPath: data
       volumes:
         - name: data
-          hostPath:
-            path: /storage/apps/paperless/redis
-            type: Directory
+          emptyDir:
+            sizeLimit: 64Mi
