@@ -6,7 +6,9 @@
 # (local/cloudnative-pg-database.yaml):
 #   vector — тип vector и операторы (pgvector, есть в standard-образе);
 #   vchord — векторный индекс (бинари смонтированы образом — см. cluster);
-#   earthdistance, cube — contrib, нужны Immich для гео-поиска.
+#   earthdistance, cube — contrib, нужны Immich для гео-поиска;
+#   pg_trgm, unaccent — поисковые индексы (gin_trgm_ops по f_unaccent);
+#   uuid-ossp — uuid_generate_v4() в дефолтах множества таблиц.
 # Раньше здесь стояли имена из образа Immich (vectorchord, vectors), а не имена
 # расширений PostgreSQL — такие CREATE EXTENSION не нашёл бы.
 apiVersion: postgresql.cnpg.io/v1
@@ -29,4 +31,10 @@ spec:
     - name: earthdistance
       ensure: present
     - name: cube
+      ensure: present
+    - name: pg_trgm
+      ensure: present
+    - name: unaccent
+      ensure: present
+    - name: uuid-ossp
       ensure: present
