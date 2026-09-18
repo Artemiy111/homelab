@@ -1,6 +1,7 @@
 # NetworkPolicy для namespace баз: default-deny ingress плюс явные разрешения.
 # Оператор CNPG живёт в cnpg-system и обязан ходить в поды кластеров
 # (instance manager, PostgreSQL), поэтому ему разрешён весь трафик.
+# vmagent из monitoring скрейпит встроенный экспортёр instance-manager (9187).
 # Потребители общего кластера перечисляются явно: сейчас это paperless.
 # Egress не ограничивается — см. комментарий в apps/lute/k8s/networkpolicy.yaml.
 apiVersion: networking.k8s.io/v1
@@ -29,6 +30,16 @@ spec:
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: cnpg-system
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+          podSelector:
+            matchLabels:
+              app: vmagent
+      ports:
+        - port: 9187
+          protocol: TCP
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
