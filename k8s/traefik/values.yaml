@@ -40,6 +40,24 @@ metrics:
     service:
       enabled: true
 
+# Нативный health-endpoint entrypoint'а. Нужен, чтобы мониторинг проверял
+# живость Traefik без авторизации: панель /dashboard закрыта oauth2-proxy и
+# отдаёт 302 на логин, а каждый такой запрос создаёт auth request в Zitadel
+# (монитор раз в минуту — это ~1440 событий в eventstore в сутки).
+additionalArguments:
+  - --ping
+
+ingressRoute:
+  healthcheck:
+    # Публичный маршрут /ping на ping@internal. Чарт по умолчанию использует
+    # entrypoint traefik (внутренний, не опубликован), поэтому явно указываем
+    # websecure — тот же, что слушает 443 и остальные маршруты.
+    enabled: true
+    entryPoints:
+      - websecure
+    # TLS берётся из TLSStore default, как и у остальных маршрутов.
+    tls: {}
+
 ingressClass:
   enabled: true
   isDefaultClass: true
