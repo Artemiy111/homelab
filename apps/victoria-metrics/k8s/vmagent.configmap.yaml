@@ -38,7 +38,7 @@ data:
       - job_name: kube-state-metrics
         static_configs:
           - targets:
-              - kube-state-metrics.default.svc.cluster.local:8080
+              - kube-state-metrics.monitoring.svc.cluster.local:8080
 
       # kubelet и встроенный в него cAdvisor: ресурсы контейнеров и Pod'ов
       # (container_*). Цели находятся через service discovery (role: node) — по
