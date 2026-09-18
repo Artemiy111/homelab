@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: open-webui
-  namespace: default
+  namespace: open-webui
 spec:
   type: ClusterIP
   selector:

@@ -2,7 +2,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: local-ai
-  namespace: default
+  namespace: local-ai
 spec:
   ingressClassName: traefik
   rules:

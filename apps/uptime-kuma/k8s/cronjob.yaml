@@ -2,7 +2,7 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: uptime-kuma-sync
-  namespace: default
+  namespace: uptime-kuma
 spec:
   suspend: true
   schedule: "0 0 1 1 *"

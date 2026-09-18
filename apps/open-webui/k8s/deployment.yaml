@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: open-webui
-  namespace: default
+  namespace: open-webui
 spec:
   # hostPath-каталоги нельзя монтировать в два пода одновременно.
   strategy:

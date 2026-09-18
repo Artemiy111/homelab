@@ -185,7 +185,7 @@ data:
           credentials: "%{LOCALAI_API_KEY}"
         static_configs:
           - targets:
-              - local-ai:8080
+              - local-ai.local-ai.svc.cluster.local:8080
 
       # Home Assistant отдаёт /api/prometheus за Bearer-токеном.
       - job_name: home-assistant
@@ -202,7 +202,7 @@ data:
           password: "%{UPTIME_KUMA_METRICS_API_KEY}"
         static_configs:
           - targets:
-              - uptime-kuma:3001
+              - uptime-kuma.uptime-kuma.svc.cluster.local:3001
 
       # Секретный путь метрик Navidrome (ND_PROMETHEUS_ENABLED).
       - job_name: navidrome
