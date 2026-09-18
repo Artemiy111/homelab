@@ -1,0 +1,82 @@
+# MariaDB Operator — оператор MariaDB/MySQL: кластеры, репликация, Galera,
+# MaxScale, бэкапы, PITR, декларативные базы/пользователи.
+# Ставится официальным чартом mariadb-operator из
+# mariadb-operator.github.io/mariadb-operator; Argo рендерит его сам
+# (см. k8s/argocd/README.md).
+#
+# CRD у чарта вынесены в сабчарт mariadb-operator-crds и по умолчанию
+# выключены (crds.enabled: false). Включаем их здесь: тот же приём, что у
+# cloudnative-pg — один Application на оператора вместе с CRD. Вендор
+# предупреждает, что при этом удаление релиза снесёт все MariaDB-ресурсы;
+# от автоматического удаления защищает Prune=false ниже.
+#
+# Оператор кластерный (currentNamespaceOnly: false, дефолт): одна установка
+# обслуживает MariaDB во всех namespace. Поэтому namespace оператора
+# (mariadb-system) не совпадает с namespace баз — так и задумано.
+#
+# TLS вебхука: webhook.cert.certManager.enabled=false (дефолт), сертификаты
+# выпускает собственный cert-controller. cert-manager в кластере не нужен.
+#
+# Мониторинг: metrics.enabled оставлен дефолтным false. В кластере нет CRD
+# prometheus-operator (monitoring.coreos.com) — ServiceMonitor'ы некому
+# читать, а без metrics.enabled они и не рендерятся. Включим, когда
+# заведём скрейп метрик.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mariadb-operator
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://mariadb-operator.github.io/mariadb-operator
+    chart: mariadb-operator
+    targetRevision: 26.10.0
+    helm:
+      releaseName: mariadb-operator
+      valuesObject:
+        crds:
+          enabled: true
+        # Дефолт у чарта: resources: {} у всех трёх компонентов (operator,
+        # webhook, certController). Для однонодного кластера это плохо: без
+        # requests планировщик не знает, что размещает, а без limits
+        # разъехавшийся оператор способен вытеснить сами базы.
+        resources:
+          requests:
+            cpu: 50m
+            memory: 128Mi
+          limits:
+            cpu: "1"
+            memory: 512Mi
+        webhook:
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
+        certController:
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: mariadb-system
+  syncPolicy:
+    syncOptions:
+      # CRD оператора не лезут в last-applied-configuration при client-side
+      # apply. Как у cloudnative-pg и snapshot-controller.
+      - ServerSideApply=true
+      # Prune=false: CRD кластерные. Их удаление снесло бы все MariaDB
+      # (а с ними базы), поэтому авто-prune для этого приложения выключен.
+      - Prune=false
+      - CreateNamespace=true
+    automated:
+      # selfHeal оставляем: дрейф Deployment'ов оператора Argo вернёт сам.
+      # prune не включаем — см. выше.
+      selfHeal: true
