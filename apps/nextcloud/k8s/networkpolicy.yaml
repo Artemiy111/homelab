@@ -1,0 +1,61 @@
+# Базовый NetworkPolicy для namespace сервиса: default-deny ingress плюс
+# явные разрешения. Метрики отдают nextcloud-exporter (9205, скрейпит vmagent
+# из default) и экспортёры БД/Redis, которые пока остаются в default — им
+# разрешён доступ к nextcloud-db (5432) и nextcloud-redis (6379).
+# Egress не ограничивается.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: nextcloud
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress
+  namespace: nextcloud
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector: {}
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: traefik
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: default
+          podSelector:
+            matchLabels:
+              app: vmagent
+      ports:
+        - port: 9205
+          protocol: TCP
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: default
+          podSelector:
+            matchLabels:
+              app: nextcloud-db-exporter
+      ports:
+        - port: 5432
+          protocol: TCP
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: default
+          podSelector:
+            matchLabels:
+              app: nextcloud-redis-exporter
+      ports:
+        - port: 6379
+          protocol: TCP

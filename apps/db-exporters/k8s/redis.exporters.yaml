@@ -384,7 +384,7 @@ spec:
               containerPort: 9121
           env:
             - name: REDIS_ADDR
-              value: "redis://nextcloud-redis:6379"
+              value: "redis://nextcloud-redis.nextcloud.svc.cluster.local:6379"
           livenessProbe:
             httpGet:
               path: /metrics

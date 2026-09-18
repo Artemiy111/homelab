@@ -172,7 +172,7 @@ data:
       - job_name: nextcloud
         static_configs:
           - targets:
-              - nextcloud-exporter:9205
+              - nextcloud-exporter.nextcloud.svc.cluster.local:9205
 
       # Приложения с аутентификацией (креды из окружения).
 

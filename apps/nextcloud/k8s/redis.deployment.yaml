@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: nextcloud-redis
-  namespace: default
+  namespace: nextcloud
 spec:
   strategy:
     type: Recreate

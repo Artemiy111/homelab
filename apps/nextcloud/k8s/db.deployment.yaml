@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: nextcloud-db
-  namespace: default
+  namespace: nextcloud
 spec:
   strategy:
     type: Recreate

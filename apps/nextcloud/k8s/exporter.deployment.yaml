@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: nextcloud-exporter
-  namespace: default
+  namespace: nextcloud
 spec:
   revisionHistoryLimit: 2
   replicas: 1
