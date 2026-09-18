@@ -23,6 +23,11 @@ healthcheck по `http://127.0.0.1:5001/`.
 
 ## Хранилище
 
+Сервис живёт в собственном namespace `lute` (`apps/lute/k8s/namespace.yaml`), как
+paperless/immich/zitadel. Оба тома — динамические PVC на Longhorn
+(`storageClassName: longhorn-retain`, `apps/lute/k8s/pvcs.yaml`): данные лежат в
+Longhorn-томах, а не на путях хоста.
+
 Два тома вместо одного:
 
 - `lute-data-pvc` → `/lute_data` — сама база `lute.db`, картинки, плагины;

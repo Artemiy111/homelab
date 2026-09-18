@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: lute
+  namespace: lute
 spec:
   revisionHistoryLimit: 2
   replicas: 1
