@@ -20,7 +20,7 @@ spec:
       initContainers:
         - name: wait-for-db
           image: "mariadb:10.11@sha256:8020e05c4c498d06c87f0a1db010eb79bd6f8fb30e9b763d4690c34ce1e61008"
-          command: ["/bin/sh", "-c", "until mariadb-admin ping -h seafile-db -P 3306 --silent; do echo waiting for seafile-db; sleep 3; done"]
+          command: ["/bin/sh", "-c", "until mariadb-admin ping -h seafile-mariadb -P 3306 --silent; do echo waiting for seafile-mariadb; sleep 3; done"]
           securityContext:
             runAsUser: 999
             runAsGroup: 999
@@ -115,7 +115,7 @@ spec:
             - name: INIT_SEAFILE_ADMIN_EMAIL
               value: "admin@$(DOMAIN)"
             - name: SEAFILE_MYSQL_DB_HOST
-              value: seafile-db
+              value: seafile-mariadb
             - name: SEAFILE_MYSQL_DB_PORT
               value: "3306"
             - name: SEAFILE_MYSQL_DB_USER
