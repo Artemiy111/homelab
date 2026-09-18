@@ -1,8 +1,10 @@
 # Seafile (homelab)
 
-Seafile CE в Kubernetes k0s с SSO через Zitadel и OnlyOffice. Этот каталог —
-всё, что касается Seafile: compose-стек, конфиги и **пост-старт патчи**, без
-которых SSO не работает «из коробки».
+Seafile CE в Kubernetes k0s с SSO через Zitadel и OnlyOffice.
+
+Источник истины — манифесты в `k8s/`. Файлы `compose.yaml`, `init.sh`,
+`init-postinstall.sh` и `patches/` — наследие эпохи Docker Compose, в кластере
+не используются (см. «Наследие compose»).
 
 ## Архитектура
 
@@ -10,22 +12,66 @@ Seafile CE в Kubernetes k0s с SSO через Zitadel и OnlyOffice. Этот �
 Zitadel (id.example.com)
    │  OIDC / generic OAuth2 (authorization code)
    ▼
-Seafile (seafile.example.com)  ── seahub_oauth.py
-   │  файлы
+Seafile (seafile.example.com)          ── seahub_oauth.py
+   │  файлы                                  ── seahub_onlyoffice.py
    ▼
-OnlyOffice (в том же стеке)         ── seahub_onlyoffice.py
+OnlyOffice (seafile/k8s/onlyoffice.*)
+
+MariaDB seafile-mariadb  ←  mariadb-operator
 ```
 
 - **Zitadel** — IdP. Приложение типа «generic OAuth» (не Seafile-специфичное),
   потому что Seafile CE умеет только generic OAuth2, а не OIDC-дискавери.
-- **Seafile** — `seafileltd/seafile-mc` (community edition, single-container,
-  включает seafile + seahub + mysql + OnlyOffice-connector).
-- **OnlyOffice** — отдельный контейнер в этом же compose-стеке; подключается
-  через примонтированный `seahub_onlyoffice.py`.
+- **Seafile** — `seafileltd/seafile-mc:13.0.25`, Deployment `seafile`.
+- **OnlyOffice** — отдельный Deployment в этом же namespace; подключается через
+  примонтированный `seahub_onlyoffice.py`.
+- **Redis** — `valkey/valkey:9-alpine`, Deployment `seafile-redis`.
+- **БД** — MariaDB-инстанс `seafile-mariadb` под mariadb-operator.
 
-Конфиги (`seahub_oauth.py`, `seahub_onlyoffice.py`) примонтированы в контейнер
-read-only из репо и дописываются в `seahub_settings.py` при пост-старте
-(маркеры `BEGIN HOMELAB OAUTH` / `BEGIN HOMELAB ONLYOFFICE`).
+Конфиги `seahub_oauth.py` и `seahub_onlyoffice.py` примонтированы read-only из
+репо (hostPath) и подключаются в `seahub_settings.py` по маркерам
+`BEGIN HOMELAB OAUTH` / `BEGIN HOMELAB ONLYOFFICE`.
+
+## База данных (mariadb-operator)
+
+Инстанс и SQL-ресурсы объявлены в `../mariadb/`:
+
+| Ресурс | Что создаёт |
+|--------|-------------|
+| `MariaDB seafile-mariadb` | сам инстанс, Service `seafile-mariadb:3306` |
+| `Database ccnet-db / seafile-db / seahub-db` | `ccnet_db`, `seafile_db`, `seahub_db` |
+| `User seafile` + 3 `Grant` | пользователь `seafile` с `ALL PRIVILEGES` на три БД |
+
+- Приложение ходит по env `SEAFILE_MYSQL_DB_HOST=seafile-mariadb` под
+  пользователем `seafile`, который имеет `ALL PRIVILEGES` **только на три БД**.
+- root знает только оператор (через `rootPasswordSecretKeyRef` на
+  `seafile/INIT_SEAFILE_MYSQL_ROOT_PASSWORD`). Приложению root на рантайме не
+  нужен: Seafile пропускает bootstrap, если `/shared/seafile` уже инициализирован
+  (в логах `Skip running setup-seafile-mysql.py because there is existing
+  seafile-data folder`).
+- Storage — Longhorn `longhorn-retain`, 512Mi.
+
+Раньше БД была обычным Deployment `seafile-db` на hostPath
+`/storage/apps/seafile/mysql`. Мигрировано на оператор (logical dump → restore),
+старый Deployment/Service и каталог удалены.
+
+### Бэкап и восстановление
+
+Дамп (на сервере):
+
+```sh
+kubectl -n seafile exec -i seafile-mariadb-0 -- sh -c \
+  'mariadb-dump -uroot -p"$MARIADB_ROOT_PASSWORD" --single-transaction \
+   --routines --events --triggers --databases ccnet_db seafile_db seahub_db' \
+  > /storage/apps/seafile/backups/seafile-$(date +%F).sql
+```
+
+Восстановление в уже существующие БД (root-пароль доступен в поде через env):
+
+```sh
+kubectl -n seafile exec -i seafile-mariadb-0 -- sh -c \
+  'mariadb -uroot -p"$MARIADB_ROOT_PASSWORD"' < <dump>.sql
+```
 
 ## Почему нужны патчи
 
@@ -54,33 +100,38 @@ Seafile CE делает две вещи, ломающие нормальный S
    детерминированно: `user@` и любой другой никогда не станут админом,
    независимо от порядка входа.
 
-## Патч-файлы (`apps/seafile/patches/`)
+### Применение в k8s
+
+Патчи накладываются при старте пода. Контейнер `seafile` обёрнут в
+`apps/seafile/prepare-seahub.sh` (override `command` в
+`k8s/seafile.deployment.yaml`); скрипт до запуска seahub:
+
+1. подключает `seahub_oauth.py` / `seahub_onlyoffice.py` в `seahub_settings.py`
+   (идемпотентно, по маркерам);
+2. накладывает патчи из примонтированного каталога `patches/` (идемпотентно:
+   уже применённый патч пропускается, расхождение контекста — громкая ошибка,
+   и под не стартует).
+
+Init-контейнером это не сделать: код seahub лежит в слое образа, а не на общем
+томе, поэтому подменяется `command` основного контейнера. Патч promotion читает
+`INIT_SEAFILE_ADMIN_EMAIL` из env — переменная обязана оставаться в манифесте.
+
+### Патч-файлы (`apps/seafile/patches/`)
 
 Патчи — это настоящие unified diff, сгенерированные из ванильного кода образа и
-пропатченного. Версия Seafile на момент написания: **13.0.25**.
+пропатченного. Версия Seafile: **13.0.25**.
 
 | Файл | Меняет |
 |------|--------|
 | `seahub-base-accounts.patch` | `UserManager.create_user` → реальный email как логин |
 | `seahub-oauth-views.patch` | `oauth_callback`: JIT + `_any_staff_user` (через `User.objects.get_superusers()`) + admin-email promotion |
 
-Применяются в `init-postinstall.sh` через:
+`patch -N` делает применение идемпотентным: уже применённый патч — no-op
+(«previously applied», пропуск), а расхождение контекста (новая версия Seafile) —
+громкая ошибка, а не «тихое» применение не туда. Пути в патче относительны
+`seafile-server-latest/seahub`; применяем с `-p1` из этого каталога.
 
-```bash
-docker cp apps/seafile/patches/<name>.patch seafile:/tmp/<name>.patch
-docker exec seafile patch -N -p1 -d /opt/seafile/seafile-server-latest/seahub -i /tmp/<name>.patch
-```
-
-`patch -N` делает применение **идемпотентным**: уже применённый патч — no-op
-(сообщение «previously applied», пропуск), а расхождение контекста (новая версия
-Seafile) — громкая ошибка, а не «тихое» применение не туда.
-
-Пути в патче относительны `seahub-server-latest/seahub`; применяем с `-p1`
-именно из этого каталога.
-
-## Как пересобрать патч при апгрейде Seafile
-
-Патч версионно-зависим (как и было). При смене тега образа:
+### Как пересобрать патч при апгрейде Seafile
 
 ```bash
 IMG=seafileltd/seafile-mc:<new-version>
@@ -102,27 +153,26 @@ diff -u --label a/seahub/base/accounts.py --label b/seahub/base/accounts.py /tmp
 Если контекст ушёл — `patch` упадёт при пост-старте, и патч надо обновить
 вручную (подправить hunks под новый код).
 
-## Пост-старт (`init-postinstall.sh`)
+## Наследие compose
 
-Запускается ПОСЛЕ `docker compose up -d` (контейнер уже работает). Порядок:
+Файлы `compose.yaml`, `init.sh`, `init-postinstall.sh`, `patches/`,
+`secrets.enc.env` — от прежнего Docker Compose-развёртывания. В кластере
+не участвуют, но сохранены как референс (в частности, знание о патчах и логике
+SSO). `init.sh` по-прежнему создаёт каталоги в `/storage/apps/seafile`
+(`shared`, `backups`, `onlyoffice`).
+
+Порядок пост-старта в compose (`init-postinstall.sh`), если понадобится
+воспроизвести:
 
 1. Дописывает `seahub_onlyoffice.py` и `seahub_oauth.py` в `seahub_settings.py`
    (идемпотентно по маркерам).
-2. Применяет оба патча (`apply_patch`, см. выше).
+2. Применяет оба патча.
 3. Мигрирует старых юзеров с `@auth.local`:
    `EmailUser.email = Profile.contact_email`, синхронизирует `profile_profile.user`.
-   Трогает только `@auth.local`, повторные запуски — no-op.
-4. Удаляет bootstrap-admin (`admin@<DOMAIN>`) по всем таблицам, чтобы первый
-   Zitadel-вход под этим email стал админом. Entrypoint Seafile создаёт
-   bootstrap-admin **асинхронно после старта**, поэтому перед удалением скрипт
-   ждёт появления аккаунта (цикл ~120с), иначе удаление прошло бы мимо.
-5. `docker restart seafile` — подхватить патчи и настройки.
-
-Запуск (на сервере, от `artlab`, через обёртку compose):
-
-```bash
-bash scripts/compose.sh seafile run --rm init-postinstall   # или service_run
-```
+4. Удаляет bootstrap-admin (`admin@<DOMAIN>`), чтобы первый Zitadel-вход под этим
+   email стал админом. Entrypoint создаёт bootstrap-admin асинхронно после
+   старта, поэтому скрипт ждёт появления аккаунта (~120с).
+5. `docker restart seafile`.
 
 ## Грабли (пойманные баги)
 
@@ -136,22 +186,15 @@ bash scripts/compose.sh seafile run --rm init-postinstall   # или service_run
 - **Тихий `except`** в патчах чужого кода маскирует реальные ошибки — проверяй,
   что вызываемый метод реально существует в рантайме.
 - **`docker exec python - <<'HEREDOC'` без `-i`** молча скипает stdin → патч не
-  применяется, без ошибки. Теперь используем файлы патчей, эта ловушка устранена.
+  применяется, без ошибки. Поэтому патчи вынесены в файлы.
 - **Симлинк `seafile-server-latest`** создаётся entrypoint только в рантайме
   контейнера; в свежем образе его нет — берём версионированный путь.
-- **`docker compose` schema validation** падает с `stat .: permission denied`,
-  если cwd недоступен пользователю `artlab`. Запускай через
-  `cd /home/artlab/projects/homelab && bash scripts/compose.sh seafile ...`.
-
-## Воспроизводимость
-
-Стек хранит данные в bind-мount (`/storage/apps/seafile/mysql`, `.../shared`),
-не в named volumes. `docker compose up -d --force-recreate` пересоздаёт
-контейнер из образа (сбрасывая патчи в коде) — `init-postinstall.sh` заново
-применяет патчи, миграцию и удаляет bootstrap-admin. Полный сброс БД:
-
-```bash
-docker compose down
-sudo -u artlab docker run --rm -v /storage/apps/seafile:/data alpine rm -rf /data/mysql /data/shared
-docker compose up -d && bash scripts/compose.sh seafile run --rm init-postinstall
-```
+- **k8s env-конфиг не персистится в `conf/`.** Хост БД Seafile 13 читает из env
+  (`seahub/settings.py`, `seafevents`), а не из `seafile.conf`/`seahub_settings.py`.
+  Смена `SEAFILE_MYSQL_DB_HOST` + рестарт пода достаточна для переключения БД.
+- **NetworkPolicy `seafile` — default-deny.** Оператор ходит в БД из namespace
+  `mariadb-system`; ему нужен явный ingress на 3306 (см. `k8s/networkpolicy.yaml`),
+  иначе SQL-ресурсы не сходятся с `i/o timeout`.
+- **`kubectl exec -i` в `bash -s`-скрипте съедает остаток stdin.** Если гоняешь
+  многошаговый скрипт через `ssh ... bash -s`, не используй `-i` без явного
+  `< /dev/null`/`< file`, иначе следующие строки скрипта уйдут в stdin команды.
