@@ -2,8 +2,8 @@
 # разрешения. Специфика 3x-ui — порты наружу через externalIPs:
 #   - 8443 (inbound Xray) должен принимать клиентов из интернета, поэтому
 #     разрешаем 0.0.0.0/0; default-deny здесь всё равно ограничивает остальное;
-#   - 8440 (forward proxy) нужен gatus из default;
-#   - панель 2053 доступна только через traefik.
+#   - 8440 (forward proxy) нужен мониторингу — gatus и uptime-kuma;
+#   - панель 2053 доступна только через traefik и мониторингу.
 # Egress не ограничивается.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -38,6 +38,13 @@ spec:
       ports:
         - port: 8440
           protocol: TCP
+        - port: 2053
+          protocol: TCP
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: uptime-kuma
+      ports:
         - port: 2053
           protocol: TCP
     - from:
