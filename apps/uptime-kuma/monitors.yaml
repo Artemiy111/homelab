@@ -8,12 +8,12 @@ monitors:
     interval: 60
     maxretries: 2
   - name: Traefik
-    description: Пользовательский HTTPS-маршрут панели Traefik; ответ 401 без
-      учётных данных считается нормальным.
+    description: Нативный health endpoint Traefik (/ping) через локальный DNS, TLS
+      и Traefik. Панель /dashboard закрыта oauth2-proxy и на неавторизованный
+      запрос отдаёт 302 на логин, создавая auth request в Zitadel; /ping
+      проверяет живость без авторизации.
     type: http
-    url: https://traefik.{{DOMAIN}}/dashboard/
-    accepted_statuscodes:
-      - "401"
+    url: https://traefik.{{DOMAIN}}/ping
     interval: 60
     maxretries: 2
   - name: Jitsi Meet
