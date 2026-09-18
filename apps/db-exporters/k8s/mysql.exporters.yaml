@@ -2,18 +2,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: seafile-db-exporter
+  name: seafile-mariadb-exporter
   namespace: seafile
 spec:
   revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
-      app: seafile-db-exporter
+      app: seafile-mariadb-exporter
   template:
     metadata:
       labels:
-        app: seafile-db-exporter
+        app: seafile-mariadb-exporter
     spec:
       enableServiceLinks: false
       containers:
@@ -65,12 +65,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: seafile-db-exporter
+  name: seafile-mariadb-exporter
   namespace: seafile
 spec:
   type: ClusterIP
   selector:
-    app: seafile-db-exporter
+    app: seafile-mariadb-exporter
   ports:
     - name: metrics
       port: 9104

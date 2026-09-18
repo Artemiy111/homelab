@@ -65,7 +65,7 @@ MariaDB | `mysqld-exporter` (`v0.20.0`) | 9104 | 1
 
 ### MariaDB (1)
 
-`seafile-db-exporter` → `seafile-mariadb:3306` (MariaDB-инстанс под
+`seafile-mariadb-exporter` → `seafile-mariadb:3306` (MariaDB-инстанс под
 mariadb-operator), пользователь `root`, пароль из Secret
 `seafile`/`INIT_SEAFILE_MYSQL_ROOT_PASSWORD` (через `MYSQLD_EXPORTER_PASSWORD`).
 
@@ -78,7 +78,7 @@ kubectl apply -f apps/db-exporters/k8s/
 Проверка, что все экспортеры живы:
 
 ```sh
-kubectl get pods -l 'app in (dawarich-db-exporter,seafile-db-exporter)'
+kubectl get pods -l 'app in (dawarich-db-exporter,seafile-mariadb-exporter)'
 ```
 
 Состояние целей в VictoriaMetrics (ожидаем `1` для всех инстансов):

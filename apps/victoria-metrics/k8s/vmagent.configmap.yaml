@@ -310,4 +310,4 @@ data:
       - job_name: mysql
         static_configs:
           - targets:
-              - seafile-db-exporter.seafile.svc.cluster.local:9104
+              - seafile-mariadb-exporter.seafile.svc.cluster.local:9104
