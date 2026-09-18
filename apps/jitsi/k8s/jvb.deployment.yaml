@@ -57,9 +57,8 @@ spec:
           env:
             - name: SERVER_IP
               valueFrom:
-                configMapKeyRef:
-                  name: homelab-config
-                  key: SERVER_IP
+                fieldRef:
+                  fieldPath: status.hostIP
             - name: DOMAIN
               valueFrom:
                 configMapKeyRef:

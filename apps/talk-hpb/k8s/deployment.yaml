@@ -56,9 +56,8 @@ spec:
                   key: DOMAIN
             - name: SERVER_IP
               valueFrom:
-                configMapKeyRef:
-                  name: homelab-config
-                  key: SERVER_IP
+                fieldRef:
+                  fieldPath: status.hostIP
             - name: TZ
               valueFrom:
                 configMapKeyRef:
