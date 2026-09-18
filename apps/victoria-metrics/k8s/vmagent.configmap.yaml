@@ -150,7 +150,7 @@ data:
             - prometheus
         static_configs:
           - targets:
-              - vault:8200
+              - vault.vault.svc.cluster.local:8200
 
       - job_name: infisical
         static_configs:
@@ -266,7 +266,7 @@ data:
               - infisical-postgres-exporter:9187
               - nextcloud-db-exporter:9187
               - paperless-db-exporter.paperless.svc:9187
-              - postgres-db:9187
+              - postgres-db.postgres.svc.cluster.local:9187
               - sure-db-exporter:9187
               - zitadel-postgres-exporter:9187
 

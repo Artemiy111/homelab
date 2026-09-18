@@ -173,3 +173,23 @@ data:
   DOMAIN: example.com
   TZ: Asia/Yekaterinburg
   DEFAULT_LOCALE: ru
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: homelab-config
+  namespace: rustfs
+data:
+  DOMAIN: example.com
+  TZ: Asia/Yekaterinburg
+  DEFAULT_LOCALE: ru
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: homelab-config
+  namespace: vault
+data:
+  DOMAIN: example.com
+  TZ: Asia/Yekaterinburg
+  DEFAULT_LOCALE: ru

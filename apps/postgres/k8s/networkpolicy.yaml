@@ -1,0 +1,39 @@
+# Базовый NetworkPolicy для namespace сервиса: default-deny ingress плюс
+# явные разрешения. Метрики отдаёт postgres-exporter-сайдкар (9187), скрейпит
+# vmagent из default. Egress не ограничивается.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: postgres
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress
+  namespace: postgres
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector: {}
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: traefik
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: default
+          podSelector:
+            matchLabels:
+              app: vmagent
+      ports:
+        - port: 9187
+          protocol: TCP

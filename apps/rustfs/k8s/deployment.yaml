@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: rustfs
-  namespace: default
+  namespace: rustfs
 spec:
   # hostPath-каталоги нельзя монтировать в два пода одновременно.
   strategy:

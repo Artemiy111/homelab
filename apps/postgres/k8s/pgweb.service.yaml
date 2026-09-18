@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: postgres-pgweb
-  namespace: default
+  namespace: postgres
 spec:
   type: ClusterIP
   selector:
