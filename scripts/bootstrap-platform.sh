@@ -42,7 +42,6 @@ else
     jellyfin
     jitsi
     local-ai
-    lute
     mermaid-live-editor
     navidrome
     netdata
