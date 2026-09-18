@@ -250,25 +250,49 @@ data:
           - targets:
               - mailserver.mailserver.svc.cluster.local:8080
 
-      # Базы данных: экспортеры по одному на инстанс (apps/db-exporters),
-      # у playground-базы экспортер — сайдкар в поде базы (apps/postgres), поэтому
-      # цель — сервис базы, а не отдельный экспортер.
+      # CNPG: встроенный экспортёр instance-manager отдаёт /metrics на порту
+      # metrics (9187) каждого пода кластера; цели находятся service discovery
+      # (role: pod) по метке cnpg.io/cluster, поэтому новые кластеры не требуют
+      # правки конфига. Базы внутри одного кластера различаются по datname.
+      - job_name: cnpg
+        kubernetes_sd_configs:
+          - role: pod
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_cnpg_io_cluster]
+            regex: ".+"
+            action: keep
+          - source_labels: [__meta_kubernetes_pod_container_port_name]
+            regex: metrics
+            action: keep
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: namespace
+          - source_labels: [__meta_kubernetes_pod_label_cnpg_io_cluster]
+            target_label: cluster
+          - source_labels: [__meta_kubernetes_pod_label_cnpg_io_podRole]
+            target_label: role
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod
+        metric_relabel_configs:
+          # Служебные базы (initdb app, postgres, шаблоны) не мониторим.
+          - source_labels: [datname]
+            regex: "template0|template1|postgres|app"
+            action: drop
+
+      # Базы вне CNPG: экспортёры по одному на инстанс (apps/db-exporters),
+      # у playground-базы экспортёр — сайдкар в поде базы (apps/postgres), поэтому
+      # цель — сервис базы, а не отдельный экспортёр.
       # instance = адрес цели, т.е. какая это база.
       - job_name: postgres
         static_configs:
           - targets:
               - authentik-postgresql-exporter.authentik.svc.cluster.local:9187
-              - dawarich-db-exporter.dawarich.svc.cluster.local:9187
               - element-db-exporter.element.svc.cluster.local:9187
               - forgejo-db-exporter.forgejo.svc.cluster.local:9187
               - glitchtip-postgres-exporter.glitchtip.svc.cluster.local:9187
-              - immich-db-exporter.immich.svc.cluster.local:9187
               - infisical-postgres-exporter.infisical.svc.cluster.local:9187
               - nextcloud-db-exporter.nextcloud.svc.cluster.local:9187
-              - paperless-db-exporter.paperless.svc.cluster.local:9187
               - postgres-db.postgres.svc.cluster.local:9187
               - sure-db-exporter.sure.svc.cluster.local:9187
-              - zitadel-postgres-exporter.zitadel.svc.cluster.local:9187
 
       - job_name: redis
         static_configs:

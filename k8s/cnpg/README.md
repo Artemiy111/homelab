@@ -359,11 +359,15 @@ kubectl -n databases exec shared-1 -c postgres -- \
 ## Что ещё не сделано
 
 - **Метрики.** У оператора нет CRD prometheus-operator, поэтому PodMonitor не
-  используется. Нужен job в `apps/victoria-metrics/config/vmagent/scrape.yml`
-  через Kubernetes service discovery по подам: keep по порту `metrics`,
-  лейблы `cluster`/`role` из `cnpg.io/cluster` и `cnpg.io/podRole`, фильтрация
-  по `datname`. После этого job `postgres` и `apps/db-exporters/k8s/*` можно
-  сокращать по мере миграции.
+  используется. Вместо него — job `cnpg` в
+  `apps/victoria-metrics/k8s/vmagent.configmap.yaml`: service discovery по подам,
+  keep по порту `metrics`, лейблы `cluster`/`role` из `cnpg.io/cluster` и
+  `cnpg.io/podRole`, служебные базы (`template*`, `postgres`, `app`) отброшены
+  по `datname`. Для баз на CNPG отдельные экспортёры
+  (`apps/db-exporters/k8s/postgres.exporters.yaml`) больше не нужны: они сняты
+  для `immich`, `dawarich`, `zitadel` и `paperless`. Остальные (`authentik`,
+  `element`, `forgejo`, `glitchtip`, `nextcloud`, `infisical`, `sure`) — до их
+  переезда.
 - **Бэкапы.** Ради них всё и затевается: ObjectStore/ScheduledBackup в rustfs
   (S3-совместимый) + **Barman Cloud Plugin** дают непрерывные бэкапы и PITR
   вместо текущего «dump перед restic». В `standard`-образах бинарей Barman нет

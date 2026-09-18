@@ -4,6 +4,8 @@
 # Токен монтируется в под автоматически (automountServiceAccountToken).
 # nodes list/watch нужны service discovery (role: node), который находит
 # цели kubelet по нодам — кластер может расти без правки конфига.
+# pods list/watch — для service discovery CNPG (role: pod): цели находятся по
+# метке cnpg.io/cluster, поэтому новые кластеры не требуют правки scrape.yml.
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -16,7 +18,7 @@ metadata:
   name: vmagent-node-metrics
 rules:
   - apiGroups: [""]
-    resources: ["nodes"]
+    resources: ["nodes", "pods"]
     verbs: ["get", "list", "watch"]
   - apiGroups: [""]
     resources: ["nodes/metrics", "nodes/stats"]
