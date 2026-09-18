@@ -811,14 +811,14 @@ spec:
               containerPort: 9187
           env:
             - name: DATA_SOURCE_URI
-              value: "zitadel-postgres-legacy:5432/zitadel?sslmode=disable"
+              value: "zitadel-db-rw.zitadel.svc.cluster.local:5432/zitadel?sslmode=disable"
             - name: DATA_SOURCE_USER
-              value: "postgres"
+              value: "zitadel"
             - name: DATA_SOURCE_PASS
               valueFrom:
                 secretKeyRef:
                   name: zitadel
-                  key: POSTGRES_ADMIN_PASSWORD
+                  key: POSTGRES_ZITADEL_PASSWORD
           livenessProbe:
             httpGet:
               path: /metrics

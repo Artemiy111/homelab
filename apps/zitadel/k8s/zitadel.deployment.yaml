@@ -81,7 +81,7 @@ spec:
             - name: ZITADEL_TLS_ENABLED
               value: "false"
             - name: ZITADEL_DATABASE_POSTGRES_DSN
-              value: "postgres://zitadel:$(POSTGRES_ZITADEL_PASSWORD)@zitadel-postgres-legacy:5432/zitadel?sslmode=disable"
+              value: "postgres://zitadel:$(POSTGRES_ZITADEL_PASSWORD)@zitadel-db-rw.zitadel.svc.cluster.local:5432/zitadel?sslmode=disable"
             - name: ZITADEL_FIRSTINSTANCE_ORG_HUMAN_USERNAME
               value: admin
             - name: ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORD
