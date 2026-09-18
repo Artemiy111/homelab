@@ -74,7 +74,7 @@ services:
     shm_size: 1g
 
   app:
-    image: freikin/dawarich:${DAWARICH_VERSION:-1.11.0}
+    image: freikin/dawarich:${DAWARICH_VERSION:-1.14.5}
     container_name: dawarich-app
 
     depends_on:
@@ -139,7 +139,7 @@ services:
     init: true
 
   sidekiq:
-    image: freikin/dawarich:${DAWARICH_VERSION:-1.11.0}
+    image: freikin/dawarich:${DAWARICH_VERSION:-1.14.5}
     container_name: dawarich-sidekiq
 
     depends_on:

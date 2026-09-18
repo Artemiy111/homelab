@@ -23,7 +23,7 @@ CR» в одном Application не гарантирован.
 | `shared` | `databases` | `authentik` (тестовый стенд) | `authentik` | 115 МБ |
 | `zitadel-db` | `zitadel` | `zitadel` | `zitadel` | 20 МБ |
 | `immich-db` | `immich` | `immich` | `immich` | 287 МБ |
-| `dawarich-db` | `dawarich` | `dawarich_production` | `dawarich` | 93 МБ |
+| `dawarich-db` | `dawarich` | `dawarich` | `dawarich` | 93 МБ |
 
 Не входят: `sure` (PostgreSQL 16) и `infisical` (PostgreSQL 14) — сначала
 апгрейд версии, потом перенос; `seafile` — это MariaDB, CNPG не про неё.
@@ -148,8 +148,9 @@ CRI-O 1.31+, чарт CNPG 0.26.0+. Расширение объявляется 
 - **Имя роли `postgres` зарезервировано оператором.** Immich и sure сейчас
   ходят под `postgres`; для них заведена роль `immich` (sure — при переносе).
   Значит у сервиса меняются не только хост, но и пользователь.
-- **Имена баз ≠ имена сервисов** у sure (`sure_production`) и dawarich
-  (`dawarich_production`).
+- **Имена баз ≠ имена сервисов** у sure (`sure_production`). Dawarich при
+  переносе переименован из `dawarich_production` в `dawarich`: суффикс шёл от
+  `RAILS_ENV`, а среда в homelab одна.
 - **Суперпользователь сервису не нужен.** `zitadel` и так работал
   непривилегированной ролью; Immich нужен был суперпользователь только ради
   `CREATE EXTENSION` — это закрывает `Database.spec.extensions`, где расширение

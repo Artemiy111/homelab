@@ -103,7 +103,7 @@ spec:
               containerPort: 9187
           env:
             - name: DATA_SOURCE_URI
-              value: "dawarich-db-legacy:5432/dawarich_production?sslmode=disable"
+              value: "dawarich-db-rw.dawarich.svc.cluster.local:5432/dawarich?sslmode=disable"
             - name: DATA_SOURCE_USER
               value: "dawarich"
             - name: DATA_SOURCE_PASS

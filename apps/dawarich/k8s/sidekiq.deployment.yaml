@@ -19,7 +19,7 @@ spec:
       initContainers:
         - name: wait-for-db
           image: "postgis/postgis:17-3.5-alpine@sha256:61cb994f576480f5736974e5c9aff965d039d965301bcaec9c7ea72f94b61908"
-          command: ["/bin/sh", "-c", "until pg_isready -h dawarich-db-legacy -p 5432 -U dawarich; do echo waiting for dawarich-db; sleep 2; done"]
+          command: ["/bin/sh", "-c", "until pg_isready -h dawarich-db-rw.dawarich.svc.cluster.local -p 5432 -U dawarich; do echo waiting for dawarich-db; sleep 2; done"]
           securityContext:
             runAsUser: 70
             runAsGroup: 70
@@ -56,7 +56,7 @@ spec:
               cpu: 100m
               memory: 64Mi
         - name: wait-for-app
-          image: "freikin/dawarich:1.11.0@sha256:4e3c55c4cd572373624e75c9e02075ff436c83a3ea952595ae0d4ffc4c7ae52b"
+          image: "freikin/dawarich:1.14.5@sha256:23b4e3190bcf8dcdaaa3a17868977b760370a84a325229183d6f8f81cba3495a"
           command: ["/bin/sh", "-c", "until wget -q --spider --header='X-Forwarded-Proto: https' http://dawarich:3000/api/v1/health; do echo waiting for dawarich; sleep 3; done"]
           securityContext:
             allowPrivilegeEscalation: false
@@ -74,7 +74,7 @@ spec:
               memory: 64Mi
       containers:
         - name: sidekiq
-          image: "freikin/dawarich:1.11.0@sha256:4e3c55c4cd572373624e75c9e02075ff436c83a3ea952595ae0d4ffc4c7ae52b"
+          image: "freikin/dawarich:1.14.5@sha256:23b4e3190bcf8dcdaaa3a17868977b760370a84a325229183d6f8f81cba3495a"
           command: ["sidekiq-entrypoint.sh"]
           args: ["sidekiq"]
           envFrom:
@@ -96,13 +96,13 @@ spec:
             - name: REDIS_URL
               value: "redis://dawarich-redis:6379"
             - name: DATABASE_HOST
-              value: dawarich-db-legacy
+              value: dawarich-db-rw.dawarich.svc.cluster.local
             - name: DATABASE_PORT
               value: "5432"
             - name: DATABASE_USERNAME
               value: dawarich
             - name: DATABASE_NAME
-              value: dawarich_production
+              value: dawarich
             - name: DATABASE_PASSWORD
               valueFrom:
                 secretKeyRef:

@@ -1,17 +1,32 @@
-# База dawarich. Расширение postgis создаёт оператор от имени суперпользователя,
-# поэтому роли dawarich суперправа не нужны (бинари смонтированы — см. cluster).
+# База dawarich. Расширения создаёт оператор от имени суперпользователя, поэтому
+# роли dawarich суперправа не нужны (бинари смонтированы — см. cluster).
+#
+# Список сверен с источником: у Dawarich стоят пять расширений, но нужны не все.
+# pgcrypto даёт gen_random_uuid (две колонки с UUID-дефолтом), fuzzystrmatch —
+# нечёткий поиск. postgis_topology и postgis_tiger_geocoder на источнике пусты
+# (topology.topology = 0 строк, tiger_data = ни одной таблицы), и ни одна
+# таблица public от них не зависит — поэтому в цель не переезжают. Схемы
+# topology и tiger при restore исключены вместе с ними.
 apiVersion: postgresql.cnpg.io/v1
 kind: Database
 metadata:
-  name: dawarich-production
+  name: dawarich
   namespace: dawarich
 spec:
   cluster:
     name: dawarich-db
-  name: dawarich_production
+  # Имя без _production: суффикс пришёл из Rails-дефолта (RAILS_ENV), а в
+  # homelab одна среда — имя базы не должно её кодировать. spec.name у Database
+  # неизменяем, поэтому объект пересоздан с новым именем: база на момент
+  # переименования пустая, терять нечего.
+  name: dawarich
   owner: dawarich
   encoding: UTF8
   databaseReclaimPolicy: retain
   extensions:
     - name: postgis
+      ensure: present
+    - name: pgcrypto
+      ensure: present
+    - name: fuzzystrmatch
       ensure: present
