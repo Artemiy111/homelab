@@ -30,7 +30,6 @@ metadata:
   namespace: paperless
 data:
   DOMAIN: example.com
-  SERVER_IP: 192.0.2.10
   TZ: Asia/Yekaterinburg
   DEFAULT_LOCALE: ru
   APPS_STORAGE_PATH: /storage/apps
@@ -42,7 +41,6 @@ metadata:
   namespace: structurizr
 data:
   DOMAIN: example.com
-  SERVER_IP: 192.0.2.10
   TZ: Asia/Yekaterinburg
   DEFAULT_LOCALE: ru
   APPS_STORAGE_PATH: /storage/apps
