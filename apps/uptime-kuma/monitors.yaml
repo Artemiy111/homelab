@@ -92,10 +92,11 @@ monitors:
     interval: 60
     maxretries: 2
   - name: Home Assistant
-    description: Веб-интерфейс Home Assistant на LAN-порту; HTTPS-маршрут ограничен
-      локальной сетью, поэтому недоступен контейнерам мониторинга.
+    description: Веб-интерфейс Home Assistant в кластере; публичный маршрут
+      ограничен локальной сетью, поэтому проверяем сервис напрямую. Порт узла
+      8123 (hostNetwork) из пода недостижим — firewalld режет INPUT для pod-сети.
     type: http
-    url: http://{{SERVER_IP}}:8123/
+    url: http://home-assistant.home-assistant.svc.cluster.local:8123/
     interval: 60
     maxretries: 2
   - name: Structurizr
@@ -247,12 +248,6 @@ monitors:
     description: Публичный health endpoint Beszel Hub через локальный DNS, TLS и Traefik.
     type: http
     url: https://beszel.{{DOMAIN}}/api/health
-    interval: 60
-    maxretries: 2
-  - name: Arcane
-    description: Публичный health endpoint Arcane через локальный DNS, TLS и Traefik.
-    type: http
-    url: https://arcane.{{DOMAIN}}/api/health
     interval: 60
     maxretries: 2
   - name: Technitium DNS
