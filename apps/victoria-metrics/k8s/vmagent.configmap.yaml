@@ -4,7 +4,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: vmagent-scrape
-  namespace: default
+  namespace: monitoring
 data:
   scrape.yml: |
     # Скрейп-конфиг vmagent. vmagent забирает /metrics приложений напрямую и
@@ -27,18 +27,18 @@ data:
             - prometheus
         static_configs:
           - targets:
-              - netdata:19999
+              - netdata.monitoring.svc.cluster.local:19999
 
       - job_name: node-exporter
         static_configs:
           - targets:
-              - node-exporter:9100
+              - node-exporter.monitoring.svc.cluster.local:9100
 
       # Состояние объектов кластера (kube_*): реплики, статусы Pod, Job, PVC.
       - job_name: kube-state-metrics
         static_configs:
           - targets:
-              - kube-state-metrics:8080
+              - kube-state-metrics.default.svc.cluster.local:8080
 
       # kubelet и встроенный в него cAdvisor: ресурсы контейнеров и Pod'ов
       # (container_*). Цели находятся через service discovery (role: node) — по
@@ -82,7 +82,7 @@ data:
       - job_name: victoriametrics
         static_configs:
           - targets:
-              - victoriametrics:8428
+              - victoriametrics.monitoring.svc.cluster.local:8428
 
       - job_name: vmagent
         static_configs:
@@ -94,7 +94,7 @@ data:
       - job_name: traefik
         static_configs:
           - targets:
-              - traefik-metrics.traefik:9100
+              - traefik-metrics.traefik.svc.cluster.local:9100
 
       # Приложения, отдающие /metrics без аутентификации.
       - job_name: authentik
@@ -105,12 +105,12 @@ data:
       - job_name: wud
         static_configs:
           - targets:
-              - wud:3000
+              - wud.monitoring.svc.cluster.local:3000
 
       - job_name: gatus
         static_configs:
           - targets:
-              - gatus:8080
+              - gatus.monitoring.svc.cluster.local:8080
 
       - job_name: synapse
         metrics_path: /_synapse/metrics
@@ -121,17 +121,17 @@ data:
       - job_name: immich
         static_configs:
           - targets:
-              - immich:8081
+              - immich.default.svc.cluster.local:8081
 
       - job_name: livekit
         static_configs:
           - targets:
-              - livekit:6789
+              - livekit.element.svc.cluster.local:6789
 
       - job_name: grafana
         static_configs:
           - targets:
-              - grafana:80
+              - grafana.monitoring.svc.cluster.local:80
 
       - job_name: jitsi-jvb
         static_configs:
@@ -141,7 +141,7 @@ data:
       - job_name: oauth2-proxy
         static_configs:
           - targets:
-              - oauth2-proxy:9100
+              - oauth2-proxy.oauth2-proxy.svc.cluster.local:9100
 
       - job_name: vault
         metrics_path: /v1/sys/metrics
@@ -162,7 +162,7 @@ data:
       - job_name: otel-collector
         static_configs:
           - targets:
-              - otel-collector:8889
+              - otel-collector.monitoring.svc.cluster.local:8889
 
       - job_name: jellyfin
         static_configs:
@@ -194,7 +194,7 @@ data:
           credentials: "%{HOME_ASSISTANT_TOKEN}"
         static_configs:
           - targets:
-              - home-assistant:8123
+              - home-assistant.home-assistant.svc.cluster.local:8123
 
       # API-ключ Kuma передаётся как пароль basic auth без username.
       - job_name: uptime-kuma
@@ -238,7 +238,7 @@ data:
           credentials: "%{TECHNITIUM_METRICS_TOKEN}"
         static_configs:
           - targets:
-              - technitium:5380
+              - technitium.technitium.svc.cluster.local:5380
 
       # Stalwart (почта): Telemetry → Metrics → Prometheus, basic auth.
       - job_name: stalwart

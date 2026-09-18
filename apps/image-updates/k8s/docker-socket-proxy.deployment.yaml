@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: docker-socket-proxy
-  namespace: default
+  namespace: monitoring
 spec:
   revisionHistoryLimit: 2
   replicas: 1

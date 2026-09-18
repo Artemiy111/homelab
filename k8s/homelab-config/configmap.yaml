@@ -293,3 +293,17 @@ data:
   DOMAIN: example.com
   TZ: Asia/Yekaterinburg
   DEFAULT_LOCALE: ru
+---
+# monitoring — единственный новый namespace, которому нужен SERVER_IP: gatus
+# использует его как dns-resolver и в проверках внешних портов узла. Рефактор
+# этих проверок на DOMAIN/status.hostIP — отдельная задача.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: homelab-config
+  namespace: monitoring
+data:
+  DOMAIN: example.com
+  SERVER_IP: 192.0.2.10
+  TZ: Asia/Yekaterinburg
+  DEFAULT_LOCALE: ru

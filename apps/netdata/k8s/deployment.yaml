@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: netdata
-  namespace: default
+  namespace: monitoring
 spec:
   # hostPath/host-тома нельзя монтировать в два пода одновременно.
   strategy:

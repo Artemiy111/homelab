@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: wud
-  namespace: default
+  namespace: monitoring
 spec:
   strategy:
     type: Recreate

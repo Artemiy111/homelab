@@ -129,7 +129,7 @@ endpoints:
     group: Monitoring
     # UI закрыт forward auth (302 без авторизации), поэтому проверяем агент
     # напрямую (netdata в k8s).
-    url: http://netdata/api/v1/info
+    url: http://netdata.monitoring.svc.cluster.local/api/v1/info
     interval: 60s
     client: &docker-client
       timeout: 10s
@@ -141,7 +141,7 @@ endpoints:
     group: Monitoring
     # TSDB и vmagent наружу не публикуются, проверяем напрямую; /health отдаёт
     # 200 и тело OK. Доступ по имени — через мост из k8s.
-    url: http://victoriametrics/health
+    url: http://victoriametrics.monitoring.svc.cluster.local/health
     interval: 60s
     client: *docker-client
     conditions:
@@ -151,7 +151,7 @@ endpoints:
 
   - name: vmagent
     group: Monitoring
-    url: http://vmagent/health
+    url: http://vmagent.monitoring.svc.cluster.local/health
     interval: 60s
     client: *docker-client
     conditions:
@@ -163,7 +163,7 @@ endpoints:
     group: Monitoring
     # Публичный маршрут закрыт forward auth (302 без авторизации), поэтому
     # проверяем health API напрямую; доступ по имени — через мост из k8s.
-    url: http://grafana/api/health
+    url: http://grafana.monitoring.svc.cluster.local/api/health
     interval: 60s
     client: *docker-client
     conditions:
@@ -177,7 +177,7 @@ endpoints:
   # (apps/<сервис>/k8s/bridge.yaml).
   - name: WUD
     group: Monitoring
-    url: http://wud/health
+    url: http://wud.monitoring.svc.cluster.local/health
     interval: 60s
     client: *docker-client
     conditions:

@@ -33,7 +33,7 @@ spec:
           - operator: Exists
   destination:
     server: https://kubernetes.default.svc
-    namespace: default
+    namespace: monitoring
   syncPolicy:
     automated:
       prune: true

@@ -2,7 +2,7 @@ apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
   name: netdata
-  namespace: default
+  namespace: monitoring
 spec:
   entryPoints:
     - websecure
@@ -11,8 +11,11 @@ spec:
       kind: Rule
       middlewares:
         - name: oauth2-proxy
+          namespace: default
         - name: secure-headers
+          namespace: default
         - name: ratelimit-default
+          namespace: default
       services:
         - name: netdata
           port: 80

@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: gatus
-  namespace: default
+  namespace: monitoring
 spec:
   # SQLite в hostPath: два пода при rolling update пишут в одну БД.
   strategy:

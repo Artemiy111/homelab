@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: vmagent
-  namespace: default
+  namespace: monitoring
 spec:
   strategy:
     type: Recreate
@@ -48,37 +48,37 @@ spec:
             - name: NAVIDROME_METRICS_PATH
               valueFrom:
                 secretKeyRef:
-                  name: navidrome
+                  name: vmagent
                   key: NAVIDROME_METRICS_PATH
             - name: DAWARICH_METRICS_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: dawarich
+                  name: vmagent
                   key: DAWARICH_METRICS_PASSWORD
             - name: FORGEJO_METRICS_TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: forgejo
+                  name: vmagent
                   key: FORGEJO_METRICS_TOKEN
             - name: TECHNITIUM_METRICS_TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: technitium
+                  name: vmagent
                   key: TECHNITIUM_METRICS_TOKEN
             - name: STALWART_METRICS_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: mailserver
+                  name: vmagent
                   key: STALWART_METRICS_PASSWORD
             - name: LOCALAI_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: local-ai
+                  name: vmagent
                   key: LOCALAI_API_KEY
             - name: HOME_ASSISTANT_TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: home-assistant
+                  name: vmagent
                   key: HOME_ASSISTANT_TOKEN
           startupProbe:
             httpGet:

@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: grafana-provisioning
-  namespace: default
+  namespace: monitoring
 data:
   # Datasource Grafana: VictoriaMetrics совместим с Prometheus API.
   # Монтируется в /etc/grafana/provisioning/datasources (см. deployment).

@@ -1,11 +1,12 @@
-# Базовый NetworkPolicy для namespace сервиса: default-deny ingress плюс
-# явные разрешения. Метрики Navidrome отдаёт на основном порту (4533), поэтому
-# скрейп vmagent разрешён на него же. Egress не ограничивается.
+# Базовый NetworkPolicy для namespace monitoring: default-deny ingress плюс
+# явные разрешения. traefik — UI (grafana, vm, netdata, wud); gatus сам
+# проверяет свои внутренние сервисы (victoriametrics, vmagent, netdata,
+# grafana, wud) и kube-state-metrics из default. Egress не ограничивается.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: default-deny-ingress
-  namespace: navidrome
+  namespace: monitoring
 spec:
   podSelector: {}
   policyTypes:
@@ -15,7 +16,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-ingress
-  namespace: navidrome
+  namespace: monitoring
 spec:
   podSelector: {}
   policyTypes:
@@ -30,10 +31,10 @@ spec:
     - from:
         - namespaceSelector:
             matchLabels:
-              kubernetes.io/metadata.name: monitoring
+              kubernetes.io/metadata.name: default
           podSelector:
             matchLabels:
-              app: vmagent
+              app: kube-state-metrics
       ports:
-        - port: 4533
+        - port: 8080
           protocol: TCP
