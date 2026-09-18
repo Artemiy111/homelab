@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: structurizr-properties
-  namespace: default
+  namespace: structurizr
 data:
   structurizr.properties: |
     # включить браузерный DSL editor
