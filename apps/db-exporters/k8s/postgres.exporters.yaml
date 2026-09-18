@@ -261,7 +261,7 @@ spec:
               containerPort: 9187
           env:
             - name: DATA_SOURCE_URI
-              value: "forgejo-db:5432/forgejo?sslmode=disable"
+              value: "forgejo-db.forgejo.svc.cluster.local:5432/forgejo?sslmode=disable"
             - name: DATA_SOURCE_USER
               value: "forgejo"
             - name: DATA_SOURCE_PASS

@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: forgejo-db
-  namespace: default
+  namespace: forgejo
 spec:
   strategy:
     type: Recreate

@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: forgejo
-  namespace: default
+  namespace: forgejo
 spec:
   # hostPath-каталоги нельзя монтировать в два пода одновременно.
   strategy:

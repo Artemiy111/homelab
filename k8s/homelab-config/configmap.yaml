@@ -163,3 +163,13 @@ data:
   DOMAIN: example.com
   TZ: Asia/Yekaterinburg
   DEFAULT_LOCALE: ru
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: homelab-config
+  namespace: forgejo
+data:
+  DOMAIN: example.com
+  TZ: Asia/Yekaterinburg
+  DEFAULT_LOCALE: ru

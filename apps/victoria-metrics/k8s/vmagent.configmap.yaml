@@ -229,7 +229,7 @@ data:
           credentials: "%{FORGEJO_METRICS_TOKEN}"
         static_configs:
           - targets:
-              - forgejo:3000
+              - forgejo.forgejo.svc.cluster.local:3000
 
       # Technitium отдаёт метрики дашборда; Bearer-токен из secrets.
       - job_name: technitium
