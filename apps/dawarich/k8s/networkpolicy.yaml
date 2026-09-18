@@ -40,23 +40,3 @@ spec:
           protocol: TCP
         - port: 9121
           protocol: TCP
-    - from:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: default
-          podSelector:
-            matchLabels:
-              app: dawarich-db-exporter
-      ports:
-        - port: 5432
-          protocol: TCP
-    - from:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: default
-          podSelector:
-            matchLabels:
-              app: dawarich-redis-exporter
-      ports:
-        - port: 6379
-          protocol: TCP

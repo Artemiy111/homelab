@@ -40,13 +40,3 @@ spec:
           protocol: TCP
         - port: 9187
           protocol: TCP
-    - from:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: default
-          podSelector:
-            matchLabels:
-              app: zitadel-postgres-exporter
-      ports:
-        - port: 5432
-          protocol: TCP

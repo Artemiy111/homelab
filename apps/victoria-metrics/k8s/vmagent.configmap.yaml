@@ -258,25 +258,25 @@ data:
         static_configs:
           - targets:
               - authentik-postgresql-exporter.authentik.svc.cluster.local:9187
-              - dawarich-db-exporter.default.svc.cluster.local:9187
+              - dawarich-db-exporter.dawarich.svc.cluster.local:9187
               - element-db-exporter.element.svc.cluster.local:9187
               - forgejo-db-exporter.forgejo.svc.cluster.local:9187
               - glitchtip-postgres-exporter.glitchtip.svc.cluster.local:9187
-              - immich-db-exporter.default.svc.cluster.local:9187
+              - immich-db-exporter.immich.svc.cluster.local:9187
               - infisical-postgres-exporter.infisical.svc.cluster.local:9187
               - nextcloud-db-exporter.nextcloud.svc.cluster.local:9187
               - paperless-db-exporter.paperless.svc.cluster.local:9187
               - postgres-db.postgres.svc.cluster.local:9187
               - sure-db-exporter.sure.svc.cluster.local:9187
-              - zitadel-postgres-exporter.default.svc.cluster.local:9187
+              - zitadel-postgres-exporter.zitadel.svc.cluster.local:9187
 
       - job_name: redis
         static_configs:
           - targets:
-              - dawarich-redis-exporter.default.svc.cluster.local:9121
+              - dawarich-redis-exporter.dawarich.svc.cluster.local:9121
               - element-redis-exporter.element.svc.cluster.local:9121
               - glitchtip-valkey-exporter.glitchtip.svc.cluster.local:9121
-              - immich-valkey-exporter.default.svc.cluster.local:9121
+              - immich-valkey-exporter.immich.svc.cluster.local:9121
               - infisical-redis-exporter.infisical.svc.cluster.local:9121
               - nextcloud-redis-exporter.nextcloud.svc.cluster.local:9121
               - paperless-broker-exporter.paperless.svc.cluster.local:9121
