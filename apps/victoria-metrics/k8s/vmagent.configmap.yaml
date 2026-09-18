@@ -167,7 +167,7 @@ data:
       - job_name: jellyfin
         static_configs:
           - targets:
-              - jellyfin-exporter:9594
+              - jellyfin-exporter.jellyfin.svc.cluster.local:9594
 
       - job_name: nextcloud
         static_configs:
@@ -209,7 +209,7 @@ data:
         metrics_path: /metrics_%{NAVIDROME_METRICS_PATH}
         static_configs:
           - targets:
-              - navidrome:4533
+              - navidrome.navidrome.svc.cluster.local:4533
 
       # Dawarich редиректит внутренние запросы на публичный HTTPS-URL, поэтому
       # скрейпим его через Traefik (basic auth).

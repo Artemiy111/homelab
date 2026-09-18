@@ -2,7 +2,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: navidrome
-  namespace: default
+  namespace: navidrome
 spec:
   ingressClassName: traefik
   rules:

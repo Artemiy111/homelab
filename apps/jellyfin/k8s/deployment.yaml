@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: jellyfin
-  namespace: default
+  namespace: jellyfin
 spec:
   # hostPath-каталоги нельзя монтировать в два пода одновременно.
   strategy:

@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: jellyfin-exporter
-  namespace: default
+  namespace: jellyfin
 spec:
   revisionHistoryLimit: 2
   replicas: 1
