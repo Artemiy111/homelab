@@ -104,6 +104,8 @@ data:
   TZ: Asia/Yekaterinburg
   DEFAULT_LOCALE: ru
 ---
+# uptime-kuma: SERVER_IP нужен мониторам Home Assistant, Sure, SSH Gitea и TCP
+# Xray — они ходят на опубликованные порты узла. Та же причина, что у monitoring.
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -111,6 +113,7 @@ metadata:
   namespace: uptime-kuma
 data:
   DOMAIN: example.com
+  SERVER_IP: 192.0.2.10
   TZ: Asia/Yekaterinburg
   DEFAULT_LOCALE: ru
 ---
