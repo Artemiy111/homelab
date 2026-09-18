@@ -73,16 +73,6 @@ spec:
                 configMapKeyRef:
                   name: homelab-config
                   key: TZ
-            - name: INIT_SEAFILE_ADMIN_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: seafile
-                  key: INIT_SEAFILE_ADMIN_PASSWORD
-            - name: INIT_SEAFILE_MYSQL_ROOT_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: seafile
-                  key: INIT_SEAFILE_MYSQL_ROOT_PASSWORD
             - name: SEAFILE_MYSQL_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
@@ -112,8 +102,6 @@ spec:
               value: "seafile.$(DOMAIN)"
             - name: SEAFILE_SERVER_PROTOCOL
               value: https
-            - name: INIT_SEAFILE_ADMIN_EMAIL
-              value: "admin@$(DOMAIN)"
             - name: SEAFILE_MYSQL_DB_HOST
               value: seafile-mariadb
             - name: SEAFILE_MYSQL_DB_PORT
