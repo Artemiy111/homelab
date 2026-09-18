@@ -2,7 +2,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: infisical
-  namespace: default
+  namespace: infisical
 spec:
   ingressClassName: traefik
   rules:

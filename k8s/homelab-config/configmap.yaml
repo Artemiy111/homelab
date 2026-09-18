@@ -193,3 +193,33 @@ data:
   DOMAIN: example.com
   TZ: Asia/Yekaterinburg
   DEFAULT_LOCALE: ru
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: homelab-config
+  namespace: glitchtip
+data:
+  DOMAIN: example.com
+  TZ: Asia/Yekaterinburg
+  DEFAULT_LOCALE: ru
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: homelab-config
+  namespace: infisical
+data:
+  DOMAIN: example.com
+  TZ: Asia/Yekaterinburg
+  DEFAULT_LOCALE: ru
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: homelab-config
+  namespace: sure
+data:
+  DOMAIN: example.com
+  TZ: Asia/Yekaterinburg
+  DEFAULT_LOCALE: ru

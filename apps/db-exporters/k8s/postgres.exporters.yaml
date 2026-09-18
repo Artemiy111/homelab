@@ -340,7 +340,7 @@ spec:
               containerPort: 9187
           env:
             - name: DATA_SOURCE_URI
-              value: "glitchtip-postgres:5432/glitchtip?sslmode=disable"
+              value: "glitchtip-postgres.glitchtip.svc.cluster.local:5432/glitchtip?sslmode=disable"
             - name: DATA_SOURCE_USER
               value: "glitchtip"
             - name: DATA_SOURCE_PASS
@@ -498,7 +498,7 @@ spec:
               containerPort: 9187
           env:
             - name: DATA_SOURCE_URI
-              value: "infisical-postgres:5432/infisical?sslmode=disable"
+              value: "infisical-postgres.infisical.svc.cluster.local:5432/infisical?sslmode=disable"
             - name: DATA_SOURCE_USER
               value: "infisical"
             - name: DATA_SOURCE_PASS
@@ -735,7 +735,7 @@ spec:
               containerPort: 9187
           env:
             - name: DATA_SOURCE_URI
-              value: "sure-db:5432/sure_production?sslmode=disable"
+              value: "sure-db.sure.svc.cluster.local:5432/sure_production?sslmode=disable"
             - name: DATA_SOURCE_USER
               value: "postgres"
             - name: DATA_SOURCE_PASS

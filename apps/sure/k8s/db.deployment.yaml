@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: sure-db
-  namespace: default
+  namespace: sure
 spec:
   # postgres:16 (Debian, uid 999): PGDATA=/var/lib/postgresql/data.
   strategy:

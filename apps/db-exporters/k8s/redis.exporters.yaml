@@ -168,7 +168,7 @@ spec:
               containerPort: 9121
           env:
             - name: REDIS_ADDR
-              value: "redis://glitchtip-valkey:6379"
+              value: "redis://glitchtip-valkey.glitchtip.svc.cluster.local:6379"
           livenessProbe:
             httpGet:
               path: /metrics
@@ -312,7 +312,7 @@ spec:
               containerPort: 9121
           env:
             - name: REDIS_ADDR
-              value: "redis://infisical-redis:6379"
+              value: "redis://infisical-redis.infisical.svc.cluster.local:6379"
           livenessProbe:
             httpGet:
               path: /metrics
@@ -600,7 +600,7 @@ spec:
               containerPort: 9121
           env:
             - name: REDIS_ADDR
-              value: "redis://sure-redis:6379"
+              value: "redis://sure-redis.sure.svc.cluster.local:6379"
           livenessProbe:
             httpGet:
               path: /metrics

@@ -155,7 +155,7 @@ data:
       - job_name: infisical
         static_configs:
           - targets:
-              - infisical:9464
+              - infisical.infisical.svc.cluster.local:9464
 
       # OTLP-приёмник: приложения, отдающие метрики push'ем, попадают сюда
       # (resource attributes в лейблах, напр. service_name="rustfs").

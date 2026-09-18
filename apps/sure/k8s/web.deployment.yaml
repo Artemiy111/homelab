@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: sure
-  namespace: default
+  namespace: sure
 spec:
   strategy:
     type: Recreate

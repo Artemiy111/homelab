@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: infisical-redis
-  namespace: default
+  namespace: infisical
 spec:
   strategy:
     type: Recreate

@@ -2,7 +2,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: glitchtip
-  namespace: default
+  namespace: glitchtip
 spec:
   ingressClassName: traefik
   rules:

@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: infisical-postgres
-  namespace: default
+  namespace: infisical
 spec:
   # postgres:14-alpine, PGDATA=/var/lib/postgresql/data (uid 70).
   # ВАЖНО: в Docker реальные данные лежали в анонимном томе образа
