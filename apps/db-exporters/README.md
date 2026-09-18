@@ -65,7 +65,8 @@ MariaDB | `mysqld-exporter` (`v0.20.0`) | 9104 | 1
 
 ### MariaDB (1)
 
-`seafile-db-exporter` → `seafile-db:3306`, пользователь `root`, пароль из Secret
+`seafile-db-exporter` → `seafile-mariadb:3306` (MariaDB-инстанс под
+mariadb-operator), пользователь `root`, пароль из Secret
 `seafile`/`INIT_SEAFILE_MYSQL_ROOT_PASSWORD` (через `MYSQLD_EXPORTER_PASSWORD`).
 
 ## Развёртывание

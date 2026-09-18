@@ -8,7 +8,6 @@ source "$repo_root/scripts/lib/common.sh"
 ensure_dirs 0755 \
   "$APPS_STORAGE_PATH"/seafile \
   "$APPS_STORAGE_PATH"/seafile/backups \
-  "$APPS_STORAGE_PATH"/seafile/mysql \
   "$APPS_STORAGE_PATH"/seafile/shared \
   "$APPS_STORAGE_PATH"/seafile/onlyoffice/data \
   "$APPS_STORAGE_PATH"/seafile/onlyoffice/lib \
