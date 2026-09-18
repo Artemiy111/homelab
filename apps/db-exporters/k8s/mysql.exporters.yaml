@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: seafile-db-exporter
-  namespace: default
+  namespace: seafile
 spec:
   revisionHistoryLimit: 2
   replicas: 1
@@ -66,7 +66,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: seafile-db-exporter
-  namespace: default
+  namespace: seafile
 spec:
   type: ClusterIP
   selector:

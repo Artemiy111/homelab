@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: authentik-postgresql-exporter
-  namespace: default
+  namespace: authentik
 spec:
   revisionHistoryLimit: 2
   replicas: 1
@@ -67,7 +67,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: authentik-postgresql-exporter
-  namespace: default
+  namespace: authentik
 spec:
   type: ClusterIP
   selector:
@@ -161,7 +161,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: element-db-exporter
-  namespace: default
+  namespace: element
 spec:
   revisionHistoryLimit: 2
   replicas: 1
@@ -225,7 +225,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: element-db-exporter
-  namespace: default
+  namespace: element
 spec:
   type: ClusterIP
   selector:
@@ -240,7 +240,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: forgejo-db-exporter
-  namespace: default
+  namespace: forgejo
 spec:
   revisionHistoryLimit: 2
   replicas: 1
@@ -304,7 +304,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: forgejo-db-exporter
-  namespace: default
+  namespace: forgejo
 spec:
   type: ClusterIP
   selector:
@@ -319,7 +319,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: glitchtip-postgres-exporter
-  namespace: default
+  namespace: glitchtip
 spec:
   revisionHistoryLimit: 2
   replicas: 1
@@ -383,7 +383,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: glitchtip-postgres-exporter
-  namespace: default
+  namespace: glitchtip
 spec:
   type: ClusterIP
   selector:
@@ -477,7 +477,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: infisical-postgres-exporter
-  namespace: default
+  namespace: infisical
 spec:
   revisionHistoryLimit: 2
   replicas: 1
@@ -541,7 +541,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: infisical-postgres-exporter
-  namespace: default
+  namespace: infisical
 spec:
   type: ClusterIP
   selector:
@@ -556,7 +556,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: nextcloud-db-exporter
-  namespace: default
+  namespace: nextcloud
 spec:
   revisionHistoryLimit: 2
   replicas: 1
@@ -620,7 +620,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: nextcloud-db-exporter
-  namespace: default
+  namespace: nextcloud
 spec:
   type: ClusterIP
   selector:
@@ -714,7 +714,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: sure-db-exporter
-  namespace: default
+  namespace: sure
 spec:
   revisionHistoryLimit: 2
   replicas: 1
@@ -775,7 +775,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: sure-db-exporter
-  namespace: default
+  namespace: sure
 spec:
   type: ClusterIP
   selector:

@@ -1,6 +1,6 @@
 # Базовый NetworkPolicy: default-deny ingress + явные разрешения.
-# Метрики (9300) скрейпит vmagent; экспортёр БД ходит к authentik-postgresql
-# (5432) — оба из namespace monitoring. Egress не ограничивается.
+# traefik — веб; vmagent из monitoring скрейпит метрики app (9300) и
+# экспортёра БД (9187). Egress не ограничивается.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -37,13 +37,5 @@ spec:
       ports:
         - port: 9300
           protocol: TCP
-    - from:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: monitoring
-          podSelector:
-            matchLabels:
-              app: authentik-postgresql-exporter
-      ports:
-        - port: 5432
+        - port: 9187
           protocol: TCP

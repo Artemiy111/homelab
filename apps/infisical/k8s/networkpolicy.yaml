@@ -1,7 +1,6 @@
-# Базовый NetworkPolicy для namespace сервиса: default-deny ingress плюс
-# явные разрешения. Метрики Infisical (9464) скрейпит vmagent из default;
-# экспортёры БД/Redis из default ходят к infisical-postgres (5432) и
-# infisical-redis (6379). Egress не ограничивается.
+# Базовый NetworkPolicy: default-deny ingress + явные разрешения.
+# traefik — веб; vmagent из monitoring скрейпит метрики app (9464) и
+# экспортёров БД (9187) / Redis (9121). Egress не ограничивается.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -31,30 +30,14 @@ spec:
     - from:
         - namespaceSelector:
             matchLabels:
-              kubernetes.io/metadata.name: default
+              kubernetes.io/metadata.name: monitoring
           podSelector:
             matchLabels:
               app: vmagent
       ports:
         - port: 9464
           protocol: TCP
-    - from:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: default
-          podSelector:
-            matchLabels:
-              app: infisical-postgres-exporter
-      ports:
-        - port: 5432
+        - port: 9187
           protocol: TCP
-    - from:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: default
-          podSelector:
-            matchLabels:
-              app: infisical-redis-exporter
-      ports:
-        - port: 6379
+        - port: 9121
           protocol: TCP

@@ -1,6 +1,6 @@
 # Базовый NetworkPolicy: default-deny ingress + явные разрешения.
-# traefik — seafile и onlyoffice; экспортёры БД/Redis из monitoring.
-# Egress не ограничивается.
+# traefik — seafile и onlyoffice; vmagent из monitoring скрейпит метрики
+# экспортёров MariaDB (9104) и Redis (9121). Egress не ограничивается.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -33,17 +33,9 @@ spec:
               kubernetes.io/metadata.name: monitoring
           podSelector:
             matchLabels:
-              app: seafile-db-exporter
+              app: vmagent
       ports:
-        - port: 3306
+        - port: 9104
           protocol: TCP
-    - from:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: monitoring
-          podSelector:
-            matchLabels:
-              app: seafile-redis-exporter
-      ports:
-        - port: 6379
+        - port: 9121
           protocol: TCP

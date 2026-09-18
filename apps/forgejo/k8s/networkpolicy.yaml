@@ -1,8 +1,6 @@
-# NetworkPolicy для namespace сервиса: default-deny ingress плюс явные
-# разрешения. Git over SSH публикуется через externalIPs на :2222, поэтому
-# порт открыт всем клиентам (LAN, tailnet, внешние — как и раньше).
-# Метрики: forgejo (3000, скрейпит vmagent из default); экспортёр БД пока
-# остаётся в default и ходит к forgejo-db (5432). Egress не ограничивается.
+# Базовый NetworkPolicy: default-deny ingress + явные разрешения.
+# traefik — веб; vmagent из monitoring скрейпит метрики app (3000) и
+# экспортёра БД (9187). Egress не ограничивается.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -32,22 +30,14 @@ spec:
     - from:
         - namespaceSelector:
             matchLabels:
-              kubernetes.io/metadata.name: default
+              kubernetes.io/metadata.name: monitoring
           podSelector:
             matchLabels:
               app: vmagent
       ports:
         - port: 3000
           protocol: TCP
-    - from:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: default
-          podSelector:
-            matchLabels:
-              app: forgejo-db-exporter
-      ports:
-        - port: 5432
+        - port: 9187
           protocol: TCP
     - from:
         - ipBlock:

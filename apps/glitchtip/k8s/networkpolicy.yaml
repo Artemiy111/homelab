@@ -1,7 +1,6 @@
-# Базовый NetworkPolicy для namespace сервиса: default-deny ingress плюс
-# явные разрешения. Метрики БД/Valkey отдают экспортёры из default — им
-# разрешён доступ к glitchtip-postgres (5432) и glitchtip-valkey (6379).
-# Egress не ограничивается.
+# Базовый NetworkPolicy: default-deny ingress + явные разрешения.
+# traefik — веб; vmagent из monitoring скрейпит метрики экспортёров
+# БД (9187) и Valkey (9121). Egress не ограничивается.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -31,20 +30,12 @@ spec:
     - from:
         - namespaceSelector:
             matchLabels:
-              kubernetes.io/metadata.name: default
+              kubernetes.io/metadata.name: monitoring
           podSelector:
             matchLabels:
-              app: glitchtip-postgres-exporter
+              app: vmagent
       ports:
-        - port: 5432
+        - port: 9187
           protocol: TCP
-    - from:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: default
-          podSelector:
-            matchLabels:
-              app: glitchtip-valkey-exporter
-      ports:
-        - port: 6379
+        - port: 9121
           protocol: TCP
