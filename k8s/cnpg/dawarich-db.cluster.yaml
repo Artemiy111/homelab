@@ -35,9 +35,12 @@ spec:
 
   storage:
     storageClass: longhorn-retain
-    # На источнике 93 МБ плюс служебный пол 39 МБ (замер на пустом PG18).
-    # Расширяется на ходу.
-    size: 512Mi
+    # 512Mi не хватило: на 46k точек миграции Dawarich (удаление устаревших
+    # индексов, пересчёт visits и tracks) плюс WAL от них (wal_level=logical)
+    # забили том под завязку, и instance manager отказался стартовать с
+    # «no free disk space for WALs». 3Gi — данные 59 МБ плюс запас на
+    # пересчёт истории и рост. Расширяется на ходу, сжать обратно нельзя.
+    size: 3Gi
 
   resources:
     requests:
