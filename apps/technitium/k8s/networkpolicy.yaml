@@ -1,0 +1,45 @@
+# NetworkPolicy для namespace сервиса: default-deny ingress плюс явные
+# разрешения. DNS публикуется через externalIPs, поэтому клиенты приходят с
+# реальных адресов — их приходится перечислять:
+#   - 192.0.2.10/24 — локальная сеть (клиенты ходят на .254:53);
+#   - 192.0.2.10/24 — роутер: он форвардит DNS-запросы на .254:53;
+#   - 100.64.0.0/10 — tailnet.
+# Админка (5380) доступна только через traefik. Egress не ограничивается.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: technitium
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress
+  namespace: technitium
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector: {}
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: traefik
+    - from:
+        - ipBlock:
+            cidr: 192.0.2.10/24
+        - ipBlock:
+            cidr: 192.0.2.10/24
+        - ipBlock:
+            cidr: 100.64.0.0/10
+      ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP

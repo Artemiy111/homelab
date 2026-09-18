@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: technitium-dns
-  namespace: default
+  namespace: technitium
 spec:
   # DNS публикуется на IP узла (.254) через kube-proxy externalIPs: так же,
   # как раньше через Docker (роутер Keenetic ходит DNS-запросами на .254:53).

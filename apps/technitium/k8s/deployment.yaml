@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: technitium
-  namespace: default
+  namespace: technitium
 spec:
   strategy:
     type: Recreate
