@@ -1,0 +1,155 @@
+# Forgejo (сервис apps/forgejo) — официального чарта у проекта нет, де-факто
+# стандарт — forgejo-helm из организации forgejo-contrib на Codeberg. Это форк
+# чарта Gitea, переделанный под Forgejo: внешние база и кэш вместо сабчартов,
+# rootless-образ по умолчанию, admin-пользователь и метрики.
+#
+# Источник — git-репозиторий чарта с path: ., как у local-path-provisioner.
+# Важно: в git-дереве Chart.yaml у чарта лежит с appVersion 14.0.1 (реальный
+# appVersion подставляется только в OCI-артефакт при релизе), поэтому image.tag
+# и digest заданы явно — иначе Argo развернул бы Forgejo 14 вместо 16.
+# Тег/дайджест — те же, что были в манифестах до переезда на чарт.
+#
+# База — внешняя: кластер CNPG shared в namespace databases, роль и база forgejo
+# (k8s/cnpg/shared.cluster.yaml, shared.databases.yaml). Пароль роли лежит в
+# Secret'е databases/forgejo-db-auth, и он же — в forgejo/forgejo (один
+# плейнтекст, два запечатанных SealedSecret'а; так решено в k8s/cnpg/README.md).
+# Здесь он подставляется в app.ini через FORGEJO__database__PASSWD, поэтому
+# секрет чарту не нужен.
+#
+# Админ создаётся chart'ом из Secret'а forgejo-admin (SealedSecret рядом с
+# приложением): режим initialOnlyNoReset, чтобы смена пароля в UI не
+# перетиралась при каждом рестарте пода. Пароль в values не попадает.
+#
+# Веб-мастера установки нет: чарт всегда ставит INSTALL_LOCK=true.
+#
+# Встроенная база/кэш чарта не включаются — иначе консолидация БД отменяется
+# (docs/adr/0002).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: forgejo
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://codeberg.org/forgejo-contrib/forgejo-helm.git
+    path: .
+    targetRevision: v16.0.1
+    helm:
+      releaseName: forgejo
+      valuesObject:
+        image:
+          registry: data.forgejo.org
+          repository: forgejo/forgejo
+          tag: 16-rootless
+          digest: sha256:23ccc146e6dc2cd1f5c5435909baae64db873201717f1726490dae649283e6cd
+          rootless: true
+        gitea:
+          admin:
+            # Пароль — в SealedSecret'е apps/forgejo/k8s/admin.sealedsecret.yaml.
+            # keepUpdated перетирал бы пароль при каждом рестарте пода, поэтому
+            # initialOnlyNoReset: выставляем один раз, дальше правит человек.
+            existingSecret: forgejo-admin
+            passwordMode: initialOnlyNoReset
+            email: user@example.com
+          config:
+            server:
+              # Наружу SSH отдаётся на 2222 (service.ssh.port ниже), внутри
+              # rootless-образ слушает тот же порт.
+              SSH_PORT: 2222
+              SSH_LISTEN_PORT: 2222
+              LFS_START_SERVER: true
+            database:
+              DB_TYPE: postgres
+              HOST: shared-rw.databases.svc.cluster.local
+              NAME: forgejo
+              USER: forgejo
+            security:
+              # Обратный прокси — Traefik в кластере (pod CIDR k0s).
+              REVERSE_PROXY_TRUSTED_PROXIES: 10.244.0.0/16
+            service:
+              DISABLE_REGISTRATION: true
+              ENABLE_UPDATE_CHECKER: false
+              DEFAULT_USER_VISIBILITY: private
+            repository:
+              DEFAULT_PRIVATE: private
+            openid:
+              ENABLE_OPENID_SIGNIN: false
+              ENABLE_OPENID_SIGNUP: false
+            actions:
+              ENABLED: false
+          metrics:
+            enabled: true
+          additionalConfigFromEnvs:
+            - name: FORGEJO__database__PASSWD
+              valueFrom:
+                secretKeyRef:
+                  name: forgejo-secrets
+                  key: POSTGRES_PASSWORD
+            - name: FORGEJO__metrics__TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: forgejo-secrets
+                  key: FORGEJO_METRICS_TOKEN
+            - name: FORGEJO__i18n__DEFAULT_LOCALE
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-config
+                  key: DEFAULT_LOCALE
+            - name: TZ
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-config
+                  key: TZ
+        persistence:
+          enabled: true
+          # Имя PVC задаётся здесь; менять после установки нельзя — это новый том.
+          claimName: forgejo-data
+          storageClass: longhorn-retain
+          size: 5Gi
+        service:
+          ssh:
+            type: ClusterIP
+            port: 2222
+            externalIPs:
+              - 192.0.2.10
+        ingress:
+          enabled: true
+          className: traefik
+          annotations:
+            # Traefik не пишет status.loadBalancer у Ingress, а Argo считает
+            # такой Ingress вечно Progressing. Аннотация отключает проверку
+            # здоровья только у этого объекта; когда Ingress'ов под Argo
+            # станет много, чище завести resource.customizations.health
+            # в argocd-cm (k8s/argocd/values.yaml) и убрать аннотацию.
+            argocd.argoproj.io/ignore-healthcheck: "true"
+          hosts:
+            - host: forgejo.example.com
+              paths:
+                - path: /
+                  pathType: Prefix
+                  port: http
+        resources:
+          requests:
+            cpu: 20m
+            memory: 256Mi
+          limits:
+            cpu: "1"
+            memory: 768Mi
+        containerSecurityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+          seccompProfile:
+            type: RuntimeDefault
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: forgejo
+  syncPolicy:
+    # Namespace создаётся манифестом apps/forgejo/k8s/namespace.yaml, не Argo:
+    # владелец namespace — сервис, и его границы заданы руками.
+    syncOptions:
+      - ServerSideApply=true
+    automated:
+      selfHeal: true
+      prune: true

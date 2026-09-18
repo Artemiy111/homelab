@@ -1,6 +1,8 @@
 # Базовый NetworkPolicy: default-deny ingress + явные разрешения.
-# traefik — веб; vmagent из monitoring скрейпит метрики app (3000) и
-# экспортёра БД (9187). Egress не ограничивается.
+# traefik — веб; SSH (2222) открыт наружу для git-клиентов; vmagent из
+# monitoring скрейпит метрики приложения на порту 3000 (встроенный экспортёр
+# CNPG отдаёт метрики базы отдельно, из namespace databases).
+# Egress не ограничивается.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -36,8 +38,6 @@ spec:
               app: vmagent
       ports:
         - port: 3000
-          protocol: TCP
-        - port: 9187
           protocol: TCP
     - from:
         - ipBlock:

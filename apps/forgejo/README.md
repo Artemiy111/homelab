@@ -1,85 +1,129 @@
 # Forgejo
 
-Forgejo — лёгкая self-hosted Git-платформа (форк Gitea).
-URL: `https://forgejo.example.com/`
-Git over SSH: `2222:`.
+Forgejo — лёгкая self-hosted Git-платформа (форк Gitea), которая задумана как
+основной дом для этого репозитория.
 
-Самостоятельная регистрация отключена после первоначальной настройки, новые
-репозитории и профили приватны по умолчанию. Forgejo Actions отключены до
-появления отдельного runner.
+| | |
+|---|---|
+| URL | `https://forgejo.example.com/` |
+| Git over SSH | `ssh://git@forgejo.example.com:2222/OWNER/REPO.git` |
+| Namespace | `forgejo` |
+| Развёртывание | Argo CD: `k8s/argocd/forgejo.yaml`, чарт `forgejo-helm` |
+| Данные | PVC `forgejo-data` на `longhorn-retain` (Longhorn) |
+| База | CNPG-кластер `shared` в namespace `databases`, роль и база `forgejo` |
 
-## Первый запуск
+Самостоятельная регистрация выключена, новые репозитории и профили приватны,
+Forgejo Actions выключены до появления отдельного runner.
 
-Из корня репозитория:
+## Как развёрнуто
 
-```sh
-bash scripts/bootstrap-platform.sh forgejo
-```
+Официального Helm-чарта у Forgejo нет; де-факто стандарт — **forgejo-helm** из
+организации `forgejo-contrib` на Codeberg (форк чарта Gitea под Forgejo:
+внешняя база, rootless-образ, admin-пользователь и метрики из коробки).
+Application ставит его как git-источник с `path: .`, как local-path-provisioner.
 
-Откройте `https://forgejo.example.com/` — откроется мастер установки.
-Укажите адрес PostgreSQL (`db:5432`), имя базы и пароль, создайте
-первого пользователя (он автоматически станет администратором).
+Две вещи, которые важно знать про этот чарт:
 
-После завершения установки отключите регистрацию и веб-мастер, добавив в
-`compose.yaml` в секцию `x-forgejo-environment`:
+- **`appVersion` в git-дереве неверный.** В `Chart.yaml` на теге `v16.0.1`
+  лежит `appVersion: 14.0.1` — настоящий appVersion подставляется только в
+  OCI-артефакт при релизе. Поэтому `image.tag` и `image.digest` заданы явно,
+  иначе Argo развернул бы Forgejo 14. Тег/дайджест — те же, что были в
+  манифестах до переезда на чарт.
+- **Веб-мастера установки нет.** Чарт всегда ставит `INSTALL_LOCK=true`, вся
+  конфигурация приезжает из values, а админ создаётся init-контейнером.
 
-```yaml
-  FORGEJO__security__INSTALL_LOCK: "true"
-  FORGEJO__service__DISABLE_REGISTRATION: "true"
-```
+## Хранилище
 
-Затем перезапустите контейнер:
+`persistence.claimName: forgejo-data`, класс `longhorn-retain`, 5Gi. Стратегия
+деплоймента — `Recreate` (дефолт чарта): том RWO, два пода одновременно его не
+смонтируют. Менять имя PVC после установки нельзя — это будет новый том.
 
-```sh
-docker compose up -d
-```
+Что лежит в томе: `git/repositories` (сами репозитории), LFS-объекты,
+вложения, аватары, `custom/` и сгенерированный `gitea/conf/app.ini`. **База — не
+здесь**: она в CNPG. Для полного восстановления нужны обе половины.
 
-Чтобы SSH был доступен клиентам, разрешите порт `2232` в активной зоне
-firewalld (команда требует root):
+## База
 
-```sh
-sudo firewall-cmd --permanent --add-port=2222/tcp
-sudo firewall-cmd --reload
-```
+Кластер `shared` (namespace `databases`), роль `forgejo`, база `forgejo`.
+Подключение идёт на `shared-rw.databases.svc.cluster.local:5432`, доступ
+разрешён в `k8s/cnpg/networkpolicy.yaml` (`allow-shared-from-consumers`).
 
-Порт привязан только к LAN-адресу; на роутере его публиковать не
-нужно. Удалённые клиенты приходят к этому адресу через Tailscale subnet route.
+Пароль роли лежит в `databases/forgejo-db-auth` и он же — в
+`forgejo/forgejo-secrets` (один плейнтекст, два запечатанных SealedSecret'а —
+принятая в репозитории схема, см. `k8s/cnpg/README.md`). Подставляется в
+app.ini через `FORGEJO__database__PASSWD` из `gitea.additionalConfigFromEnvs`,
+поэтому секрет чарту не нужен.
 
-## Использование
+## Секреты
 
-После добавления публичного SSH-ключа в настройках профиля репозиторий можно
-клонировать так:
+| SealedSecret | Что внутри | Кто читает |
+|---|---|---|
+| `apps/forgejo/k8s/secrets.sealedsecret.yaml` | `POSTGRES_PASSWORD`, `FORGEJO_METRICS_TOKEN` | чарт (env → app.ini) |
+| `apps/forgejo/k8s/admin.sealedsecret.yaml` | `username`, `password` админа | чарт (init-контейнер) |
 
-```sh
-git clone ssh://git@forgejo.example.com:2222/OWNER/REPOSITORY.git
-```
+Перезапечатать можно только на сервере: `kubeseal` привязан к namespace и
+имени, а приватный ключ контроллера доступен лишь там
+(`docs/agents/server-access.md`).
 
-При создании дополнительных пользователей используйте административную панель.
-SMTP намеренно не настроен: восстановление пароля по почте не заработает, пока
-не будет выбран и настроен почтовый провайдер.
+**Про пароль админа:** режим `initialOnlyNoReset` — чарт выставляет пароль при
+создании пользователя и больше его не трогает. Смени его после первого входа
+(Settings → Account → Password). Режим `keepUpdated` (дефолт чарта) не годится:
+он перетирал бы пароль при каждом рестарте пода.
+
+Осторожно с именами: чарт создаёт Secret с именем релиза (`forgejo`) для своих
+init-скриптов, поэтому секреты сервиса названы `forgejo-secrets` и
+`forgejo-admin`. Совпадение имён означало бы двух владельцев одного объекта
+(SealedSecret-контроллер и Argo), и они затирали бы ключи друг друга.
 
 ## Проверка
 
 ```sh
-docker compose ps
-docker compose exec --user git app forgejo doctor check --all
-curl --resolve forgejo.example.com:443:192.0.2.10 \
-  -fsS https://forgejo.example.com/api/healthz
-ssh -T -p 2222 git@192.0.2.10
+kubectl -n argocd get application forgejo
+kubectl -n forgejo get pods,pvc,svc,ingress
+
+curl -fsS --resolve forgejo.example.com:443:192.0.2.10 \
+  https://forgejo.example.com/api/healthz   # status: pass, database:ping: pass
+
+kubectl -n forgejo exec deploy/forgejo -- forgejo admin user list --admin
+
+# SSH: порт открыт и отдаёт баннер Forgejo
+ssh -T -p 2222 -o StrictHostKeyChecking=no git@192.0.2.10
 ```
 
-Health endpoint должен вернуть JSON со `"status":"pass"`. Первая SSH-проверка
-может завершиться сообщением о невозможности shell-доступа — для Forgejo это
-нормально, если пользователь распознан.
+## Резервное копирование
+
+Пока **не настроено**, и это главный незакрытый пункт: под `shared` задуман
+ObjectStore + ScheduledBackup в rustfs (Barman Cloud Plugin), см.
+`k8s/cnpg/README.md`. До этого репозитории (PVC) и база (CNPG) живут без
+резервных копий, а `longhorn-retain` защищает только от удаления PVC, не от
+отказа диска или логической порчи.
+
+Когда база будет покрыта бэкапами, для репозиториев останется второй путь:
+push-зеркало в GitHub — git распределённый, и код переживёт потерю сервера даже
+без бэкапов. Планируемый порядок: сначала зеркало, потом перенос `origin`.
 
 ## Обновление
 
-Перед обновлением создайте согласованный backup. Затем измените фиксированный тег
-Forgejo в `compose.yaml`, проверьте release notes и выполните:
+1. Посмотреть release notes Forgejo и тег чарта (`forgejo-helm` на Codeberg).
+2. В `k8s/argocd/forgejo.yaml` поднять `targetRevision` (тег чарта) и
+   `image.tag`/`image.digest` (образ Forgejo) — это две независимые вещи.
+3. `kubectl apply -f k8s/argocd/forgejo.yaml`, дождаться sync.
+4. Миграции схемы выполняет init-контейнер чарта (`forgejo migrate`); если он
+   циклится, смотреть его логи: обычно это недоступная база.
 
-```sh
-docker compose pull
-docker compose up -d
-docker compose ps
-docker compose exec --user git app forgejo doctor check --all
-```
+Откат: вернуть прежние теги в values и снова `kubectl apply`. Образ и чарт
+пинятся по версии/дайджесту, поэтому откат детерминированный.
+
+## Грабли, проверенные на живом стенде
+
+- **`lookup` в чарте ломается под Argo.** Чарт умеет генерировать пароль админа
+  и хранить его в своём Secret'е, читая существующий объект через `lookup`. Argo
+  рендерит чарт без доступа к кластеру, поэтому пароль менялся бы при каждом
+  sync. Лечится `gitea.admin.existingSecret` — что и сделано.
+- **Ingress под Argo вечно `Progressing`.** Traefik не пишет
+  `status.loadBalancer.ingress`, а Argo считает такой Ingress нездоровым.
+  Сейчас на Ingress стоит аннотация `argocd.argoproj.io/ignore-healthcheck`;
+  когда Ingress'ов под Argo станет больше, чище завести
+  `resource.customizations.health.networking.k8s.io_Ingress` в `argocd-cm`.
+- **`image.pullPolicy` и digest.** Образ пинится дайджестом, тег остаётся
+  человекочитаемым маркером версии.
