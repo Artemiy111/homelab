@@ -20,12 +20,12 @@ spec:
             - name: elasticsearch
               resources:
                 # memory requests == limits → QoS Guaranteed, эвикция последней.
-                # ECK берёт heap как 50% от лимита памяти (здесь 512Mi).
+                # ECK берёт heap как 50% от лимита памяти (здесь 1Gi).
                 requests:
                   cpu: 500m
-                  memory: 1Gi
+                  memory: 2Gi
                 limits:
-                  memory: 1Gi
+                  memory: 2Gi
       volumeClaimTemplates:
         - metadata:
             name: elasticsearch-data
