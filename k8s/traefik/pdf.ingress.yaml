@@ -2,7 +2,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: stirlingpdf
-  namespace: default
+  namespace: pdf
 spec:
   ingressClassName: traefik
   rules:
