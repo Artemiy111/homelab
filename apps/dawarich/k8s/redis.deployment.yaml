@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: dawarich-redis
-  namespace: default
+  namespace: dawarich
 spec:
   strategy:
     type: Recreate

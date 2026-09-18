@@ -1,8 +1,8 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: zitadel-postgres
-  namespace: default
+  name: zitadel-postgres-legacy
+  namespace: zitadel
 spec:
   # hostPath-каталоги нельзя монтировать в два пода одновременно.
   strategy:
@@ -11,11 +11,11 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: zitadel-postgres
+      app: zitadel-postgres-legacy
   template:
     metadata:
       labels:
-        app: zitadel-postgres
+        app: zitadel-postgres-legacy
     spec:
       enableServiceLinks: false
       containers:

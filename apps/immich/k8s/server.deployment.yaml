@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: immich-server
-  namespace: default
+  namespace: immich
 spec:
   strategy:
     type: Recreate
@@ -22,7 +22,7 @@ spec:
       initContainers:
         - name: wait-for-db
           image: "ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0@sha256:bcf63357191b76a916ae5eb93464d65c07511da41e3bf7a8416db519b40b1c23"
-          command: ["/bin/sh", "-c", "until pg_isready -h immich-db -U postgres -d immich; do echo waiting for immich-db; sleep 2; done"]
+          command: ["/bin/sh", "-c", "until pg_isready -h immich-db-legacy -U postgres -d immich; do echo waiting for immich-db; sleep 2; done"]
           securityContext:
             runAsUser: 999
             runAsGroup: 999
@@ -76,7 +76,7 @@ spec:
                   name: immich
                   key: DB_PASSWORD
             - name: DB_HOSTNAME
-              value: immich-db
+              value: immich-db-legacy
             - name: REDIS_HOSTNAME
               value: immich-valkey
             - name: DB_USERNAME

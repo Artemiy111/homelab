@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: immich-machine-learning
-  namespace: default
+  namespace: immich
 spec:
   strategy:
     type: Recreate

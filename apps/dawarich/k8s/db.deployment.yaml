@@ -1,8 +1,8 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: dawarich-db
-  namespace: default
+  name: dawarich-db-legacy
+  namespace: dawarich
 spec:
   # PostGIS 17: PGDATA=/var/lib/postgresql/data (не PG18-раскладка!).
   # Образ и монтирование должны совпадать с compose, иначе база не прочитается.
@@ -12,11 +12,11 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: dawarich-db
+      app: dawarich-db-legacy
   template:
     metadata:
       labels:
-        app: dawarich-db
+        app: dawarich-db-legacy
     spec:
       containers:
         - name: postgres

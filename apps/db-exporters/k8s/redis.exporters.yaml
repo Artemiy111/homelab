@@ -24,7 +24,7 @@ spec:
               containerPort: 9121
           env:
             - name: REDIS_ADDR
-              value: "redis://dawarich-redis:6379"
+              value: "redis://dawarich-redis.dawarich.svc.cluster.local:6379"
           livenessProbe:
             httpGet:
               path: /metrics
@@ -240,7 +240,7 @@ spec:
               containerPort: 9121
           env:
             - name: REDIS_ADDR
-              value: "redis://immich-valkey:6379"
+              value: "redis://immich-valkey.immich.svc.cluster.local:6379"
           livenessProbe:
             httpGet:
               path: /metrics

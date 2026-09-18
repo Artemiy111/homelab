@@ -1,0 +1,52 @@
+# NetworkPolicy для namespace zitadel: default-deny ingress + явные разрешения.
+# traefik — zitadel и login; vmagent из monitoring скрейпит метрики zitadel
+# (8080) и экспортёра БД (9187). Пока приложение ходит на legacy
+# zitadel-postgres, внутри namespace разрешён весь трафик. Egress не ограничен.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: zitadel
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress
+  namespace: zitadel
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector: {}
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: traefik
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+          podSelector:
+            matchLabels:
+              app: vmagent
+      ports:
+        - port: 8080
+          protocol: TCP
+        - port: 9187
+          protocol: TCP
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: default
+          podSelector:
+            matchLabels:
+              app: zitadel-postgres-exporter
+      ports:
+        - port: 5432
+          protocol: TCP

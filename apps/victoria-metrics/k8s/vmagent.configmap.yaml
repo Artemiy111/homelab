@@ -121,7 +121,7 @@ data:
       - job_name: immich
         static_configs:
           - targets:
-              - immich.default.svc.cluster.local:8081
+              - immich.immich.svc.cluster.local:8081
 
       - job_name: livekit
         static_configs:

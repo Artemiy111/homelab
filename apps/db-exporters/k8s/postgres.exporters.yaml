@@ -103,7 +103,7 @@ spec:
               containerPort: 9187
           env:
             - name: DATA_SOURCE_URI
-              value: "dawarich-db:5432/dawarich_production?sslmode=disable"
+              value: "dawarich-db-legacy.dawarich.svc.cluster.local:5432/dawarich_production?sslmode=disable"
             - name: DATA_SOURCE_USER
               value: "dawarich"
             - name: DATA_SOURCE_PASS
@@ -419,7 +419,7 @@ spec:
               containerPort: 9187
           env:
             - name: DATA_SOURCE_URI
-              value: "immich-db:5432/immich?sslmode=disable"
+              value: "immich-db-legacy.immich.svc.cluster.local:5432/immich?sslmode=disable"
             - name: DATA_SOURCE_USER
               value: "postgres"
             - name: DATA_SOURCE_PASS
@@ -811,7 +811,7 @@ spec:
               containerPort: 9187
           env:
             - name: DATA_SOURCE_URI
-              value: "zitadel-postgres:5432/zitadel?sslmode=disable"
+              value: "zitadel-postgres-legacy.zitadel.svc.cluster.local:5432/zitadel?sslmode=disable"
             - name: DATA_SOURCE_USER
               value: "postgres"
             - name: DATA_SOURCE_PASS
