@@ -1,6 +1,8 @@
 # Базовый NetworkPolicy: default-deny ingress + явные разрешения.
 # traefik — seafile и onlyoffice; vmagent из monitoring скрейпит метрики
 # экспортёров MariaDB (9104) и Redis (9121). Egress не ограничивается.
+# mariadb-system — оператор, который управляет seafile-mariadb: ему нужен 3306,
+# иначе SQL-ресурсы (Database/User/Grant) не сходятся с i/o timeout.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -27,6 +29,13 @@ spec:
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: traefik
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: mariadb-system
+      ports:
+        - port: 3306
+          protocol: TCP
     - from:
         - namespaceSelector:
             matchLabels:
