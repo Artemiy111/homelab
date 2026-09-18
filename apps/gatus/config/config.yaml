@@ -342,7 +342,7 @@ endpoints:
 
   - name: 3x-ui backend
     group: Applications
-    url: tcp://xui:2053
+    url: tcp://xui.3x-ui.svc.cluster.local:2053
     interval: 60s
     conditions: *tcp-connected
     alerts: *alerts-all
