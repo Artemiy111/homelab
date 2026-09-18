@@ -20,7 +20,7 @@ spec:
       initContainers:
         - name: wait-for-db
           image: "postgres:18-alpine@sha256:d3e1620b530c944afa6e887d22eb899824da68e19c52024bf98f5220c88a65b2"
-          command: ["/bin/sh", "-c", "until pg_isready -h zitadel-postgres-legacy -U postgres -d zitadel; do echo waiting for zitadel-postgres; sleep 3; done"]
+          command: ["/bin/sh", "-c", "until pg_isready -h zitadel-db-rw.zitadel.svc.cluster.local -p 5432 -U zitadel -d zitadel; do echo waiting for zitadel-db; sleep 3; done"]
           securityContext:
             runAsUser: 70
             runAsGroup: 70

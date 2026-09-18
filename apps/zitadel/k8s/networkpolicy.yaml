@@ -1,9 +1,8 @@
 # NetworkPolicy для namespace zitadel: default-deny ingress + явные разрешения.
 # traefik — zitadel и login; vmagent из monitoring скрейпит метрики zitadel
-# (8080) и экспортёра БД (9187). Оператор CNPG из cnpg-system обязан ходить в
-# под кластера: 8000 — instance manager (status), 5432 — PostgreSQL.
-# Пока приложение ходит на legacy zitadel-postgres, внутри namespace разрешён
-# весь трафик. Egress не ограничен.
+# (8080) и встроенного экспортёра CNPG (9187). Оператор CNPG из cnpg-system
+# обязан ходить в под кластера: 8000 — instance manager (status), 5432 —
+# PostgreSQL. Egress не ограничен.
 #
 # Порт-лист — часть конкретного правила ingress, а не общий для всего spec:
 # блок без ports не ограничен, поэтому доступы с ограничением портов выносятся
