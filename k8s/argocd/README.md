@@ -221,6 +221,19 @@ service-account. Маршрут (`k8s/headlamp/headlamp.ingressroute.yaml`) —
 - Чарт сам создаёт `ClusterRole`/`ClusterRoleBinding`/`IngressClass` — они под
   управлением Argo (в отличие от RBAC headlamp, который вне чарта).
 
+### sealed-secrets
+
+`sealed-secrets.yaml` — адопция боевого контроллера в `kube-system`. Отличия:
+
+- `skipCrds: true` — CRD `sealedsecrets.bitnami.com` кластерный, обновляется
+  вручную (`helm show crds ... | kubectl apply -f -`).
+- values — только `fullnameOverride`; без него ресурсы назывались бы
+  `sealed-secrets`, а не `sealed-secrets-controller`.
+- приватный ключ `sealed-secrets-key*` чартом не управляется, Argo его не
+  трогает.
+- после адопции забыть Helm-релиз:
+  `kubectl -n kube-system delete secret -l owner=helm,name=sealed-secrets`.
+
 ## Отклонения от дефолтов чарта
 
 | Параметр | Дефолт | Здесь | Зачем |
