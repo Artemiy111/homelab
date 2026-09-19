@@ -12,11 +12,11 @@ spec:
       kind: Rule
       middlewares:
         - name: oauth2-proxy
-          namespace: default
+          namespace: traefik
         - name: secure-headers
-          namespace: default
+          namespace: traefik
         - name: ratelimit-default
-          namespace: default
+          namespace: traefik
       services:
         - name: victoriametrics
           port: 8428

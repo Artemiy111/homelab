@@ -13,7 +13,6 @@ spec:
       priority: 400
       middlewares:
         - name: zitadel-root-rewrite
-          namespace: default
       services:
         - name: zitadel-login
           port: 3000
@@ -30,7 +29,6 @@ spec:
       priority: 200
       middlewares:
         - name: zitadel-strip-api
-          namespace: default
       services:
         - name: zitadel
           port: 8080

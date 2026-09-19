@@ -11,13 +11,13 @@ spec:
     - match: Host(`structurizr.example.com`)
       kind: Rule
       middlewares:
-        # Middleware'ы остаются в default: ссылаемся cross-namespace явным namespace.
+        # Middleware'ы остаются в traefik: ссылаемся cross-namespace явным namespace.
         - name: oauth2-proxy
-          namespace: default
+          namespace: traefik
         - name: secure-headers
-          namespace: default
+          namespace: traefik
         - name: ratelimit-default
-          namespace: default
+          namespace: traefik
       services:
         - name: structurizr
           port: 80

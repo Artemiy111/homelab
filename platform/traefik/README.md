@@ -16,7 +16,7 @@ TLS терминируется на entrypoint `websecure`; маршруты н�
 Сертификат по умолчанию отдаёт TLSStore `default` (`tlsstore.yaml`) — это
 wildcard-секрет `wildcard-tls` в namespace `traefik`. Общие middleware (forward
 auth `oauth2-proxy`, `secure-headers`, `ratelimit-default`) объявлены в
-`oauth2-proxy.middleware.yaml` в namespace `default`; маршруты ссылаются на них
+`oauth2-proxy.middleware.yaml` в namespace `traefik`; маршруты ссылаются на них
 cross-namespace (`allowCrossNamespace: true`).
 
 ## Панель

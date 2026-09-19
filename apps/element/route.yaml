@@ -13,7 +13,6 @@ spec:
       priority: 110
       middlewares:
         - name: element-livekit-strip
-          namespace: default
       services:
         - name: livekit
           port: 7880
@@ -24,7 +23,6 @@ spec:
       priority: 110
       middlewares:
         - name: element-rtc-auth-strip
-          namespace: default
       services:
         - name: matrix-rtc-auth
           port: 8080

@@ -34,7 +34,6 @@ spec:
       priority: 1
       middlewares:
         - name: rustfs-root-redirect
-          namespace: default
       services:
         - name: rustfs
           port: 9000

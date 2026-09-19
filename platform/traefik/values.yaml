@@ -3,7 +3,7 @@
 
 providers:
   kubernetesCRD:
-    # Middlewares живут в default, а IngressRoute — в namespace приложения.
+    # Middlewares живут в traefik, а IngressRoute — в namespace приложения.
     allowCrossNamespace: true
 
 service:

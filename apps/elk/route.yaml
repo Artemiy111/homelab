@@ -2,7 +2,7 @@ apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
   name: kibana
-  namespace: default
+  namespace: logging
 spec:
   entryPoints:
     - websecure
@@ -11,7 +11,9 @@ spec:
       kind: Rule
       middlewares:
         - name: oauth2-proxy
+          namespace: traefik
         - name: secure-headers
+          namespace: traefik
         # ratelimit-default намеренно НЕ подключён: Kibana грузит сотни бандлов
         # параллельно и упирается в лимит (100/50) — приложение не догружается.
       services:

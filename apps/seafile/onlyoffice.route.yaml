@@ -4,7 +4,7 @@ metadata:
   name: onlyoffice
   namespace: seafile
   annotations:
-    traefik.ingress.kubernetes.io/router.middlewares: default-onlyoffice-xfp@kubernetescrd
+    traefik.ingress.kubernetes.io/router.middlewares: seafile-onlyoffice-xfp@kubernetescrd
 spec:
   ingressClassName: traefik
   rules:

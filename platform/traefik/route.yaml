@@ -2,7 +2,7 @@ apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
   name: traefik-dashboard-slash
-  namespace: default
+  namespace: traefik
 spec:
   # api@internal отдаёт панель только по /dashboard/; без слеша — 404.
   redirectRegex:
@@ -14,7 +14,7 @@ apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
   name: traefik-dashboard
-  namespace: default
+  namespace: traefik
 spec:
   entryPoints:
     - websecure
