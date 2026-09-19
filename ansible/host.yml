@@ -51,6 +51,12 @@
         state: enabled
         host: copr.fedorainfracloud.org
 
+    - name: Подключить COPR-репозиторий forgejo-cli
+      community.general.copr:
+        name: lihaohong/forgejo-cli
+        state: enabled
+        host: copr.fedorainfracloud.org
+
     # Для sops официального репозитория нет — берём RPM из релиза GitHub.
     # RPM подписан cosign, а не GPG, поэтому проверка подписи отключена;
     # целостность фиксируется checksum URL-версии (см. group_vars/all.yml).

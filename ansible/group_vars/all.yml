@@ -10,6 +10,7 @@ host_packages:
   - lsd
   - neovim           # бинарник nvim
   - lazygit          # из COPR dejan/lazygit
+  - forgejo-cli      # из COPR lihaohong/forgejo-cli
   - tldr
   - htop
   - btop
