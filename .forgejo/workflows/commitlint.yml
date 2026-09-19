@@ -11,18 +11,35 @@ jobs:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
+      - name: Cache bun
+        id: bun
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun
+          key: bun-${{ runner.os }}-1.4.0
       - name: Install bun
-        run: npm install -g bun@1.4.0
+        if: steps.bun.outputs.cache-hit != 'true'
+        run: |
+          npm install -g bun@1.4.0
+          mkdir -p "$HOME/.bun/bin"
+          cp "$(command -v bun)" "$HOME/.bun/bin/bun"
+      - name: Add bun to PATH
+        run: echo "$HOME/.bun/bin" >> "$GITHUB_PATH"
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('bun.lock') }}
       - name: Install dependencies
         run: bun install --frozen-lockfile
       - name: Print versions
         run: |
           git --version
           bun --version
-          bunx commitlint --version
+          bun x commitlint --version
       - name: Validate last commit
         if: github.event_name == 'push'
-        run: bunx commitlint --last --verbose
+        run: bun x commitlint --last --verbose
       - name: Validate pull request commits
         if: github.event_name == 'pull_request'
-        run: bunx commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }} --verbose
+        run: bun x commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }} --verbose
