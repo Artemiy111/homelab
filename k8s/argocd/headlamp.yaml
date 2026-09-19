@@ -1,0 +1,40 @@
+# Headlamp через Argo CD — адопция уже установленного Helm-релиза.
+# Цель: отработать перевод Helm → Argo на некритичном сервисе (server-side
+# apply без пересоздания Pod), прежде чем трогать боевой Traefik.
+#
+# Чарт ставит только сам Headlamp: Deployment, Service, SA headlamp и Secret
+# oidc. RBAC админа (SA headlamp-admin, ClusterRoleBinding, token) остаётся
+# отдельным манифестом k8s/headlamp/headlamp-rbac.yaml, поэтому у чарта
+# clusterRoleBinding выключен — один объект не должен описываться дважды.
+#
+# Sync намеренно ручной: сначала argocd app diff, потом sync.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: headlamp
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://kubernetes-sigs.github.io/headlamp/
+    chart: headlamp
+    targetRevision: 0.45.0
+    helm:
+      releaseName: headlamp
+      # Дефолт чарта — создавать ClusterRoleBinding headlamp-admin на
+      # ServiceAccount headlamp-admin. Этот SA и binding уже описаны в
+      # k8s/headlamp/headlamp-rbac.yaml, значит чарту их отдавать нельзя.
+      valuesObject:
+        clusterRoleBinding:
+          create: false
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: headlamp
+  syncPolicy:
+    syncOptions:
+      # ServerSideApply нужен для адопции: apply --server-side --force-conflicts
+      # берёт ownership существующих объектов без delete+create, Pod не
+      # пересоздаётся. Совпадает с тем, как ставился релиз (Helm 4 применяет
+      # server-side).
+      - ServerSideApply=true
+      - CreateNamespace=true

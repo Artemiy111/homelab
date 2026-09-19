@@ -1,0 +1,72 @@
+# Traefik через Argo CD — адопция существующего Helm-релиза.
+# Traefik — единственный ingress (80/443 на 192.0.2.10 через externalIPs),
+# поэтому адопция идёт server-side apply: ownership берётся без delete+create,
+# Pod не пересоздаётся. Механика обкатана на headlamp, см. README.
+#
+# Sync намеренно ручной: сначала argocd app diff traefik, только потом sync.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: traefik
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://traefik.github.io/charts
+    chart: traefik
+    targetRevision: 41.4.0
+    helm:
+      releaseName: traefik
+      # CRD *.traefik.io кластерные и уже установлены. Без skipCrds Argo взял бы
+      # их под управление и при удалении приложения снёс бы вместе со всеми
+      # IngressRoute/Middleware кластера.
+      skipCrds: true
+      # Values инлайном (копия k8s/traefik/values.yaml): у Argo нет доступа к
+      # приватному репозиторию, поэтому $values/... из git не работает.
+      valuesObject:
+        providers:
+          kubernetesCRD:
+            allowCrossNamespace: true
+        service:
+          spec:
+            type: ClusterIP
+            externalIPs:
+              - 192.0.2.10
+        ports:
+          web:
+            port: 8000
+            expose:
+              default: true
+            protocol: TCP
+          websecure:
+            port: 8443
+            http:
+              tls:
+                enabled: true
+            expose:
+              default: true
+            protocol: TCP
+        metrics:
+          prometheus:
+            service:
+              enabled: true
+        additionalArguments:
+          - --ping
+        ingressRoute:
+          healthcheck:
+            enabled: true
+            entryPoints:
+              - websecure
+            tls: {}
+        ingressClass:
+          enabled: true
+          isDefaultClass: true
+          name: traefik
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: traefik
+  syncPolicy:
+    syncOptions:
+      # Совпадает со способом установки релиза (Helm 4 применяет server-side).
+      - ServerSideApply=true
+      - CreateNamespace=true

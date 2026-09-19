@@ -166,6 +166,57 @@ argocd app get kube-state-metrics
 `apps/victoria-metrics/config/vmagent/scrape.yml`) — после синка нужно
 перезапустить vmagent.
 
+## Адопция существующего Helm-релиза (на примере headlamp)
+
+`headlamp.yaml` переводит уже работающий Helm-релиз под Argo **без
+пересоздания** ресурсов. Порядок применим и к боевому Traefik.
+
+```sh
+kubectl apply -f k8s/argocd/headlamp.yaml
+
+argocd app diff headlamp        # желаемое (чарт) vs живое: расхождений быть не должно
+argocd app sync headlamp        # server-side apply берёт ownership, Pod не пересоздаётся
+
+kubectl -n headlamp get pods    # AGE не должен сброситься
+```
+
+Так как релиз ставился Helm 4 (server-side apply), адопция идёт
+`ServerSideApply=true` — иначе client-side apply полез бы чинить
+`last-applied-configuration`, которого Helm не оставляет.
+
+Дальше нужно «забыть» Helm-релиз, чтобы `helm upgrade` не конкурировал с Argo.
+Опции «удалить релиз, но оставить ресурсы» у Helm нет: `--keep-resources` не
+существует ни в 3, ни в 4, а `--cascade orphan` — это лишь propagation policy
+при удалении самих объектов. Рабочий способ — удалить release-секреты; ресурсы
+при этом не трогаются, а релиз пропадает из `helm list`:
+
+```sh
+kubectl -n headlamp delete secret -l owner=helm,name=headlamp
+```
+
+Проверка: `helm list -n headlamp` пуст, ресурсы и Pod на месте.
+
+Границы владения: RBAC админа headlamp (`SA headlamp-admin`,
+`ClusterRoleBinding`, token) — отдельный манифест `k8s/headlamp/headlamp-rbac.yaml`,
+не чарт. Поэтому у Application `clusterRoleBinding.create: false`: чарт не
+создаёт объект, который уже есть в репозитории. Маршрут
+(`k8s/headlamp/headlamp.ingressroute.yaml`) тоже вне Application — как и для
+остальных сервисов.
+
+### Traefik
+
+`traefik.yaml` — тот же приём для боевого ingress (единственный вход на
+`192.0.2.10`, поэтому проверять `argocd app diff` особенно внимательно).
+Отличия от headlamp:
+
+- `skipCrds: true` — CRD `*.traefik.io` кластерные; под управлением Argo они
+  при удалении приложения снесли бы все `IngressRoute`/`Middleware` кластера.
+- values продублированы из `k8s/traefik/values.yaml` инлайном. При правке
+  values менять оба места, иначе кластер уедет от файла. Альтернатива —
+  завести Argo repo credentials и ссылаться на `$values/...`.
+- Чарт сам создаёт `ClusterRole`/`ClusterRoleBinding`/`IngressClass` — они под
+  управлением Argo (в отличие от RBAC headlamp, который вне чарта).
+
 ## Отклонения от дефолтов чарта
 
 | Параметр | Дефолт | Здесь | Зачем |
