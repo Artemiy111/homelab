@@ -88,6 +88,12 @@ spec:
               ENABLE_OPENID_SIGNUP: false
             actions:
               ENABLED: false
+            cron:
+              ENABLED: true
+              RUN_AT_START: true
+            cron.git_gc_repos:
+              ENABLE: true
+              SCHEDULE: "@every 24h"
           metrics:
             enabled: true
           additionalConfigFromEnvs:
