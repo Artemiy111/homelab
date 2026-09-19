@@ -133,8 +133,7 @@ production-практикам DevOps.
 
 Доставка секретов в кластер — только SealedSecret
 (`apps/<сервис>/k8s/sealedsecret.yaml`). Контроллер sealed-secrets в
-`kube-system` (ставится плейбуком `ansible/sealed-secrets.yml`) расшифровывает
-их в обычные Secret внутри кластера.
+`kube-system` расшифровывает их в обычные Secret внутри кластера.
 
 Файлы `apps/<сервис>/secrets.enc.env` (SOPS + age) — наследие эпохи Docker
 Compose, в доставке они не участвуют, но поддерживаются в актуальном состоянии
