@@ -12,7 +12,11 @@
 
 ### Issue tracker
 
-Issues and specs are tracked in GitHub Issues. See `docs/agents/issue-tracker.md`.
+Issues and specs are tracked in Forgejo Issues. See `docs/agents/issue-tracker.md`.
+
+### Commit conventions
+
+Commit messages follow Conventional Commits and are checked by commitlint. See `docs/agents/commit-conventions.md`.
 
 ### Triage labels
 
