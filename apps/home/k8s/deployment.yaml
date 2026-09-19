@@ -20,7 +20,7 @@ spec:
         fsGroup: 1000
         runAsNonRoot: true
       initContainers:
-        # Аналог init.sh: рендерим settings.yaml через vals.
+        # Рендерим settings.yaml через vals.
         # DEFAULT_LOCALE берём из общего ConfigMap homelab-config (единый источник правды).
         - name: render-settings
           image: debian:12-slim

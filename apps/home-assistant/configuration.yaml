@@ -35,14 +35,13 @@ scene: !include scenes.yaml
 
 # Локальный вход по паролю отключён полностью: единственный способ войти —
 # ZITADEL через auth_oidc ниже. Если SSO сломался, доступ восстанавливается
-# на сервере правкой этого файла (git revert + docker compose restart).
+# на сервере правкой этого файла (git revert + рестарт пода).
 # Мобильные приложения аутентифицируются через OIDC-браузер и продолжают работать.
 homeassistant:
   auth_providers: []
 
-# SSO через ZITADEL (custom component hass-oidc-auth, ставится init.sh;
-# см. README). Креденшалы приходят из окружения (secrets.enc.env через
-# service_run в service_compose).
+# SSO через ZITADEL (custom component hass-oidc-auth; см. README).
+# Креденшалы приходят из окружения (secrets.enc.env).
 auth_oidc:
   client_id: !env_var OIDC_CLIENT_ID
   client_secret: !env_var OIDC_CLIENT_SECRET

@@ -58,8 +58,7 @@ function ask(question: string): string {
 }
 
 async function main() {
-  const rootEnv = await readEnvFile(`${repoRoot}/config.env`);
-  const domain = process.env.DOMAIN ?? rootEnv.DOMAIN ?? "example.com";
+  const domain = process.env.DOMAIN ?? "example.com";
   const host = process.env.ZITADEL_HOST ?? `id.${domain}`;
 
   const apiBase = `https://${host}/v2`;

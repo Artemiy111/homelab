@@ -1,14 +1,7 @@
-/config.env
 .freebuff/
 node_modules
 
-# Генерируются init.sh из *.tpl.*-шаблонов (домен подставляется из DOMAIN).
-apps/traefik/traefik.yaml
-
-apps/structurizr/structurizr.properties
-apps/image-updates/cup.json
+# Генерируется из apps/home/config/settings.tpl.yaml.
 apps/home/config/settings.yaml
-apps/element/element-web/config.json
-apps/netdata/config/go.d/prometheus.conf
 
 __pycache__/

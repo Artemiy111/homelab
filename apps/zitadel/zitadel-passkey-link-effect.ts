@@ -77,9 +77,7 @@ const readEnvFile = (path: string) =>
 
 const loadConfig = Effect.gen(function* () {
     const repoRoot = import.meta.dir + "/.."
-    const rootEnv = yield* readEnvFile(`${repoRoot}/config.env`)
-
-    const domain = process.env.DOMAIN ?? rootEnv["DOMAIN"] ?? "example.com"
+    const domain = process.env.DOMAIN ?? "example.com"
     const host = process.env.ZITADEL_HOST ?? `id.${domain}`
 
     const apiBase = `https://${host}/v2`

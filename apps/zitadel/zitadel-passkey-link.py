@@ -69,7 +69,7 @@ def api(method: str, path: str, pat: str, api_base: str, body: dict | None = Non
 
 
 def main() -> None:
-    domain = os.environ.get("DOMAIN") or read_env_key(REPO_ROOT / "config.env", "DOMAIN") or "example.com"
+    domain = os.environ.get("DOMAIN") or "example.com"
     host = os.environ.get("ZITADEL_HOST") or f"id.{domain}"
 
     api_base = f"https://{host}/v2"

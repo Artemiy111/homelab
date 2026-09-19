@@ -16,7 +16,7 @@ set -euo pipefail
 
 repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-source "$repo_root/scripts/lib/common.sh"
+DOMAIN="${DOMAIN:-example.com}"
 
 info() { printf '\033[1;36m%s\033[0m\n' "$*" >&2; }
 ok()   { printf '\033[1;32m%s\033[0m\n' "$*" >&2; }

@@ -1,6 +1,6 @@
 # Настройки входа по OAuth2 через Zitadel для Seahub.
 #
-# Файл примонтирован в контейнер seafile (см. compose.yaml) и подключается
+# Файл примонтирован в контейнер seafile (см. seafile.deployment.yaml) и подключается
 # из seahub_settings.py строкой exec(open(...)). Значения берутся из
 # окружения контейнера — их источник — secrets.enc.env сервиса.
 #
@@ -9,8 +9,8 @@
 # отдельные OAUTH_* переменные, как в официальной доке Seafile 13.
 #
 # Seahub читает настройки один раз при старте воркера: после изменения этого
-# файла или переменных ZITADEL_OAUTH_* выполните
-# `docker compose restart seafile`.
+# файла или переменных ZITADEL_OAUTH_* перезапустите под:
+# `kubectl -n seafile rollout restart deploy/seafile`.
 
 import os
 

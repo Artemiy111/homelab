@@ -9,7 +9,7 @@
 # Секретов здесь нет: DOMAIN и так в каждом Ingress, SERVER_IP — в README.
 # SERVER_IP остаётся только в default, где его ещё читают непереехавшие
 # сервисы (gatus, talk-hpb, jitsi, livekit); при их переезде заменим на
-# status.hostIP/DOMAIN. APPS_STORAGE_PATH в k8s не читается — только compose.
+# status.hostIP/DOMAIN.
 ---
 apiVersion: v1
 kind: ConfigMap
