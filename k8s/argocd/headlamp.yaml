@@ -18,9 +18,6 @@ spec:
         # отдельному логин-аккаунту headlamp-admin ниже.
         clusterRoleBinding:
           create: false
-        # RBAC и токен для входа в Headlamp. Раньше жили в
-        # k8s/headlamp/headlamp-rbac.yaml и применялись вручную.
-        # extraManifests — штатный способ чарта добавить сырые манифесты.
         extraManifests:
           - |
             apiVersion: v1
@@ -68,7 +65,6 @@ spec:
     syncOptions:
       # ServerSideApply нужен для адопции: apply --server-side --force-conflicts
       # берёт ownership существующих объектов без delete+create, Pod не
-      # пересоздаётся. Совпадает с тем, как ставился релиз (Helm 4 применяет
-      # server-side).
+      # пересоздаётся
       - ServerSideApply=true
       - CreateNamespace=true
