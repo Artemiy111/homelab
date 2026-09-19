@@ -121,6 +121,39 @@ dind, сервис-контейнеры (`services:`), матрицы, `needs`/o
 Там же проверены `release.yml` (тег + опубликованный релиз с ассетами) и
 `packages.yml` (push образа в реестр контейнеров и generic-пакет через PAT).
 
+### Сборка языков
+
+В `user/test` лежат hello-world проекты со своими workflow'ами: `go/`,
+`node/`, `python/`, `java/`, `rust/`, `bun/` и одноимённые `build-*.yml`. Все
+собираются и тестируются на раннере.
+
+Общие грабли:
+
+- **Неявного checkout у раннера нет.** Без `actions/checkout` рабочая директория
+  пустая (`/workspace/<owner>/<repo>`), так что checkout нужен везде.
+- **`actions/checkout` — node-экшен.** В языковых образах (`rust:1`,
+  `python:3.x`, `oven/bun`) node нет, поэтому там он не отработает. Либо ставить
+  тулчейн шагом в стандартный образ (где node есть), либо брать языковой образ и
+  клонировать репозиторий вручную (в `rust`/`python` git есть).
+
+По языкам:
+
+- **Go** — `actions/setup-go@v5` работает, тулчейн качается с go.dev.
+- **Node** — `actions/setup-node` зависает: с мажорной версией не может получить
+  список версий (`actions-versions.githubusercontent.com` отдаёт 500), с точной
+  скачивает Node и всё равно висит на `dist/setup/index.js`. Берём образ
+  job-контейнера `node:NN-bookworm`.
+- **Python** — 3.10 уже в образе; тест на stdlib `unittest`, ставить нечего.
+- **Java** — `actions/setup-java` в зеркале нет. Через `apt` доступен **JDK 25**,
+  но Maven из Ubuntu 22.04 (3.6.3) для него слишком старый — качаем Maven 3.9.9
+  с archive.apache.org. Плагины в `pom.xml` нужно пинить
+  (`maven-compiler-plugin` 3.13.0 с `release`, `surefire` 3.5.x), иначе дефолтный
+  компилятор 3.1 падает с «Source option 5 is no longer supported».
+- **Rust** — `rustup` тянет тулчейн со `static.rust-lang.org`, и это периодически
+  таймаутит. Берём образ `rust:1-bookworm` и клонируем репо сами.
+- **Bun** — скрипт `bun.sh/install` качает бинарь из GitHub-релиза и падает по
+  таймауту; `npm install -g bun` берёт тот же бинарь из registry.npmjs.org.
+
 Грабли:
 
 - **Артефакты только `@v3`.** `upload-artifact`/`download-artifact` `@v4+`
