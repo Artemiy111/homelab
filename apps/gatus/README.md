@@ -3,16 +3,14 @@
 Gatus — основной декларативный монитор доступности homelab.
 URL: `https://uptime.example.com/`.
 
+Разворачивается манифестами в apps/gatus/k8s/.
+
 ## Первый запуск
 
-```sh
-bash scripts/bootstrap-platform.sh gatus
-```
-
-Gatus подключён к `traefiknet`, поэтому может проверять как пользовательские
-HTTPS-маршруты, так и отдельно выбранные Docker backend. HTTPS-проверки явно
-используют Technitium DNS `192.0.2.10` как DNS resolver и тем самым охватывают DNS,
-TLS, Traefik и приложение одной проверкой.
+Gatus работает в кластере, поэтому может проверять как пользовательские
+HTTPS-маршруты, так и отдельно выбранные backend по внутренним DNS-именам.
+HTTPS-проверки явно используют Technitium DNS `192.0.2.10` как DNS resolver и
+тем самым охватывают DNS, TLS, Traefik и приложение одной проверкой.
 
 ## Уведомления через ntfy
 

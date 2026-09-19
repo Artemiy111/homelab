@@ -2,13 +2,11 @@
 
 Хранилище переменных окружения для проектов: веб-интерфейс, CLI, доступ по ролям.
 
+Разворачивается манифестами в apps/infisical/k8s/.
+
 ## Первый запуск
 
-```sh
-bash scripts/bootstrap-platform.sh infisical
-```
-
-Затем откройте `https://infisical.example.com` и создайте первого
+Откройте `https://infisical.example.com` и создайте первого
 пользователя (он становится администратором).
 
 `ENCRYPTION_KEY` шифрует хранимые секреты. Его потеря сделает зашифрованные
@@ -18,7 +16,6 @@ bash scripts/bootstrap-platform.sh infisical
 ## Проверка
 
 ```sh
-docker compose ps
 curl --resolve infisical.example.com:443:192.0.2.10 \
   -fsS https://infisical.example.com/api/status
 ```
@@ -33,11 +30,3 @@ infisical login --domain https://infisical.example.com
 infisical init
 infisical run --env=dev -- node app.js
 ```
-
-## Бэкап
-
-```sh
-docker compose exec postgres pg_dump -U infisical infisical > backup.sql
-```
-
-**Важно:** сохранять `ENCRYPTION_KEY` отдельно — без него расшифровка невозможна.

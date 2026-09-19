@@ -9,20 +9,16 @@ OpenAI-совместимый API не подключены (`ENABLE_OLLAMA_API=
 
 ## Первый запуск
 
-```sh
-bash scripts/bootstrap-platform.sh open-webui
-```
+Разворачивается манифестами в apps/open-webui/k8s/.
 
 ## Подключение движка (позже)
 
 - LocalAI: `ENABLE_OPENAI_API=true`, `OPENAI_API_BASE_URL=http://local-ai-api:8080/v1`
   и `OPENAI_API_KEY` со значением из `local-ai/secrets.enc.env`;
-- свой Ollama: добавить сервис в этот же compose-файл с
+- свой Ollama: добавить сервис в манифесты с
   `OLLAMA_MODELS=/storage/media/ai/models`, тогда веса будут в общей папке.
 
-Значения меняются в `compose.yaml`; после правки — commit → push →
-`git pull --ff-only` на сервере и повторный запуск через
-`scripts/compose-secrets.sh`.
+Значения задаются в манифестах в `apps/open-webui/k8s/`.
 
 ## Безопасность
 
@@ -35,7 +31,6 @@ bash scripts/bootstrap-platform.sh open-webui
 ## Проверка
 
 ```sh
-docker compose ps
 curl --resolve ai.example.com:443:192.0.2.10 \
   https://ai.example.com/health
 ```

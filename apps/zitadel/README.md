@@ -6,15 +6,12 @@ Zitadel — IdP homelab. Доступен через Traefik по `https://id.ex
 
 ## Первый запуск
 
-```sh
-bash scripts/bootstrap-platform.sh zitadel
-```
+Разворачивается манифестами в `apps/zitadel/k8s/`.
 
-Postgres поднимается с двумя ролями: суперпользователь (`POSTGRES_ADMIN_USER`,
-нужен только для создания роли при инициализации, бэкапа и ручных работ) и
-непривилегированный `POSTGRES_ZITADEL_USER` — владелец базы, под которым
-работает ZITADEL. Роль создаёт `initdb/01-create-zitadel-user.sh`; скрипты из
-`initdb/` выполняются только на пустом каталоге данных.
+Postgres поднимается кластером CloudNativePG: суперпользователь остаётся у
+оператора, а ZITADEL работает под непривилегированной managed-ролью `zitadel` —
+владельцем базы. Роль и база объявлены в `platform/cnpg/`
+(`zitadel-db.cluster.yaml`, `zitadel-db.databases.yaml`).
 
 Админ логинится как `admin@zitadel.id.example.com` (org по умолчанию —
 `zitadel`). Принудительная смена пароля выключена
@@ -23,9 +20,9 @@ Postgres поднимается с двумя ролями: суперпольз
 
 `ZITADEL_FIRSTINSTANCE_*` применяется только на пустой базе.
 
-Masterkey хранится отдельным файлом
-`$APPS_STORAGE_PATH/zitadel/masterkey` (создаёт `init.sh`, права `0600`);
-контейнер монтирует его read-only и читает через `--masterkeyFile`. Не менять
+Masterkey хранится отдельным файлом `/storage/apps/zitadel/masterkey`
+(права `0600`); контейнер монтирует его read-only и читает через
+`--masterkeyFile`. Не менять
 ключ после инициализации: им зашифрованы секреты, замена делает данные
 нечитаемыми.
 
@@ -55,19 +52,5 @@ ZITADEL_PAT=... ./zitadel/zitadel-passkey-link.sh
 ## Обновление
 
 Проверять release notes: после 4.11 были passkey-регрессии (#11656, #11682),
-в 4.16.1 — #12473. `ZITADEL_VERSION` закреплён в `config.env`; контейнеры `zitadel` и
-`login` должны обновляться одним тегом.
-
-```sh
-docker compose pull
-docker compose up -d
-docker compose ps
-```
-
-## Проверка
-
-```sh
-docker compose ps
-docker logs --since=5m zitadel
-docker logs --since=5m zitadel-login
-```
+в 4.16.1 — #12473. Версии `zitadel` и `login` закреплены в манифестах и должны
+обновляться одним тегом.

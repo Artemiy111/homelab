@@ -3,22 +3,12 @@
 Code-server предоставляет VS Code-подобную IDE в браузере.
 URL: `https://code.example.com/`
 
+Разворачивается манифестами в apps/code-server/k8s/.
+
 ## Запуск
 
-Из корня репозитория:
-
-```sh
-bash scripts/bootstrap-platform.sh code-server
-```
-
-После первого запуска пароль можно получить так:
-
-```sh
-docker compose exec -T code-server sh -lc \
-  'grep "^password:" /home/coder/.config/code-server/config.yaml'
-```
-
-Пароль следует сохранить в менеджере паролей.
+Пароль от IDE хранится в `/home/coder/.config/code-server/config.yaml`. После
+первого запуска его следует сохранить в менеджере паролей.
 
 ## Безопасность
 
@@ -28,19 +18,11 @@ docker compose exec -T code-server sh -lc \
   `/home/artlab/projects/homelab`. Изменения самого homelab доставляются через
   локальный commit, push и серверный `git pull --ff-only`.
 
-## Почему нельзя просто снять привилегии
+## Почему entrypoint образа не используется
 
-Контейнер уже запускается от не-root пользователя (`user:
-"${CODE_SERVER_UID:-1000}:${CODE_SERVER_GID:-1000}"`). Попытка добавить
-`security_opt: no-new-privileges:true` и `cap_drop: ALL` ломает запуск:
-entrypoint образа использует `fixuid` (setuid-бинарь), чтобы переназначить
-владельца `/home/coder` на заданный UID.
-
-- При `no-new-privileges` повышение привилегий через setuid запрещено, `fixuid`
-  падает и контейнер выходит с кодом 1.
-- При `cap_drop: ALL` setuid-бинарь всё равно повышается до root, но с пустым
-  набором capabilities (очищен bounding set), поэтому `fixuid` не может сделать
-  `chown` и контейнер тоже падает.
-
-Поэтому ограничиваемся только явным `user:` и не добавляем `no-new-privileges`/
-`cap_drop`.
+Штатный entrypoint образа использует `fixuid` (setuid-бинарь), чтобы
+переназначить владельца `/home/coder` на заданный UID. Это несовместимо с
+запуском от не-root пользователя и запретом повышения привилегий: без
+capabilities и с запретом setuid `fixuid` не может сделать `chown`, и контейнер
+падает. Поэтому контейнер запускается от не-root пользователя, а code-server
+стартует напрямую, минуя entrypoint.

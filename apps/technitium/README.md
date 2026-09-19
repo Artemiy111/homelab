@@ -7,31 +7,18 @@ wildcard-запись разрешает `${DOMAIN}` и все его поддо
 
 ## Перед запуском
 
+Разворачивается манифестами в `apps/technitium/k8s/`.
+
 Убедиться, что порт 53 не занят другим сервисом хоста:
 
 ```sh
 sudo ss -lntup | grep ':53 '
 ```
 
-Подготовить каталоги и `.env`:
-
-Внешняя сеть `traefiknet` должна уже существовать.
-```sh
-bash scripts/bootstrap-platform.sh technitium
-```
-
 Затем в настройках DHCP роутера указать `${SERVER_IP}` как DNS-сервер. После
 изменения настройки обновить DHCP-аренду на клиентах.
 
 ## Добавление зоны для homelab
-
-### Автоматически (setup-zone.sh)
-
-Скрипт находит контейнер в Docker-сети и настраивает зону через API:
-
-```sh
-./technitium/setup-zone.sh
-```
 
 ### Через веб-интерфейс
 
@@ -75,8 +62,8 @@ curl -s "http://${SERVER_IP}:5380/api/zones/records/add?token=$TOKEN&domain=clou
 curl -s "http://${SERVER_IP}:5380/api/zones/records/add?token=$TOKEN&domain=cloudflare-dns.com&zone=cloudflare-dns.com&type=A&ipAddress=104.16.132.229&ttl=3600"
 ```
 
-После изменения форвардеров перезапустить контейнер (`docker restart
-technitium`): подключение к форвардеру кэшируется вместе с его IP.
+После изменения форвардеров нужно перезапустить Technitium: подключение к
+форвардеру кэшируется вместе с его IP.
 
 Проверка здоровья схемы:
 
@@ -112,14 +99,9 @@ Cloudflare (`104.16.248.249`/`104.16.249.249`; соседние anycast рабо
 ### Сброс пароля администратора
 
 ENV `DNS_ADMIN_PASSWORD` применяется только при первичной инициализации.
-Сброс существующего пароля:
-
-```sh
-docker compose down
-sudo mv /storage/apps/technitium/etc/auth.config \
-        /storage/apps/technitium/etc/auth.config.bak.$(date +%Y%m%d%H%M%S)
-docker compose up -d          # учётка пересоздастся как admin/admin
-```
+Сброс существующего пароля: удалить `auth.config` в каталоге данных сервиса
+(`/storage/apps/technitium/etc/auth.config`) — учётка пересоздастся как
+`admin/admin`.
 
 Затем сменить пароль через API (`api/user/changePassword` с параметрами
 `token`, `pass` — старый, `newPass` — новый) и записать его в секреты сервиса

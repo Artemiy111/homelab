@@ -3,14 +3,11 @@
 GlitchTip — сбор ошибок приложений, совместимый с Sentry SDK.
 URL: `https://glitchtip.example.com/`
 
+Разворачивается манифестами в apps/glitchtip/k8s/.
+
 ## Первый запуск
 
-```sh
-bash scripts/bootstrap-platform.sh glitchtip
-```
-
-Миграции БД выполняются one-shot контейнером `glitchtip-migrate` перед
-стартом `web` (зависимость `service_completed_successfully`); повторный запуск
+Миграции БД выполняются init-контейнером перед стартом `web`; повторный запуск
 идемпотентен.
 
 ## Вход через Zitadel (OIDC)
@@ -26,9 +23,9 @@ bash scripts/bootstrap-platform.sh glitchtip
 
 Приложение в Zitadel: Redirect URI
 `https://glitchtip.example.com/accounts/oidc/zitadel/login/callback/`,
-auth method `CODE` (Basic), grant Authorization Code. Контейнер `migrate`
-при каждом старте синхронизирует SocialApp с переменными окружения; если
-переменные пустые — пропуск.
+auth method `CODE` (Basic), grant Authorization Code. Init-контейнер при каждом
+старте синхронизирует SocialApp с переменными окружения; если переменные
+пустые — пропуск.
 
 При первом входе зарегистрировать учётную запись администратора. Регистрация
 новых пользователей закрыта (`ENABLE_USER_REGISTRATION=false`), создание
@@ -47,9 +44,9 @@ https://<public-key>@glitchtip.example.com/<project-id>
 ## Проверка
 
 ```sh
-curl --resolve glitchtip.${DOMAIN}:443:192.0.2.10 \
+curl --resolve glitchtip.example.com:443:192.0.2.10 \
   -o /dev/null -sS -w '%{http_code}\n' \
-  https://glitchtip.${DOMAIN}/auth/login/
+  https://glitchtip.example.com/auth/login/
 ```
 
 Ожидаемый ответ: `200`.

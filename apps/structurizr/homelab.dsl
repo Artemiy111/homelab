@@ -1,6 +1,6 @@
 workspace {
     name "HomeLab"
-    description "Архитектура домашнего сервера (Docker Compose, Fedora 44, 192.0.2.10)"
+    description "Архитектура домашнего сервера (Fedora 44, 192.0.2.10)"
 
     model {
 

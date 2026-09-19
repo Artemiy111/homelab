@@ -13,11 +13,11 @@ Forward auth перед приложениями без своей автори�
 
 ## Как подключено
 
-- Traefik middleware `oauth2-proxy@file` (см. `traefik/dynamic/middleware.yaml`)
-  делает forwardAuth на `http://oauth2-proxy:4180`.
+- Traefik middleware `oauth2-proxy@file` (см.
+  `platform/traefik/oauth2-proxy.middleware.yaml`) делает forwardAuth на
+  `http://oauth2-proxy:4180`.
 - Роутер защищаемого сервиса добавляет этот middleware; сейчас подключён к
-  Structurizr (`structurizr/compose.yaml`) и к WUD/Cup
-  (`image-updates/compose.yaml`).
+  Structurizr и к WUD/Cup.
 - Публичный host `oauth.example.com` нужен для OIDC callback; cookie
   общий (`cookie-domain=.example.com`), поэтому повторный вход в другие
   сервисы не требуется.
@@ -26,11 +26,11 @@ Forward auth перед приложениями без своей автори�
 
 1. В ZITADEL создать OIDC-приложение с redirect URI
    `https://oauth.example.com/oauth2/callback`.
-2. `bash ./init.sh` создаёт `apps/oauth2-proxy/secrets.enc.env` со случайным
-   `OAUTH2_PROXY_COOKIE_SECRET`; осталось вписать client_id и client_secret
+2. В `apps/oauth2-proxy/secrets.enc.env` хранится случайный
+   `OAUTH2_PROXY_COOKIE_SECRET`; остаётся вписать client_id и client_secret
    из шага 1.
-3. Запуск из корня репозитория — с секретами в окружении:
-   `bash scripts/bootstrap-platform.sh oauth2-proxy`.
+
+Разворачивается манифестами в apps/oauth2-proxy/k8s/.
 
 ## Что получает upstream
 

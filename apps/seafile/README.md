@@ -2,9 +2,9 @@
 
 Seafile CE в Kubernetes k0s с SSO через Zitadel и OnlyOffice.
 
-Источник истины — манифесты в `platform/`. Файлы `compose.yaml`, `init.sh`,
-`init-postinstall.sh` и `patches/` — наследие эпохи Docker Compose, в кластере
-не используются (см. «Наследие compose»).
+Источник истины — манифесты в `apps/seafile/k8s/`. Скрипт
+`apps/seafile/prepare-seahub.sh`, конфиги `seahub_oauth.py` /
+`seahub_onlyoffice.py` и каталог `patches/` используются подом в кластере.
 
 ## Архитектура
 
@@ -34,7 +34,7 @@ MariaDB seafile-mariadb  ←  mariadb-operator
 
 ## База данных (mariadb-operator)
 
-Инстанс и SQL-ресурсы объявлены в `../mariadb/`:
+Инстанс и SQL-ресурсы объявлены в `platform/mariadb/`:
 
 | Ресурс | Что создаёт |
 |--------|-------------|
@@ -131,49 +131,6 @@ Init-контейнером это не сделать: код seahub лежит
 громкая ошибка, а не «тихое» применение не туда. Пути в патче относительны
 `seafile-server-latest/seahub`; применяем с `-p1` из этого каталога.
 
-### Как пересобрать патч при апгрейде Seafile
-
-```bash
-IMG=seafileltd/seafile-mc:<new-version>
-VER=/opt/seafile/seafile-server-<new-version>/seahub   # в образе НЕТ симлинка latest
-LATEST=/opt/seafile/seafile-server-latest/seahub        # только в рантайме контейнера
-
-# ванильные файлы — прямо из образа (симлинк latest создаётся entrypoint, не берём его)
-docker run --rm --entrypoint cat "$IMG" "$VER/seahub/oauth/views.py"   > /tmp/vanilla_views.py
-docker run --rm --entrypoint cat "$IMG" "$VER/seahub/base/accounts.py" > /tmp/vanilla_accounts.py
-
-# целевые (пропатченные) — из работающего контейнера
-docker exec seafile cat "$LATEST/seahub/oauth/views.py"   > /tmp/patched_views.py
-docker exec seafile cat "$LATEST/seahub/base/accounts.py" > /tmp/patched_accounts.py
-
-diff -u --label a/seahub/oauth/views.py  --label b/seahub/oauth/views.py  /tmp/vanilla_views.py  /tmp/patched_views.py  > apps/seafile/patches/seahub-oauth-views.patch
-diff -u --label a/seahub/base/accounts.py --label b/seahub/base/accounts.py /tmp/vanilla_accounts.py /tmp/patched_accounts.py > apps/seafile/patches/seahub-base-accounts.patch
-```
-
-Если контекст ушёл — `patch` упадёт при пост-старте, и патч надо обновить
-вручную (подправить hunks под новый код).
-
-## Наследие compose
-
-Файлы `compose.yaml`, `init.sh`, `init-postinstall.sh`, `patches/`,
-`secrets.enc.env` — от прежнего Docker Compose-развёртывания. В кластере
-не участвуют, но сохранены как референс (в частности, знание о патчах и логике
-SSO). `init.sh` по-прежнему создаёт каталоги в `/storage/apps/seafile`
-(`shared`, `backups`, `onlyoffice`).
-
-Порядок пост-старта в compose (`init-postinstall.sh`), если понадобится
-воспроизвести:
-
-1. Дописывает `seahub_onlyoffice.py` и `seahub_oauth.py` в `seahub_settings.py`
-   (идемпотентно по маркерам).
-2. Применяет оба патча.
-3. Мигрирует старых юзеров с `@auth.local`:
-   `EmailUser.email = Profile.contact_email`, синхронизирует `profile_profile.user`.
-4. Удаляет bootstrap-admin (`admin@<DOMAIN>`), чтобы первый Zitadel-вход под этим
-   email стал админом. Entrypoint создаёт bootstrap-admin асинхронно после
-   старта, поэтому скрипт ждёт появления аккаунта (~120с).
-5. `docker restart seafile`.
-
 ## Грабли (пойманные баги)
 
 - **`User.objects` — это кастомный `UserManager`, а не Django Manager.** У него
@@ -185,8 +142,6 @@ SSO). `init.sh` по-прежнему создаёт каталоги в `/stora
   `ccnet_threaded_rpc`.
 - **Тихий `except`** в патчах чужого кода маскирует реальные ошибки — проверяй,
   что вызываемый метод реально существует в рантайме.
-- **`docker exec python - <<'HEREDOC'` без `-i`** молча скипает stdin → патч не
-  применяется, без ошибки. Поэтому патчи вынесены в файлы.
 - **Симлинк `seafile-server-latest`** создаётся entrypoint только в рантайме
   контейнера; в свежем образе его нет — берём версионированный путь.
 - **k8s env-конфиг не персистится в `conf/`.** Хост БД Seafile 13 читает из env

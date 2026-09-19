@@ -10,43 +10,33 @@
   `https://mailserver.example.com/`
 - Веб-почта Bulwark: `https://mail.example.com/`
 
-## Запуск
+Разворачивается манифестами в apps/mailserver/k8s/.
 
-```sh
-bash scripts/bootstrap-platform.sh mailserver
-```
-
-`init.sh` создаёт каталоги данных и генерирует секреты в зашифрованном
-`secrets.enc.env` (домен подставляется из `DOMAIN`, случайный пароль
-администратора — в `STALWART_ADMIN_PASS`). Повторный запуск их не меняет.
+Секреты сервиса лежат в зашифрованном `secrets.enc.env` (домен подставляется
+из `DOMAIN`, случайный пароль администратора — в `STALWART_ADMIN_PASS`).
 
 ## Управление
 
 Учётные данные администратора Stalwart (логин `admin`): в
 секреты сервиса — `STALWART_ADMIN_USER` / `STALWART_ADMIN_PASS`. Первый вход
-выполняется через консоль восстановления:
-
-```sh
-docker exec -it mailserver stalwart-cli recovery-login
-```
-
-Полученный одноразовый URL открывает веб-интерфейс администрирования. После
+выполняется через консоль восстановления, которая выдаёт одноразовый URL и
+открывает веб-интерфейс администрирования. После
 входа задайте пароль администратора сами и заведите пользователей
 (Accounts → Add account). Стартовый пароль из секретов служит только для
 восстановления.
 
 ## Хранение данных
 
-`JMAP_SERVER_URL` в `compose.yaml` указывает на публичный HTTPS-адрес
+`JMAP_SERVER_URL` указывает на публичный HTTPS-адрес
 админки Stalwart (`https://mailserver.<домен>`), а не на внутренний
 `http://mailserver:8080`: Bulwark v1.8 выполняет обнаружение JMAP-сессии из
-браузера, и внутренний docker-хостнейм там недоступен. Публичный адрес
+браузера, и внутренний хостнейм там недоступен. Публичный адрес
 обходит и CSP (`connect-src 'self' https:`), и недоступность `mailserver` вне
-сети Docker.
+внутренней сети.
 
-- `$APPS_STORAGE_PATH/mailserver/etc` — конфигурация Stalwart (образ монтирует в `/etc/stalwart`)
-- `$APPS_STORAGE_PATH/mailserver/data` — база Stalwart (каталоги, почта)
-- `$APPS_STORAGE_PATH/mailserver/mail` — данные Bulwark
+Персистентные данные сервиса разделены на три каталога: конфигурация Stalwart
+(монтируется в `/etc/stalwart`), база Stalwart (каталоги, почта) и данные
+Bulwark.
 
 ## DNS и сертификаты
 

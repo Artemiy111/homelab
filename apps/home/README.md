@@ -3,11 +3,6 @@
 Homepage — локальная стартовая страница для сервисов homelab.
 URL: `https://home.example.com/`
 
-## Запуск
+`config/settings.tpl.yaml` рендерится в `config/settings.yaml`.
 
-`init.sh` формирует `config/settings.yaml`, затем проверяет
-Compose-конфигурацию.
-
-```sh
-bash scripts/bootstrap-platform.sh home
-```
+Разворачивается манифестами в apps/home/k8s/.

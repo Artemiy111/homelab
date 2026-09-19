@@ -23,41 +23,13 @@
 - Внутри контейнера relay-адреса eturnal привязаны к адресу контейнера, поэтому
   для клиентов за NAT важен проброс `3478/udp` (см. «Сетевая модель»).
 
-## Подготовка
-
-```sh
-bash scripts/bootstrap-platform.sh talk-hpb
-```
-
-`init.sh` генерирует секреты в зашифрованный `secrets.enc.env`.
-Повторный запуск их не перезаписывает.
+Разворачивается манифестами в `apps/talk-hpb/k8s/`.
 
 ## Настройка Nextcloud Talk
 
-Проксирование через Traefik настраивается автоматически по лейблам compose.
-Остаётся зарегистрировать HPB в самом Talk (выполняется на сервере):
-
-```sh
-TALK_SECRET=$(sops -d apps/talk-hpb/secrets.enc.env | grep -E '^SIGNALING_SECRET=' | cut -d= -f2-)
-TURN_SECRET=$(sops -d apps/talk-hpb/secrets.enc.env | grep -E '^TURN_SECRET=' | cut -d= -f2-)
-
-docker exec -u www-data nextcloud-app php occ talk:signaling:add \
-  https://talk-signaling.example.com/standalone-signaling "$TALK_SECRET" --verify
-
-docker exec -u www-data nextcloud-app php occ talk:stun:add \
-  talk-signaling.example.com:3478
-
-docker exec -u www-data nextcloud-app php occ talk:turn:add \
-  turn,turns talk-signaling.example.com udp,tcp --secret="$TURN_SECRET"
-```
-
-Проверить, что серверы зарегистрированы:
-
-```sh
-docker exec -u www-data nextcloud-app php occ talk:signaling:list
-docker exec -u www-data nextcloud-app php occ talk:stun:list
-docker exec -u www-data nextcloud-app php occ talk:turn:list
-```
+Проксирование через Traefik описано в `platform/traefik/talk-hpb.ingressroute.yaml`.
+HPB регистрируется в самом Talk (signaling, STUN и TURN); секреты
+`SIGNALING_SECRET` и `TURN_SECRET` хранятся в зашифрованном `secrets.enc.env`.
 
 ## Firewall
 
@@ -79,11 +51,9 @@ dig +short @192.0.2.10 talk-signaling.example.com A
 curl --resolve talk-signaling.example.com:443:192.0.2.10 \
   -o /dev/null -sS -w '%{http_code}\n' \
   https://talk-signaling.example.com/standalone-signaling/api/v1/welcome
-docker compose ps
-docker compose logs --since=5m
 ```
 
-Ожидаются DNS-ответ `192.0.2.10`, HTTP `200`, контейнер в статусе healthy.
+Ожидаются DNS-ответ `192.0.2.10` и HTTP `200`.
 Полная проверка — звонок между двумя устройствами: HTTP-ответ не подтверждает
 работу UDP-медиатрафика.
 
@@ -93,14 +63,14 @@ docker compose logs --since=5m
   `/standalone-signaling`.
 - UDP/TCP `3478` привязан к `192.0.2.10` и передаётся eturnal (TURN+STUN).
 - TURN relay: `/start.sh` генерирует `relay_ipv4_addr` из `hostname -i` — это
-  внутренний IP контейнера, недостижимый из LAN, поэтому `command` в compose
-  патчит конфиг: relay-адрес становится `SERVER_IP` (LAN-IP), диапазон relay-портов
+  внутренний IP контейнера, недостижимый из LAN, поэтому конфиг патчится:
+  relay-адрес становится `SERVER_IP` (LAN-IP), диапазон relay-портов
   сужается до `TALK_RELAY_MIN_PORT..TALK_RELAY_MAX_PORT` (по умолчанию
   `20000..20499`; диапазон выбран ниже зоны эпифемеральных портов ядра
-  `32768-60999`, чтобы docker-proxy не конфликтовал с исходящими
-  соединениями) и в `whitelist_peers` добавляется `TALK_RELAY_NETWORK`
-  (`192.0.2.10/24`). Тот же диапазон портов публикуется в compose (udp+tcp) —
-  без этого клиенты не смогут достучаться до relay-адреса.
+  `32768-60999`, чтобы избежать конфликта с исходящими соединениями) и в
+  `whitelist_peers` добавляется `TALK_RELAY_NETWORK` (`192.0.2.10/24`). Тот же
+  диапазон портов публикуется (udp+tcp) — без этого клиенты не смогут
+  достучаться до relay-адреса.
 - Janus TURN: после генерации конфига `/start.sh` патчим `janus.jcfg`,
   заменяя `turn_server` на `127.0.0.1`, чтобы Janus обращался к eturnal
   напрямую (localhost), а не через внешний домен. Это устраняет «hairpin NAT»
@@ -113,7 +83,7 @@ docker compose logs --since=5m
 SELinux и firewalld не отключать.
 
 При изменении `TALK_RELAY_MIN/MAX_PORT` синхронно менять публикуемый диапазон
-в `compose.yaml` (`ports`).
+портов.
 
 ## Качество видео
 
@@ -124,9 +94,4 @@ SELinux и firewalld не отключать.
 
 Оба значения задаются в секретах сервиса и применяются как в signaling server
 (`maxstreambitrate` / `maxscreenbitrate` в `signaling.conf`), так и в Janus MCU.
-Изменять синхронно в `init.sh` и секретах сервиса.
-
-## Обновление
-
-Менять `TALK_IMAGE_VERSION` одновременно в `init.sh` и `config.env`, затем пересоздать контейнер (`docker compose up -d`) и повторить проверку
-звонка. Секреты при этом не трогать.
+Изменять синхронно в секретах сервиса.

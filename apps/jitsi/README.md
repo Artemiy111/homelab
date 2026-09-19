@@ -3,11 +3,7 @@
 URL: `https://meet.example.com/`
 Jitsi Videobridge принимает медиатрафик на `192.0.2.10:10000/udp`.
 
-## Подготовка
-
-```sh
-bash scripts/bootstrap-platform.sh jitsi
-```
+Разворачивается манифестами в apps/jitsi/k8s/.
 
 ## Rootless-контейнеры
 
@@ -16,12 +12,7 @@ bash scripts/bootstrap-platform.sh jitsi
 
 ## Учётная запись организатора
 
-Создать пользователя, которому разрешено открывать новые комнаты:
-
-```sh
-docker compose exec prosody prosodyctl --config /run/prosody/config/prosody.cfg.lua \
-  register user meet.jitsi 'заменить-на-случайный-пароль'
-```
+Создать пользователя, которому разрешено открывать новые комнаты.
 Первый участник входит с этой учётной записью и создаёт комнату; остальные подключаются как гости по ссылке.
 
 ## Качество видео
@@ -40,8 +31,6 @@ dig +short @192.0.2.10 meet.example.com A
 curl --resolve meet.example.com:443:192.0.2.10 \
   -o /dev/null -sS -w '%{http_code}\n' \
   https://meet.example.com/
-docker compose ps
-docker compose logs --since=5m
 ```
 
 Ожидаются DNS-ответ `192.0.2.10`, HTTP `200` и работающие контейнеры `web`,

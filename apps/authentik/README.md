@@ -3,16 +3,12 @@
 Authentik — тестовый identity provider. 
 URL: `https://auth.example.com/`
 
+Разворачивается манифестами в apps/authentik/k8s/.
+
 ## Первый запуск
 
-Из корня репозитория:
-
-```sh
-bash scripts/bootstrap-platform.sh authentik
-```
-
-`init.sh` создаст каталоги (включая `backups`), секретный ключ Authentik, пароль PostgreSQL, CIDR Traefik и `apps/authentik/secrets.enc.env` с
-правами `0600`.
+Секреты сервиса — секретный ключ Authentik, пароль PostgreSQL, CIDR Traefik —
+хранятся в `apps/authentik/secrets.enc.env` с правами `0600`.
 
 Откройте `https://auth.example.com/if/flow/initial-setup/` и задайте
 пароль встроенному администратору `akadmin`. Не меняйте
@@ -44,29 +40,14 @@ Authentik поддерживает passwordless-аутентификацию ч�
 ## Проверка
 
 ```sh
-docker compose ps
 curl --resolve auth.example.com:443:192.0.2.10 \
   -fsS https://auth.example.com/-/health/ready/
-docker logs --since=5m authentik-server 2>&1
-docker logs --since=5m authentik-worker 2>&1
 ```
 
 Endpoint `/-/health/ready/` возвращает `200`, когда Authentik может подключиться
-к PostgreSQL. После первого запуска добавьте монитор в Uptime Kuma:
-
-```sh
-cd /home/artlab/projects/homelab/uptime-kuma
-docker compose --profile tools run --rm configure
-```
+к PostgreSQL.
 
 ## Обновление
 
-Перед обновлением создайте dump PostgreSQL и прочитайте release notes. Версия
-образа закреплена в `compose.yaml`; обновления мажорных релизов выполняйте
-последовательно.
-
-```sh
-docker compose pull
-docker compose up -d
-docker compose ps
-```
+Перед обновлением создайте dump PostgreSQL и прочитайте release notes.
+Обновления мажорных релизов выполняйте последовательно.

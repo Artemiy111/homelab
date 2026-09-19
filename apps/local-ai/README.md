@@ -4,17 +4,16 @@ URL: `https://localai.example.com`
 
 Используется закреплённый CPU-образ `linux/amd64`. На сервере AMD Ryzen 7 6800H
 с восемью физическими ядрами и AVX2. LocalAI сам выбирает число потоков, а
-Docker ограничивает весь контейнер 14 единицами CPU, так что два из 16
+контейнер ограничен 14 единицами CPU, так что два из 16
 логических ядер сервера остаются вне его квоты. GPU-устройства намеренно не
 пробрасываются.
 
+Разворачивается манифестами в apps/local-ai/k8s/.
+
 ## Первый запуск
 
-```sh
-bash scripts/bootstrap-platform.sh local-ai
-```
-
-Существующие модели в `$APPS_STORAGE_PATH/local-ai/models` сохраняются.
+Существующие модели в персистентном каталоге данных сервиса (`models`)
+сохраняются.
 
 Корневая файловая система контейнера read-only. Запись возможна только в
 `/models`, `/backends`, `/configuration`, `/data` и memory-backed `/tmp`.
@@ -25,8 +24,6 @@ capabilities, не может получать новые привилегии, 
 ## Проверка
 
 ```sh
-docker compose ps
-docker compose exec api curl --fail http://127.0.0.1:8080/readyz
 curl --resolve localai.example.com:443:192.0.2.10 \
   https://localai.example.com/readyz
 curl --resolve localai.example.com:443:192.0.2.10 \

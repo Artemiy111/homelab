@@ -42,8 +42,8 @@ Secrets и ConfigMap (см. `apps/victoria-metrics/k8s/vmagent.deployment.yaml`)
 
 ## Хранение
 
-Постоянные данные — `$APPS_STORAGE_PATH/victoria-metrics/vmdata`, retention
-задан аргументом Deployment (`-retentionPeriod=180d`, `config.env`).
+Постоянные данные — `/storage/apps/victoria-metrics/vmdata`, retention
+задан аргументом Deployment (`-retentionPeriod=180d`).
 
 ## Развёртывание в Kubernetes
 

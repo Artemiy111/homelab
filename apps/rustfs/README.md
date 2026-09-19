@@ -15,9 +15,9 @@ single-disk: без erasure coding и встроенной избыточнос�
 `RUSTFS_SERVER_DOMAINS` намеренно не задан: с ним ломается аутентификация
 консоли (rustfs#887). Path-style запросы работают и без него.
 
-Оба маршрута идут через Traefik (`traefiknet`), TLS — wildcard-сертификат
-letsencrypt с entrypoint `websecure`. DNS подхватывается wildcard-записью
-Technitium (`*.${DOMAIN}` → `${SERVER_IP}`).
+Оба маршрута идут через Traefik, TLS — wildcard-сертификат letsencrypt с
+entrypoint `websecure`. DNS подхватывается wildcard-записью Technitium
+(`*.${DOMAIN}` → `${SERVER_IP}`).
 
 Особенность маршрутизации: браузерная консоль по умолчанию считает S3-endpoint'ом
 собственный хост и шлёт подписанные SigV4-запросы на `rustfs.${DOMAIN}`.
@@ -33,10 +33,9 @@ Root-креденшелы хранилища — `rustfs/secrets.enc.env`:
 
 ## Структура
 
-- `compose.yaml` — единственный сервис `rustfs`; образ запускается под
-  `user: "1000:1000"` (вместо родного uid 10001), чтобы писать в bind mount
-  без chown под root.
-- Данные: `$APPS_STORAGE_PATH/rustfs/data`.
+- Образ запускается под uid/gid `1000:1000` (вместо родного uid 10001),
+  чтобы писать в том без chown под root.
+- Данные хранятся в томе сервиса.
 - Секреты: `secrets.enc.env` (SOPS поверх age).
 
 ## Использование
@@ -54,14 +53,10 @@ aws --endpoint-url https://s3.${DOMAIN} \
 
 ## Эксплуатация
 
-```sh
-bash scripts/compose-secrets.sh rustfs up -d     # запуск/обновление
-bash scripts/compose-secrets.sh rustfs logs -f   # логи
-docker exec rustfs curl -fsS http://127.0.0.1:9000/health  # health изнутри
-```
+Разворачивается манифестами в apps/rustfs/k8s/.
 
 Смена root-креденшелов: отредактировать `secrets.enc.env` на сервере
-(`sops rustfs/secrets.enc.env` от имени artlab) и пересоздать контейнер.
+(`sops rustfs/secrets.enc.env` от имени artlab) и пересоздать под.
 Учтите: креды применяются только при инициализации пустого `/data`; для смены
 на существующих данных создать нового пользователя через консоль/API, а не
 переопределять env.

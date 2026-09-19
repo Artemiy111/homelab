@@ -5,6 +5,8 @@ Element — web-клиент Matrix, а Synapse — его homeserver. В это
 видеозвонков. Стек рассчитан на доступ из LAN и tailnet; публичный NAT-path не
 используется.
 
+Разворачивается манифестами в apps/element/k8s/.
+
 ## Состав
 
 - `element-web` — веб-интерфейс по `https://element.example.com/`;
@@ -43,58 +45,31 @@ LiveKit рекламирует LAN-адрес сервера (`192.0.2.10`), а 
 
 ## Первый администратор
 
-Публичная регистрация отключена. На сервере, уже под пользователем `artlab`,
-создайте первого администратора интерактивно:
-
-```sh
-bash create-admin.sh
-```
-
-Скрипт запросит логин, затем пароль. Логин можно передать сразу: `bash
-create-admin.sh YOUR_LOGIN`. Пользователь войдёт в Element с этим логином и
-паролем; Matrix ID будет `@YOUR_LOGIN:example.com`.
+Публичная регистрация отключена. Первого администратора создают вручную;
+пользователь входит в Element под своим логином и паролем, а его Matrix ID
+получает вид `@YOUR_LOGIN:example.com`.
 
 ## Обычные пользователи
 
 Администратор сервера создаёт обычные учётные записи без включения публичной
-регистрации. На сервере, из каталога `element`, выполните:
-
-```sh
-bash create-user.sh
-```
-
-Скрипт запросит логин и пароль. Логин можно передать сразу: `bash
-create-user.sh YOUR_LOGIN`. Созданная учётная запись не получает прав
-администратора.
+регистрации. Созданная учётная запись не получает прав администратора.
 
 ## Обслуживание
 
-Из корня репозитория:
+Секреты сервиса хранятся в зашифрованном `apps/element/secrets.enc.env`.
+Конфигурации генерируются в персистентном каталоге данных сервиса, там же
+сохраняется timezone `Asia/Yekaterinburg`.
 
-```sh
-bash scripts/bootstrap-platform.sh element
-```
+PostgreSQL хранит данные в персистентном каталоге сервиса и использует штатный
+каталог образа `/var/lib/postgresql/data`. Не удаляйте эти данные при
+обновлении.
 
-`init.sh` создаёт отсутствующие секреты в зашифрованном `apps/element/secrets.enc.env`,
-генерирует конфигурации в `$APPS_STORAGE_PATH/element` и сохраняет timezone
-`Asia/Yekaterinburg`.
-
-PostgreSQL хранит данные в
-`$APPS_STORAGE_PATH/element/postgresql-16`, примонтированном в штатный каталог
-образа `/var/lib/postgresql/data`. Не удаляйте этот каталог при обновлении
-контейнеров.
-
-Push-уведомления Sygnal не запускаются по умолчанию: для этого необходимы
-реальные FCM credentials. После их настройки сервис запускается явно:
-
-```sh
-docker compose --profile push up -d sygnal
-```
+Push-уведомления Sygnal не настроены: для них необходимы реальные FCM
+credentials.
 
 ## Проверка
 
 ```sh
-docker compose ps
 curl -fsS https://element.example.com/_matrix/client/versions
 curl -fsS https://element.example.com/livekit/jwt/healthz
 ```

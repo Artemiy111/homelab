@@ -3,11 +3,7 @@
 URL: `https://jellyfin.example.com/`
 Читает общую медиатеку из `/storage/media`.
 
-## Запуск
-
-```sh
-bash scripts/bootstrap-platform.sh jellyfin
-```
+Разворачивается манифестами в apps/jellyfin/k8s/.
 
 При существующей установке каталоги `/config` и `/cache` сохраняются, поэтому
 учётные записи, библиотеки и метаданные переживают пересоздание контейнера.
@@ -17,9 +13,9 @@ bash scripts/bootstrap-platform.sh jellyfin
 
 ## Аппаратное декодирование
 
-Compose передаёт AMD Radeon 680M как `/dev/dri/renderD128` и добавляет процесс в
-группу `render`. Если числовой GID этой группы изменится, обновить
-`JELLYFIN_RENDER_GROUP_ID` в `config.env` по результату `getent group render`.
+AMD Radeon 680M пробрасывается в контейнер как `/dev/dri/renderD128`, а процесс
+добавляется в группу `render`. Если числовой GID этой группы изменится, нужно
+обновить соответствующий GID в конфигурации по результату `getent group render`.
 
 В панели администратора Jellyfin аппаратное ускорение включается отдельно:
 `Playback` → `Transcoding` → `VA-API`, устройство
@@ -30,8 +26,6 @@ Compose передаёт AMD Radeon 680M как `/dev/dri/renderD128` и доб�
 ## Проверка
 
 ```sh
-docker compose ps
-docker exec jellyfin curl -fsS http://127.0.0.1:8096/health
 curl --resolve jellyfin.example.com:443:192.0.2.10 \
   -o /dev/null -sS -w '%{http_code}\n' \
   https://jellyfin.example.com/
