@@ -1,0 +1,21 @@
+# Хранилище dockerd сайдкара (образы и контейнеры job'ов).
+#
+# local-path, а не Longhorn: кластер одноузловой, у Longhorn одна реплика —
+# избыточности нет, а iSCSI-слой и его CPU достались бы кэшу образов, который
+# можно потерять без последствий. Longhorn остаётся под данными, которые важны.
+#
+# local-path не enforce'ит квоту: capacity ниже — только заявка в PV, реальный
+# предел — корневая ФС узла. Ограничивает не размер тома, а очистка
+# (`docker system prune`, см. README).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: forgejo-runner-dind
+  namespace: forgejo
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 10Gi

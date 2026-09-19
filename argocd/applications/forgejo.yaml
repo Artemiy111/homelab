@@ -69,6 +69,11 @@ spec:
               # поэтому здесь http, а внешний адрес задаёт ROOT_URL.
               PROTOCOL: http
               ROOT_URL: https://forgejo.example.com
+              # Без явного DOMAIN чарт берёт его из дефолтного ingress.hosts
+              # (git.example.com), а от DOMAIN наследуется SSH_DOMAIN — Forgejo
+              # отдавал бы git.example.com в ssh_url репозиториев.
+              DOMAIN: forgejo.example.com
+              SSH_DOMAIN: forgejo.example.com
             database:
               DB_TYPE: postgres
               HOST: shared-rw.databases.svc.cluster.local
@@ -87,7 +92,7 @@ spec:
               ENABLE_OPENID_SIGNIN: false
               ENABLE_OPENID_SIGNUP: false
             actions:
-              ENABLED: false
+              ENABLED: true
             cron:
               ENABLED: true
               RUN_AT_START: true

@@ -1,0 +1,46 @@
+# Конфигурация Forgejo Runner. Токен в неё не попадает: он читается рантаймом
+# из файла (token_url), который монтируется из Secret'а runner.sealedsecret.yaml.
+#
+# Метки (labels) — это `runs-on` в workflow; образы пинятся дайджестом, иначе
+# контейнер job'а после первого скачивания не обновляется молча (docs/forgejo).
+# DOCKER_HOST с именем `dind` пробрасывается внутрь job-контейнеров, а
+# `--add-host=dind:host-gateway` резолвит это имя в шлюз docker-сети, то есть в
+# pod, где слушает dockerd сайдкара. container.docker_host — тот же демон, но
+# для самого раннера (создание job/service/step-контейнеров) через localhost,
+# потому что раннер и dind делят сетевой namespace пода.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: forgejo-runner
+  namespace: forgejo
+data:
+  config.yml: |
+    log:
+      level: info
+    runner:
+      # Параллельные job'ы делят один dockerd сайдкара: при capacity > 1
+      # контейнеры разных задач видят друг друга через docker CLI. Для одного
+      # пользователя ок; для чужих PR — нет (см. README).
+      capacity: 3
+      timeout: 3h
+      envs:
+        DOCKER_HOST: tcp://dind:2375
+      labels:
+        # ubuntu-latest — не «минимальный node», а GitHub-подобный образ:
+        # в нём есть git, docker CLI, python, build-essential и прочее, что
+        # ожидают workflow'ы. Голый node:lts не содержит docker CLI, поэтому
+        # `docker build` в job'е упал бы. Дайджест — multi-arch индекс образа.
+        - ubuntu-latest:docker://ghcr.io/catthehacker/ubuntu@sha256:f5f5c29208c4fd541704fe7b8df33d3bf620ce4ac46f36853b7abeb0159705c4
+        - ubuntu-22.04:docker://ghcr.io/catthehacker/ubuntu@sha256:f5f5c29208c4fd541704fe7b8df33d3bf620ce4ac46f36853b7abeb0159705c4
+        - docker:docker://data.forgejo.org/oci/docker@sha256:018edbc908e08fcc9dbf029c812c34251e9b4719e6f71ca0e5eae2a987d014ca
+    cache:
+      enabled: true
+    container:
+      docker_host: tcp://127.0.0.1:2375
+      options: "--add-host=dind:host-gateway"
+    server:
+      connections:
+        forgejo:
+          url: http://forgejo-http:3000
+          uuid: 61633062-3231-3231-3830-393361346634
+          token_url: file:/etc/forgejo-runner/token

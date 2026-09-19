@@ -1,0 +1,111 @@
+# Forgejo Runner + Docker-in-Docker сайдкар.
+#
+# Два контейнера делят сетевой namespace пода, поэтому:
+#  - раннер ходит к dockerd по tcp://127.0.0.1:2375 (container.docker_host);
+#  - job-контейнеры, созданные внутри dind, достают тот же dockerd по имени
+#    `dind` через --add-host=dind:host-gateway (шлюз docker-сети = pod).
+# Так job'ы получают Docker, но не видят демон узла: DinD — отдельный daemon
+# со своим /var/lib/docker.
+#
+# Образы пинятся дайджестом, потому что docker по тегу не обновляет уже
+# скачанный образ. Метки (runs-on) заданы в ConfigMap'е.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: forgejo-runner
+  namespace: forgejo
+spec:
+  revisionHistoryLimit: 2
+  replicas: 1
+  strategy:
+    # Том dind (RWO) нельзя смонтировать в два пода одновременно.
+    type: Recreate
+  selector:
+    matchLabels:
+      app: forgejo-runner
+  template:
+    metadata:
+      labels:
+        app: forgejo-runner
+    spec:
+      enableServiceLinks: false
+      # emptyDir для /data создаётся root'ом, а раннер работает под uid 1000:
+      # fsGroup даёт групповую запись, иначе workdir и кэш не создаются.
+      securityContext:
+        fsGroup: 1000
+      containers:
+        - name: runner
+          image: "data.forgejo.org/forgejo/runner:13.2.0@sha256:ca3d5eea46004789a175d1369eec6829d3ea9bfbe2011a06625b4bdaa55f7552"
+          # Раннер проверяет Docker на старте и падает, если dind ещё не поднялся.
+          # Контейнеры стартуют одновременно, поэтому ждём порт сами; dumb-init
+          # сохранён как в образе (он важен для переприёма зомби от job'ов).
+          command:
+            - /usr/bin/dumb-init
+            - /bin/bash
+            - -c
+            - |
+              until (echo > /dev/tcp/127.0.0.1/2375) 2>/dev/null; do
+                echo "waiting for dind"
+                sleep 2
+              done
+              exec /bin/forgejo-runner --config /etc/forgejo-runner/config.yml daemon
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi
+          volumeMounts:
+            - name: config
+              mountPath: /etc/forgejo-runner/config.yml
+              subPath: config.yml
+              readOnly: true
+            - name: registration
+              mountPath: /etc/forgejo-runner/token
+              subPath: token
+              readOnly: true
+            - name: data
+              mountPath: /data
+        - name: dind
+          image: "data.forgejo.org/oci/docker:29-dind@sha256:3f3c01aaaebf7cce837356b688b7c059a4749f10bd7660dec7c58fc454a283f0"
+          # Privileged нужен самому dockerd (создание namespaces, монтирования).
+          # Это не доступ к демону узла: внутри пода свой изолированный daemon.
+          securityContext:
+            privileged: true
+          env:
+            # Пустая строка отключает TLS и оставляет порт 2375 — как ожидает
+            # конфиг раннера. Трафик не покидает под, шифровать нечего.
+            - name: DOCKER_TLS_CERTDIR
+              value: ""
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "2"
+              memory: 2Gi
+          volumeMounts:
+            - name: dind
+              mountPath: /var/lib/docker
+      volumes:
+        - name: config
+          configMap:
+            name: forgejo-runner
+        - name: registration
+          secret:
+            secretName: forgejo-runner
+        - name: data
+          emptyDir: {}
+        - name: dind
+          persistentVolumeClaim:
+            claimName: forgejo-runner-dind
