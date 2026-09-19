@@ -83,10 +83,10 @@ vals_repo: "https://github.com/helmfile/vals.git"
 
 # --- kubeseal: клиент sealed-secrets (шифрование секретов для Kubernetes) ---
 # Версия обязана совпадать с версией контроллера (чарт sealed-secrets).
-kubeseal_version: "0.39.1"
+kubeseal_version: "0.40.0"
 kubeseal_url: "https://github.com/bitnami/sealed-secrets/releases/download/v{{ kubeseal_version }}/kubeseal-{{ kubeseal_version }}-linux-amd64.tar.gz"
-# SHA256 из sealed-secrets_0.39.1_checksums.txt (целостность при скачивании).
-kubeseal_checksum: "sha256:785c8316370073426d6ce0b7e9e949bd7ba3709ef7f9e45a900aa07e5596db9c"
+# SHA256 из sealed-secrets_0.40.0_checksums.txt (целостность при скачивании).
+kubeseal_checksum: "sha256:9314c35916646e9d59c8f06b1314574b4e79c4d76f079433607ed7b697bb5eb7"
 
 # --- argocd: CLI для пробного стенда (k8s/argocd) ---
 # Версия обязана совпадать с версией сервера Argo CD. Сейчас это appVersion

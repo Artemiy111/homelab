@@ -1,4 +1,1 @@
 fullnameOverride: sealed-secrets-controller
-
-image:
-  tag: "0.39.1"
