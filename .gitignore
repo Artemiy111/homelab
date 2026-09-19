@@ -1,6 +1,8 @@
 .freebuff/
 node_modules
 
+/config.env
+
 # Генерируется из apps/home/config/settings.tpl.yaml.
 apps/home/config/settings.yaml
 
