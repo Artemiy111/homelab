@@ -10,9 +10,9 @@
 # Тег/дайджест — те же, что были в манифестах до переезда на чарт.
 #
 # База — внешняя: кластер CNPG shared в namespace databases, роль и база forgejo
-# (k8s/cnpg/shared.cluster.yaml, shared.databases.yaml). Пароль роли лежит в
+# (platform/cnpg/shared.cluster.yaml, shared.databases.yaml). Пароль роли лежит в
 # Secret'е databases/forgejo-db-auth, и он же — в forgejo/forgejo (один
-# плейнтекст, два запечатанных SealedSecret'а; так решено в k8s/cnpg/README.md).
+# плейнтекст, два запечатанных SealedSecret'а; так решено в platform/cnpg/README.md).
 # Здесь он подставляется в app.ini через FORGEJO__database__PASSWD, поэтому
 # секрет чарту не нужен.
 #
@@ -123,7 +123,7 @@ spec:
             port: 2222
             externalIPs:
               - 192.0.2.10
-        # Ingress — свой файл (k8s/traefik/forgejo.ingress.yaml), как у
+        # Ingress — свой файл (platform/traefik/forgejo.ingress.yaml), как у
         # остальных сервисов. Встроенный выключен: он собирал ROOT_URL из
         # наличия ingress.tls, а Argo считал объект нездоровым, потому что
         # Traefik не пишет status.loadBalancer. Поэтому ROOT_URL и PROTOCOL

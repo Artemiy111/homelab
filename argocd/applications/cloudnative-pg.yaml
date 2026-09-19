@@ -1,12 +1,12 @@
 # CloudNativePG — оператор PostgreSQL: кластеры, failover, бэкапы, PITR.
 # Ставится официальным чартом cloudnative-pg из cloudnative-pg.github.io/charts;
-# Argo рендерит его сам (см. k8s/argocd/README.md).
+# Argo рендерит его сам (см. argocd/README.md).
 #
 # Оператор кластерный (config.clusterWide, дефолт true): одна установка
 # обслуживает все Cluster'ы во всех namespace. Поэтому его namespace
 # (cnpg-system) не совпадает с namespace баз (default) — так и задумано.
 #
-# Сами кластеры и базы живут в k8s/cnpg/ отдельными манифестами. Argo ими не
+# Сами кластеры и базы живут в platform/cnpg/ отдельными манифестами. Argo ими не
 # управляет: CRD оператора должны существовать раньше, а порядок «сначала
 # оператор, потом CR» Argo в одном приложении не гарантирует.
 #
@@ -14,7 +14,7 @@
 # нет CRD prometheus-operator (monitoring.coreos.com), PodMonitor'ы некому
 # читать, а с версии 1.30 поле вообще deprecated. Метрики при этом доступны:
 # instance manager каждого инстанса отдаёт /metrics на 9187, и vmagent заберёт
-# их через pod-discovery (задача после установки, см. k8s/cnpg/README.md).
+# их через pod-discovery (задача после установки, см. platform/cnpg/README.md).
 # Grafana-дашборд из чарта не ставим: UI уже есть, дашборд принесём сами.
 apiVersion: argoproj.io/v1alpha1
 kind: Application

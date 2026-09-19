@@ -8,7 +8,7 @@ Forgejo — лёгкая self-hosted Git-платформа (форк Gitea), к
 | URL | `https://forgejo.example.com/` |
 | Git over SSH | `ssh://git@forgejo.example.com:2222/OWNER/REPO.git` |
 | Namespace | `forgejo` |
-| Развёртывание | Argo CD: `k8s/argocd/forgejo.yaml`, чарт `forgejo-helm` |
+| Развёртывание | Argo CD: `argocd/applications/forgejo.yaml`, чарт `forgejo-helm` |
 | Данные | PVC `forgejo-data` на `longhorn-retain` (Longhorn) |
 | База | CNPG-кластер `shared` в namespace `databases`, роль и база `forgejo` |
 
@@ -46,11 +46,11 @@ Application ставит его как git-источник с `path: .`, как
 
 Кластер `shared` (namespace `databases`), роль `forgejo`, база `forgejo`.
 Подключение идёт на `shared-rw.databases.svc.cluster.local:5432`, доступ
-разрешён в `k8s/cnpg/networkpolicy.yaml` (`allow-shared-from-consumers`).
+разрешён в `platform/cnpg/networkpolicy.yaml` (`allow-shared-from-consumers`).
 
 Пароль роли лежит в `databases/forgejo-db-auth` и он же — в
 `forgejo/forgejo-secrets` (один плейнтекст, два запечатанных SealedSecret'а —
-принятая в репозитории схема, см. `k8s/cnpg/README.md`). Подставляется в
+принятая в репозитории схема, см. `platform/cnpg/README.md`). Подставляется в
 app.ini через `FORGEJO__database__PASSWD` из `gitea.additionalConfigFromEnvs`,
 поэтому секрет чарту не нужен.
 
@@ -104,7 +104,7 @@ ssh -T -p 2222 -o StrictHostKeyChecking=no git@192.0.2.10
 
 Пока **не настроено**, и это главный незакрытый пункт: под `shared` задуман
 ObjectStore + ScheduledBackup в rustfs (Barman Cloud Plugin), см.
-`k8s/cnpg/README.md`. До этого репозитории (PVC) и база (CNPG) живут без
+`platform/cnpg/README.md`. До этого репозитории (PVC) и база (CNPG) живут без
 резервных копий, а `longhorn-retain` защищает только от удаления PVC, не от
 отказа диска или логической порчи.
 
@@ -115,9 +115,9 @@ push-зеркало в GitHub — git распределённый, и код п
 ## Обновление
 
 1. Посмотреть release notes Forgejo и тег чарта (`forgejo-helm` на Codeberg).
-2. В `k8s/argocd/forgejo.yaml` поднять `targetRevision` (тег чарта) и
+2. В `argocd/applications/forgejo.yaml` поднять `targetRevision` (тег чарта) и
    `image.tag`/`image.digest` (образ Forgejo) — это две независимые вещи.
-3. `kubectl apply -f k8s/argocd/forgejo.yaml`, дождаться sync.
+3. `kubectl apply -f argocd/applications/forgejo.yaml`, дождаться sync.
 4. Миграции схемы выполняет init-контейнер чарта (`forgejo migrate`); если он
    циклится, смотреть его логи: обычно это недоступная база.
 

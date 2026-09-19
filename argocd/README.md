@@ -11,8 +11,8 @@ Argo CD поднимается на кластере как **проверка �
 | Argo CD | v3.5.3 |
 | Namespace | `argocd` |
 | URL | https://argocd.example.com |
-| Параметры | `k8s/argocd/values.yaml` — только отклонения от дефолтов чарта |
-| Маршрут | `k8s/traefik/argocd.ingressroute.yaml` |
+| Параметры | `argocd/install/values.yaml` — только отклонения от дефолтов чарта |
+| Маршрут | `platform/traefik/argocd.ingressroute.yaml` |
 
 Все команды ниже выполняются **на сервере** (там есть `helm` и kubeconfig),
 из корня репозитория.
@@ -24,15 +24,15 @@ helm repo add argo https://argoproj.github.io/argo-helm
 helm repo update
 
 # Сначала посмотреть, что получится, не трогая кластер:
-helm template argocd argo/argo-cd --version 10.9.1 -f k8s/argocd/values.yaml | less
+helm template argocd argo/argo-cd --version 10.9.1 -f argocd/install/values.yaml | less
 
 helm install argocd argo/argo-cd \
   --version 10.9.1 \
   --namespace argocd --create-namespace \
-  -f k8s/argocd/values.yaml \
+  -f argocd/install/values.yaml \
   --wait
 
-kubectl apply -f k8s/traefik/argocd.ingressroute.yaml
+kubectl apply -f platform/traefik/argocd.ingressroute.yaml
 ```
 
 ## Проверка
@@ -114,13 +114,13 @@ argocd account update-password
 
 ## Обновление Application: спека живёт в кластере
 
-Application'ы применяются руками (`kubectl apply -f k8s/argocd/<name>.yaml`), app-of-apps
+Application'ы применяются руками (`kubectl apply -f argocd/applications/<name>.yaml`), app-of-apps
 здесь нет. Поэтому Argo читает желаемое состояние **из объекта в кластере**, а манифест в git
 нужен только чтобы не потерять это состояние: пока файл не применён, правка values в git
 ничего не меняет (приложение остаётся `Synced` на старой спеке).
 
 ```sh
-kubectl apply -f k8s/argocd/local-path-provisioner.yaml   # обновить спеку
+kubectl apply -f argocd/applications/local-path-provisioner.yaml   # обновить спеку
 argocd app sync local-path-provisioner                    # или ручной sync, см. ниже
 ```
 
@@ -148,7 +148,7 @@ argocd app sync local-path-provisioner                    # или ручной 
 **только** под Argo — не дублировать манифестами для будущего Flux.
 
 ```sh
-kubectl apply -f k8s/argocd/kube-state-metrics.yaml
+kubectl apply -f argocd/applications/kube-state-metrics.yaml
 argocd app get kube-state-metrics
 argocd app diff kube-state-metrics
 ```
@@ -172,7 +172,7 @@ argocd app get kube-state-metrics
 пересоздания** ресурсов. Порядок применим и к боевому Traefik.
 
 ```sh
-kubectl apply -f k8s/argocd/headlamp.yaml
+kubectl apply -f argocd/applications/headlamp.yaml
 
 argocd app diff headlamp        # желаемое (чарт) vs живое: расхождений быть не должно
 argocd app sync headlamp        # server-side apply берёт ownership, Pod не пересоздаётся
@@ -202,9 +202,9 @@ kubectl -n headlamp delete secret -l owner=helm,name=headlamp
 бежит под SA `headlamp`, а cluster-admin получает отдельный логин-аккаунт
 `headlamp-admin`. SA, `ClusterRoleBinding` на него и token-Secret описаны через
 `extraManifests` в том же Application (раньше — вручную в
-`k8s/headlamp/headlamp-rbac.yaml`). `ignoreDifferences` по `/data` и аннотации
+`platform/headlamp/headlamp-rbac.yaml`). `ignoreDifferences` по `/data` и аннотации
 `kubernetes.io/service-account.uid` нужен, потому что их дописывает контроллер
-service-account. Маршрут (`k8s/headlamp/headlamp.ingressroute.yaml`) —
+service-account. Маршрут (`platform/headlamp/headlamp.ingressroute.yaml`) —
 по-прежнему вне Application.
 
 ### Traefik
@@ -215,7 +215,7 @@ service-account. Маршрут (`k8s/headlamp/headlamp.ingressroute.yaml`) —
 
 - `skipCrds: true` — CRD `*.traefik.io` кластерные; под управлением Argo они
   при удалении приложения снесли бы все `IngressRoute`/`Middleware` кластера.
-- values продублированы из `k8s/traefik/values.yaml` инлайном. При правке
+- values продублированы из `platform/traefik/values.yaml` инлайном. При правке
   values менять оба места, иначе кластер уедет от файла. Альтернатива —
   завести Argo repo credentials и ссылаться на `$values/...`.
 - Чарт сам создаёт `ClusterRole`/`ClusterRoleBinding`/`IngressClass` — они под
@@ -253,7 +253,7 @@ argocd app list -A
 argocd app delete guestbook --cascade
 
 helm uninstall argocd -n argocd
-kubectl delete -f k8s/traefik/argocd.ingressroute.yaml
+kubectl delete -f platform/traefik/argocd.ingressroute.yaml
 kubectl delete ns argocd
 
 # CRD чарт намеренно не удаляет (crds.keep: true) — снимаем руками
@@ -268,7 +268,7 @@ kubectl delete crd applications.argoproj.io applicationsets.argoproj.io appproje
 Пока стенд живёт вместе с будущим Flux:
 
 - держать Argo на **отдельном** наборе ресурсов: тестовые приложения, а не
-  боевые манифесты кластера из `k8s/`;
+  боевые манифесты кластера из `platform/`;
 - не указывать обоим контроллерам один и тот же git-путь;
 - помнить, что Argo ставится Helm'ом, а Flux будет управлять собой сам —
   их собственные манифесты в кластере тоже не должны пересекаться.
@@ -277,5 +277,5 @@ kubectl delete crd applications.argoproj.io applicationsets.argoproj.io appproje
 
 - [argo-cd Helm chart](https://artifacthub.io/packages/helm/argo/argo-cd)
 - [Argo CD Operator Manual](https://argo-cd.readthedocs.io/en/stable/operator-manual/)
-- [docs/research/k8s/argo-cd-vs-flux-cd.md](../../docs/research/k8s/argo-cd-vs-flux-cd.md)
-- [docs/research/k8s/k0s-kubernetes-distribution.md](../../docs/research/k8s/k0s-kubernetes-distribution.md)
+- [docs/research/k8s/argo-cd-vs-flux-cd.md](../docs/research/k8s/argo-cd-vs-flux-cd.md)
+- [docs/research/k8s/k0s-kubernetes-distribution.md](../docs/research/k8s/k0s-kubernetes-distribution.md)

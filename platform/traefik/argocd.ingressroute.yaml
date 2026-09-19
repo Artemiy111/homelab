@@ -10,7 +10,7 @@ spec:
     - match: Host(`argocd.example.com`)
       kind: Rule
       middlewares:
-        # Middlewares объявлены в default (k8s/traefik/oauth2-proxy.middleware.yaml).
+        # Middlewares объявлены в default (platform/traefik/oauth2-proxy.middleware.yaml).
         # Два из трёх намеренно НЕ подключены:
         #   - oauth2-proxy: авторизацию делает сам Argo (свой логин, дальше OIDC
         #     через authentik). forwardAuth поверх сломал бы его сессию и вызовы CLI.
@@ -20,7 +20,7 @@ spec:
       services:
         # Сервис Argo живёт в namespace argocd (allowCrossNamespace включён).
         # Порт 80, а не 443: TLS терминирует Traefik, а Argo отдаёт HTTP —
-        # это configs.params."server.insecure": true в k8s/argocd/values.yaml.
+        # это configs.params."server.insecure": true в argocd/install/values.yaml.
         - name: argocd-server
           namespace: argocd
           port: 80

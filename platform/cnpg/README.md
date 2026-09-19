@@ -1,6 +1,6 @@
 # CloudNativePG: кластеры баз
 
-Оператор ставится через Argo CD (`k8s/argocd/cloudnative-pg.yaml`), кластеры и
+Оператор ставится через Argo CD (`argocd/applications/cloudnative-pg.yaml`), кластеры и
 базы — обычные манифесты в этом каталоге, применяются руками. Argo ими не
 управляет: его CRD должны существовать раньше релиза, а порядок «оператор →
 CR» в одном Application не гарантирован.
@@ -112,7 +112,7 @@ data migrations (Dawarich 1.12 пересчитывал visits и tracks) вре
 
 ```sh
 # 1. Увеличить размер в Cluster (и применить). Оператор увидит нехватку места.
-kubectl apply -f k8s/cnpg/<cluster>.cluster.yaml
+kubectl apply -f platform/cnpg/<cluster>.cluster.yaml
 
 # 2. Увеличить сам PVC: Longhorn расширяет том на ходу.
 kubectl -n <ns> patch pvc <cluster>-1 --type=merge \
@@ -220,20 +220,20 @@ CRI-O 1.31+, чарт CNPG 0.26.0+. Расширение объявляется 
 
 ```sh
 # 0. Namespace'ы: databases, zitadel, immich, dawarich
-kubectl apply -f k8s/cnpg/namespaces.yaml
+kubectl apply -f platform/cnpg/namespaces.yaml
 
 # 1. Оператор: в Argo приложение и sync, либо
-kubectl apply -f k8s/argocd/cloudnative-pg.yaml
+kubectl apply -f argocd/applications/cloudnative-pg.yaml
 argocd app sync cloudnative-pg
 kubectl -n cnpg-system get pods -w
 
 # 2. Secret раньше кластера: из него берётся пароль роли test18
-kubectl apply -f k8s/cnpg/test18.secret.yaml
-kubectl apply -f k8s/cnpg/test18.cluster.yaml
+kubectl apply -f platform/cnpg/test18.secret.yaml
+kubectl apply -f platform/cnpg/test18.cluster.yaml
 kubectl -n databases get cluster test18 -w   # ждём Cluster in healthy state
 
 # 3. База — только когда кластер healthy (см. «Грабли»)
-kubectl apply -f k8s/cnpg/test18.databases.yaml
+kubectl apply -f platform/cnpg/test18.databases.yaml
 kubectl -n databases get database testdb18 -o wide
 ```
 
@@ -261,15 +261,15 @@ kubectl -n databases exec -it test18-1 -c postgres -- \
 Убирать за собой:
 
 ```sh
-kubectl delete -f k8s/cnpg/test18.databases.yaml   # базу удаляем отдельно
-kubectl delete -f k8s/cnpg/test18.cluster.yaml
-kubectl delete -f k8s/cnpg/test18.secret.yaml
+kubectl delete -f platform/cnpg/test18.databases.yaml   # базу удаляем отдельно
+kubectl delete -f platform/cnpg/test18.cluster.yaml
+kubectl delete -f platform/cnpg/test18.secret.yaml
 ```
 
 ## Предусловия
 
 1. Оператор установлен и CRD есть: `kubectl -n cnpg-system get deploy`.
-2. Namespace'ы созданы: `kubectl apply -f k8s/cnpg/namespaces.yaml`.
+2. Namespace'ы созданы: `kubectl apply -f platform/cnpg/namespaces.yaml`.
 3. Созданы basic-auth Secret'ы ролей — запечатаны в `db-auth.sealedsecrets.yaml`
    и применяются в **namespace своего кластера**:
    - `databases`: `nextcloud-db-auth`, `forgejo-db-auth`, `element-db-auth`
@@ -295,15 +295,15 @@ kubectl delete -f k8s/cnpg/test18.secret.yaml
 `applied: false` (см. «Грабли»).
 
 ```sh
-kubectl apply -f k8s/cnpg/namespaces.yaml
-kubectl apply -f k8s/cnpg/db-auth.sealedsecrets.yaml     # пароли ролей
-kubectl apply -f k8s/argocd/cloudnative-pg.yaml          # оператор (+ sync в Argo)
+kubectl apply -f platform/cnpg/namespaces.yaml
+kubectl apply -f platform/cnpg/db-auth.sealedsecrets.yaml     # пароли ролей
+kubectl apply -f argocd/applications/cloudnative-pg.yaml          # оператор (+ sync в Argo)
 kubectl -n cnpg-system get pods -w
 
-kubectl apply -f k8s/cnpg/*.cluster.yaml
+kubectl apply -f platform/cnpg/*.cluster.yaml
 kubectl get cluster -A -w                                # ждём healthy
 
-kubectl apply -f k8s/cnpg/*.databases.yaml
+kubectl apply -f platform/cnpg/*.databases.yaml
 kubectl get cluster,database -A
 ```
 

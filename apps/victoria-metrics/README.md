@@ -16,7 +16,7 @@
 
 VM и vmagent наружу не публикуются: их UI нужен только для отладки, запросы
 идут через Grafana. VMUI доступен по адресу `https://vm.example.com/` за
-`oauth2-proxy` (см. `k8s/traefik/victoriametrics.ingressroute.yaml`).
+`oauth2-proxy` (см. `platform/traefik/victoriametrics.ingressroute.yaml`).
 
 ## Поток метрик
 
@@ -34,7 +34,7 @@ Netdata скрейпится только за метриками хоста и 
 Скрейп-конфиг трекается в Git: `config/vmagent/scrape.yml` и **секретов не
 содержит**. Значения кредов подставляются vmagent из окружения по ссылкам
 `%{VAR}` (env-подстановка в `-promscrape.config`); окружение приходит из k8s
-Secrets и ConfigMap (см. `k8s/vmagent.deployment.yaml`).
+Secrets и ConfigMap (см. `apps/victoria-metrics/k8s/vmagent.deployment.yaml`).
 
 Цели: `netdata`, `victoriametrics`, `vmagent`, `traefik`, `authentik`, `wud`,
 `gatus`, `synapse`, `immich`, `livekit` (без аутентификации); `uptime-kuma`,

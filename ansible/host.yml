@@ -147,7 +147,7 @@
     # Отдельная секция, а не host_packages: в репозиториях Fedora пакета нет,
     # а в релизе GitHub лежит сырой бинарник без архива. get_url с checksum
     # идемпотентен — повторный прогон ничего не делает, пока файл совпадает.
-    # Если стенд снимается (k8s/argocd/README.md), убрать и эту секцию.
+    # Если стенд снимается (argocd/README.md), убрать и эту секцию.
     - name: Установить argocd CLI {{ argocd_version }} в /usr/local/bin
       ansible.builtin.get_url:
         url: "{{ argocd_cli_url }}"
@@ -256,7 +256,7 @@
         daemon_reload: true
 
     # --- Longhorn: подготовка узла ---
-    # Longhorn (k8s/argocd/longhorn.yaml) требует на каждом узле: iscsid для
+    # Longhorn (argocd/applications/longhorn.yaml) требует на каждом узле: iscsid для
     # iSCSI-томов V1 data engine, NFSv4-клиент для RWX и backup target, и
     # SELinux-модуль ниже. Повторять для каждой новой ноды.
     - name: Включить и запустить iscsid

@@ -32,7 +32,7 @@ kubectl rollout restart deploy/structurizr
 ```
 
 Тег `localhost/structurizr:<версия>` должен совпадать с `image` в
-`k8s/deployment.yaml`.
+`apps/structurizr/k8s/deployment.yaml`.
 
 Контейнер запускается от `user: "1000:1000"` — совпадает с владельцем
 `$APPS_STORAGE_PATH/structurizr` на хосте (artlab), поэтому привилегии root не нужны
@@ -59,7 +59,7 @@ kubectl rollout restart deploy/structurizr
   (`imagePullPolicy: IfNotPresent`), uid/gid 1000, `Recreate`, hostPath-данные
   `/storage/apps/structurizr` + ConfigMap `structurizr-properties`;
 - `service.yaml` — ClusterIP, порт 80 → 8080 (Gatus ходит по `http://structurizr/`);
-- `k8s/traefik/structurizr.ingressroute.yaml` — `Host(structurizr…)` за
+- `platform/traefik/structurizr.ingressroute.yaml` — `Host(structurizr…)` за
   `oauth2-proxy` (у open-core нет своей аутентификации) + `secure-headers` +
   `ratelimit-default`.
 

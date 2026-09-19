@@ -2,7 +2,7 @@
 # MaxScale, бэкапы, PITR, декларативные базы/пользователи.
 # Ставится официальным чартом mariadb-operator из
 # mariadb-operator.github.io/mariadb-operator; Argo рендерит его сам
-# (см. k8s/argocd/README.md).
+# (см. argocd/README.md).
 #
 # CRD у чарта вынесены в сабчарт mariadb-operator-crds и по умолчанию
 # выключены (crds.enabled: false). Включаем их здесь: тот же приём, что у

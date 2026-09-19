@@ -27,11 +27,11 @@ Longhorn подключается явным `storageClassName` в PVC. Тома
 
 | Файл | Что делает |
 |---|---|
-| `k8s/argocd/longhorn.yaml` | Argo Application: официальный чарт Longhorn |
-| `k8s/argocd/snapshot-controller.yaml` | CRD + контроллер CSI-снапшотов (`kube-system`) |
-| `k8s/longhorn/storageclasses.yaml` | StorageClass `longhorn` (Delete) и `longhorn-retain` (Retain) |
-| `k8s/longhorn/volumesnapshotclass.yaml` | VolumeSnapshotClass: `longhorn-snapshot` (default, `type: snap`) и `longhorn-backup` (`type: bak`) |
-| `k8s/traefik/longhorn.ingressroute.yaml` | UI за oauth2-proxy |
+| `argocd/applications/longhorn.yaml` | Argo Application: официальный чарт Longhorn |
+| `argocd/applications/snapshot-controller.yaml` | CRD + контроллер CSI-снапшотов (`kube-system`) |
+| `platform/longhorn/storageclasses.yaml` | StorageClass `longhorn` (Delete) и `longhorn-retain` (Retain) |
+| `platform/longhorn/volumesnapshotclass.yaml` | VolumeSnapshotClass: `longhorn-snapshot` (default, `type: snap`) и `longhorn-backup` (`type: bak`) |
+| `platform/traefik/longhorn.ingressroute.yaml` | UI за oauth2-proxy |
 | `ansible/host.yml`, `ansible/group_vars/all.yml`, `etc/selinux/local_longhorn.cil` | Подготовка узла: `iscsid`, NFSv4-клиент, каталог данных, SELinux-модуль |
 
 Исследование по теме: [docs/research/k8s/storage-classes-and-csi-provisioners.md](../../docs/research/k8s/storage-classes-and-csi-provisioners.md).
@@ -64,21 +64,21 @@ ansible-playbook host.yml --check --diff
 ansible-playbook host.yml
 
 # 2. CSI-снапшоты (CRD + контроллер) — до того, как понадобится первый snapshot
-kubectl apply -f k8s/argocd/snapshot-controller.yaml
+kubectl apply -f argocd/applications/snapshot-controller.yaml
 
 # 3. Longhorn
-kubectl apply -f k8s/argocd/longhorn.yaml
+kubectl apply -f argocd/applications/longhorn.yaml
 
 # 4. Дождаться, пока Argo докатит релиз
 kubectl -n argocd get application longhorn -o wide
 kubectl -n longhorn-system get pods --watch
 
 # 5. Классы и снапшот-класс
-kubectl apply -f k8s/longhorn/storageclasses.yaml
-kubectl apply -f k8s/longhorn/volumesnapshotclass.yaml
+kubectl apply -f platform/longhorn/storageclasses.yaml
+kubectl apply -f platform/longhorn/volumesnapshotclass.yaml
 
 # 6. UI за oauth2-proxy
-kubectl apply -f k8s/traefik/longhorn.ingressroute.yaml
+kubectl apply -f platform/traefik/longhorn.ingressroute.yaml
 ```
 
 DNS трогать не нужно: в зоне есть wildcard `*.example.com`.
@@ -232,7 +232,7 @@ Longhorn — thin provisioning: он *выделяет* больше, чем з�
   финалайзеры, которые снимаются вручную.
 - **Спека Application живёт в кластере, а не в git.** Argo читает свой `spec` (включая
   `helm.valuesObject`) из объекта в `argocd`, поэтому после правки манифеста в
-  `k8s/argocd/*.yaml` нужно применить его руками — иначе git изменился, а Argo этого не видит.
+  `argocd/applications/*.yaml` нужно применить его руками — иначе git изменился, а Argo этого не видит.
 - **Упавший sync Argo сам не повторяет.** После ошибки контроллер пишет «failed previous sync
   attempt … will not retry» и ждёт нового revision или ручного sync:
   `kubectl -n argocd patch application <name> --type merge -p '{"operation":{"sync":{"prune":true}}}'`
@@ -254,10 +254,10 @@ Longhorn — thin provisioning: он *выделяет* больше, чем з�
 
 1. Прогнать `ansible/host.yml` на новой ноде (или применить DaemonSet-обходной путь из
    `deploy/prerequisite/longhorn-iscsi-selinux-workaround.yaml`) и открыть порты Longhorn в
-   firewalld (`k8s/k0s/firewalld/`) — список портов в Longhorn docs, раздел Networking.
+   firewalld (`platform/k0s/firewalld/`) — список портов в Longhorn docs, раздел Networking.
 2. В Longhorn появится вторая нода с диском (`defaultDataPath` тот же). Диск — из отдельного
    раздела или диска, не из корня.
-3. Поднять `numberOfReplicas: "2"` в `k8s/longhorn/storageclasses.yaml` и применить.
+3. Поднять `numberOfReplicas: "2"` в `platform/longhorn/storageclasses.yaml` и применить.
    Существующие тома придётся пересоздать/восстановить: изменить число реплик у живого тома
    можно только в UI (Volume → attach/detach связаны с PVC).
 4. Пороги диска (`storageReservedPercentageForDefaultDisk`, `storageMinimalAvailablePercentage`)
@@ -291,8 +291,8 @@ Longhorn — thin provisioning: он *выделяет* больше, чем з�
 # 1. Приложения с их ресурсами (иначе финалайзеры подвесят удаление namespace)
 kubectl -n argocd delete application longhorn
 kubectl -n argocd delete application snapshot-controller
-kubectl delete -f k8s/longhorn/storageclasses.yaml -f k8s/longhorn/volumesnapshotclass.yaml
-kubectl delete -f k8s/traefik/longhorn.ingressroute.yaml
+kubectl delete -f platform/longhorn/storageclasses.yaml -f platform/longhorn/volumesnapshotclass.yaml
+kubectl delete -f platform/traefik/longhorn.ingressroute.yaml
 
 # 2. Данные: удалить PVC/PV (в `longhorn-retain` PV остаётся Released — убирать вручную),
 #    тома в UI, потом ноды Longhorn.

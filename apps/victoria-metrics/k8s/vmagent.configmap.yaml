@@ -1,5 +1,5 @@
 # Внутри — только ссылки %{VAR}: значения приходят из окружения пода
-# (k8s/vmagent.deployment.yaml), секретов в самом конфиге нет.
+# (apps/victoria-metrics/k8s/vmagent.deployment.yaml), секретов в самом конфиге нет.
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -11,7 +11,7 @@ data:
     # пишет в VictoriaMetrics; секретов в файле нет — значения подставляются из
     # окружения по ссылкам %{VAR} (поддержка env в -promscrape.config:
     # https://docs.victoriametrics.com/victoriametrics/vmagent/#how-to-collect-metrics-in-prometheus-format).
-    # Окружение приходит из k8s Secrets/ConfigMap (см. k8s/vmagent.deployment.yaml).
+    # Окружение приходит из k8s Secrets/ConfigMap (см. apps/victoria-metrics/k8s/vmagent.deployment.yaml).
     #
     # Цели адресуются по именам Service'ов кластера. Приложения без аутентификации
     # отдают метрики внутри кластера открыто; креды нужны только помеченным целям.

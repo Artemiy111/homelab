@@ -2,7 +2,7 @@
 
 Seafile CE в Kubernetes k0s с SSO через Zitadel и OnlyOffice.
 
-Источник истины — манифесты в `k8s/`. Файлы `compose.yaml`, `init.sh`,
+Источник истины — манифесты в `platform/`. Файлы `compose.yaml`, `init.sh`,
 `init-postinstall.sh` и `patches/` — наследие эпохи Docker Compose, в кластере
 не используются (см. «Наследие compose»).
 
@@ -104,7 +104,7 @@ Seafile CE делает две вещи, ломающие нормальный S
 
 Патчи накладываются при старте пода. Контейнер `seafile` обёрнут в
 `apps/seafile/prepare-seahub.sh` (override `command` в
-`k8s/seafile.deployment.yaml`); скрипт до запуска seahub:
+`apps/seafile/k8s/seafile.deployment.yaml`); скрипт до запуска seahub:
 
 1. подключает `seahub_oauth.py` / `seahub_onlyoffice.py` в `seahub_settings.py`
    (идемпотентно, по маркерам);
@@ -193,7 +193,7 @@ SSO). `init.sh` по-прежнему создаёт каталоги в `/stora
   (`seahub/settings.py`, `seafevents`), а не из `seafile.conf`/`seahub_settings.py`.
   Смена `SEAFILE_MYSQL_DB_HOST` + рестарт пода достаточна для переключения БД.
 - **NetworkPolicy `seafile` — default-deny.** Оператор ходит в БД из namespace
-  `mariadb-system`; ему нужен явный ingress на 3306 (см. `k8s/networkpolicy.yaml`),
+  `mariadb-system`; ему нужен явный ingress на 3306 (см. `apps/seafile/k8s/networkpolicy.yaml`),
   иначе SQL-ресурсы не сходятся с `i/o timeout`.
 - **`kubectl exec -i` в `bash -s`-скрипте съедает остаток stdin.** Если гоняешь
   многошаговый скрипт через `ssh ... bash -s`, не используй `-i` без явного

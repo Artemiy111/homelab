@@ -10,13 +10,13 @@ production-практикам DevOps.
 
 | Компонент | Роль | Каталог |
 | --- | --- | --- |
-| k0s | Single-node Kubernetes: Calico CNI, embedded etcd, CoreDNS | `k8s/k0s/` |
-| Traefik | Единый ingress: 80/443 на `192.0.2.10` через `externalIPs` | `k8s/traefik/` |
+| k0s | Single-node Kubernetes: Calico CNI, embedded etcd, CoreDNS | `platform/k0s/` |
+| Traefik | Единый ingress: 80/443 на `192.0.2.10` через `externalIPs` | `platform/traefik/` |
 | Technitium DNS | Локальный DNS, wildcard-зона `*.example.com` | `apps/technitium/` |
-| sealed-secrets | Секреты в Git в зашифрованном виде | `k8s/sealed-secrets/` |
-| Longhorn | CSI-хранилище: снапшоты, клоны, RWX, бэкапы | `k8s/longhorn/` |
-| Argo CD | GitOps-стенд для части платформенных компонентов | `k8s/argocd/` |
-| Headlamp | Веб-UI кластера | `k8s/headlamp/` |
+| sealed-secrets | Секреты в Git в зашифрованном виде | `argocd/applications/sealed-secrets.yaml` |
+| Longhorn | CSI-хранилище: снапшоты, клоны, RWX, бэкапы | `platform/longhorn/` |
+| Argo CD | GitOps-стенд для части платформенных компонентов | `argocd/` |
+| Headlamp | Веб-UI кластера | `platform/headlamp/` |
 | Tailscale | Удалённый доступ и маршрут в домашнюю сеть | `apps/tailscale/` |
 | Ansible | Декларативные пакеты и подготовка хоста | `ansible/` |
 
@@ -102,9 +102,13 @@ production-практикам DevOps.
   - `config.env` — публичная конфигурация сервиса (plaintext, tracked);
   - `secrets.enc.env` — наследие Docker Compose (SOPS + age); в доставке не
     участвует, поддерживается как расшифровываемый реестр значений секретов.
-- `k8s/<компонент>/` — платформенные манифесты и values (k0s, traefik,
-  sealed-secrets, storage, argocd, headlamp).
-- `k8s/traefik/<сервис>.ingress*.yaml` — маршрут Traefik для сервиса.
+- `platform/<компонент>/` — платформенные манифесты и values (k0s, traefik,
+  longhorn, local-storage, cnpg, mariadb, monitoring, headlamp).
+- `argocd/` — GitOps-контроллер Argo CD (пробный стенд):
+  - `install/values.yaml` — values чарта самого Argo CD;
+  - `applications/<компонент>.yaml` — Application на компонент;
+  - `README.md` — установка, адопция релизов и приёмы.
+- `platform/traefik/<сервис>.ingress*.yaml` — маршрут Traefik для сервиса.
 - `ansible/` — пакеты и подготовка хоста.
 - `etc/`, `dotfiles/`, `scripts/`, `docs/` — конфиги ОС, шелл, скрипты и
   документация.
@@ -121,13 +125,13 @@ production-практикам DevOps.
 3. Применить затронутое:
    ```sh
    kubectl apply -f apps/<сервис>/k8s/
-   kubectl apply -f k8s/traefik/<сервис>.ingress*.yaml
+   kubectl apply -f platform/traefik/<сервис>.ingress*.yaml
    ```
 4. Проверить health, DNS и HTTP-маршрут.
 
 Платформенные компоненты (Traefik, sealed-secrets, Longhorn, Argo CD)
 поставляются Helm'ом; порядок их установки и обновления описан в
-`k8s/<компонент>/README.md` и `k8s/argocd/README.md`.
+`platform/<компонент>/README.md` и `argocd/README.md`.
 
 ## Секреты
 
@@ -152,7 +156,7 @@ Plaintext-файлы с секретами в репозитории не хра
 - `local-storage-retain` — статические PV, привязанные к узлу.
 
 Соглашения, ограничения одноузлового Longhorn и типовые сбои —
-`k8s/longhorn/README.md`.
+`platform/longhorn/README.md`.
 
 ## Удалённый доступ
 

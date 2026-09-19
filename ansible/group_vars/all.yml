@@ -88,7 +88,7 @@ kubeseal_url: "https://github.com/bitnami/sealed-secrets/releases/download/v{{ k
 # SHA256 из sealed-secrets_0.40.0_checksums.txt (целостность при скачивании).
 kubeseal_checksum: "sha256:9314c35916646e9d59c8f06b1314574b4e79c4d76f079433607ed7b697bb5eb7"
 
-# --- argocd: CLI для пробного стенда (k8s/argocd) ---
+# --- argocd: CLI для пробного стенда (argocd) ---
 # Версия обязана совпадать с версией сервера Argo CD. Сейчас это appVersion
 # чарта argo/argo-cd 10.9.1 → v3.5.3; при апгрейде чарта поднимать и пин.
 argocd_version: "3.5.3"
@@ -96,7 +96,7 @@ argocd_cli_url: "https://github.com/argoproj/argo-cd/releases/download/v{{ argoc
 # SHA256 из cli_checksums.txt того же релиза (целостность при скачивании).
 argocd_cli_checksum: "sha256:b860f73f57cbddd993cd446f5236d797c1b1ac8554857b2683d2669f17e765b4"
 
-# --- kubectl-cnpg: плагин оператора CloudNativePG (k8s/cnpg) ---
+# --- kubectl-cnpg: плагин оператора CloudNativePG (platform/cnpg) ---
 # Версию держать не ниже версии оператора в кластере (сейчас 1.30.0 —
 # appVersion чарта cloudnative-pg 0.29.0): старый плагин не знает новых полей CR.
 kubectl_cnpg_version: "1.30.0"
@@ -104,7 +104,7 @@ kubectl_cnpg_rpm_url: "https://github.com/cloudnative-pg/cloudnative-pg/releases
 # SHA256 из cnpg-{{ kubectl_cnpg_version }}-checksums.txt того же релиза.
 kubectl_cnpg_rpm_checksum: "sha256:80879096796b25f850c06942c0a59b5d89655d9d9afbaf89e2460c9faa51d519"
 
-# --- Longhorn (CSI-хранилище, ставится через Argo: k8s/argocd/longhorn.yaml) ---
+# --- Longhorn (CSI-хранилище, ставится через Argo: argocd/applications/longhorn.yaml) ---
 
 # Каталог данных на узле (Longhorn node disk). Отдельного диска на сервере нет,
 # а корень — XFS, который нельзя ужать, поэтому выделенный LV пока невозможен:

@@ -21,7 +21,7 @@ Single-node k0s на Fedora Server 44, максимально близкий к 
 ### Через скрипт (автоматически)
 
 ```bash
-sudo bash k8s/k0s/install.sh
+sudo bash platform/k0s/install.sh
 ```
 
 Скрипт сделает:
@@ -38,7 +38,7 @@ sudo bash k8s/k0s/install.sh
 curl --proto '=https' --tlsv1.2 -sSf https://get.k0s.sh | sudo sh
 
 # Настроить firewalld
-sudo cp k8s/k0s/firewalld/*.xml /etc/firewalld/services/
+sudo cp platform/k0s/firewalld/*.xml /etc/firewalld/services/
 sudo firewall-cmd --permanent --add-service=k0s-controller --add-service=k0s-worker --add-masquerade --add-source=10.244.0.0/16 --add-source=10.96.0.0/12
 sudo firewall-cmd --reload
 
@@ -134,7 +134,7 @@ sudo k0s stop && curl -sSLf https://get.k0s.sh | sudo sh && sudo k0s start
 ## Структура файлов
 
 ```
-k8s/k0s/
+platform/k0s/
 ├── k0s.yaml                          # Main config (Calico, etcd)
 ├── install.sh                        # Installation script
 ├── firewalld/
@@ -151,15 +151,15 @@ k8s/k0s/
 
 | Слой | Где |
 |---|---|
-| Ingress | Traefik — единый вход на `192.0.2.10` (`k8s/traefik/`) |
-| UI кластера | Headlamp (`k8s/headlamp/`) |
-| Секреты | sealed-secrets (`k8s/sealed-secrets/`) |
-| GitOps | Argo CD — пробный стенд (`k8s/argocd/README.md`); целевое решение — Flux |
+| Ingress | Traefik — единый вход на `192.0.2.10` (`platform/traefik/`) |
+| UI кластера | Headlamp (`platform/headlamp/`) |
+| Секреты | sealed-secrets (`argocd/applications/sealed-secrets.yaml`) |
+| GitOps | Argo CD — пробный стенд (`argocd/README.md`); целевое решение — Flux |
 
 ### Почему нет MetalLB
 
 LoadBalancer на однонодном кластере не нужен: тот же адрес `192.0.2.10`
-отдаётся через `externalIPs` сервиса Traefik (`k8s/traefik/values.yaml`),
+отдаётся через `externalIPs` сервиса Traefik (`platform/traefik/values.yaml`),
 а MetalLB в L2-режиме пришлось бы отвечать ARP за отдельный VIP `.253`.
 
 Манифесты удалены 2026-09-15, но восстанавливаются, если появится вторая нода:

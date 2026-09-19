@@ -11,7 +11,7 @@ spec:
     - match: Host(`headlamp.example.com`)
       kind: Rule
       middlewares:
-        # Middlewares объявлены в default (k8s/traefik/oauth2-proxy.middleware.yaml).
+        # Middlewares объявлены в default (platform/traefik/oauth2-proxy.middleware.yaml).
         - name: oauth2-proxy
         - name: secure-headers
         - name: ratelimit-default

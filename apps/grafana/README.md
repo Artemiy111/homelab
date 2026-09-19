@@ -16,14 +16,14 @@ VictoriaMetrics как datasource.
   пользователи), монтируется в `/var/lib/grafana`.
 - Логин администратора — `admin`, пароль — в кластерном Secret `grafana`
   (`GRAFANA_ADMIN_PASSWORD`), создаётся из SealedSecret
-  `k8s/sealedsecret.yaml`. Регистрация новых пользователей отключена; доступ к
+  `apps/grafana/k8s/sealedsecret.yaml`. Регистрация новых пользователей отключена; доступ к
   UI контролирует `oauth2-proxy`, локальный вход нужен для правок дашбордов и
   datasource.
 
 ## Провижининг datasource
 
 Datasource VictoriaMetrics описан декларативно в ConfigMap
-`grafana-provisioning` (`k8s/grafana-provisioning.configmap.yaml`) и
+`grafana-provisioning` (`apps/grafana/k8s/grafana-provisioning.configmap.yaml`) и
 монтируется в `/etc/grafana/provisioning/datasources`. URL —
 `http://victoriametrics:8428` (ClusterIP-сервис из `apps/victoria-metrics/`).
 
@@ -35,7 +35,7 @@ Datasource VictoriaMetrics описан декларативно в ConfigMap
   hostPath-данные `/storage/apps/grafana`, provisioning из ConfigMap);
 - `grafana.service.yaml` — ClusterIP, порт 80 → 3000 (Gatus и Traefik ходят по
   `http://grafana/`);
-- `k8s/traefik/grafana.ingressroute.yaml` — `Host(grafana…)` за `oauth2-proxy` +
+- `platform/traefik/grafana.ingressroute.yaml` — `Host(grafana…)` за `oauth2-proxy` +
   `secure-headers` + `ratelimit-default`.
 
 Применение (от `artlab` на сервере, после `git pull --ff-only`):

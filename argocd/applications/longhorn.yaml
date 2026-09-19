@@ -1,7 +1,7 @@
 # Longhorn — CSI-хранилище: снапшоты, бэкапы в S3, RWX через share-manager, UI.
 # Ставится официальным чартом из charts.longhorn.io; Argo рендерит его сам
-# (см. k8s/argocd/README.md). Default StorageClass в кластере остаётся
-# local-path — классы Longhorn описываются явно в k8s/longhorn/storageclasses.yaml
+# (см. argocd/README.md). Default StorageClass в кластере остаётся
+# local-path — классы Longhorn описываются явно в platform/longhorn/storageclasses.yaml
 # и применяются осознанно per-PVC.
 #
 # Подготовка узла (iscsid, NFSv4-клиент, SELinux-модуль, каталог данных) —
