@@ -49,7 +49,7 @@ kubectl rollout restart deploy/structurizr
   (`imagePullPolicy: IfNotPresent`), uid/gid 1000, `Recreate`, hostPath-данные
   `/storage/apps/structurizr` + ConfigMap `structurizr-properties`;
 - `service.yaml` — ClusterIP, порт 80 → 8080 (Gatus ходит по `http://structurizr/`);
-- `platform/traefik/structurizr.ingressroute.yaml` — `Host(structurizr…)` за
+- `apps/structurizr/route.yaml` — `Host(structurizr…)` за
   `oauth2-proxy` (у open-core нет своей аутентификации) + `secure-headers` +
   `ratelimit-default`.
 

@@ -27,7 +27,7 @@
 
 ## Настройка Nextcloud Talk
 
-Проксирование через Traefik описано в `platform/traefik/talk-hpb.ingressroute.yaml`.
+Проксирование через Traefik описано в `apps/talk-hpb/route.yaml`.
 HPB регистрируется в самом Talk (signaling, STUN и TURN); секреты
 `SIGNALING_SECRET` и `TURN_SECRET` хранятся в зашифрованном `secrets.enc.env`.
 

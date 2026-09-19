@@ -5,8 +5,10 @@ HTTPS-точку входа `websecure`, а `web` перенаправляет H
 Порты 80 и 443 привязаны только к адресу `192.0.2.10` и не пробрасываются на
 интернет-роутере.
 
-Чарт Traefik разворачивается через `argocd/applications/traefik.yaml`; в этом
-каталоге лежат его values и маршруты (`*.ingress*.yaml`, `*.middleware.yaml`).
+Чарт Traefik разворачивается через `argocd/applications/traefik.yaml`. В этом
+каталоге — `values.yaml`, `tlsstore.yaml`, общие middleware
+(`oauth2-proxy.middleware.yaml`) и `route.yaml` дашборда; маршруты сервисов
+лежат рядом с сервисами (`apps/<сервис>/route.yaml`).
 
 ## TLS
 

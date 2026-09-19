@@ -35,7 +35,7 @@ Datasource VictoriaMetrics описан декларативно в ConfigMap
   hostPath-данные `/storage/apps/grafana`, provisioning из ConfigMap);
 - `grafana.service.yaml` — ClusterIP, порт 80 → 3000 (Gatus и Traefik ходят по
   `http://grafana/`);
-- `platform/traefik/grafana.ingressroute.yaml` — `Host(grafana…)` за `oauth2-proxy` +
+- `apps/grafana/route.yaml` — `Host(grafana…)` за `oauth2-proxy` +
   `secure-headers` + `ratelimit-default`.
 
 Применение (от `artlab` на сервере, после `git pull --ff-only`):

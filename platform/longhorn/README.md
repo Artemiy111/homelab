@@ -31,7 +31,7 @@ Longhorn подключается явным `storageClassName` в PVC. Тома
 | `argocd/applications/snapshot-controller.yaml` | CRD + контроллер CSI-снапшотов (`kube-system`) |
 | `platform/longhorn/storageclasses.yaml` | StorageClass `longhorn` (Delete) и `longhorn-retain` (Retain) |
 | `platform/longhorn/volumesnapshotclass.yaml` | VolumeSnapshotClass: `longhorn-snapshot` (default, `type: snap`) и `longhorn-backup` (`type: bak`) |
-| `platform/traefik/longhorn.ingressroute.yaml` | UI за oauth2-proxy |
+| `platform/longhorn/route.yaml` | UI за oauth2-proxy |
 | `ansible/host.yml`, `ansible/group_vars/all.yml`, `etc/selinux/local_longhorn.cil` | Подготовка узла: `iscsid`, NFSv4-клиент, каталог данных, SELinux-модуль |
 
 Исследование по теме: [docs/research/k8s/storage-classes-and-csi-provisioners.md](../../docs/research/k8s/storage-classes-and-csi-provisioners.md).
@@ -78,7 +78,7 @@ kubectl apply -f platform/longhorn/storageclasses.yaml
 kubectl apply -f platform/longhorn/volumesnapshotclass.yaml
 
 # 6. UI за oauth2-proxy
-kubectl apply -f platform/traefik/longhorn.ingressroute.yaml
+kubectl apply -f platform/longhorn/route.yaml
 ```
 
 DNS трогать не нужно: в зоне есть wildcard `*.example.com`.
@@ -292,7 +292,7 @@ Longhorn — thin provisioning: он *выделяет* больше, чем з�
 kubectl -n argocd delete application longhorn
 kubectl -n argocd delete application snapshot-controller
 kubectl delete -f platform/longhorn/storageclasses.yaml -f platform/longhorn/volumesnapshotclass.yaml
-kubectl delete -f platform/traefik/longhorn.ingressroute.yaml
+kubectl delete -f platform/longhorn/route.yaml
 
 # 2. Данные: удалить PVC/PV (в `longhorn-retain` PV остаётся Released — убирать вручную),
 #    тома в UI, потом ноды Longhorn.

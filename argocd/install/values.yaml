@@ -10,7 +10,7 @@
 # (по умолчанию false). Даже у server.ingress.controller выбор всего из
 # generic | aws | gke — Traefik там не предусмотрен, потому что это
 # не аннотации, а отдельный CRD-провайдер.
-# Мы используем IngressRoute (см. platform/traefik/argocd.ingressroute.yaml), поэтому
+# Мы используем IngressRoute (см. argocd/route.yaml), поэтому
 # от Argo требуется ровно одно: отдавать HTTP-бэкенд, раз TLS терминирует
 # Traefik. За это отвечает configs.params."server.insecure" ниже.
 # ─────────────────────────────────────────────────────────────────────────

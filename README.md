@@ -98,6 +98,8 @@ production-практикам DevOps.
 
 - `apps/<сервис>/` — один каталог на сервис:
   - `k8s/` — Kubernetes-манифесты: Deployment, Service, SealedSecret, PVC и т.д.;
+  - `route.yaml` — маршрут Traefik (IngressRoute/Ingress) и, если нужно, свой
+    `middleware.yaml`;
   - `README.md` — как развернуть, проверить и эксплуатировать;
   - `secrets.enc.env` — SOPS + age, расшифровываемый реестр значений секретов
     (в доставке не участвует, см. «Секреты»).
@@ -107,7 +109,8 @@ production-практикам DevOps.
   - `install/values.yaml` — values чарта самого Argo CD;
   - `applications/<компонент>.yaml` — Application на компонент;
   - `README.md` — установка, адопция релизов и приёмы.
-- `platform/traefik/<сервис>.ingress*.yaml` — маршрут Traefik для сервиса.
+- `platform/traefik/` — конфиг самого Traefik: `values.yaml`, `tlsstore.yaml`,
+  общие middleware (`oauth2-proxy.middleware.yaml`) и маршрут дашборда.
 - `ansible/` — пакеты и подготовка хоста.
 - `etc/`, `dotfiles/`, `scripts/`, `docs/` — конфиги ОС, шелл, скрипты и
   документация.
@@ -123,7 +126,7 @@ production-практикам DevOps.
 3. Применить затронутое:
    ```sh
    kubectl apply -f apps/<сервис>/k8s/
-   kubectl apply -f platform/traefik/<сервис>.ingress*.yaml
+   kubectl apply -f apps/<сервис>/route.yaml
    ```
 4. Проверить health, DNS и HTTP-маршрут.
 

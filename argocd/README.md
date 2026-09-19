@@ -12,7 +12,7 @@ Argo CD поднимается на кластере как **проверка �
 | Namespace | `argocd` |
 | URL | https://argocd.example.com |
 | Параметры | `argocd/install/values.yaml` — только отклонения от дефолтов чарта |
-| Маршрут | `platform/traefik/argocd.ingressroute.yaml` |
+| Маршрут | `argocd/route.yaml` |
 
 Все команды ниже выполняются **на сервере** (там есть `helm` и kubeconfig),
 из корня репозитория.
@@ -32,7 +32,7 @@ helm install argocd argo/argo-cd \
   -f argocd/install/values.yaml \
   --wait
 
-kubectl apply -f platform/traefik/argocd.ingressroute.yaml
+kubectl apply -f argocd/route.yaml
 ```
 
 ## Проверка
@@ -204,7 +204,7 @@ kubectl -n headlamp delete secret -l owner=helm,name=headlamp
 `extraManifests` в том же Application (раньше — вручную в
 `platform/headlamp/headlamp-rbac.yaml`). `ignoreDifferences` по `/data` и аннотации
 `kubernetes.io/service-account.uid` нужен, потому что их дописывает контроллер
-service-account. Маршрут (`platform/headlamp/headlamp.ingressroute.yaml`) —
+service-account. Маршрут (`platform/headlamp/route.yaml`) —
 по-прежнему вне Application.
 
 ### Traefik
@@ -253,7 +253,7 @@ argocd app list -A
 argocd app delete guestbook --cascade
 
 helm uninstall argocd -n argocd
-kubectl delete -f platform/traefik/argocd.ingressroute.yaml
+kubectl delete -f argocd/route.yaml
 kubectl delete ns argocd
 
 # CRD чарт намеренно не удаляет (crds.keep: true) — снимаем руками
