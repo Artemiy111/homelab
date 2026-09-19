@@ -113,6 +113,8 @@ production-практикам DevOps.
 - `etc/`, `dotfiles/`, `scripts/`, `docs/` — конфиги ОС, шелл, скрипты и
   документация.
 
+Почему слои такие — `docs/adr/0004-repository-layout.md`.
+
 Историческое наследие миграции: `apps/<сервис>/compose.yaml`, `init.sh` и
 скрипты в `scripts/` относятся к Docker Compose и постепенно выводятся из
 эксплуатации. Единственный процесс доставки изменений — Kubernetes-манифесты.
