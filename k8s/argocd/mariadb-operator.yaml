@@ -72,11 +72,7 @@ spec:
       # CRD оператора не лезут в last-applied-configuration при client-side
       # apply. Как у cloudnative-pg и snapshot-controller.
       - ServerSideApply=true
-      # Prune=false: CRD кластерные. Их удаление снесло бы все MariaDB
-      # (а с ними базы), поэтому авто-prune для этого приложения выключен.
       - Prune=false
       - CreateNamespace=true
     automated:
-      # selfHeal оставляем: дрейф Deployment'ов оператора Argo вернёт сам.
-      # prune не включаем — см. выше.
       selfHeal: true

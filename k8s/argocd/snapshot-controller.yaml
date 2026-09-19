@@ -4,9 +4,6 @@
 # Версия обязана совпадать с csi-snapshotter sidecar из чарта Longhorn
 # (image.csi.snapshotter.tag, сейчас v8.6.0). Проверять при апгрейде Longhorn.
 #
-# ServerSideApply: CRD внешнего снапшоттера больше 256 КиБ и не лезут в
-# last-applied-configuration при client-side apply.
-# Prune=false: CRD кластерные — их удаление снесло бы все VolumeSnapshot.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:

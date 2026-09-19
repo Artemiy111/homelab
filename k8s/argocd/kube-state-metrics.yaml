@@ -21,7 +21,6 @@ spec:
     helm:
       releaseName: kube-state-metrics
       valuesObject:
-        # Однозный кластер: без limits контроллер может вытеснить приложения.
         resources:
           requests:
             cpu: 50m

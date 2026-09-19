@@ -31,7 +31,6 @@ spec:
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
-      # CRD кластерные: без Prune=false их удаление снесёт все Elastic-ресурсы.
       - Prune=false
     automated:
       selfHeal: true

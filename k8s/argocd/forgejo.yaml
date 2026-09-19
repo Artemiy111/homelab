@@ -147,10 +147,9 @@ spec:
     server: https://kubernetes.default.svc
     namespace: forgejo
   syncPolicy:
-    # Namespace создаётся манифестом apps/forgejo/k8s/namespace.yaml, не Argo:
-    # владелец namespace — сервис, и его границы заданы руками.
     syncOptions:
       - ServerSideApply=true
+      - CreateNamespace=true
     automated:
       selfHeal: true
       prune: true

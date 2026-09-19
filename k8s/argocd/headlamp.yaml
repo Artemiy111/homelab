@@ -63,8 +63,7 @@ spec:
         - /metadata/annotations/kubernetes.io~1service-account.uid
   syncPolicy:
     syncOptions:
-      # ServerSideApply нужен для адопции: apply --server-side --force-conflicts
-      # берёт ownership существующих объектов без delete+create, Pod не
-      # пересоздаётся
       - ServerSideApply=true
       - CreateNamespace=true
+    automated:
+      selfHeal: true

@@ -30,9 +30,7 @@ spec:
     helm:
       releaseName: cloudnative-pg
       valuesObject:
-        # Дефолт у чарта: resources: {} (не задано). Для однонодного кластера
-        # это плохо: без requests планировщик не знает, что размещает, а без
-        # limits разъехавшийся оператор способен вытеснить сами базы.
+        # Дефолт у чарта: resources: {} (не задано)
         resources:
           requests:
             cpu: 50m
@@ -45,14 +43,8 @@ spec:
     namespace: cnpg-system
   syncPolicy:
     syncOptions:
-      # CRD оператора больше 256 КиБ и не лезут в last-applied-configuration
-      # при client-side apply. Как у snapshot-controller.
       - ServerSideApply=true
-      # Prune=false: CRD кластерные. Их удаление снесло бы все Cluster'ы
-      # (а с ними базы), поэтому авто-prune для этого приложения выключен.
       - Prune=false
       - CreateNamespace=true
     automated:
-      # selfHeal оставляем: дрейф Deployment'а оператора Argo вернёт сам.
-      # prune не включаем — см. выше.
       selfHeal: true
