@@ -1,3 +1,9 @@
+# Headlamp
+
+RBAC логин-аккаунта (`ServiceAccount headlamp-admin`, `ClusterRoleBinding` и
+token) описан в `k8s/argocd/headlamp.yaml` через `extraManifests` — отдельного
+манифеста здесь больше нет.
+
 # Получить токен
 
 ```sh

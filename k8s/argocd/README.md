@@ -196,12 +196,16 @@ kubectl -n headlamp delete secret -l owner=helm,name=headlamp
 
 Проверка: `helm list -n headlamp` пуст, ресурсы и Pod на месте.
 
-Границы владения: RBAC админа headlamp (`SA headlamp-admin`,
-`ClusterRoleBinding`, token) — отдельный манифест `k8s/headlamp/headlamp-rbac.yaml`,
-не чарт. Поэтому у Application `clusterRoleBinding.create: false`: чарт не
-создаёт объект, который уже есть в репозитории. Маршрут
-(`k8s/headlamp/headlamp.ingressroute.yaml`) тоже вне Application — как и для
-остальных сервисов.
+Границы владения: чарт по умолчанию создаёт `ClusterRoleBinding headlamp-admin`
+на SA пода `headlamp` — то есть выдаёт cluster-admin самому поду. Здесь это
+выключено (`clusterRoleBinding.create: false`): под остаётся бесправным и
+бежит под SA `headlamp`, а cluster-admin получает отдельный логин-аккаунт
+`headlamp-admin`. SA, `ClusterRoleBinding` на него и token-Secret описаны через
+`extraManifests` в том же Application (раньше — вручную в
+`k8s/headlamp/headlamp-rbac.yaml`). `ignoreDifferences` по `/data` и аннотации
+`kubernetes.io/service-account.uid` нужен, потому что их дописывает контроллер
+service-account. Маршрут (`k8s/headlamp/headlamp.ingressroute.yaml`) —
+по-прежнему вне Application.
 
 ### Traefik
 
