@@ -1,0 +1,9 @@
+---
+# Конфигурация Docker daemon.
+
+- name: Скопировать /etc/docker/daemon.json из репозитория
+  ansible.builtin.copy:
+    src: "{{ repo_root }}/etc/docker/daemon.json"
+    dest: /etc/docker/daemon.json
+    mode: "0644"
+  notify: restart docker

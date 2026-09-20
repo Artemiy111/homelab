@@ -1,0 +1,20 @@
+---
+# Tailscale + kube-proxy: policy routing.
+# Без этого правила ответы сервисов кластера (externalIPs/NodePort) к
+# tailnet-клиентам уходят в LAN (enp2s0) вместо tailscale0. Разбор:
+# docs/troubleshot/tailscale-k8s-ingress-access.md, юнит —
+# etc/systemd/tailscale-policy-route.service.
+
+- name: Скопировать systemd-юнит с policy routing для Tailscale
+  ansible.builtin.copy:
+    src: "{{ repo_root }}/etc/systemd/tailscale-policy-route.service"
+    dest: /etc/systemd/system/tailscale-policy-route.service
+    mode: "0644"
+  notify: restart tailscale-policy-route
+
+- name: Включить и запустить tailscale-policy-route
+  ansible.builtin.systemd:
+    name: tailscale-policy-route.service
+    enabled: true
+    state: started
+    daemon_reload: true

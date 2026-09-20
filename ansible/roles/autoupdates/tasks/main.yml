@@ -1,0 +1,15 @@
+---
+# Автообновления безопасности (dnf-automatic).
+
+- name: Скопировать конфигурацию dnf-automatic
+  ansible.builtin.copy:
+    src: "{{ repo_root }}/etc/dnf/automatic.conf"
+    dest: /etc/dnf/automatic.conf
+    mode: "0644"
+  notify: restart dnf-automatic
+
+- name: Включить и запустить таймер dnf-automatic
+  ansible.builtin.systemd:
+    name: dnf-automatic.timer
+    enabled: true
+    state: started

@@ -1,18 +1,38 @@
-# Ansible: декларативные пакеты хоста
+# Ansible: декларативная подготовка хоста
 
-Декларативно управляет пакетами, группами и сторонними репозиториями хоста
-`homelab` (Fedora Server 44). Источник правды — `group_vars/all.yml`.
+Декларативно управляет пакетами, репозиториями и системными конфигами хоста
+`homelab` (Fedora Server 44). Логика разложена по ролям — одна роль на зону
+ответственности; `host.yml` и `agent.yml` остаются тонкими точками входа.
 
 ## Структура
 
 | Файл | Назначение |
 | --- | --- |
 | `inventory.yml` | Один хост `homelab` с локальным подключением (запуск на самом сервере) |
-| `group_vars/all.yml` | Списки пакетов, групп и «запрещённых» пакетов |
-| `host.yml` | Плейбук: репозитории → пакеты → группы → чистка |
+| `group_vars/all.yml` | Общие переменные (`repo_root`); грузится автоматически для группы `all` |
+| `host.yml` | Плейбук хоста: список ролей, без задач |
 | `agent.yml` | Плейбук: пользователь `ai-agent` и его окружение |
-| `roles/ai_agent/` | Роль: пользователь, dotfiles, `authorized_keys`, sudoers |
+| `roles/` | Роли, по одной на зону ответственности (таблица ниже) |
 | `ansible.cfg` | Настройки по умолчанию (инвентарь, `roles_path`, читаемый вывод) |
+
+## Роли
+
+| Роль | Зона ответственности |
+| --- | --- |
+| `base` | Репозитории dnf, пакеты, группы пакетов, `autoremove` |
+| `cli_tools` | `sops`, `vals` (сборка), `kubeseal`, `argocd`, `kubectl-cnpg` |
+| `docker` | `/etc/docker/daemon.json` |
+| `autoupdates` | `dnf-automatic` (таймер + конфиг) |
+| `fail2ban` | `jail.local` |
+| `sysctl` | `99-inotify.conf` |
+| `tailscale_policy_route` | systemd-юнит policy routing для tailnet |
+| `longhorn_prereqs` | `iscsid`, каталог данных, SELinux-модуль |
+| `ai_agent` | Пользователь `ai-agent`: dotfiles, `authorized_keys`, sudoers |
+
+Параметры каждой роли — в её `roles/<имя>/defaults/main.yml`, задачи — в
+`tasks/`, перезапуски сервисов — в `handlers/`. Источник правды для содержимого
+системных конфигов — каталог `etc/`: роли копируют оттуда по
+`{{ repo_root }}/etc/...`.
 
 ## Запуск (на сервере homelab)
 
@@ -21,14 +41,15 @@
 ```sh
 cd /home/artlab/projects/homelab/ansible
 
-ansible-playbook host.yml     # пакеты хоста
+ansible-playbook host.yml     # подготовка хоста
 ansible-playbook agent.yml    # окружение ai-agent
 ```
 
-`become: true` выполняет задачи через `sudo`. Если sudo спрашивает пароль:
+`become: true` выполняет задачи через `sudo`. Sudo у `artlab` спрашивает пароль,
+поэтому нужен `--ask-become-pass` (`-K`):
 
 ```sh
-ansible-playbook agent.yml --ask-become-pass
+ansible-playbook host.yml --ask-become-pass
 ```
 
 ## Dry-run
@@ -36,8 +57,8 @@ ansible-playbook agent.yml --ask-become-pass
 Посмотреть, что было бы сделано, ничего не меняя:
 
 ```sh
-ansible-playbook host.yml --check --diff
-ansible-playbook agent.yml --check --diff
+ansible-playbook host.yml --check --diff --ask-become-pass
+ansible-playbook agent.yml --check --diff --ask-become-pass
 ```
 
 ## Окружение ai-agent (`agent.yml`)
@@ -57,21 +78,24 @@ ansible-playbook agent.yml --check --diff
 
 ## Как менять состав
 
-- Добавить пакет — дописать в `host_packages` в `group_vars/all.yml`.
-- Запретить пакет — перенести его из `host_packages` в `host_packages_absent`.
-- Новая группа — в `host_groups` с префиксом `@` (например `"@development-tools"`).
-- Инструмент, которого нет в репозиториях Fedora (CLI операторов, клиенты) —
-  отдельная секция в `host.yml` с пином версии и checksum в `group_vars/all.yml`:
-  так сделаны `sops`, `kubeseal`, `argocd`, `kubectl-cnpg`.
+- Добавить пакет — в `base_packages` (`roles/base/defaults/main.yml`).
+- Новая группа пакетов — в `base_groups` с префиксом `@` (например
+  `"@development-tools"`).
+- Инструмент, которого нет в репозиториях Fedora — пин версии и checksum в
+  `roles/cli_tools/defaults/main.yml`, задача установки в
+  `roles/cli_tools/tasks/main.yml`: так сделаны `sops`, `vals`, `kubeseal`,
+  `argocd`, `kubectl-cnpg`.
+- Новый системный конфиг — файл в `etc/`, отдельная роль, копирующая его по
+  `{{ repo_root }}/etc/...`, при необходимости handler на перезапуск сервиса.
 
 После правки прогнать плейбук — он идемпотентен, лишние запуски ничего не
 ломают.
 
 ## Что НЕ делает
 
-- Не удаляет пакеты, которых нет в списке (только явно перечисленные в
-  `host_packages_absent`). Полная drift-детекция «убрать всё лишнее» — отдельный
-  шаг (systemd-timer + сравнение с `dnf repoquery --userinstalled`).
+- Не удаляет пакеты, которых нет в списке. Полная drift-детекция «убрать всё
+  лишнее» — отдельный шаг (systemd-timer + сравнение с
+  `dnf repoquery --userinstalled`).
 - Не трогает рабочие нагрузки кластера — это другой слой.
 - Не включает репозиторий Adoptium: он отключён на сервере, а `java-21-openjdk`
   помечен в списке как кандидат на удаление (остался от Jenkins).

@@ -1,0 +1,61 @@
+---
+# Репозитории, пакеты, группы и чистка — базовый слой хоста.
+
+# Плагины dnf нужны для управления репозиториями (dnf copr).
+- name: Установить плагины dnf для управления репозиториями
+  ansible.builtin.dnf5:
+    name:
+      - dnf-plugins-core
+      - dnf5-plugins
+    state: present
+
+# --- Сторонние репозитории ---
+
+- name: Подключить репозиторий Docker CE Stable
+  ansible.builtin.yum_repository:
+    name: docker-ce-stable
+    description: Docker CE Stable - $basearch
+    baseurl: https://download.docker.com/linux/fedora/$releasever/$basearch/stable
+    gpgcheck: true
+    gpgkey: https://download.docker.com/linux/fedora/gpg
+    enabled: true
+    file: docker-ce
+
+- name: Подключить репозиторий Tailscale
+  ansible.builtin.yum_repository:
+    name: tailscale-stable
+    description: Tailscale stable
+    baseurl: https://pkgs.tailscale.com/stable/fedora/$basearch
+    gpgcheck: true
+    gpgkey: https://pkgs.tailscale.com/stable/fedora/repo.gpg
+    repo_gpgcheck: true
+    enabled: true
+    file: tailscale
+
+- name: Подключить COPR-репозиторий lazygit
+  community.general.copr:
+    name: dejan/lazygit
+    state: enabled
+    host: copr.fedorainfracloud.org
+
+- name: Подключить COPR-репозиторий forgejo-cli
+  community.general.copr:
+    name: lihaohong/forgejo-cli
+    state: enabled
+    host: copr.fedorainfracloud.org
+
+# --- Пакеты и группы ---
+
+- name: Установить пакеты хоста
+  ansible.builtin.dnf5:
+    name: "{{ base_packages }}"
+    state: present
+
+- name: Установить группы пакетов
+  ansible.builtin.dnf5:
+    name: "{{ base_groups }}"
+    state: present
+
+- name: Убрать осиротевшие зависимости
+  ansible.builtin.dnf5:
+    autoremove: true

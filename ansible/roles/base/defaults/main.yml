@@ -1,0 +1,72 @@
+---
+# Пакеты и группы хоста homelab (Fedora Server). Источник правды — здесь.
+base_packages:
+  # --- Шелл и CLI ---
+  - zsh
+  - git
+  - tmux
+  - fzf
+  - fd-find          # бинарник fdfind (команда fd)
+  - bat
+  - lsd
+  - neovim           # бинарник nvim
+  - lazygit          # из COPR dejan/lazygit
+  - forgejo-cli      # из COPR lihaohong/forgejo-cli
+  - tldr
+  - htop
+  - btop
+  - fastfetch
+  - ncdu
+  - glances
+  - lshw
+  - mkpasswd
+  - sshpass
+  - pv
+
+  # --- Docker и k8s ---
+  - docker-ce
+  - docker-ce-cli
+  - containerd.io
+  - docker-buildx-plugin
+  - docker-compose-plugin
+  - podman-compose
+  - helm
+  - k9s
+  - ansible
+
+  # --- Виртуализация ---
+  - virt-manager
+  - virt-install
+  - virt-top
+
+  # --- Сеть и VPN ---
+  - tailscale
+  - wireguard-tools
+  - fail2ban
+  - iftop
+  - nethogs
+  - bmon
+  - ngrep
+  - wireshark-cli
+
+  # --- Шифрование секретов ---
+  - age              # age + age-keygen, официальные репозитории Fedora
+
+  # --- Хранение ---
+  - samba
+  - samba-client
+
+  # --- Longhorn (CSI-хранилище в k0s) ---
+  - iscsi-initiator-utils   # iscsid: iSCSI-тома Longhorn (V1 data engine)
+  - nfs-utils               # NFSv4-клиент: RWX-тома и s3/nfs backup target
+
+  # --- Автообновления ---
+  - dnf-automatic    # автоматические обновления безопасности
+
+  # --- Прочее ---
+  - sysstat          # утилита mpstat
+  - fontconfig
+
+# Группы пакетов (ставим отдельной задачей, префикс @ обязателен).
+base_groups:
+  - "@virtualization"

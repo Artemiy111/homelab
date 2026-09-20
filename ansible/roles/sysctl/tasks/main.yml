@@ -1,0 +1,9 @@
+---
+# Бюджет файловых наблюдателей для контейнеров (inotify).
+
+- name: Скопировать sysctl-настройку inotify
+  ansible.builtin.copy:
+    src: "{{ repo_root }}/etc/sysctl.d/99-inotify.conf"
+    dest: /etc/sysctl.d/99-inotify.conf
+    mode: "0644"
+  notify: reload sysctl

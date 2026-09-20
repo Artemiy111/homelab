@@ -5,7 +5,7 @@
 # и применяются осознанно per-PVC.
 #
 # Подготовка узла (iscsid, NFSv4-клиент, SELinux-модуль, каталог данных) —
-# в ansible/host.yml, раздел «Longhorn». Без неё тома застревают в attach/detach.
+# в ansible/host.yml, роль longhorn_prereqs. Без неё тома застревают в attach/detach.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:

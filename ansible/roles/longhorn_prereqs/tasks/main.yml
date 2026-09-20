@@ -1,0 +1,39 @@
+---
+# Longhorn (argocd/applications/longhorn.yaml) требует на каждом узле: iscsid для
+# iSCSI-томов V1 data engine, NFSv4-клиент для RWX и backup target (пакеты — в
+# роли base), и SELinux-модуль ниже. Повторять для каждой новой ноды.
+
+- name: Включить и запустить iscsid
+  ansible.builtin.systemd:
+    name: iscsid
+    enabled: true
+    state: started
+
+- name: Создать каталог данных Longhorn
+  ansible.builtin.file:
+    path: "{{ longhorn_data_path }}"
+    state: directory
+    mode: "0755"
+
+- name: Разложить SELinux-модуль для Longhorn во временный каталог
+  ansible.builtin.copy:
+    src: "{{ repo_root }}/etc/selinux/{{ longhorn_selinux_cil }}"
+    dest: "/tmp/{{ longhorn_selinux_cil }}"
+    mode: "0644"
+  when: ansible_facts.selinux.status | default('') == 'enabled'
+
+# Список модулей — единственный способ узнать, установлен ли модуль:
+# semodule -vi идемпотентности не даёт и всегда рапортует changed.
+- name: Прочитать список SELinux-модулей
+  ansible.builtin.command:
+    cmd: semodule -l
+  register: selinux_modules
+  changed_when: false
+  when: ansible_facts.selinux.status | default('') == 'enabled'
+
+- name: Установить SELinux-модуль, разрешающий iscsid_t dac_override
+  ansible.builtin.command:
+    cmd: "semodule -vi /tmp/{{ longhorn_selinux_cil }}"
+  when:
+    - ansible_facts.selinux.status | default('') == 'enabled'
+    - "'local_longhorn' not in (selinux_modules.stdout | default(''))"

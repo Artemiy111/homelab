@@ -1,0 +1,124 @@
+---
+# Сторонние CLI, которых нет в репозиториях Fedora: sops, vals, kubeseal,
+# argocd, kubectl-cnpg. Версии и checksums — в defaults/main.yml.
+
+# --- sops ---
+# RPM подписан cosign, а не GPG, поэтому проверка подписи отключена;
+# целостность фиксируется checksum URL-версии (см. defaults/main.yml).
+- name: Установить sops из релиза GitHub
+  ansible.builtin.dnf5:
+    name: "{{ sops_rpm_url }}"
+    state: present
+    disable_gpg_check: true
+
+# Остаток прежней установки сырым бинарником (перекрывал RPM в PATH).
+- name: Удалить старый бинарник sops из /usr/local/bin
+  ansible.builtin.file:
+    path: /usr/local/bin/sops
+    state: absent
+
+# --- vals: сборка из исходного кода ---
+
+- name: Установить toolchain для сборки vals
+  ansible.builtin.dnf5:
+    name:
+      - git
+      - golang
+    state: present
+
+- name: Определить версию установленного vals
+  ansible.builtin.command:
+    cmd: /usr/local/bin/vals version
+  register: vals_installed
+  failed_when: false
+  changed_when: false
+
+- name: Клонировать vals ({{ vals_version }})
+  ansible.builtin.git:
+    repo: "{{ vals_repo }}"
+    dest: /usr/local/src/vals
+    version: "{{ vals_version }}"
+    depth: 1
+  register: vals_repo_state
+
+# Пересобираем при смене пина или если бинарник отсутствует/битый/
+# другой версии. Main-пакет vals — ./cmd/vals (корень репозитория —
+# библиотека). Версию в бинарник надо класть через -ldflags (как в
+# Makefile проекта), иначе `vals version` показывает `dev` и задача
+# не становится идемпотентной. go build учитывает umask, поэтому права
+# фиксируем ниже.
+- name: Собрать vals из исходного кода
+  ansible.builtin.command:
+    cmd: >-
+      go build -trimpath
+      -ldflags "-X main.version={{ vals_version }} -X main.commit={{ vals_repo_state.after }}"
+      -o /usr/local/bin/vals ./cmd/vals
+    chdir: /usr/local/src/vals
+  when: >-
+    vals_repo_state.changed
+    or vals_installed.rc != 0
+    or vals_version not in vals_installed.stdout
+  environment:
+    GOPATH: /root/go
+
+- name: Выставить права бинарнику vals
+  ansible.builtin.file:
+    path: /usr/local/bin/vals
+    mode: "0755"
+
+# --- kubeseal: клиент sealed-secrets ---
+- name: Скачать kubeseal {{ kubeseal_version }}
+  ansible.builtin.get_url:
+    url: "{{ kubeseal_url }}"
+    dest: "/tmp/kubeseal-{{ kubeseal_version }}.tar.gz"
+    mode: "0644"
+    checksum: "{{ kubeseal_checksum }}"
+
+- name: Создать каталог для распаковки kubeseal
+  ansible.builtin.file:
+    path: "/tmp/kubeseal-{{ kubeseal_version }}"
+    state: directory
+    mode: "0755"
+
+- name: Распаковать kubeseal {{ kubeseal_version }}
+  ansible.builtin.unarchive:
+    src: "/tmp/kubeseal-{{ kubeseal_version }}.tar.gz"
+    dest: "/tmp/kubeseal-{{ kubeseal_version }}"
+    remote_src: true
+    creates: "/tmp/kubeseal-{{ kubeseal_version }}/kubeseal"
+
+- name: Установить kubeseal в /usr/local/bin
+  ansible.builtin.copy:
+    src: "/tmp/kubeseal-{{ kubeseal_version }}/kubeseal"
+    dest: /usr/local/bin/kubeseal
+    mode: "0755"
+    remote_src: true
+
+# --- argocd: CLI пробного стенда ---
+# Отдельная секция, а не base_packages: в репозиториях Fedora пакета нет,
+# а в релизе GitHub лежит сырой бинарник без архива. get_url с checksum
+# идемпотентен — повторный прогон ничего не делает, пока файл совпадает.
+# Если стенд снимается (argocd/README.md), убрать и эту секцию.
+- name: Установить argocd CLI {{ argocd_version }} в /usr/local/bin
+  ansible.builtin.get_url:
+    url: "{{ argocd_cli_url }}"
+    dest: /usr/local/bin/argocd
+    checksum: "{{ argocd_cli_checksum }}"
+    mode: "0755"
+
+# --- kubectl-cnpg: плагин оператора CloudNativePG ---
+# В релизах CNPG есть RPM, но подписан он cosign, а не GPG, поэтому dnf
+# подпись всё равно не проверит. Скачиваем RPM с sha256 из checksums.txt
+# релиза и ставим локальным файлом — так целостность проверяется.
+- name: Скачать RPM kubectl-cnpg {{ kubectl_cnpg_version }}
+  ansible.builtin.get_url:
+    url: "{{ kubectl_cnpg_rpm_url }}"
+    dest: "/tmp/kubectl-cnpg-{{ kubectl_cnpg_version }}.rpm"
+    mode: "0644"
+    checksum: "{{ kubectl_cnpg_rpm_checksum }}"
+
+- name: Установить kubectl-cnpg
+  ansible.builtin.dnf5:
+    name: "/tmp/kubectl-cnpg-{{ kubectl_cnpg_version }}.rpm"
+    state: present
+    disable_gpg_check: true
