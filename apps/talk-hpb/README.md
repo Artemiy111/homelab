@@ -10,14 +10,14 @@
 потока на участника.
 
 Адрес: `https://talk-signaling.example.com/standalone-signaling`
-(SFTP-адрес для настроек Talk). TURN/STUN слушает `192.0.2.10:3478`.
+(SFTP-адрес для настроек Talk). TURN/STUN слушает `<node1-ip>:3478`.
 
 ## Топология
 
 - Signaling (HTTP/WS) проходит через Traefik: `Host(talk-signaling.*) +
   PathPrefix(/standalone-signaling)` → контейнер `8081`. Публикуется порт `3478`
   (tcp+udp) для TURN/STUN.
-- Пиhole-запись `address=/example.com/192.0.2.10` уже покрывает
+- Пиhole-запись `address=/example.com/<node1-ip>` уже покрывает
   поддомен `talk-signaling`, wildcard-сертификат Traefik тоже существует — новых
   DNS/TLS-записей не требуется.
 - Внутри контейнера relay-адреса eturnal привязаны к адресу контейнера, поэтому
@@ -27,7 +27,7 @@
 
 ## Настройка Nextcloud Talk
 
-Проксирование через Traefik описано в `apps/talk-hpb/route.yaml`.
+Проксирование через Traefik описано в `platform/homelab/templates/routes/talk-hpb.yaml`.
 HPB регистрируется в самом Talk (signaling, STUN и TURN); секреты
 `SIGNALING_SECRET` и `TURN_SECRET` хранятся в зашифрованном `secrets.enc.env`.
 
@@ -47,13 +47,13 @@ sudo firewall-cmd --reload
 ## Проверка
 
 ```sh
-dig +short @192.0.2.10 talk-signaling.example.com A
-curl --resolve talk-signaling.example.com:443:192.0.2.10 \
+dig +short @<node1-ip> talk-signaling.example.com A
+curl --resolve talk-signaling.example.com:443:<node1-ip> \
   -o /dev/null -sS -w '%{http_code}\n' \
   https://talk-signaling.example.com/standalone-signaling/api/v1/welcome
 ```
 
-Ожидаются DNS-ответ `192.0.2.10` и HTTP `200`.
+Ожидаются DNS-ответ `<node1-ip>` и HTTP `200`.
 Полная проверка — звонок между двумя устройствами: HTTP-ответ не подтверждает
 работу UDP-медиатрафика.
 
@@ -61,14 +61,14 @@ curl --resolve talk-signaling.example.com:443:192.0.2.10 \
 
 - TCP `443` завершается на Traefик и ведёт на `8081` с префиксом
   `/standalone-signaling`.
-- UDP/TCP `3478` привязан к `192.0.2.10` и передаётся eturnal (TURN+STUN).
+- UDP/TCP `3478` привязан к `<node1-ip>` и передаётся eturnal (TURN+STUN).
 - TURN relay: `/start.sh` генерирует `relay_ipv4_addr` из `hostname -i` — это
   внутренний IP контейнера, недостижимый из LAN, поэтому конфиг патчится:
   relay-адрес становится `SERVER_IP` (LAN-IP), диапазон relay-портов
   сужается до `TALK_RELAY_MIN_PORT..TALK_RELAY_MAX_PORT` (по умолчанию
   `20000..20499`; диапазон выбран ниже зоны эпифемеральных портов ядра
   `32768-60999`, чтобы избежать конфликта с исходящими соединениями) и в
-  `whitelist_peers` добавляется `TALK_RELAY_NETWORK` (`192.0.2.10/24`). Тот же
+  `whitelist_peers` добавляется `TALK_RELAY_NETWORK` (`<node1-lan-cidr>`). Тот же
   диапазон портов публикуется (udp+tcp) — без этого клиенты не смогут
   достучаться до relay-адреса.
 - Janus TURN: после генерации конфига `/start.sh` патчим `janus.jcfg`,

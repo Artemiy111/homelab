@@ -31,7 +31,7 @@ OpenAI-совместимый API не подключены (`ENABLE_OLLAMA_API=
 ## Проверка
 
 ```sh
-curl --resolve ai.example.com:443:192.0.2.10 \
+curl --resolve ai.example.com:443:<node1-ip> \
   https://ai.example.com/health
 ```
 

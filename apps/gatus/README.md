@@ -9,7 +9,7 @@ URL: `https://uptime.example.com/`.
 
 Gatus работает в кластере, поэтому может проверять как пользовательские
 HTTPS-маршруты, так и отдельно выбранные backend по внутренним DNS-именам.
-HTTPS-проверки явно используют Technitium DNS `192.0.2.10` как DNS resolver и
+HTTPS-проверки явно используют Technitium DNS `<node1-ip>` как DNS resolver и
 тем самым охватывают DNS, TLS, Traefik и приложение одной проверкой.
 
 ## Уведомления через ntfy

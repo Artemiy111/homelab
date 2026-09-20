@@ -1,7 +1,7 @@
 # Jitsi Meet - приватный сервер видеоконференций 
 
 URL: `https://meet.example.com/`
-Jitsi Videobridge принимает медиатрафик на `192.0.2.10:10000/udp`.
+Jitsi Videobridge принимает медиатрафик на `<node1-ip>:10000/udp`.
 
 Разворачивается манифестами в apps/jitsi/k8s/.
 
@@ -27,13 +27,13 @@ Jitsi Videobridge принимает медиатрафик на `192.0.2.10:100
 ## Проверка
 
 ```sh
-dig +short @192.0.2.10 meet.example.com A
-curl --resolve meet.example.com:443:192.0.2.10 \
+dig +short @<node1-ip> meet.example.com A
+curl --resolve meet.example.com:443:<node1-ip> \
   -o /dev/null -sS -w '%{http_code}\n' \
   https://meet.example.com/
 ```
 
-Ожидаются DNS-ответ `192.0.2.10`, HTTP `200` и работающие контейнеры `web`,
+Ожидаются DNS-ответ `<node1-ip>`, HTTP `200` и работающие контейнеры `web`,
 `prosody`, `jicofo` и `jvb`. Полная проверка требует звонка между двумя
 устройствами: HTTP-проверка не подтверждает прохождение UDP-медиатрафика.
 
@@ -41,7 +41,7 @@ curl --resolve meet.example.com:443:192.0.2.10 \
 
 - TCP `443` завершается на Traefik и передаётся контейнеру `web`.
 - UDP `10000` привязан только к LAN-адресу сервера и передаётся `jvb`.
-- `JVB_ADVERTISE_IPS=192.0.2.10` сообщает браузерам адрес медиамоста.
+- `JVB_ADVERTISE_IPS=<node1-ip>` сообщает браузерам адрес медиамоста.
 - STUN отключён: публичный адрес не нужен в приватной сети с маршрутизацией.
 - TURN не настроен. Для гостей без Tailscale понадобится отдельное решение с
   публично доступным JVB либо coturn; просто открыть веб-сайт наружу недостаточно.

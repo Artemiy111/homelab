@@ -1,0 +1,23 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: structurizr
+  namespace: structurizr
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    # У open-core сборки нет своей аутентификации — закрываем forward auth.
+    - match: Host(`structurizr.{{ .Values.config.domain }}`)
+      kind: Rule
+      middlewares:
+        # Middleware'ы остаются в traefik: ссылаемся cross-namespace явным namespace.
+        - name: oauth2-proxy
+          namespace: traefik
+        - name: secure-headers
+          namespace: traefik
+        - name: ratelimit-default
+          namespace: traefik
+      services:
+        - name: structurizr
+          port: 80

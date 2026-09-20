@@ -87,6 +87,7 @@ spec:
               mountPath: /config
             - name: configuration
               mountPath: /config/configuration.yaml
+              subPath: configuration.yaml
               readOnly: true
             - name: localtime
               mountPath: /etc/localtime
@@ -97,9 +98,8 @@ spec:
             path: /storage/apps/home-assistant
             type: Directory
         - name: configuration
-          hostPath:
-            path: /home/artlab/projects/homelab/apps/home-assistant/configuration.yaml
-            type: File
+          configMap:
+            name: home-assistant-configuration
         - name: localtime
           hostPath:
             path: /etc/localtime

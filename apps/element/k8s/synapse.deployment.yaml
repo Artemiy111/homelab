@@ -78,7 +78,7 @@ spec:
                   name: homelab-config
                   key: TZ
             - name: SYNAPSE_SERVER_NAME
-              value: "example.com"
+              value: "$(DOMAIN)"
             - name: SYNAPSE_REPORT_STATS
               value: "no"
             - name: SYNAPSE_CONFIG_DIR

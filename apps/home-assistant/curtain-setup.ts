@@ -4,7 +4,7 @@ import { parseArgs } from "node:util"
 
 const MIIO_PORT = 54321
 const MAGIC = 0x2131
-const BROADCASTS = ["255.255.255.255", "192.0.2.10"]
+const BROADCASTS = ["255.255.255.255", "<device-ip>"]
 
 type Packet = {
   ip: string
@@ -31,8 +31,8 @@ function usage(): void {
 
 Примеры:
   bun curtain-setup.ts discover
-  bun curtain-setup.ts discover --ip 192.0.2.10
-  bun curtain-setup.ts assoc --ip 192.0.2.10 --token 8f3a... --ssid vlr24 --pass 'пароль'
+  bun curtain-setup.ts discover --ip <device-ip>
+  bun curtain-setup.ts assoc --ip <device-ip> --token 8f3a... --ssid vlr24 --pass 'пароль'
 `)
 }
 

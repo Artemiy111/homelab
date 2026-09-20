@@ -2,13 +2,21 @@
 
 Traefik — активный обратный прокси этого репозитория. Маршрутизаторы используют
 HTTPS-точку входа `websecure`, а `web` перенаправляет HTTP-запросы на HTTPS.
-Порты 80 и 443 привязаны только к адресу `192.0.2.10` и не пробрасываются на
+Порты 80 и 443 привязаны только к адресу узла и не пробрасываются на
 интернет-роутере.
 
 Чарт Traefik разворачивается через `argocd/applications/traefik.yaml`. В этом
-каталоге — `values.yaml`, `tlsstore.yaml`, общие middleware
-(`oauth2-proxy.middleware.yaml`) и `route.yaml` дашборда; маршруты сервисов
-лежат рядом с сервисами (`apps/<сервис>/route.yaml`).
+каталоге — `values.yaml`, `tlsstore.yaml` и общие middleware
+(`oauth2-proxy.middleware.yaml`). Маршруты, включая дашборд, живут в Helm-чарте
+`platform/homelab`.
+
+Адрес узла для `externalIPs` в Git не хранится — он environment-specific и
+задаётся при деплое:
+
+```sh
+helm upgrade --install traefik <чарт> -f values.yaml \
+  --set service.spec.externalIPs[0]=<адрес-узла>
+```
 
 ## TLS
 

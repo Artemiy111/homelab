@@ -26,7 +26,7 @@ AMD Radeon 680M пробрасывается в контейнер как `/dev/
 ## Проверка
 
 ```sh
-curl --resolve jellyfin.example.com:443:192.0.2.10 \
+curl --resolve jellyfin.example.com:443:<node1-ip> \
   -o /dev/null -sS -w '%{http_code}\n' \
   https://jellyfin.example.com/
 ```

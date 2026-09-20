@@ -93,7 +93,7 @@ spec:
             - name: TALK_RELAY_MAX_PORT
               value: "20499"
             - name: TALK_RELAY_NETWORK
-              value: "192.0.2.10/24"
+              value: "192.0.2.10/16"
             - name: TALK_MAX_STREAM_BITRATE
               value: "15728640"
             - name: TALK_MAX_SCREEN_BITRATE

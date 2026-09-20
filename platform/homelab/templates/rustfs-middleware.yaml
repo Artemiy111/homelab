@@ -1,0 +1,10 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: rustfs-root-redirect
+  namespace: rustfs
+spec:
+  redirectRegex:
+    permanent: true
+    regex: ^https://rustfs\.{{ .Values.config.domain }}/$
+    replacement: https://rustfs.{{ .Values.config.domain }}/rustfs/console/

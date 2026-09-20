@@ -1,6 +1,6 @@
 workspace {
     name "HomeLab"
-    description "Архитектура домашнего сервера (Fedora 44, 192.0.2.10)"
+    description "Архитектура домашнего сервера (Fedora 44, <node1-ip>)"
 
     model {
 
@@ -56,7 +56,7 @@ workspace {
                 tags "infra"
             }
 
-            tailscale = softwareSystem "Tailscale (host)" "Системный клиент tailnet; удалённый SSH и маршрут 192.0.2.10/24" {
+            tailscale = softwareSystem "Tailscale (host)" "Системный клиент tailnet; удалённый SSH и маршрут <node1-lan-cidr>" {
                 tags "infra"
             }
         }

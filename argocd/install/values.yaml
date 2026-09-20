@@ -24,7 +24,7 @@ configs:
   # → argocd-cmd-params-cm. Ключ = имя флага без "--", точка в имени допустима.
   params:
     # Дефолт: false. Argo слушает HTTPS и сам следит за сертификатом.
-    # Нам нужно наоборот: TLS терминирует Traefik на 192.0.2.10 со своим
+    # Нам нужно наоборот: TLS терминирует Traefik на <node1-ip> со своим
     # wildcard-tls, значит бэкенд обязан быть plain HTTP.
     server.insecure: true
 

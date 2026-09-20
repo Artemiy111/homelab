@@ -1,0 +1,22 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: victoriametrics
+  namespace: monitoring
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    # VMUI (редактор MetricsQL) и Prometheus-совместимые API/страницы.
+    - match: Host(`vm.{{ .Values.config.domain }}`)
+      kind: Rule
+      middlewares:
+        - name: oauth2-proxy
+          namespace: traefik
+        - name: secure-headers
+          namespace: traefik
+        - name: ratelimit-default
+          namespace: traefik
+      services:
+        - name: victoriametrics
+          port: 8428

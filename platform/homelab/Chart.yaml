@@ -1,0 +1,5 @@
+apiVersion: v2
+name: homelab
+description: Cluster-wide configuration and HTTP routes for the homelab
+type: application
+version: 0.1.0

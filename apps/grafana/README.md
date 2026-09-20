@@ -35,7 +35,7 @@ Datasource VictoriaMetrics описан декларативно в ConfigMap
   hostPath-данные `/storage/apps/grafana`, provisioning из ConfigMap);
 - `grafana.service.yaml` — ClusterIP, порт 80 → 3000 (Gatus и Traefik ходят по
   `http://grafana/`);
-- `apps/grafana/route.yaml` — `Host(grafana…)` за `oauth2-proxy` +
+- `platform/homelab/templates/routes/grafana.yaml` — `Host(grafana…)` за `oauth2-proxy` +
   `secure-headers` + `ratelimit-default`.
 
 Применение (от `artlab` на сервере, после `git pull --ff-only`):
@@ -47,7 +47,7 @@ kubectl apply -f apps/grafana/k8s/
 ## Проверка
 
 ```sh
-curl --resolve grafana.${DOMAIN}:443:192.0.2.10 \
+curl --resolve grafana.${DOMAIN}:443:<node1-ip> \
   -o /dev/null -sS -w '%{http_code}\n' \
   https://grafana.${DOMAIN}/
 ```

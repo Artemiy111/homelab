@@ -70,8 +70,8 @@ failed to resolve image: ... lookup quay.io: Try again
 DNS-цепочка на сервере:
 
 ```
-containerd → systemd-resolved (127.0.0.53) → 192.0.2.10 (Keenetic)
-           → 192.0.2.10:53 = Service technitium-dns (externalIPs)
+containerd → systemd-resolved (127.0.0.53) → <node1-ip> (Keenetic)
+           → <node1-ip>:53 = Service technitium-dns (externalIPs)
            → pod technitium в кластере (namespace default)
 ```
 
@@ -151,14 +151,14 @@ platform/k0s/
 
 | Слой | Где |
 |---|---|
-| Ingress | Traefik — единый вход на `192.0.2.10` (`platform/traefik/`) |
+| Ingress | Traefik — единый вход на `<node1-ip>` (`platform/traefik/`) |
 | UI кластера | Headlamp (`platform/headlamp/`) |
 | Секреты | sealed-secrets (`argocd/applications/sealed-secrets.yaml`) |
 | GitOps | Argo CD — пробный стенд (`argocd/README.md`); целевое решение — Flux |
 
 ### Почему нет MetalLB
 
-LoadBalancer на однонодном кластере не нужен: тот же адрес `192.0.2.10`
+LoadBalancer на однонодном кластере не нужен: тот же адрес `<node1-ip>`
 отдаётся через `externalIPs` сервиса Traefik (`platform/traefik/values.yaml`),
 а MetalLB в L2-режиме пришлось бы отвечать ARP за отдельный VIP `.253`.
 
@@ -169,7 +169,7 @@ helm install metallb metallb/metallb -n metallb --create-namespace \
   --set frrk8s.enabled=false
 ```
 
-Пул адресов был `192.0.2.10/32` (IPAddressPool + L2Advertisement).
+Пул адресов был `<metallb-ip>/32` (IPAddressPool + L2Advertisement).
 Вернуть файлы: `git show 0fde47d:k8s/metallb/pool.yaml`.
 
 ### Прочее

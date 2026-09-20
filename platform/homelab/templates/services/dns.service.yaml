@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: technitium-dns
+  namespace: technitium
+spec:
+  # DNS публикуется на IP узла (.254) через kube-proxy externalIPs: так же,
+  # как раньше через Docker (роутер Keenetic ходит DNS-запросами на .254:53).
+  type: ClusterIP
+  externalIPs:
+    - {{ .Values.config.serverIp }}
+  selector:
+    app: technitium
+  ports:
+    - name: dns-udp
+      port: 53
+      targetPort: dns-udp
+      protocol: UDP
+    - name: dns-tcp
+      port: 53
+      targetPort: dns-tcp
+      protocol: TCP

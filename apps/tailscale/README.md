@@ -3,9 +3,9 @@
 Tailscale устанавливается непосредственно на Fedora-хост и предоставляет:
 
 - SSH к серверу без белого IPv4 и проброса портов;
-- доступ к сервисам на `192.0.2.10`;
+- доступ к сервисам на `<node1-ip>`;
 - доступ к остальным устройствам домашней сети через subnet route
-  `192.0.2.10/24`.
+  `<node1-lan-cidr>`.
 
 Tailscale SSH намеренно не включён: поверх tailnet используется уже настроенный
 OpenSSH сервера.
@@ -20,8 +20,8 @@ sudo bash apps/tailscale/setup.sh
 
 Команда выведет ссылку для входа. После авторизации открыть страницу
 [Machines](https://login.tailscale.com/admin/machines), выбрать `homelab`, затем
-в разделе **Subnets** одобрить маршрут `192.0.2.10/24` и снять одобрение
-устаревших маршрутов (например, оставшейся от старой сети `192.0.2.10/24`):
+в разделе **Subnets** одобрить маршрут `<node1-lan-cidr>` и снять одобрение
+устаревших маршрутов (например, оставшейся от старой сети `<old-lan-cidr>`):
 клиенты ходят в домашнюю сеть только через одобренные маршруты, и расхождение
 с реальной LAN выглядит как «дома всё работает, удалённо — нет».
 
@@ -42,14 +42,14 @@ sudo tailscale set --accept-routes
 restricted nameserver (split DNS):
 
 - domain: `example.com`;
-- nameserver: `192.0.2.10`.
+- nameserver: `<node1-ip>`.
 
 Запросы этой зоны пойдут в домашний Technitium DNS через одобренный subnet
 route, а прочие DNS-запросы останутся у обычного резолвера клиента.
 
 В том же разделе проверить, что не осталось записей от старой конфигурации:
 restricted nameserver на старый домен (`example.net`) и на старую
-подсеть (`192.0.2.10`) нужно удалить — иначе каждый узел tailnet при
+подсеть (`<node1-ip>`) нужно удалить — иначе каждый узел tailnet при
 проверке таких резолверов получает предупреждение «Tailscale can't reach the
 configured DNS servers» в `tailscale status`.
 
@@ -63,7 +63,7 @@ configured DNS servers» в `tailscale status`.
 ```sh
 tailscale ping homelab
 ssh artlab@homelab
-dig +short uptime.example.com A   # ожидается 192.0.2.10
+dig +short uptime.example.com A   # ожидается <node1-ip>
 curl -I https://dns.example.com/
 ```
 
@@ -73,13 +73,13 @@ curl -I https://dns.example.com/
 Если внутренние имена не резолвятся только вне домашней сети:
 
 1. В admin console (DNS) есть restricted nameserver `example.com →
-   192.0.2.10`, а устаревшие записи удалены.
+   <node1-ip>`, а устаревшие записи удалены.
 2. В admin console (Machines → homelab → Subnets) одобрен именно
-   `192.0.2.10/24` — та подсеть, где реально живёт сервер.
+   `<node1-lan-cidr>` — та подсеть, где реально живёт сервер.
 3. На клиенте `tailscale ping homelab` проходит, а `dig` до появления записи
    возвращал NXDOMAIN — значит запрос уходил в публичный DNS.
 
-Если сам `homelab` доступен, но адреса `192.168.1.x` не открываются, сначала
+Если сам `homelab` доступен, но адреса `<node1-lan-ip>` не открываются, сначала
 проверить, что subnet route одобрен в admin console. Для firewalld может также
 понадобиться masquerading в активной зоне хоста:
 

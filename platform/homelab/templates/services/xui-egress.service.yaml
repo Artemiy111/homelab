@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: xui-egress
+  namespace: 3x-ui
+spec:
+  # HTTP forward proxy (порт 8440) на IP узла: Gatus ходит на
+  # http://{{ .Values.config.serverIp }}:8440 (см. client.proxy-url для Telegram).
+  type: ClusterIP
+  externalIPs:
+    - {{ .Values.config.serverIp }}
+  selector:
+    app: 3x-ui
+  ports:
+    - name: egress
+      port: 8440
+      targetPort: egress
+      protocol: TCP

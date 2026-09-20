@@ -1,0 +1,15 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: technitium
+  namespace: technitium
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    # У Technitium своя авторизация админки — forward auth не нужен.
+    - match: Host(`dns.{{ .Values.config.domain }}`)
+      kind: Rule
+      services:
+        - name: technitium
+          port: 5380

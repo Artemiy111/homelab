@@ -1,0 +1,15 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: xui
+  namespace: 3x-ui
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    # Панель защищена случайным base path и логином — forward auth не нужен.
+    - match: Host(`xui.{{ .Values.config.domain }}`)
+      kind: Rule
+      services:
+        - name: xui
+          port: 2053

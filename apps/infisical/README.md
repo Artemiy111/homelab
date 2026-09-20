@@ -16,7 +16,7 @@
 ## Проверка
 
 ```sh
-curl --resolve infisical.example.com:443:192.0.2.10 \
+curl --resolve infisical.example.com:443:<node1-ip> \
   -fsS https://infisical.example.com/api/status
 ```
 

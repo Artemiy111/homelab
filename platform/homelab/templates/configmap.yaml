@@ -1,0 +1,15 @@
+{{- range .Values.namespaces }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: homelab-config
+  namespace: {{ . }}
+data:
+  DOMAIN: {{ $.Values.config.domain }}
+  {{- if has . $.Values.serverIpNamespaces }}
+  SERVER_IP: {{ $.Values.config.serverIp }}
+  {{- end }}
+  TZ: {{ $.Values.config.timezone }}
+  DEFAULT_LOCALE: {{ $.Values.config.locale }}
+{{- end }}

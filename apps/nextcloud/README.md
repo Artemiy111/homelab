@@ -34,7 +34,7 @@ sops -d apps/nextcloud/secrets.enc.env | sed -n '/^NEXTCLOUD_ADMIN_\(USER\|PASSW
 ## Проверка
 
 ```sh
-curl --resolve nextcloud.example.com:443:192.0.2.10 \
+curl --resolve nextcloud.example.com:443:<node1-ip> \
   -o /dev/null -sS -w '%{http_code}\n' \
   https://nextcloud.example.com/status.php
 ```

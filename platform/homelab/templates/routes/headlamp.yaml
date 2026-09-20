@@ -1,0 +1,25 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: headlamp
+  namespace: headlamp
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    # Дальше идёт собственный вход Headlamp по ServiceAccount-токену.
+    - match: Host(`headlamp.{{ .Values.config.domain }}`)
+      kind: Rule
+      middlewares:
+        # Middlewares объявлены в traefik (platform/traefik/oauth2-proxy.middleware.yaml).
+        - name: oauth2-proxy
+          namespace: traefik
+        - name: secure-headers
+          namespace: traefik
+        - name: ratelimit-default
+          namespace: traefik
+      services:
+        # Сервис Headlamp живёт в namespace headlamp (allowCrossNamespace включён).
+        - name: headlamp
+          namespace: headlamp
+          port: 80

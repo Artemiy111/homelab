@@ -16,7 +16,7 @@
 
 VM и vmagent наружу не публикуются: их UI нужен только для отладки, запросы
 идут через Grafana. VMUI доступен по адресу `https://vm.example.com/` за
-`oauth2-proxy` (см. `apps/victoria-metrics/route.yaml`).
+`oauth2-proxy` (см. `platform/homelab/templates/routes/victoria-metrics.yaml`).
 
 ## Поток метрик
 
@@ -75,7 +75,7 @@ kubectl exec deploy/victoriametrics -- wget -qO- \
 HTTP-маршрут VMUI (ожидаем 302 на oauth2-proxy):
 
 ```sh
-curl --resolve vm.${DOMAIN}:443:192.0.2.10 \
+curl --resolve vm.${DOMAIN}:443:<node1-ip> \
   -o /dev/null -sS -w '%{http_code}\n' \
   https://vm.${DOMAIN}/
 ```

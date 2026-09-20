@@ -19,8 +19,6 @@ spec:
         service:
           spec:
             type: ClusterIP
-            externalIPs:
-              - 192.0.2.10
         ports:
           web:
             port: 8000

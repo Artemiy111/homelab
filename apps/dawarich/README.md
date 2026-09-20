@@ -14,7 +14,7 @@ email и пароль в настройках аккаунта.
 ## Проверка
 
 ```sh
-curl --resolve dawarich.example.com:443:192.0.2.10 \
+curl --resolve dawarich.example.com:443:<node1-ip> \
   -fsS https://dawarich.example.com/api/v1/health
 ```
 

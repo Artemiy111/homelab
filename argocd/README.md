@@ -12,7 +12,7 @@ Argo CD поднимается на кластере как **проверка �
 | Namespace | `argocd` |
 | URL | https://argocd.example.com |
 | Параметры | `argocd/install/values.yaml` — только отклонения от дефолтов чарта |
-| Маршрут | `argocd/route.yaml` |
+| Маршрут | `platform/homelab/templates/routes/argocd.yaml` |
 
 Все команды ниже выполняются **на сервере** (там есть `helm` и kubeconfig),
 из корня репозитория.
@@ -32,7 +32,7 @@ helm install argocd argo/argo-cd \
   -f argocd/install/values.yaml \
   --wait
 
-kubectl apply -f argocd/route.yaml
+helm template platform/homelab -f platform/homelab/values.private.yaml | kubectl apply -f -
 ```
 
 ## Проверка
@@ -46,7 +46,7 @@ kubectl -n argocd get pods
 `argocd-server`. Отдельный под `dex` не появится — он отключён в values.
 
 ```sh
-curl --resolve argocd.example.com:443:192.0.2.10 \
+curl --resolve argocd.example.com:443:<node1-ip> \
   -o /dev/null -sS -w '%{http_code}\n' https://argocd.example.com
 ```
 
@@ -204,13 +204,13 @@ kubectl -n headlamp delete secret -l owner=helm,name=headlamp
 `extraManifests` в том же Application (раньше — вручную в
 `platform/headlamp/headlamp-rbac.yaml`). `ignoreDifferences` по `/data` и аннотации
 `kubernetes.io/service-account.uid` нужен, потому что их дописывает контроллер
-service-account. Маршрут (`platform/headlamp/route.yaml`) —
+service-account. Маршрут (`platform/homelab/templates/routes/headlamp.yaml`) —
 по-прежнему вне Application.
 
 ### Traefik
 
 `traefik.yaml` — тот же приём для боевого ingress (единственный вход на
-`192.0.2.10`, поэтому проверять `argocd app diff` особенно внимательно).
+`<node1-ip>`, поэтому проверять `argocd app diff` особенно внимательно).
 Отличия от headlamp:
 
 - `skipCrds: true` — CRD `*.traefik.io` кластерные; под управлением Argo они
@@ -253,7 +253,7 @@ argocd app list -A
 argocd app delete guestbook --cascade
 
 helm uninstall argocd -n argocd
-kubectl delete -f argocd/route.yaml
+helm template platform/homelab -f platform/homelab/values.private.yaml | kubectl delete -f -
 kubectl delete ns argocd
 
 # CRD чарт намеренно не удаляет (crds.keep: true) — снимаем руками

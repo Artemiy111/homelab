@@ -24,7 +24,7 @@ fi
 echo "Checking DNS resolution for container registries..."
 if ! getent hosts quay.io >/dev/null 2>&1; then
   echo "WARNING: quay.io не резолвится прямо сейчас."
-  echo "  DNS-цепочка сервера: systemd-resolved -> 192.0.2.10 (роутер) -> Technitium (Docker)."
+  echo "  DNS-цепочка сервера: systemd-resolved -> <router-ip> (роутер) -> Technitium (Docker)."
   echo "  Если Docker/Technitium остановлен, временно пропиши на роутере 1.1.1.1,"
   echo "  либо подними Technitium перед установкой k0s."
   echo "  Продолжаем, но образы Calico могут не скачаться."

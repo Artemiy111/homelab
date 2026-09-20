@@ -1,6 +1,6 @@
 # Домашний сервер
 
-Конфигурация домашнего сервера Fedora Server 44 по адресу `192.0.2.10`.
+Конфигурация домашнего сервера Fedora Server 44 по адресу `<node1-ip>`.
 Всё рабочее окружение — один узел Kubernetes (k0s); декларативные манифесты
 лежат в этом репозитории, а кластер приводится к ним применением манифестов
 и через GitOps-стенд. Репозиторий ведётся как учебный проект по
@@ -11,7 +11,7 @@ production-практикам DevOps.
 | Компонент | Роль | Каталог |
 | --- | --- | --- |
 | k0s | Single-node Kubernetes: Calico CNI, embedded etcd, CoreDNS | `platform/k0s/` |
-| Traefik | Единый ingress: 80/443 на `192.0.2.10` через `externalIPs` | `platform/traefik/` |
+| Traefik | Единый ingress: 80/443 на `<node1-ip>` через `externalIPs` | `platform/traefik/` |
 | Technitium DNS | Локальный DNS, wildcard-зона `*.example.com` | `apps/technitium/` |
 | sealed-secrets | Секреты в Git в зашифрованном виде | `argocd/applications/sealed-secrets.yaml` |
 | Longhorn | CSI-хранилище: снапшоты, клоны, RWX, бэкапы | `platform/longhorn/` |
@@ -24,7 +24,7 @@ production-практикам DevOps.
 
 Сервисы работают только в локальной сети и через Tailscale, по HTTPS, и
 маршрутизируются Traefik'ом. Локальный Technitium DNS разрешает зону
-`example.com` и все её поддомены в `192.0.2.10`, поэтому проброс портов
+`example.com` и все её поддомены в `<node1-ip>`, поэтому проброс портов
 53, 80 и 443 на роутере не требуется.
 
 Общие для сервисов значения (`DOMAIN`, `DEFAULT_LOCALE`) приходят из
@@ -98,13 +98,14 @@ production-практикам DevOps.
 
 - `apps/<сервис>/` — один каталог на сервис:
   - `k8s/` — Kubernetes-манифесты: Deployment, Service, SealedSecret, PVC и т.д.;
-  - `route.yaml` — маршрут Traefik (IngressRoute/Ingress) и, если нужно, свой
-    `middleware.yaml`;
   - `README.md` — как развернуть, проверить и эксплуатировать;
   - `secrets.enc.env` — SOPS + age, расшифровываемый реестр значений секретов
     (в доставке не участвует, см. «Секреты»).
 - `platform/<компонент>/` — платформенные манифесты и values (k0s, traefik,
   longhorn, local-storage, cnpg, mariadb, monitoring, headlamp).
+- `platform/homelab/` — Helm-чарт общей конфигурации (`homelab-config`) и всех
+  HTTP-маршрутов; реальные домен и адрес сервера — в untracked
+  `values.private.yaml` (см. `docs/agents/server-access.md`).
 - `argocd/` — GitOps-контроллер Argo CD (пробный стенд):
   - `install/values.yaml` — values чарта самого Argo CD;
   - `applications/<компонент>.yaml` — Application на компонент;
@@ -126,7 +127,7 @@ production-практикам DevOps.
 3. Применить затронутое:
    ```sh
    kubectl apply -f apps/<сервис>/k8s/
-   kubectl apply -f apps/<сервис>/route.yaml
+   helm template platform/homelab -f platform/homelab/values.private.yaml | kubectl apply -f -
    ```
 4. Проверить health, DNS и HTTP-маршрут.
 
@@ -161,15 +162,15 @@ Plaintext-файлы с секретами в репозитории не хра
 
 ## Удалённый доступ
 
-Tailscale устанавливается на хост и даёт SSH и доступ к `192.0.2.10` и всей
-подсети `192.0.2.10/24` без проброса портов. Настройка и проверка —
+Tailscale устанавливается на хост и даёт SSH и доступ к `<node1-ip>` и всей
+подсети `<node1-lan-cidr>` без проброса портов. Настройка и проверка —
 `apps/tailscale/README.md`.
 
 ## Временный доступ к веб-панели роутера
 
-Роутер (`192.0.2.10`) доступен только из локальной сети. Из tailnet-клиента
+Роутер (`<router-ip>`) доступен только из локальной сети. Из tailnet-клиента
 панель напрямую не открывается: в tailnet объявлен маршрут лишь на
-`192.0.2.10/24`. Проброс `ssh -L` тоже не работает — SELinux на сервере
+`<node1-lan-cidr>`. Проброс `ssh -L` тоже не работает — SELinux на сервере
 запрещает `sshd_session_t` исходящие соединения (`name_connect`), и проброс
 падает с `connect failed` / `Connection reset by peer`.
 
@@ -181,7 +182,7 @@ Tailscale-адресу. Запускать в foreground в обычной ssh-�
 На сервере:
 
 ```sh
-ncat -lk "$(tailscale ip -4)" 18080 --sh-exec "ncat 192.0.2.10 80"
+ncat -lk "$(tailscale ip -4)" 18080 --sh-exec "ncat <node1-ip> 80"
 ```
 
 На клиенте открыть в браузере `http://<tailscale-ip-сервера>:18080/`

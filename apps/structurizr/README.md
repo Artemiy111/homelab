@@ -49,11 +49,11 @@ kubectl rollout restart deploy/structurizr
   (`imagePullPolicy: IfNotPresent`), uid/gid 1000, `Recreate`, hostPath-данные
   `/storage/apps/structurizr` + ConfigMap `structurizr-properties`;
 - `service.yaml` — ClusterIP, порт 80 → 8080 (Gatus ходит по `http://structurizr/`);
-- `apps/structurizr/route.yaml` — `Host(structurizr…)` за
+- `platform/homelab/templates/routes/structurizr.yaml` — `Host(structurizr…)` за
   `oauth2-proxy` (у open-core нет своей аутентификации) + `secure-headers` +
   `ratelimit-default`.
 
-DNS-запись `structurizr.${DOMAIN} → 192.0.2.10` (IP узла) указывает на
+DNS-запись `structurizr.${DOMAIN} → <node1-ip>` (IP узла) указывает на
 Traefik кластера, поэтому forward auth больше не обходится: он единственная
 защита сервиса.
 

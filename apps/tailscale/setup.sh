@@ -29,9 +29,9 @@ sysctl --load /etc/sysctl.d/99-tailscale.conf
 # health и лишнюю зависимость от admin console.
 tailscale up \
   --hostname=homelab \
-  --advertise-routes=192.0.2.10/24 \
+  --advertise-routes=${LAN_CIDR:?set LAN_CIDR} \
   --accept-dns=false
 
 echo
-echo "Tailscale подключён. Одобрите маршрут 192.0.2.10/24 в admin console"
+echo "Tailscale подключён. Одобрите маршрут ${LAN_CIDR:?set LAN_CIDR} в admin console"
 echo "(Machines → homelab → Subnets) и удалите одобрение устаревших маршрутов."

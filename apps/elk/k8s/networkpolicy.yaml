@@ -37,7 +37,7 @@ spec:
               kubernetes.io/metadata.name: elastic-system
     - from:
         - ipBlock:
-            cidr: 192.0.2.10/32
+            cidr: 192.0.2.10/16
       ports:
         - port: 9200
           protocol: TCP

@@ -1,0 +1,20 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: onlyoffice
+  namespace: seafile
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: seafile-onlyoffice-xfp@kubernetescrd
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: onlyoffice.{{ .Values.config.domain }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: onlyoffice
+                port:
+                  number: 80

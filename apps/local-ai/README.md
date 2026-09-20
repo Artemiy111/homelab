@@ -24,9 +24,9 @@ capabilities, не может получать новые привилегии, 
 ## Проверка
 
 ```sh
-curl --resolve localai.example.com:443:192.0.2.10 \
+curl --resolve localai.example.com:443:<node1-ip> \
   https://localai.example.com/readyz
-curl --resolve localai.example.com:443:192.0.2.10 \
+curl --resolve localai.example.com:443:<node1-ip> \
   -H "Authorization: Bearer $LOCALAI_API_KEY" \
   https://localai.example.com/v1/models
 ```

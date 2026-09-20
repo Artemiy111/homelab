@@ -26,7 +26,7 @@ postgres, ...) и ~10 Gi RAM. Если понадобится «как в про
 
 ```sh
 kubectl apply -f apps/gitlab/k8s/
-kubectl apply -f apps/gitlab/route.yaml
+helm template platform/homelab -f platform/homelab/values.private.yaml | kubectl apply -f -
 ```
 
 `platform/homelab-config/configmap.yaml` содержит документ для namespace
@@ -89,7 +89,7 @@ reconfigure) идёт 5–15 минут; `startupProbe` это учитывае�
 kubectl -n gitlab get pods,pvc,svc,ingress
 kubectl -n gitlab logs deploy/gitlab -f
 
-curl -fsS --resolve gitlab.example.com:443:192.0.2.10 \
+curl -fsS --resolve gitlab.example.com:443:<node1-ip> \
   https://gitlab.example.com/-/health
 
 kubectl -n gitlab exec deploy/gitlab -- gitlab-rake gitlab:check
@@ -112,7 +112,7 @@ kubectl -n gitlab exec deploy/gitlab -- gitlab-rake gitlab:check
 ## Удаление
 
 ```sh
-kubectl delete -f apps/gitlab/route.yaml
+helm template platform/homelab -f platform/homelab/values.private.yaml | kubectl delete -f -
 kubectl delete -f apps/gitlab/k8s/
 ```
 

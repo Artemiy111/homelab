@@ -56,12 +56,12 @@ Assistant не пытался использовать встроенный `hci
 ## Проверка
 
 ```sh
-curl --resolve ha.example.com:443:192.0.2.10 \
+curl --resolve ha.example.com:443:<node1-ip> \
   -o /dev/null -sS -w '%{http_code}\n' \
   https://ha.example.com/
 ```
 
-Прямой доступ к `http://192.0.2.10:8123` блокируется firewalld; для работы
+Прямой доступ к `http://<node1-ip>:8123` блокируется firewalld; для работы
 интерфейса он не нужен, поскольку входящий HTTPS уже обслуживает Traefik.
 
 ## SSO через ZITADEL

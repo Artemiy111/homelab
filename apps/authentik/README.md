@@ -40,7 +40,7 @@ Authentik поддерживает passwordless-аутентификацию ч�
 ## Проверка
 
 ```sh
-curl --resolve auth.example.com:443:192.0.2.10 \
+curl --resolve auth.example.com:443:<node1-ip> \
   -fsS https://auth.example.com/-/health/ready/
 ```
 

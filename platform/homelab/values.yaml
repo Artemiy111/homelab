@@ -1,0 +1,45 @@
+config:
+  domain: example.com
+  serverIp: 192.0.2.10
+  timezone: Asia/Yekaterinburg
+  locale: ru
+
+namespaces:
+  - 3x-ui
+  - authentik
+  - beszel
+  - dawarich
+  - default
+  - element
+  - forgejo
+  - gitlab
+  - glitchtip
+  - home
+  - home-assistant
+  - immich
+  - infisical
+  - jellyfin
+  - jitsi
+  - local-ai
+  - mailserver
+  - monitoring
+  - navidrome
+  - nextcloud
+  - oauth2-proxy
+  - open-webui
+  - paperless
+  - pdf
+  - rustfs
+  - seafile
+  - structurizr
+  - sure
+  - talk-hpb
+  - technitium
+  - uptime-kuma
+  - vault
+  - zitadel
+
+serverIpNamespaces:
+  - default
+  - monitoring
+  - oauth2-proxy

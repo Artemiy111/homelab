@@ -241,13 +241,13 @@ init-скриптов, поэтому секреты сервиса назван
 kubectl -n argocd get application forgejo
 kubectl -n forgejo get pods,pvc,svc,ingress
 
-curl -fsS --resolve forgejo.example.com:443:192.0.2.10 \
+curl -fsS --resolve forgejo.example.com:443:<node1-ip> \
   https://forgejo.example.com/api/healthz   # status: pass, database:ping: pass
 
 kubectl -n forgejo exec deploy/forgejo -- forgejo admin user list --admin
 
 # SSH: порт открыт и отдаёт баннер Forgejo
-ssh -T -p 2222 -o StrictHostKeyChecking=no git@192.0.2.10
+ssh -T -p 2222 -o StrictHostKeyChecking=no git@<node1-ip>
 ```
 
 ## Резервное копирование
