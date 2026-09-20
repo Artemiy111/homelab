@@ -1,7 +1,8 @@
 # Базовый NetworkPolicy для namespace monitoring: default-deny ingress плюс
 # явные разрешения. traefik — UI (grafana, vm, netdata, wud); gatus и
 # uptime-kuma проверяют внутренние сервисы (victoriametrics, vmagent, netdata,
-# grafana, wud) напрямую по k8s-именам; kube-state-metrics приходит из default.
+# grafana, wud) напрямую по k8s-именам; kube-state-metrics приходит из default;
+# radar читает метрики ворклоадов из victoriametrics.
 # Egress не ограничивается.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -42,4 +43,15 @@ spec:
               app: kube-state-metrics
       ports:
         - port: 8080
+          protocol: TCP
+    # Radar (traffic.prometheusUrl) читает метрики ворклоадов из VictoriaMetrics.
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: radar
+          podSelector:
+            matchLabels:
+              app: victoriametrics
+      ports:
+        - port: 8428
           protocol: TCP

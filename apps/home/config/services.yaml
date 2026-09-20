@@ -115,6 +115,10 @@
         icon: mdi-sitemap
         href: https://structurizr.{{HOMEPAGE_VAR_DOMAIN}}/
         description: Архитектурные диаграммы
+    - Radar:
+        icon: mdi-radar
+        href: https://radar.{{HOMEPAGE_VAR_DOMAIN}}/
+        description: Kubernetes UI
     - Postgres:
         icon: mdi-database
         href: https://postgres.{{HOMEPAGE_VAR_DOMAIN}}/

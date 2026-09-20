@@ -17,6 +17,7 @@ production-практикам DevOps.
 | Longhorn | CSI-хранилище: снапшоты, клоны, RWX, бэкапы | `platform/longhorn/` |
 | Argo CD | GitOps-стенд для части платформенных компонентов | `argocd/` |
 | Headlamp | Веб-UI кластера | `platform/headlamp/` |
+| Radar | Kubernetes UI: топология, ресурсы, GitOps, аудит | `platform/radar/` |
 | Tailscale | Удалённый доступ и маршрут в домашнюю сеть | `apps/tailscale/` |
 | Ansible | Декларативные пакеты и подготовка хоста | `ansible/` |
 
@@ -42,6 +43,7 @@ production-практикам DevOps.
 | Technitium DNS | DNS-сервер и блокировка рекламы | `dns.example.com` |
 | Homepage | Стартовая страница сервисов | `home.example.com` |
 | Headlamp | Веб-UI кластера | `headlamp.example.com` |
+| Radar | Kubernetes UI | `radar.example.com` |
 | Argo CD | GitOps-контроллер | `argocd.example.com` |
 | Longhorn | UI хранилища | `longhorn.example.com` |
 | Vault | HashiCorp Vault: секреты, transit, PKI | `vault.example.com` |

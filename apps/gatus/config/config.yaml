@@ -171,6 +171,17 @@ endpoints:
       - "[BODY].database == ok"
     alerts: *alerts-all
 
+  - name: Radar
+    group: Monitoring
+    # UI закрыт forward auth (302 без авторизации), поэтому проверяем health
+    # API напрямую; доступ из monitoring в radar разрешён NetworkPolicy.
+    url: http://radar.radar.svc.cluster.local/api/health
+    interval: 60s
+    client: *docker-client
+    conditions:
+      - "[STATUS] == 200"
+    alerts: *alerts-all
+
   # Публичные URL этих сервисов закрыты forward auth (oauth2-proxy@file) и для
   # неавторизованного запроса отдают 302, поэтому проверяем приложения напрямую.
   # Сервисы ещё в Docker, но внутри кластера доступны по имени через мост

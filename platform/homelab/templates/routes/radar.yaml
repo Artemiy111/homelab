@@ -1,0 +1,21 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: radar
+  namespace: radar
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`radar.{{ .Values.config.domain }}`)
+      kind: Rule
+      middlewares:
+        - name: oauth2-proxy
+          namespace: traefik
+        - name: secure-headers
+          namespace: traefik
+        - name: ratelimit-default
+          namespace: traefik
+      services:
+        - name: radar
+          port: 9280

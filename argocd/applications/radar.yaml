@@ -1,0 +1,49 @@
+# Radar — open-source Kubernetes UI (один Go-бинарь): топология, ресурсы, Helm,
+# GitOps, аудит, MCP. Ставится официальным чартом skyhook/radar; Argo рендерит
+# его сам (см. argocd/README.md), маршрут —
+# platform/homelab/templates/routes/radar.yaml.
+#
+# auth.mode не задаём (по умолчанию none): доступ закрывает forward-auth
+# oauth2-proxy на Traefik, а Radar ходит в API под своим ServiceAccount с
+# чартовым read-only ClusterRole (rbac.* по умолчанию — чтение + логи, без
+# exec/port-forward/helm-write). Выбор режима аутентификации Radar — issue #42.
+#
+# Внешний маршрут и NetworkPolicy namespace radar живут вне Application
+# (platform/homelab, platform/radar/networkpolicy.yaml).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: radar
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://skyhook-io.github.io/helm-charts
+    chart: radar
+    targetRevision: 1.14.1
+    helm:
+      releaseName: radar
+      valuesObject:
+        # Однозный кластер: лимиты умереннее дефолтных (2 CPU / 1Gi), чтобы
+        # информеры большого кластера не вытесняли соседей, но с запасом на
+        # всплески при churn.
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: "1"
+            memory: 512Mi
+        traffic:
+          # Автодискавери Prometheus ищет well-known имена/лейблы и не знаком с
+          # сервисом victoriametrics; задаём адрес явно (порт 80 сервиса).
+          # Доступ из namespace radar в monitoring открыт NetworkPolicy.
+          prometheusUrl: http://victoriametrics.monitoring.svc.cluster.local
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: radar
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
