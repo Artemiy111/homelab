@@ -124,6 +124,25 @@ kubectl apply -f argocd/applications/local-path-provisioner.yaml   # обнов�
 argocd app sync local-path-provisioner                    # или ручной sync, см. ниже
 ```
 
+### Приватные values (домен, externalIPs)
+
+Часть values — environment-specific и не должна лежать в публичном git: домен и
+`externalIPs` в `traefik`, домен и `ssh.externalIPs` в `forgejo`. Конвенция: файл
+в `argocd/applications/` — это шаблон (плейсхолдеры или опущенные ключи), а
+реальные значения — в untracked `<name>.private.yaml` (merge-patch), который
+применяется сразу после шаблона:
+
+```sh
+kubectl apply -f argocd/applications/forgejo.yaml
+kubectl -n argocd patch application forgejo --type=merge \
+  --patch-file argocd/applications/forgejo.private.yaml
+```
+
+Ручной `helm upgrade --set` не подходит: релизом владеет Argo, и selfHeal откатит.
+Применять один шаблон нельзя — приватные значения затрутся (домен станет
+`example.com`, `externalIPs` пропадут). `.gitignore` исключает
+`argocd/applications/*.private.yaml`.
+
 Ещё две вещи, которые полезно знать до того, как что-то менять:
 
 - **Упавший sync не повторяется сам.** После ошибки контроллер логирует

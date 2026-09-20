@@ -72,6 +72,10 @@ spec:
               # Без явного DOMAIN чарт берёт его из дефолтного ingress.hosts
               # (git.example.com), а от DOMAIN наследуется SSH_DOMAIN — Forgejo
               # отдавал бы git.example.com в ssh_url репозиториев.
+              # Здесь плейсхолдеры: реальные DOMAIN/ROOT_URL/SSH_DOMAIN и
+              # service.ssh.externalIPs приезжают из untracked
+              # argocd/applications/forgejo.private.yaml (см. argocd/README.md);
+              # применять этот файл без него нельзя.
               DOMAIN: forgejo.example.com
               SSH_DOMAIN: forgejo.example.com
             database:

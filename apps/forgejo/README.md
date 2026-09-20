@@ -15,6 +15,11 @@ Forgejo — лёгкая self-hosted Git-платформа (форк Gitea), к
 
 Самостоятельная регистрация выключена, новые репозитории и профили приватны.
 
+Домен и `service.ssh.externalIPs` в `argocd/applications/forgejo.yaml` — плейсхолдеры
+и опущенные ключи: реальные значения приезжают из untracked
+`argocd/applications/forgejo.private.yaml` (см. `argocd/README.md`). Применять один
+шаблон нельзя — значения затрутся.
+
 ## Как развёрнуто
 
 Официального Helm-чарта у Forgejo нет; де-факто стандарт — **forgejo-helm** из

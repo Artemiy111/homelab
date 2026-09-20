@@ -9,4 +9,8 @@ apps/home/config/settings.yaml
 # Приватные значения Helm-чарта: реальный домен и адрес сервера.
 platform/homelab/values.private.yaml
 
+# Приватные values Argo Application (домен, externalIPs): merge-patch поверх
+# шаблона из argocd/applications/ (см. argocd/README.md).
+argocd/applications/*.private.yaml
+
 __pycache__/
