@@ -29,3 +29,9 @@ This is a single-context repository. See `docs/agents/domain.md`.
 ### Доступ к серверу
 
 ОБЯЗАТЕЛЬНО прочитать способ подключения к серверу в `docs/agents/server-access.md`. 
+
+### Обработка информации
+
+Репозиторий зеркалится в публичный GitHub. Правила обращения с секретами,
+внутренними адресами и выводом инструментов — в
+`docs/agents/information-handling.md`.
