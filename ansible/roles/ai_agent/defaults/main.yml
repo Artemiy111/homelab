@@ -9,7 +9,10 @@ ai_agent_sudo_runas: artlab
 
 # Источник правды — каталог в репозитории (dotfiles/ai-agent), а не копия
 # внутри роли: файлы доставляются тем же git-процессом, что и остальные dotfiles.
-ai_agent_dotfiles_dir: "{{ playbook_dir }}/../dotfiles/ai-agent"
+# dirname от playbook_dir даёт корень репозитория без `..` в пути: цель симлинка
+# не переписывается на «.../ansible/../dotfiles/...».
+ai_agent_repo_root: "{{ playbook_dir | dirname }}"
+ai_agent_dotfiles_dir: "{{ ai_agent_repo_root }}/dotfiles/ai-agent"
 ai_agent_dotfiles:
   - .zshrc
 
