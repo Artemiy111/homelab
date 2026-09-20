@@ -67,29 +67,32 @@
     mode: "0755"
 
 # --- kubeseal: клиент sealed-secrets ---
+# Стейджим в /usr/local/src, а не /tmp: после реального прогона файлы переживают
+# очистку /tmp, и `--check` видит существующие src/dest. Иначе unarchive в
+# check-mode падает — он требует существующий dest и не скачивает src сам.
 - name: Скачать kubeseal {{ kubeseal_version }}
   ansible.builtin.get_url:
     url: "{{ kubeseal_url }}"
-    dest: "/tmp/kubeseal-{{ kubeseal_version }}.tar.gz"
+    dest: "/usr/local/src/kubeseal-{{ kubeseal_version }}.tar.gz"
     mode: "0644"
     checksum: "{{ kubeseal_checksum }}"
 
 - name: Создать каталог для распаковки kubeseal
   ansible.builtin.file:
-    path: "/tmp/kubeseal-{{ kubeseal_version }}"
+    path: "/usr/local/src/kubeseal-{{ kubeseal_version }}"
     state: directory
     mode: "0755"
 
 - name: Распаковать kubeseal {{ kubeseal_version }}
   ansible.builtin.unarchive:
-    src: "/tmp/kubeseal-{{ kubeseal_version }}.tar.gz"
-    dest: "/tmp/kubeseal-{{ kubeseal_version }}"
+    src: "/usr/local/src/kubeseal-{{ kubeseal_version }}.tar.gz"
+    dest: "/usr/local/src/kubeseal-{{ kubeseal_version }}"
     remote_src: true
-    creates: "/tmp/kubeseal-{{ kubeseal_version }}/kubeseal"
+    creates: "/usr/local/src/kubeseal-{{ kubeseal_version }}/kubeseal"
 
 - name: Установить kubeseal в /usr/local/bin
   ansible.builtin.copy:
-    src: "/tmp/kubeseal-{{ kubeseal_version }}/kubeseal"
+    src: "/usr/local/src/kubeseal-{{ kubeseal_version }}/kubeseal"
     dest: /usr/local/bin/kubeseal
     mode: "0755"
     remote_src: true
@@ -113,12 +116,12 @@
 - name: Скачать RPM kubectl-cnpg {{ kubectl_cnpg_version }}
   ansible.builtin.get_url:
     url: "{{ kubectl_cnpg_rpm_url }}"
-    dest: "/tmp/kubectl-cnpg-{{ kubectl_cnpg_version }}.rpm"
+    dest: "/usr/local/src/kubectl-cnpg-{{ kubectl_cnpg_version }}.rpm"
     mode: "0644"
     checksum: "{{ kubectl_cnpg_rpm_checksum }}"
 
 - name: Установить kubectl-cnpg
   ansible.builtin.dnf5:
-    name: "/tmp/kubectl-cnpg-{{ kubectl_cnpg_version }}.rpm"
+    name: "/usr/local/src/kubectl-cnpg-{{ kubectl_cnpg_version }}.rpm"
     state: present
     disable_gpg_check: true
