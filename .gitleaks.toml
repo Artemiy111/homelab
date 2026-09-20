@@ -1,0 +1,27 @@
+title = "homelab gitleaks config"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Зашифрованные артефакты: SOPS и SealedSecrets — это шифротекст, а не секрет"
+paths = [
+  '''(^|/)secrets\.enc\.env$''',
+  '''\.enc\.yaml$''',
+  '''sealedsecret.*\.yaml$''',
+]
+
+[[allowlists]]
+description = "Плейсхолдеры в примерах и документации"
+regexTarget = "match"
+regexes = [
+  '''replace-with[-a-z]*''',
+  '''placeholder''',
+]
+
+[[allowlists]]
+description = "Имя RFC2136-ключа (идентификатор, не секрет)"
+regexTarget = "match"
+regexes = [
+  '''tsig-[0-9]+\.<dns-provider>\.com''',
+]
