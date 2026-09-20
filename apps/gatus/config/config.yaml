@@ -468,3 +468,43 @@ endpoints:
       - "[BODY] == pat(*Welcome*)"
       - "[CERTIFICATE_EXPIRATION] > 168h"
     alerts: *alerts-all
+
+  # Внешние источники, от которых зависит CI: раннер тянет экшены
+  # (`uses: actions/checkout@v6`) с data.forgejo.org. Две DNS-проверки намеренно
+  # расходятся по резолверу: через kube-dns идёт тот же путь, что у job'ов, а
+  # прямой запрос в Technitium отделяет отказ промежуточного резолвера от
+  # недоступности сервиса. Интервал 15s: реальное окно отказа длилось 75 с, при
+  # 60s и failure-threshold 3 такое окно не доходит до алерта.
+  - name: Actions DNS via CoreDNS
+    group: External
+    url: kube-dns.kube-system.svc.cluster.local
+    interval: 15s
+    dns:
+      query-name: data.forgejo.org
+      query-type: A
+    conditions:
+      - "[DNS_RCODE] == NOERROR"
+    alerts: *alerts-all
+
+  - name: Actions DNS via Technitium
+    group: External
+    url: ${SERVER_IP}
+    interval: 15s
+    dns:
+      query-name: data.forgejo.org
+      query-type: A
+    conditions:
+      - "[DNS_RCODE] == NOERROR"
+    alerts: *alerts-all
+
+  # Тот же git-эндпоинт, что дёргает раннер при загрузке экшена: проверяет
+  # DNS+TLS+HTTP целиком (корень сайта отдаёт редирект, поэтому не он).
+  - name: Actions upstream
+    group: External
+    url: https://data.forgejo.org/actions/checkout/info/refs?service=git-upload-pack
+    interval: 15s
+    client:
+      timeout: 10s
+    conditions:
+      - "[STATUS] == 200"
+    alerts: *alerts-all
