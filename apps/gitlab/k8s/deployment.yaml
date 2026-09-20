@@ -1,0 +1,112 @@
+# GitLab CE (omnibus) одним подом — образ gitlab/gitlab-ce.
+#
+# Официальный образ не рекомендован для Kubernetes (single point of failure),
+# но для тестового стенда это самый дешёвый способ: внутри пода nginx, puma,
+# sidekiq, gitaly, встроенные PostgreSQL и Redis.
+#
+# Стратегия Recreate: оба PVC — RWO, два пода одновременно их не смонтируют.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gitlab
+  namespace: gitlab
+spec:
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gitlab
+  template:
+    metadata:
+      labels:
+        app: gitlab
+    spec:
+      # hostname в образе влияет на генерируемые внутренние адреса и письма.
+      hostname: gitlab
+      enableServiceLinks: false
+      # Omnibus ядру нужен root: он chown'ит тома и раскладывает процессы по
+      # uid'ам (git, gitlab-psql, redis, ...). Поэтому ограничивающий
+      # securityContext, как у других сервисов, здесь не ставим — сломается.
+      terminationGracePeriodSeconds: 120
+      containers:
+        - name: gitlab
+          # Тег и digest — один конкретный релиз; digest пинится, потому что
+          # образ по тегу не перекачивается сам.
+          image: "gitlab/gitlab-ce:19.4.0-ce.0@sha256:a948f7a7ed49ae469fb2bfed9fd75fa4f44b3f098e1dfd33b223bd5487068518"
+          ports:
+            - name: http
+              containerPort: 80
+            - name: ssh
+              containerPort: 22
+          env:
+            - name: DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-config
+                  key: DOMAIN
+            - name: TZ
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-config
+                  key: TZ
+            - name: GITLAB_OMNIBUS_CONFIG
+              valueFrom:
+                configMapKeyRef:
+                  name: gitlab-omnibus
+                  key: omnibus.rb
+          # Первый запуск прогоняет initdb, миграции и возможно долгий reconfigure,
+          # поэтому окно старта щедрое: 60s + 120 * 10s ≈ 21 минута до рестарта.
+          startupProbe:
+            httpGet:
+              path: /-/readiness
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 120
+          readinessProbe:
+            httpGet:
+              path: /-/readiness
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /-/health
+              port: http
+            periodSeconds: 60
+            timeoutSeconds: 10
+            failureThreshold: 5
+          resources:
+            requests:
+              cpu: 500m
+              memory: 2Gi
+            limits:
+              cpu: "4"
+              memory: 5Gi
+          volumeMounts:
+            - name: data
+              mountPath: /var/opt/gitlab
+            - name: config
+              mountPath: /etc/gitlab
+            - name: logs
+              mountPath: /var/log/gitlab
+            - name: shm
+              mountPath: /dev/shm
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: gitlab-data
+        - name: config
+          persistentVolumeClaim:
+            claimName: gitlab-config
+        - name: logs
+          emptyDir: {}
+        # Postgres и puma используют /dev/shm; дефолтных 64 Mi не хватает.
+        - name: shm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 256Mi

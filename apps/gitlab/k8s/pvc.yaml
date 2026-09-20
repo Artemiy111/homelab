@@ -1,0 +1,33 @@
+# local-path, а не Longhorn: это тестовый стенд, кластер одноузловой, а у
+# Longhorn на одном узле нет избыточности — только iSCSI-слой и его CPU.
+# local-path держит reclaimPolicy Retain, поэтому данные переживут даже
+# удаление PVC (восстановление — пересозданием PVC с тем же именем).
+#
+# gitlab-data — /var/opt/gitlab (репозитории в git-data, данные встроенного
+# Postgres и Redis). gitlab-config — /etc/gitlab (gitlab-secrets.json и ssh
+# host keys: без них рестарт пода ломает шифрованные атрибуты, 2FA и токены).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: gitlab-data
+  namespace: gitlab
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: gitlab-config
+  namespace: gitlab
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 1Gi

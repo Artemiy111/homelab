@@ -1,0 +1,55 @@
+# Конфигурация GitLab (omnibus) для контейнера gitlab/gitlab-ce.
+#
+# Ключ omnibus.rb читается через env GITLAB_OMNIBUS_CONFIG: образ оценивает его
+# как ruby ДО собственного /etc/gitlab/gitlab.rb и НЕ пишет в файл (так
+# документирован pre-configure в официальном образе). Поэтому /etc/gitlab
+# остаётся чистым PVC под секреты (gitlab-secrets.json, ssh host keys) и config.
+#
+# ENV['DOMAIN'] и ENV['TZ'] подставляет Deployment из homelab-config, чтобы
+# домен и часовой пояс не дублировались в gitlab.rb.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gitlab-omnibus
+  namespace: gitlab
+data:
+  omnibus.rb: |
+    external_url "https://gitlab.#{ENV['DOMAIN']}"
+    gitlab_rails['time_zone'] = ENV['TZ']
+
+    # TLS терминирует Traefik, поэтому внутренний nginx отдаёт plain HTTP на 80.
+    # redirect_http_to_https=false — иначе GitLab отвечал бы 301 на https и
+    # получился бы цикл редиректов Traefik -> GitLab -> Traefik.
+    nginx['listen_port'] = 80
+    nginx['listen_https'] = false
+    nginx['redirect_http_to_https'] = false
+
+    # Pod CIDR k0s: запросам от Traefik можно доверять и брать из
+    # X-Forwarded-Proto схему https. Без этого Rails строит ссылки как http.
+    gitlab_rails['trusted_proxies'] = ['10.244.0.0/16']
+
+    # Мониторинг не нужен: выключаем Prometheus целиком (сам сервер, grafana,
+    # alertmanager и все экспортёры) — это экономит ~1 Gi памяти.
+    prometheus_monitoring['enable'] = false
+
+    # Компоненты, которые тестовому инстансу не нужны.
+    gitlab_kas['enable'] = false
+    gitlab_pages['enable'] = false
+    registry['enable'] = false
+    mattermost['enable'] = false
+
+    # Omnibus сам сайзит puma/sidekiq/Postgres по ресурсам ХОСТА (16 CPU, 27 Gi),
+    # а не по лимитам пода, поэтому все значения задаём явно и скромно.
+    puma['worker_processes'] = 0
+    puma['min_threads'] = 1
+    puma['max_threads'] = 4
+
+    sidekiq['max_concurrency'] = 5
+
+    postgresql['shared_buffers'] = "256MB"
+    postgresql['work_mem'] = "8MB"
+    postgresql['maintenance_work_mem'] = "64MB"
+    postgresql['max_connections'] = 100
+
+    gitlab_rails['usage_ping_enabled'] = false
+    gitlab_rails['sentry_enabled'] = false
