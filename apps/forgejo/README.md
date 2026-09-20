@@ -204,6 +204,25 @@ kubectl -n forgejo logs deploy/forgejo-runner -c runner
 app.ini через `FORGEJO__database__PASSWD` из `gitea.additionalConfigFromEnvs`,
 поэтому секрет чарту не нужен.
 
+## Merge-сообщения
+
+Тело merge/squash-коммита задаёт серверный шаблон
+`{CustomPath}/default_merge_message/SQUASH_TEMPLATE.md` (`CustomPath` — это
+`/data/gitea`, не `/data/git`). Файл приезжает из ConfigMap
+`forgejo-merge-message` (`apps/forgejo/k8s/merge-message.configmap.yaml`) через
+`extraVolumes`/`extraContainerVolumeMounts` в `argocd/applications/forgejo.yaml`
+и делает тело пустым: без него Forgejo дописывает `Reviewed-on: <url>`, а это
+внутренний домен, которого не должно быть в публичной истории (#25).
+
+Шаблоны Forgejo читает один раз при старте, поэтому после правки ConfigMap нужен
+рестарт пода. Есть и per-repo вариант — `.gitea/default_merge_message/` в базовой
+ветке репозитория (в 16.0.2 путь `.forgejo/` не читается), но он переопределяет
+шаблон только для одного репозитория.
+
+`fj pr merge` шаблон для тела не использует и без `-m` дописывает
+`Reviewed-on: <url>` сам, поэтому мёржить нужно с `-m ""`
+(`docs/agents/commit-conventions.md`).
+
 ## Секреты
 
 | SealedSecret | Что внутри | Кто читает |

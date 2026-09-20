@@ -1,0 +1,16 @@
+# Серверный шаблон merge-сообщения с пустым телом: применяется ко всем
+# репозиториям. Forgejo читает {CustomPath}/default_merge_message/ (у нас
+# /data/gitea/default_merge_message) при старте, поэтому после правки нужен
+# рестарт пода. Без шаблона тело merge-коммита содержит `Reviewed-on: <url>` с
+# внутренним доменом (см. #25).
+#
+# Первая строка — subject; пустая строка -> дефолтный `<Заголовок PR> (#N)`.
+# Вторая строка — один пробел: Forgejo обрезает пробельные символы и получает
+# пустое тело. Пустая вторая строка дала бы дефолтное тело с Reviewed-on.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: forgejo-merge-message
+  namespace: forgejo
+data:
+  SQUASH_TEMPLATE.md: "\n \n"
