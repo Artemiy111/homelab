@@ -3,10 +3,10 @@
 # а корень — XFS, который нельзя ужать, поэтому выделенный LV пока невозможен:
 # данные живут на корневой ФС. При появлении диска путь менять на его точку
 # монтирования и переносить диск в UI Longhorn.
-longhorn_data_path: /storage/apps/k8s/longhorn
+longhorn_prereqs_data_path: /storage/apps/k8s/longhorn
 
 # Fedora-сборка iscsi-initiator-utils создаёт каталоги в /var/lib/iscsi без
 # execute-бита, а обновлённый container-selinux не даёт iscsid_t capability
 # dac_override — тома Longhorn застревают в attach/detach loop
 # (https://longhorn.io/kb/troubleshooting-volume-attachment-fails-due-to-selinux-denials/).
-longhorn_selinux_cil: local_longhorn.cil
+longhorn_prereqs_selinux_cil: local_longhorn.cil

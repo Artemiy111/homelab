@@ -14,3 +14,6 @@ platform/homelab/values.private.yaml
 argocd/applications/*.private.yaml
 
 __pycache__/
+
+# Кэш ansible-lint (автоустановка collections, fact cache).
+ansible/.ansible/

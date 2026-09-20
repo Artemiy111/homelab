@@ -6,7 +6,7 @@
     src: "{{ repo_root }}/etc/dnf/automatic.conf"
     dest: /etc/dnf/automatic.conf
     mode: "0644"
-  notify: restart dnf-automatic
+  notify: Restart dnf-automatic
 
 - name: Включить и запустить таймер dnf-automatic
   ansible.builtin.systemd:

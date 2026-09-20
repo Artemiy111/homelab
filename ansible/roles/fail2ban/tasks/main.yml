@@ -6,7 +6,7 @@
     src: "{{ repo_root }}/etc/fail2ban/jail.local"
     dest: /etc/fail2ban/jail.local
     mode: "0644"
-  notify: restart fail2ban
+  notify: Restart fail2ban
 
 - name: Включить и запустить fail2ban
   ansible.builtin.systemd:

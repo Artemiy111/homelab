@@ -6,4 +6,4 @@
     src: "{{ repo_root }}/etc/docker/daemon.json"
     dest: /etc/docker/daemon.json
     mode: "0644"
-  notify: restart docker
+  notify: Restart docker

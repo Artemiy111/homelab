@@ -7,7 +7,7 @@
 # целостность фиксируется checksum URL-версии (см. defaults/main.yml).
 - name: Установить sops из релиза GitHub
   ansible.builtin.dnf5:
-    name: "{{ sops_rpm_url }}"
+    name: "{{ cli_tools_sops_rpm_url }}"
     state: present
     disable_gpg_check: true
 
@@ -29,17 +29,17 @@
 - name: Определить версию установленного vals
   ansible.builtin.command:
     cmd: /usr/local/bin/vals version
-  register: vals_installed
+  register: cli_tools_vals_installed
   failed_when: false
   changed_when: false
 
-- name: Клонировать vals ({{ vals_version }})
+- name: Клонировать vals ({{ cli_tools_vals_version }})
   ansible.builtin.git:
-    repo: "{{ vals_repo }}"
+    repo: "{{ cli_tools_vals_repo }}"
     dest: /usr/local/src/vals
-    version: "{{ vals_version }}"
+    version: "{{ cli_tools_vals_version }}"
     depth: 1
-  register: vals_repo_state
+  register: cli_tools_vals_repo_state
 
 # Пересобираем при смене пина или если бинарник отсутствует/битый/
 # другой версии. Main-пакет vals — ./cmd/vals (корень репозитория —
@@ -51,15 +51,16 @@
   ansible.builtin.command:
     cmd: >-
       go build -trimpath
-      -ldflags "-X main.version={{ vals_version }} -X main.commit={{ vals_repo_state.after }}"
+      -ldflags "-X main.version={{ cli_tools_vals_version }} -X main.commit={{ cli_tools_vals_repo_state.after }}"
       -o /usr/local/bin/vals ./cmd/vals
     chdir: /usr/local/src/vals
   when: >-
-    vals_repo_state.changed
-    or vals_installed.rc != 0
-    or vals_version not in vals_installed.stdout
+    cli_tools_vals_repo_state.changed
+    or cli_tools_vals_installed.rc != 0
+    or cli_tools_vals_version not in cli_tools_vals_installed.stdout
   environment:
     GOPATH: /root/go
+  changed_when: true
 
 - name: Выставить права бинарнику vals
   ansible.builtin.file:
@@ -70,29 +71,29 @@
 # Стейджим в /usr/local/src, а не /tmp: после реального прогона файлы переживают
 # очистку /tmp, и `--check` видит существующие src/dest. Иначе unarchive в
 # check-mode падает — он требует существующий dest и не скачивает src сам.
-- name: Скачать kubeseal {{ kubeseal_version }}
+- name: Скачать kubeseal {{ cli_tools_kubeseal_version }}
   ansible.builtin.get_url:
-    url: "{{ kubeseal_url }}"
-    dest: "/usr/local/src/kubeseal-{{ kubeseal_version }}.tar.gz"
+    url: "{{ cli_tools_kubeseal_url }}"
+    dest: "/usr/local/src/kubeseal-{{ cli_tools_kubeseal_version }}.tar.gz"
     mode: "0644"
-    checksum: "{{ kubeseal_checksum }}"
+    checksum: "{{ cli_tools_kubeseal_checksum }}"
 
 - name: Создать каталог для распаковки kubeseal
   ansible.builtin.file:
-    path: "/usr/local/src/kubeseal-{{ kubeseal_version }}"
+    path: "/usr/local/src/kubeseal-{{ cli_tools_kubeseal_version }}"
     state: directory
     mode: "0755"
 
-- name: Распаковать kubeseal {{ kubeseal_version }}
+- name: Распаковать kubeseal {{ cli_tools_kubeseal_version }}
   ansible.builtin.unarchive:
-    src: "/usr/local/src/kubeseal-{{ kubeseal_version }}.tar.gz"
-    dest: "/usr/local/src/kubeseal-{{ kubeseal_version }}"
+    src: "/usr/local/src/kubeseal-{{ cli_tools_kubeseal_version }}.tar.gz"
+    dest: "/usr/local/src/kubeseal-{{ cli_tools_kubeseal_version }}"
     remote_src: true
-    creates: "/usr/local/src/kubeseal-{{ kubeseal_version }}/kubeseal"
+    creates: "/usr/local/src/kubeseal-{{ cli_tools_kubeseal_version }}/kubeseal"
 
 - name: Установить kubeseal в /usr/local/bin
   ansible.builtin.copy:
-    src: "/usr/local/src/kubeseal-{{ kubeseal_version }}/kubeseal"
+    src: "/usr/local/src/kubeseal-{{ cli_tools_kubeseal_version }}/kubeseal"
     dest: /usr/local/bin/kubeseal
     mode: "0755"
     remote_src: true
@@ -102,26 +103,26 @@
 # а в релизе GitHub лежит сырой бинарник без архива. get_url с checksum
 # идемпотентен — повторный прогон ничего не делает, пока файл совпадает.
 # Если стенд снимается (argocd/README.md), убрать и эту секцию.
-- name: Установить argocd CLI {{ argocd_version }} в /usr/local/bin
+- name: Установить argocd CLI в /usr/local/bin ({{ cli_tools_argocd_version }})
   ansible.builtin.get_url:
-    url: "{{ argocd_cli_url }}"
+    url: "{{ cli_tools_argocd_cli_url }}"
     dest: /usr/local/bin/argocd
-    checksum: "{{ argocd_cli_checksum }}"
+    checksum: "{{ cli_tools_argocd_cli_checksum }}"
     mode: "0755"
 
 # --- kubectl-cnpg: плагин оператора CloudNativePG ---
 # В релизах CNPG есть RPM, но подписан он cosign, а не GPG, поэтому dnf
 # подпись всё равно не проверит. Скачиваем RPM с sha256 из checksums.txt
 # релиза и ставим локальным файлом — так целостность проверяется.
-- name: Скачать RPM kubectl-cnpg {{ kubectl_cnpg_version }}
+- name: Скачать RPM kubectl-cnpg {{ cli_tools_kubectl_cnpg_version }}
   ansible.builtin.get_url:
-    url: "{{ kubectl_cnpg_rpm_url }}"
-    dest: "/usr/local/src/kubectl-cnpg-{{ kubectl_cnpg_version }}.rpm"
+    url: "{{ cli_tools_kubectl_cnpg_rpm_url }}"
+    dest: "/usr/local/src/kubectl-cnpg-{{ cli_tools_kubectl_cnpg_version }}.rpm"
     mode: "0644"
-    checksum: "{{ kubectl_cnpg_rpm_checksum }}"
+    checksum: "{{ cli_tools_kubectl_cnpg_rpm_checksum }}"
 
 - name: Установить kubectl-cnpg
   ansible.builtin.dnf5:
-    name: "/usr/local/src/kubectl-cnpg-{{ kubectl_cnpg_version }}.rpm"
+    name: "/usr/local/src/kubectl-cnpg-{{ cli_tools_kubectl_cnpg_version }}.rpm"
     state: present
     disable_gpg_check: true

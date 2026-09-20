@@ -1,0 +1,55 @@
+name: ansible
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "ansible/**"
+      - ".forgejo/workflows/ansible.yml"
+  pull_request:
+    paths:
+      - "ansible/**"
+      - ".forgejo/workflows/ansible.yml"
+
+jobs:
+  ansible-lint:
+    name: ansible-lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - name: Cache venv
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.venvs/ansible
+          key: ansible-lint-26.8.0-ansible-12.3.0-${{ runner.os }}
+      # python3.11 ставится ВСЕГДА, не под condition кэша: venv из кэша
+      # содержит bin/python3.11 симлинком на /usr/bin/python3.11 свежего
+      # контейнера, и без бинаря запускается с "bad interpreter".
+      - name: Ensure python3.11
+        run: |
+          set -euo pipefail
+          test -x /usr/bin/python3.11 || { apt-get update -qq && apt-get install -y --no-install-recommends python3.11 python3.11-venv; }
+      # Ставится полный metapackage `ansible==12.3.0`: в его wheel уже входят
+      # коллекции (community.general.copr нужен syntax-check), галактический
+      # доступ CI не требуется. Движок — ansible-core 2.19.x: образ раннера
+      # (jammy) даёт только python 3.10/3.11, а ansible-core 2.20 (стек
+      # сервера) требует 3.12+. Правила линта и `dnf5` в 2.19 те же.
+      # Официальный action ansible/ansible-lint не используется: act_runner
+      # берёт action'ы из зеркала инстанса, а github raw/objects CDN недоступны.
+      - name: Install ansible-lint
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          set -euo pipefail
+          python3.11 -m venv "$HOME/.venvs/ansible"
+          "$HOME/.venvs/ansible/bin/pip" install --quiet --upgrade pip
+          "$HOME/.venvs/ansible/bin/pip" install --quiet "ansible==12.3.0" "ansible-lint==26.8.0"
+      # --offline: все модули уже в venv, сетевых обращений линтера
+      # (galaxy, автоскачивание зависимостей) запрещаем.
+      - name: Run ansible-lint
+        working-directory: ansible
+        run: |
+          set -euo pipefail
+          "$HOME/.venvs/ansible/bin/ansible-lint" --version
+          "$HOME/.venvs/ansible/bin/ansible-lint" --offline

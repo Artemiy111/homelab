@@ -6,4 +6,4 @@
     src: "{{ repo_root }}/etc/sysctl.d/99-inotify.conf"
     dest: /etc/sysctl.d/99-inotify.conf
     mode: "0644"
-  notify: reload sysctl
+  notify: Reload sysctl

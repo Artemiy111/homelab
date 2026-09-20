@@ -1,5 +1,5 @@
 ---
-- name: restart tailscale-policy-route
+- name: Restart tailscale-policy-route
   ansible.builtin.systemd:
     name: tailscale-policy-route.service
     daemon_reload: true

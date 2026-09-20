@@ -14,6 +14,7 @@
 | `agent.yml` | Плейбук: пользователь `ai-agent` и его окружение |
 | `roles/` | Роли, по одной на зону ответственности (таблица ниже) |
 | `ansible.cfg` | Настройки по умолчанию (инвентарь, `roles_path`, читаемый вывод) |
+| `.ansible-lint` | Конфиг ansible-lint (профиль `production`), тот же проверятся в CI |
 
 ## Роли
 
@@ -30,7 +31,10 @@
 | `ai_agent` | Пользователь `ai-agent`: dotfiles, `authorized_keys`, sudoers |
 
 Параметры каждой роли — в её `roles/<имя>/defaults/main.yml`, задачи — в
-`tasks/`, перезапуски сервисов — в `handlers/`. Источник правды для содержимого
+`tasks/`, перезапуски сервисов — в `handlers/`. Переменные и `register` внутри
+ролей с префиксом имени роли (`cli_tools_`, `longhorn_prereqs_`, ...): у
+Ansible единое глобальное пространство имён переменных, префикс защищает роли
+от перезаписи переменных друг друга. Источник правды для содержимого
 системных конфигов — каталог `etc/`: роли копируют оттуда по
 `{{ repo_root }}/etc/...`.
 
@@ -99,6 +103,23 @@ ansible-playbook agent.yml --check --diff --ask-become-pass
 - Не трогает рабочие нагрузки кластера — это другой слой.
 - Не включает репозиторий Adoptium: он отключён на сервере, а `java-21-openjdk`
   помечен в списке как кандидат на удаление (остался от Jenkins).
+
+## Линт
+
+CI (`.forgejo/workflows/ansible.yml`) прогоняет ansible-lint 26.8.0 с профилем
+`production` (настройки — `.ansible-lint`) на изменениях в `ansible/`. Локально:
+
+```sh
+python3 -m venv ~/.venvs/ansible
+~/.venvs/ansible/bin/pip install "ansible==12.3.0" "ansible-lint==26.8.0"
+cd ansible && ~/.venvs/ansible/bin/ansible-lint --offline
+```
+
+`ansible` — полный metapackage: его wheel несёт коллекции, syntax-check
+резолвит `community.general.copr` без galaxy. В CI зафиксирован 12.x
+(ansible-core 2.19) вместо серверных 13.x (core 2.20): образ раннера даёт
+python не новее 3.11, а core 2.20 требует 3.12+; линтуемые правила и `dnf5`
+в 2.19 те же.
 
 ## Требования
 

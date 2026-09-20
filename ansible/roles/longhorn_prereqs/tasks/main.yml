@@ -11,14 +11,14 @@
 
 - name: Создать каталог данных Longhorn
   ansible.builtin.file:
-    path: "{{ longhorn_data_path }}"
+    path: "{{ longhorn_prereqs_data_path }}"
     state: directory
     mode: "0755"
 
 - name: Разложить SELinux-модуль для Longhorn во временный каталог
   ansible.builtin.copy:
-    src: "{{ repo_root }}/etc/selinux/{{ longhorn_selinux_cil }}"
-    dest: "/tmp/{{ longhorn_selinux_cil }}"
+    src: "{{ repo_root }}/etc/selinux/{{ longhorn_prereqs_selinux_cil }}"
+    dest: "/tmp/{{ longhorn_prereqs_selinux_cil }}"
     mode: "0644"
   when: ansible_facts.selinux.status | default('') == 'enabled'
 
@@ -27,13 +27,14 @@
 - name: Прочитать список SELinux-модулей
   ansible.builtin.command:
     cmd: semodule -l
-  register: selinux_modules
+  register: longhorn_prereqs_selinux_modules
   changed_when: false
   when: ansible_facts.selinux.status | default('') == 'enabled'
 
 - name: Установить SELinux-модуль, разрешающий iscsid_t dac_override
   ansible.builtin.command:
-    cmd: "semodule -vi /tmp/{{ longhorn_selinux_cil }}"
+    cmd: "semodule -vi /tmp/{{ longhorn_prereqs_selinux_cil }}"
+  changed_when: true
   when:
     - ansible_facts.selinux.status | default('') == 'enabled'
-    - "'local_longhorn' not in (selinux_modules.stdout | default(''))"
+    - "'local_longhorn' not in (longhorn_prereqs_selinux_modules.stdout | default(''))"

@@ -53,7 +53,7 @@
 
 # validate прогоняет visudo на временной копии до установки: синтаксически
 # неверное правило не сможет сломать sudo.
-- name: Разрешить {{ ai_agent_user }} выполнять команды от {{ ai_agent_sudo_runas }}
+- name: Разрешить sudo без парола от имени {{ ai_agent_sudo_runas }}
   ansible.builtin.template:
     src: sudoers.j2
     dest: "{{ ai_agent_sudoers_file }}"

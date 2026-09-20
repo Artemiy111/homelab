@@ -1,5 +1,5 @@
 ---
-- name: reload sysctl
+- name: Reload sysctl
   # Быстрое применение sysctl без ребута; выполняется только при изменении файла.
   ansible.builtin.command:
     cmd: sysctl --system

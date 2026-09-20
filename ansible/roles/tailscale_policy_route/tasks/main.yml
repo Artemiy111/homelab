@@ -10,7 +10,7 @@
     src: "{{ repo_root }}/etc/systemd/tailscale-policy-route.service"
     dest: /etc/systemd/system/tailscale-policy-route.service
     mode: "0644"
-  notify: restart tailscale-policy-route
+  notify: Restart tailscale-policy-route
 
 - name: Включить и запустить tailscale-policy-route
   ansible.builtin.systemd:
