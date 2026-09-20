@@ -28,6 +28,13 @@ data:
     # X-Forwarded-Proto схему https. Без этого Rails строит ссылки как http.
     gitlab_rails['trusted_proxies'] = ['10.244.0.0/16']
 
+    # /-/readiness, /-/health и /-/liveness отвечают только клиентам из этого
+    # allowlist (по умолчанию — только localhost). http-пробы kubelet приходят
+    # с IP узла (192.0.2.10), поэтому без него пробы получают 404, под
+    # навсегда остаётся NotReady, а Traefik — без endpoints. Под CIDR — на
+    # случай проверок изнутри кластера (например, gatus).
+    gitlab_rails['monitoring_whitelist'] = ['127.0.0.0/8', '::1', '10.244.0.0/16', '192.0.2.10']
+
     # Мониторинг не нужен: выключаем Prometheus целиком (сам сервер, grafana,
     # alertmanager и все экспортёры) — это экономит ~1 Gi памяти.
     prometheus_monitoring['enable'] = false
