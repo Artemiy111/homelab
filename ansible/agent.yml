@@ -1,0 +1,13 @@
+---
+# Плейбук: пользователь ai-agent и его окружение.
+# Запуск на сервере homelab:
+#   cd /home/artlab/projects/homelab/ansible && ansible-playbook agent.yml
+# Dry-run (ничего не меняет):
+#   ansible-playbook agent.yml --check --diff
+
+- name: Окружение пользователя ai-agent
+  hosts: homelab
+  become: true
+  gather_facts: false
+  roles:
+    - ai_agent

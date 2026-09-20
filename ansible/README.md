@@ -10,21 +10,25 @@
 | `inventory.yml` | Один хост `homelab` с локальным подключением (запуск на самом сервере) |
 | `group_vars/all.yml` | Списки пакетов, групп и «запрещённых» пакетов |
 | `host.yml` | Плейбук: репозитории → пакеты → группы → чистка |
-| `ansible.cfg` | Настройки по умолчанию (инвентарь, читаемый вывод) |
+| `agent.yml` | Плейбук: пользователь `ai-agent` и его окружение |
+| `roles/ai_agent/` | Роль: пользователь, dotfiles, `authorized_keys`, sudoers |
+| `ansible.cfg` | Настройки по умолчанию (инвентарь, `roles_path`, читаемый вывод) |
 
 ## Запуск (на сервере homelab)
 
-Плейбук выполняется на самом сервере от `artlab`:
+Плейбуки выполняются на самом сервере от `artlab`:
 
 ```sh
 cd /home/artlab/projects/homelab/ansible
-ansible-playbook host.yml
+
+ansible-playbook host.yml     # пакеты хоста
+ansible-playbook agent.yml    # окружение ai-agent
 ```
 
 `become: true` выполняет задачи через `sudo`. Если sudo спрашивает пароль:
 
 ```sh
-ansible-playbook host.yml --ask-become-pass
+ansible-playbook agent.yml --ask-become-pass
 ```
 
 ## Dry-run
@@ -33,7 +37,23 @@ ansible-playbook host.yml --ask-become-pass
 
 ```sh
 ansible-playbook host.yml --check --diff
+ansible-playbook agent.yml --check --diff
 ```
+
+## Окружение ai-agent (`agent.yml`)
+
+Роль `ai_agent` создаёт пользователя `ai-agent` (zsh, домашний каталог `0700`),
+подключает `.zshrc` симлинком на `dotfiles/ai-agent/.zshrc`, копирует
+`authorized_keys` (`0600`) и рендерит `/etc/sudoers.d/ai-agent`
+(`NOPASSWD: sudo -u artlab`) из шаблона `templates/sudoers.j2` с проверкой
+через `visudo`.
+
+Параметры роли (`ai_agent_user`, `ai_agent_sudo_runas`, шелл, список dotfiles) —
+в `roles/ai_agent/defaults/main.yml`. Источник правды для содержимого `.zshrc` и
+`authorized_keys` — каталог `dotfiles/ai-agent/`: обновление идёт обычным
+`git pull`, повторный прогон роли не нужен.
+
+Генерация ключа и подключение (ручные шаги) — в `dotfiles/README.md`.
 
 ## Как менять состав
 

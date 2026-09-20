@@ -1,0 +1,16 @@
+---
+# Параметры окружения AI-агента. Переопределяются в group_vars/host_vars при
+# необходимости; всё, что относится только к роли, живёт здесь, а не в all.yml,
+# чтобы роль оставалась переносимой.
+ai_agent_user: ai-agent
+ai_agent_shell: /bin/zsh
+ai_agent_home: "/home/{{ ai_agent_user }}"
+ai_agent_sudo_runas: artlab
+
+# Источник правды — каталог в репозитории (dotfiles/ai-agent), а не копия
+# внутри роли: файлы доставляются тем же git-процессом, что и остальные dotfiles.
+ai_agent_dotfiles_dir: "{{ playbook_dir }}/../dotfiles/ai-agent"
+ai_agent_dotfiles:
+  - .zshrc
+
+ai_agent_sudoers_file: "/etc/sudoers.d/{{ ai_agent_user }}"

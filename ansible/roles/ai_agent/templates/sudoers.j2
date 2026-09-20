@@ -1,0 +1,6 @@
+# /etc/sudoers.d/{{ ai_agent_user }}
+# Позволяет {{ ai_agent_user }} выполнять команды от имени {{ ai_agent_sudo_runas }} без пароля.
+# Используется для эскалации: агент по умолчанию работает от {{ ai_agent_user }},
+# при необходимости запрашивает разрешение и выполняет через sudo -u {{ ai_agent_sudo_runas }}.
+
+{{ ai_agent_user }} ALL=({{ ai_agent_sudo_runas }}) NOPASSWD: ALL

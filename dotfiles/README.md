@@ -41,21 +41,24 @@ ln -sf /home/artlab/projects/homelab/dotfiles/.ssh/config ~/.ssh/config
 
 ```bash
 # На сервере:
-bash /home/artlab/projects/homelab/scripts/ai-agent-setup.sh
+cd /home/artlab/projects/homelab/ansible && ansible-playbook agent.yml
 ```
 
-Скрипт создаёт пользователя, подключает симлинки dotfiles и ставит
-sudoers-правило.
+Плейбук создаёт пользователя, подключает симлинки dotfiles и ставит
+sudoers-правило. Детали — в `ansible/README.md`.
 
 ### Структура
 
 ```
 dotfiles/ai-agent/
 ├── .zshrc              # Минимальный конфиг zsh (prompt с префиксом ai-agent)
-├── .ssh/
-│   └── authorized_keys # Restrictions: forwarding запрещён
-└── sudoers.d-ai-agent  # NOPASSWD: sudo -u artlab (runas artlab)
+└── .ssh/
+    └── authorized_keys # Restrictions: forwarding запрещён
 ```
+
+Sudoers-правило (`/etc/sudoers.d/ai-agent`) рендерится из шаблона
+`ansible/roles/ai_agent/templates/sudoers.j2`; значения `ai_agent_user` и
+`ai_agent_sudo_runas` — в `ansible/roles/ai_agent/defaults/main.yml`.
 
 ### Модель доступа
 

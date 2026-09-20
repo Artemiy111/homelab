@@ -1,0 +1,63 @@
+---
+# Настройка пользователя ai-agent и его окружения.
+# Роль идемпотентна: повторный прогон не меняет уже настроенное.
+
+- name: Создать пользователя {{ ai_agent_user }}
+  ansible.builtin.user:
+    name: "{{ ai_agent_user }}"
+    shell: "{{ ai_agent_shell }}"
+    home: "{{ ai_agent_home }}"
+    create_home: true
+    state: present
+
+# Рекурсивного chown нет намеренно: владелец/группа выставляются на каждом
+# управляемом ресурсе, чтобы не затирать права, выставленные приложениями
+# внутри домашнего каталога.
+- name: Ограничить доступ к домашнему каталогу
+  ansible.builtin.file:
+    path: "{{ ai_agent_home }}"
+    state: directory
+    owner: "{{ ai_agent_user }}"
+    group: "{{ ai_agent_user }}"
+    mode: "0700"
+
+- name: Создать ~/.ssh с доступом только владельцу
+  ansible.builtin.file:
+    path: "{{ ai_agent_home }}/.ssh"
+    state: directory
+    owner: "{{ ai_agent_user }}"
+    group: "{{ ai_agent_user }}"
+    mode: "0700"
+
+# .zshrc и прочие dotfiles подключаются симлинками на файлы в репозитории,
+# чтобы обновление шло обычным git pull без повторного запуска роли.
+- name: Подключить dotfiles симлинками
+  ansible.builtin.file:
+    src: "{{ ai_agent_dotfiles_dir }}/{{ item }}"
+    dest: "{{ ai_agent_home }}/{{ item }}"
+    state: link
+    force: true
+    owner: "{{ ai_agent_user }}"
+    group: "{{ ai_agent_user }}"
+  loop: "{{ ai_agent_dotfiles }}"
+
+# authorized_keys копируется, а не линкуется: sshd строже относится к правам
+# на этот файл, и он не должен зависеть от прав в рабочей копии репозитория.
+- name: Установить authorized_keys
+  ansible.builtin.copy:
+    src: "{{ ai_agent_dotfiles_dir }}/.ssh/authorized_keys"
+    dest: "{{ ai_agent_home }}/.ssh/authorized_keys"
+    owner: "{{ ai_agent_user }}"
+    group: "{{ ai_agent_user }}"
+    mode: "0600"
+
+# validate прогоняет visudo на временной копии до установки: синтаксически
+# неверное правило не сможет сломать sudo.
+- name: Разрешить {{ ai_agent_user }} выполнять команды от {{ ai_agent_sudo_runas }}
+  ansible.builtin.template:
+    src: sudoers.j2
+    dest: "{{ ai_agent_sudoers_file }}"
+    owner: root
+    group: root
+    mode: "0440"
+    validate: visudo -cf %s
