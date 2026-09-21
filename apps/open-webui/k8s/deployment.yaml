@@ -4,7 +4,7 @@ metadata:
   name: open-webui
   namespace: open-webui
 spec:
-  # hostPath-каталоги нельзя монтировать в два пода одновременно.
+  # SQLite на RWO-томе: два пода при rolling update пишут в одну БД.
   strategy:
     type: Recreate
   revisionHistoryLimit: 2
@@ -17,6 +17,10 @@ spec:
       labels:
         app: open-webui
     spec:
+      # fsGroup даёт групповую запись в том Longhorn, иначе root-owned каталог
+      # тома недоступен пользователю 1000.
+      securityContext:
+        fsGroup: 1000
       containers:
         - name: open-webui
           image: "ghcr.io/open-webui/open-webui:v0.11.0@sha256:72c0ba641ba75e7aa52655cb242570906ececd09b1140fb736483038a22b3228"
@@ -91,9 +95,8 @@ spec:
               mountPath: /tmp
       volumes:
         - name: data
-          hostPath:
-            path: /storage/apps/open-webui/data
-            type: Directory
+          persistentVolumeClaim:
+            claimName: open-webui-data
         - name: tmp
           emptyDir:
             sizeLimit: 1Gi
