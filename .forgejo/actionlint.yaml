@@ -1,0 +1,10 @@
+# actionlint линтит workflow по грамматике GitHub Actions, а workflow лежат в
+# .forgejo/workflows, поэтому путь к конфигу передаётся явно (-config-file).
+paths:
+  .forgejo/workflows/**/*.yml:
+    ignore:
+      # Forgejo принимает `concurrency` без `group`: именно блок без group
+      # отключает дефолтную отмену предыдущего прогона. В грамматике GitHub
+      # Actions `group` обязателен, поэтому это осознанное расхождение движков,
+      # а не ошибка (см. комментарии в commitlint.yml и secrets.yml).
+      - 'group name is missing in "concurrency" section'

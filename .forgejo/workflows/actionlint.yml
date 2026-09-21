@@ -1,0 +1,49 @@
+name: actionlint
+
+on:
+  push:
+    branches: [main]
+    paths: &paths
+      - ".forgejo/workflows/**"
+      - ".forgejo/actionlint.yaml"
+  pull_request:
+    paths: *paths
+
+jobs:
+  actionlint:
+    name: actionlint
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - name: Cache actionlint
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/bin
+          key: actionlint-1.7.12-mirror-${{ runner.os }}
+      # Бинарь берём из зеркала RustFS (issue #149): внешние репозитории бывают
+      # недоступны, а после скачивания сверяем sha256 с apps/rustfs/artifacts.tsv.
+      # Скачивается один раз, дальше — из кэша выше. Зеркало наполняет CronJob
+      # mirror-sync (apps/rustfs).
+      - name: Install actionlint
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          set -euo pipefail
+          asset="actionlint/1.7.12/actionlint_1.7.12_linux_amd64.tar.gz"
+          url="http://rustfs.rustfs.svc.cluster.local:9000/mirror/$asset"
+          expected="$(awk -v p="$asset" '$1==p{print $2}' apps/rustfs/artifacts.tsv)"
+          mkdir -p "$HOME/.local/bin"
+          curl -fsSL -o /tmp/actionlint.tar.gz "$url"
+          echo "$expected  /tmp/actionlint.tar.gz" | sha256sum -c -
+          tar -xzf /tmp/actionlint.tar.gz -C /tmp actionlint
+          install -m 0755 /tmp/actionlint "$HOME/.local/bin/actionlint"
+      - name: Add actionlint to PATH
+        run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      # shellcheck/pyflakes отключены явно: на раннере их нет, и поведение не
+      # должно зависеть от образа раннера. Включение — отдельная задача.
+      - name: Lint workflows
+        run: |
+          set -euo pipefail
+          actionlint -version
+          actionlint -shellcheck= -pyflakes= -config-file .forgejo/actionlint.yaml .forgejo/workflows/*.yml
