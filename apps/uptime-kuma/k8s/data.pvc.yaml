@@ -1,0 +1,16 @@
+# SQLite, мониторы и история uptime-kuma: без backup target, поэтому
+# longhorn-retain — удаление PVC не должно стирать данные. RWO-том на одной ноде
+# требует strategy.type: Recreate (см. deployment.yaml).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: uptime-kuma-data
+  namespace: uptime-kuma
+spec:
+  storageClassName: longhorn-retain
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      # Данные ~265 МБ; запас под историю проверок.
+      storage: 512Mi

@@ -6,6 +6,7 @@ resources:
   - k8s/sealedsecret.yaml
   - k8s/service.yaml
   - k8s/deployment.yaml
+  - k8s/data.pvc.yaml
   - k8s/networkpolicy.yaml
   - k8s/cronjob.yaml
 configMapGenerator:
