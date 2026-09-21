@@ -4,7 +4,7 @@ metadata:
   name: 3x-ui
   namespace: 3x-ui
 spec:
-  # hostPath-каталоги нельзя монтировать в два пода одновременно.
+  # RWO-том: два пода при rolling update пишут в одну БД.
   strategy:
     type: Recreate
   revisionHistoryLimit: 2
@@ -136,10 +136,7 @@ spec:
               mountPath: /var/log/x-ui
       volumes:
         - name: db
-          hostPath:
-            path: /storage/apps/3x-ui/db
-            type: Directory
+          persistentVolumeClaim:
+            claimName: 3x-ui-db
         - name: log
-          hostPath:
-            path: /storage/apps/3x-ui/log
-            type: Directory
+          emptyDir: {}

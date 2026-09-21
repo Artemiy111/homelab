@@ -1,0 +1,16 @@
+# SQLite панели 3x-ui (пользователи, inbounds, настройки): без backup target,
+# поэтому longhorn-retain — удаление PVC не должно стирать данные. RWO-том на
+# одной ноде требует strategy.type: Recreate у deployment (см. deployment.yaml).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: 3x-ui-db
+  namespace: 3x-ui
+spec:
+  storageClassName: longhorn-retain
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      # БД и настройки панели ~6 МБ; запас под статистику и рост.
+      storage: 64Mi
