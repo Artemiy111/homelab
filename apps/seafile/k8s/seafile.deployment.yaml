@@ -4,6 +4,7 @@ metadata:
   name: seafile
   namespace: seafile
 spec:
+  # RWO-том /shared: два пода при rolling update пишут в один каталог.
   strategy:
     type: Recreate
   revisionHistoryLimit: 2
@@ -194,9 +195,8 @@ spec:
               readOnly: true
       volumes:
         - name: shared
-          hostPath:
-            path: /storage/apps/seafile/shared
-            type: Directory
+          persistentVolumeClaim:
+            claimName: seafile-shared
         - name: seahub-onlyoffice
           hostPath:
             path: /home/artlab/projects/homelab/apps/seafile/seahub_onlyoffice.py

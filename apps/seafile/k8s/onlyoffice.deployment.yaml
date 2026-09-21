@@ -4,6 +4,7 @@ metadata:
   name: onlyoffice
   namespace: seafile
 spec:
+  # RWO-тома: два пода при rolling update пишут в одни каталоги.
   strategy:
     type: Recreate
   revisionHistoryLimit: 2
@@ -83,14 +84,10 @@ spec:
               mountPath: /var/lib/onlyoffice
       volumes:
         - name: logs
-          hostPath:
-            path: /storage/apps/seafile/onlyoffice/logs
-            type: Directory
+          emptyDir: {}
         - name: data
-          hostPath:
-            path: /storage/apps/seafile/onlyoffice/data
-            type: Directory
+          persistentVolumeClaim:
+            claimName: seafile-onlyoffice-data
         - name: lib
-          hostPath:
-            path: /storage/apps/seafile/onlyoffice/lib
-            type: Directory
+          persistentVolumeClaim:
+            claimName: seafile-onlyoffice-lib
