@@ -1,0 +1,16 @@
+# SQLite Grafana (пользователи, настройки, плагины). Дашборды и datasources
+# приходят из git, но том всё равно ценен, поэтому longhorn-retain. RWO-том на
+# одной ноде требует strategy.type: Recreate у deployment (см. grafana.deployment.yaml).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: grafana-data
+  namespace: monitoring
+spec:
+  storageClassName: longhorn-retain
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      # Данные ~507 МБ; запас под плагины и рост истории.
+      storage: 768Mi
