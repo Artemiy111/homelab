@@ -3,7 +3,7 @@ name: Задача
 about: Цель, контекст и Definition of Done
 title: ''
 labels:
-  - needs-triage
+  - status/needs-triage
 ---
 
 ## Цель

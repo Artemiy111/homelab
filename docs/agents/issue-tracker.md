@@ -19,11 +19,12 @@ Every change starts with an issue:
 
 1. Create it: `fj issue create "Title" --template task --body-file <file>` (the
    template, with a Definition of Done, lives in `.forgejo/issue_template/task.md`
-   and applies `needs-triage`).
+   and applies `status/needs-triage`).
 2. Triage it: set **one** state label (see `triage-labels.md`) —
-   `ready-for-agent`, `ready-for-human`, `needs-info` or `wontfix`.
+   `status/ready-for-agent`, `status/ready-for-human`, `status/needs-info` or
+   `status/wontfix`.
 3. Branch as `<type>/<issue>-<slug>` (e.g. `ci/12-cache-bun`) and set
-   `in-progress`, removing `ready-for-*`.
+   `status/in-progress`; its scope removes `status/ready-*` automatically.
 4. Open the PR with a description referencing the issue: `Refs #<issue>`. Do
    **not** use `Closes`: merge does not mean the outcome is verified.
 5. Merge with `fj pr merge <n> --method squash --delete -m ""` (the empty `-m`
@@ -32,9 +33,10 @@ Every change starts with an issue:
    label and close manually:
    `fj issue close <n> -w "проверено: ..."`.
 
-State labels describe the issue's **current** state and are exclusive: at most
-one at a time, swapped (not accumulated) on transition, and removed on close
-(`wontfix` is the exception and stays). See `triage-labels.md` for the lifecycle.
+State labels describe the issue's **current** state. They are **scoped** labels
+(`status/...`, exclusive), so Forgejo itself keeps at most one and swaps it on
+transition; `status/wontfix` is the exception and stays on close. See
+`triage-labels.md` for the lifecycle.
 
 ## Definition of Done
 
@@ -60,7 +62,7 @@ format.
 - **Comment on an issue**: `fj issue comment <n> "..."` (or `--body-file <file>`).
 - **Apply / remove labels**: `fj issue edit <n> labels -a "<label>"` / `-r "<label>"`. Careful: here `-r` means *remove*, not *repo*.
 - **Assign / unassign**: `fj issue assign <n> <username>` / `fj issue unassign <n> <username>`.
-- **Close**: remove the state label first unless it is `wontfix` (`fj issue edit <n> labels -r "<label>"`), then `fj issue close <n> -w "comment"` (or `--with-msg`).
+- **Close**: remove the state label first unless it is `status/wontfix` (`fj issue edit <n> labels -r "<label>"`), then `fj issue close <n> -w "comment"` (or `--with-msg`).
 
 ## Pull requests as a triage surface
 
