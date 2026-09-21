@@ -4,7 +4,7 @@ metadata:
   name: vault
   namespace: vault
 spec:
-  # hostPath-каталоги нельзя монтировать в два пода одновременно.
+  # RWO-том данных: два пода при rolling update пишут в один каталог.
   strategy:
     type: Recreate
   revisionHistoryLimit: 2
@@ -20,6 +20,9 @@ spec:
       # vault.hcl использует cluster_addr=http://vault:8201; имя пода даёт
       # соответствующую запись в /etc/hosts.
       hostname: vault
+      # fsGroup даёт групповую запись в том Longhorn (контейнер 100:1000).
+      securityContext:
+        fsGroup: 1000
       containers:
         - name: vault
           image: "hashicorp/vault:2.0.3@sha256:a296a888b118615dc01d5f1a6846e6d4a7277946caaed5b447008fff5fe06b54"
@@ -78,9 +81,8 @@ spec:
               readOnly: true
       volumes:
         - name: data
-          hostPath:
-            path: /storage/apps/vault/data
-            type: Directory
+          persistentVolumeClaim:
+            claimName: vault-data
         - name: config
           hostPath:
             path: /home/artlab/projects/homelab/apps/vault/config
