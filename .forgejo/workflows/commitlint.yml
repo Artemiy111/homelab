@@ -5,6 +5,12 @@ on:
     branches: [main]
   pull_request:
 
+# Как и в secrets.yml: Forgejo по умолчанию отменяет предыдущий прогон того же
+# workflow на push и pull_request (synchronize). На push в main проверка должна
+# отрабатывать всегда, а не отменяться следующим пушем.
+concurrency:
+  cancel-in-progress: false
+
 jobs:
   commitlint:
     runs-on: ubuntu-latest
