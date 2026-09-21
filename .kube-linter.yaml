@@ -1,0 +1,23 @@
+checks:
+  # allow-list вместо addAllBuiltIn+exclude: включаем только проверки с
+  # редкими однозначными срабатываниями. Новые проверки добавляются осознанно.
+  doNotAutoAddDefaults: true
+  ignorePaths:
+    - "**/values.yaml"
+    - "**/Chart.yaml"
+    - "platform/homelab/templates/**"
+    - "**/kustomization.yaml"
+  include:
+    - privileged-container
+    - privilege-escalation-container
+    - host-network
+    - host-pid
+    - host-ipc
+    - docker-sock
+    - latest-tag
+  # Phase 2 (issue #161): writable-host-mount (14 findings) и
+  # sensitive-host-mounts (6 findings) — в этом homelab hostPath на
+  # /storage/apps/... writable по замыслу (данные БД/медиа), а node-exporter и
+  # netdata монтируют /proc,/sys,/ по необходимости. Шумные и неоднозначные,
+  # включаются отдельным PR с разбором. schema-validation не включаем: она
+  # тянет схемы из сети, их уже валидирует kubeconform.

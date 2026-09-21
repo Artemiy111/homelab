@@ -3,6 +3,8 @@ kind: Deployment
 metadata:
   name: mailserver
   namespace: mailserver
+  annotations:
+    ignore-check.kube-linter.io/privilege-escalation-container: "stalwart биндит 25/587/993 через file-capability cap_net_bind_service, для этого нужен no_new_privs=false (#161)"
 spec:
   # RWO-тома: два пода при rolling update пишут в один каталог.
   strategy:

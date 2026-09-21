@@ -3,6 +3,8 @@ kind: Deployment
 metadata:
   name: talk-hpb
   namespace: talk-hpb
+  annotations:
+    ignore-check.kube-linter.io/host-network: "TURN/STUN 3478 и relay 20000-20499 публикуются на LAN-адресе узла (#161)"
 spec:
   strategy:
     type: Recreate

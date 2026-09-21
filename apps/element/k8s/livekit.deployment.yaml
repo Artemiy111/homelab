@@ -3,6 +3,8 @@ kind: Deployment
 metadata:
   name: element-livekit
   namespace: element
+  annotations:
+    ignore-check.kube-linter.io/host-network: "UDP-медиадиапазон 50000-50499 публикуется напрямую на узле (#161)"
 spec:
   strategy:
     type: Recreate

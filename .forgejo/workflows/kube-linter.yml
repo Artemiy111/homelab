@@ -1,0 +1,55 @@
+name: kube-linter
+
+on:
+  push:
+    branches: [main]
+    paths: &paths
+      - "apps/**"
+      - "platform/**"
+      - "argocd/**"
+      - ".kube-linter.yaml"
+      - ".forgejo/workflows/kube-linter.yml"
+  pull_request:
+    paths: *paths
+
+jobs:
+  kube-linter:
+    name: kube-linter
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - name: Cache kube-linter
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/bin
+          key: kube-linter-0.8.3-mirror-${{ runner.os }}
+      # Бинарь берём из зеркала RustFS (issue #149): внешние репозитории бывают
+      # недоступны, а после скачивания сверяем sha256 с apps/rustfs/artifacts.tsv.
+      # Скачивается один раз, дальше — из кэша выше. Зеркало наполняет CronJob
+      # mirror-sync (apps/rustfs).
+      - name: Install kube-linter
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          set -euo pipefail
+          asset="kube-linter/0.8.3/kube-linter-linux.tar.gz"
+          url="http://rustfs.rustfs.svc.cluster.local:9000/mirror/$asset"
+          expected="$(awk -v p="$asset" '$1==p{print $2}' apps/rustfs/artifacts.tsv)"
+          mkdir -p "$HOME/.local/bin"
+          curl -fsSL -o /tmp/kube-linter.tar.gz "$url"
+          echo "$expected  /tmp/kube-linter.tar.gz" | sha256sum -c -
+          tar -xzf /tmp/kube-linter.tar.gz -C /tmp kube-linter
+          install -m 0755 /tmp/kube-linter "$HOME/.local/bin/kube-linter"
+      - name: Add kube-linter to PATH
+        run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      # Сканируем каталоги с манифестами: apps/<svc>/k8s, platform, argocd.
+      # values/Chart/templates/kustomization отсекаются ignorePaths в
+      # .kube-linter.yaml. Набор проверок — тоже там (allow-list, Phase 1).
+      # Схемы API не проверяем: schema-validation тянет их из сети, это уже
+      # делает kubeconform.
+      - name: Lint manifests
+        run: |
+          set -euo pipefail
+          kube-linter version
+          kube-linter lint --config .kube-linter.yaml --fail-if-no-objects-found apps/*/k8s platform argocd

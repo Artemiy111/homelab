@@ -3,6 +3,8 @@ kind: Deployment
 metadata:
   name: docker-socket-proxy
   namespace: monitoring
+  annotations:
+    ignore-check.kube-linter.io/docker-sock: "сервис и есть прокси к docker.sock с ограниченным набором API (#161)"
 spec:
   revisionHistoryLimit: 2
   replicas: 1

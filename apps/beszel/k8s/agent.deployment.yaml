@@ -3,6 +3,9 @@ kind: Deployment
 metadata:
   name: beszel-agent
   namespace: beszel
+  annotations:
+    ignore-check.kube-linter.io/host-network: "агент слушает unix-сокет, общий с hub, и собирает метрики хоста — нужен hostNetwork (#161)"
+    ignore-check.kube-linter.io/docker-sock: "агент читает docker.sock read-only для метрик контейнеров (#161)"
 spec:
   strategy:
     type: Recreate

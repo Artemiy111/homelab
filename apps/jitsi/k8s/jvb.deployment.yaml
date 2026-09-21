@@ -3,6 +3,8 @@ kind: Deployment
 metadata:
   name: jitsi-jvb
   namespace: jitsi
+  annotations:
+    ignore-check.kube-linter.io/host-network: "медиамост публикует UDP 10000 на LAN-адресе узла; hostPort в Calico не работает (#161)"
 spec:
   # RWO-тома: два пода при rolling update пишут в одни каталоги.
   strategy:

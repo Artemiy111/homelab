@@ -3,6 +3,8 @@ kind: Deployment
 metadata:
   name: home-assistant
   namespace: home-assistant
+  annotations:
+    ignore-check.kube-linter.io/host-network: "mDNS/SSDP/DHCP discovery устройств требует hostNetwork (#161)"
 spec:
   # RWO-том конфига: два пода при rolling update пишут в один каталог.
   strategy:

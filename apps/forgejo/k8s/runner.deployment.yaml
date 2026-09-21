@@ -14,6 +14,9 @@ kind: Deployment
 metadata:
   name: forgejo-runner
   namespace: forgejo
+  annotations:
+    ignore-check.kube-linter.io/privileged-container: "dind — изолированный dockerd внутри пода; privileged нужен для namespaces/монтирований (#161)"
+    ignore-check.kube-linter.io/privilege-escalation-container: "тот же dind: privileged подразумевает escalation, доступа к демону узла нет (#161)"
 spec:
   revisionHistoryLimit: 2
   replicas: 1

@@ -3,6 +3,9 @@ kind: Deployment
 metadata:
   name: netdata
   namespace: monitoring
+  annotations:
+    ignore-check.kube-linter.io/privilege-escalation-container: "apps.plugin — setuid-binary, без escalation не собирает метрики процессов (#161)"
+    ignore-check.kube-linter.io/docker-sock: "netdata читает docker.sock read-only для метрик контейнеров (#161)"
 spec:
   # RWO-том состояния: два пода при rolling update пишут в один каталог.
   strategy:

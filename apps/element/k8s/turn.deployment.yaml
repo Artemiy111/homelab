@@ -3,6 +3,8 @@ kind: Deployment
 metadata:
   name: element-turn
   namespace: element
+  annotations:
+    ignore-check.kube-linter.io/host-network: "TURN публикует relay 21000-21499 на LAN-адресе узла; без hostNetwork недоступно (#161)"
 spec:
   strategy:
     type: Recreate
