@@ -4,6 +4,7 @@ metadata:
   name: glitchtip-valkey
   namespace: glitchtip
 spec:
+  # RWO-том брокера: два пода при rolling update пишут в один каталог.
   strategy:
     type: Recreate
   revisionHistoryLimit: 2
@@ -16,6 +17,10 @@ spec:
       labels:
         app: glitchtip-valkey
     spec:
+      # fsGroup даёт групповую запись в том Longhorn: контейнер работает под
+      # пользователем 999 с группой 1000, том должен принадлежать группе 1000.
+      securityContext:
+        fsGroup: 1000
       containers:
         - name: valkey
           image: "valkey/valkey:9-alpine@sha256:ee91f7a174ac4d6a6b0685b3a60e321f0a9dbbb691f9b0e285be2ba1d1be8328"
@@ -53,6 +58,5 @@ spec:
               mountPath: /data
       volumes:
         - name: data
-          hostPath:
-            path: /storage/apps/glitchtip/valkey
-            type: Directory
+          persistentVolumeClaim:
+            claimName: glitchtip-valkey

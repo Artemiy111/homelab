@@ -1,0 +1,16 @@
+# Valkey — брокер Celery. Класс longhorn (Delete): поток событий при потере
+# очереди допустим, бэкап не нужен. RWO-том на одной ноде требует
+# strategy.type: Recreate (см. valkey.deployment.yaml).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: glitchtip-valkey
+  namespace: glitchtip
+spec:
+  storageClassName: longhorn
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      # Данные ~76 КБ; запас под очередь.
+      storage: 64Mi
