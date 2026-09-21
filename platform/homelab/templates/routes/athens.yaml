@@ -1,0 +1,20 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: athens
+  namespace: athens
+spec:
+  ingressClassName: traefik
+  rules:
+    # Anonymous read-only прокси: forward auth сломал бы `go`, а ratelimit —
+    # пачку мелких запросов на модуль (@v/list, .info, .mod, .zip).
+    - host: goproxy.{{ .Values.config.domain }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: athens
+                port:
+                  number: 3000

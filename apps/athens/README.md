@@ -11,7 +11,8 @@ Athens — прокси Go-модулей по официальному прот
 | Развёртывание | манифестами `apps/athens/k8s/` (`kubectl apply -f`) |
 | Образ | `gomods/athens:v0.18.1` (пин по тегу и дайджесту, amd64) |
 | Данные | PVC `athens-data` на `longhorn` (кэш, потеря не страшна) |
-| API | `http://athens.athens.svc.cluster.local:3000` — только внутри кластера |
+| API | `http://athens.athens.svc.cluster.local:3000` — внутри кластера |
+| Маршрут | `https://goproxy.<домен>` (Traefik, чарт `platform/homelab`) |
 | Потребитель | CI (`actions/setup-go`), сборка Go на хосте |
 
 ## Как это работает
@@ -56,9 +57,16 @@ sumdb-прокси Athens. Если проверка сумм не нужна (�
 у upstream список версий, поэтому для полностью офлайновых сборок пинить версию
 (`@vX.Y.Z`) или собирать из `go.mod`.
 
-Хост (Ansible-сборка `vals` из `cli_tools`) видит только ClusterIP изнутри
-кластера. Чтобы направить сборку на хосте через Athens, нужен внешний маршрут
-`goproxy.<домен>` (Traefik) или NodePort — пока не сделано, см. issue #150.
+С хоста (Ansible-сборка `vals` из `cli_tools`) Athens доступен по внешнему
+маршруту Traefik (`platform/homelab/templates/routes/athens.yaml`):
+
+```
+GOPROXY=https://goproxy.<домен>
+GOSUMDB=sum.golang.org https://goproxy.<домен>/sumdb/sum.golang.org
+```
+
+Маршрут без аутентификации: `go` не умеет forward auth, а `/` и `/catalog`
+доступны только в LAN/Tailscale.
 
 ## Добавление модулей
 
