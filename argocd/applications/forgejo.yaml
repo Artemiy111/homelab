@@ -97,6 +97,12 @@ spec:
               ENABLE_OPENID_SIGNUP: false
             actions:
               ENABLED: true
+              # Экшены тянем с локального инстанса (org `actions`), а не с
+              # data.forgejo.org: тот периодически недоступен, и job падает на
+              # загрузке экшена до старта шагов. Настройка instance-wide, поэтому
+              # в org `actions` зазеркален весь набор. Детали и обновление —
+              # apps/forgejo/README.md.
+              DEFAULT_ACTIONS_URL: http://forgejo-http:3000
             cron:
               ENABLED: true
               RUN_AT_START: true

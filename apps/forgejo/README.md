@@ -11,7 +11,7 @@ Forgejo — лёгкая self-hosted Git-платформа (форк Gitea), к
 | Развёртывание | Argo CD: `argocd/applications/forgejo.yaml`, чарт `forgejo-helm` |
 | Данные | PVC `forgejo-data` на `longhorn-retain` (Longhorn) |
 | База | CNPG-кластер `shared` в namespace `databases`, роль и база `forgejo` |
-| Actions | включены; runner `homelab-runner` (Deployment + DinD), instance-wide |
+| Actions | включены; runner `homelab-runner` (Deployment + DinD), instance-wide; экшены — из локального зеркала |
 
 Самостоятельная регистрация выключена, новые репозитории и профили приватны.
 
@@ -97,6 +97,40 @@ pull-through кэш **Zot** (`apps/zot`): в метках указан путь
 `runner-dind.configmap.yaml` (монтируется в сайдкар `dind`). Дайджесты и
 ограничения (Docker-демон умеет mirror только для Docker Hub) — в
 `apps/zot/README.md`.
+
+### Зеркало экшенов
+
+Раннер забирает экшены (`uses: actions/...`) **с локального инстанса**, а не с
+`data.forgejo.org`: тот периодически недоступен (мониторится в Gatus), и job
+падает на загрузке экшена ещё до старта шагов. Задаёт источник
+`actions.DEFAULT_ACTIONS_URL` в `argocd/applications/forgejo.yaml`
+(`http://forgejo-http:3000`).
+
+Настройка **instance-wide**: любой `uses: <owner>/<repo>` без схемы
+разворачивается в `<URL>/<owner>/<repo>`, поэтому под локальным инстансом должен
+быть весь используемый набор. В организации `actions` зазеркалены все 15
+репозиториев из `data.forgejo.org/actions` (плюс `setup-java`); все public,
+чтобы раннер клонировал их анонимно. Native mirror'ы Forgejo обновляются сами
+(`mirror_interval: 8h`). Сторонние экшены (`<owner>/<repo>` не из `actions`)
+тоже пойдут на локальный инстанс — их нужно зазеркалить в соответствующий owner;
+`uses: ./local` и `docker://...` это не затрагивает.
+
+Исключение — `actions/cache`: это не mirror, а **снапшот** дерева тега `v4`.
+Forgejo глобально включает `transfer.fsckObjects=true`, а история апстрима
+`cache` содержит объект со сверхдлинным путём (`largePathname`), и миграция
+полной истории падает. В дереве `v4` длинных путей нет, поэтому репозиторий
+собран одним коммитом из `git archive` тега `v4` и запушен
+(`receive.fsckObjects=false`, поэтому push проходит). Обновление — вручную при
+выходе нового `v4.x`:
+
+```sh
+tmp=$(mktemp -d)
+git clone --depth 1 --branch v4 https://data.forgejo.org/actions/cache.git "$tmp"
+git -C "$tmp" checkout --orphan snapshot
+git -C "$tmp" add -A && git -C "$tmp" commit -m "actions/cache v4 (offline snapshot)"
+git -C "$tmp" tag -f v4
+git -C "$tmp" push --force https://forgejo.example.com/actions/cache.git HEAD:refs/heads/main refs/tags/v4
+```
 
 ### Релизы и пакеты
 
