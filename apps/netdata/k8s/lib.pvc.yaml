@@ -1,0 +1,16 @@
+# Состояние Netdata (identity, registry, sqlite): без backup target, поэтому
+# longhorn-retain. RWO-том на одной ноде требует strategy.type: Recreate
+# (см. deployment.yaml).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: netdata-lib
+  namespace: monitoring
+spec:
+  storageClassName: longhorn-retain
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      # Данные ~32 КБ; запас под состояние агента.
+      storage: 64Mi

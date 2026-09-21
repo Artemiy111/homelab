@@ -4,7 +4,7 @@ metadata:
   name: netdata
   namespace: monitoring
 spec:
-  # hostPath/host-тома нельзя монтировать в два пода одновременно.
+  # RWO-том состояния: два пода при rolling update пишут в один каталог.
   strategy:
     type: Recreate
   revisionHistoryLimit: 2
@@ -120,13 +120,10 @@ spec:
             path: /storage/apps/netdata/config
             type: Directory
         - name: lib
-          hostPath:
-            path: /storage/apps/netdata/lib
-            type: Directory
+          persistentVolumeClaim:
+            claimName: netdata-lib
         - name: cache
-          hostPath:
-            path: /storage/apps/netdata/cache
-            type: Directory
+          emptyDir: {}
         - name: docker-sd
           hostPath:
             path: /home/artlab/projects/homelab/apps/netdata/config/go.d/sd/docker.conf
