@@ -60,11 +60,11 @@ spec:
               type: RuntimeDefault
           resources:
             requests:
-              cpu: 50m
-              memory: 128Mi
+              cpu: 100m
+              memory: 256Mi
             limits:
               cpu: "1"
-              memory: 512Mi
+              memory: 1Gi
           volumeMounts:
             - name: config
               mountPath: /etc/forgejo-runner/config.yml
@@ -89,11 +89,11 @@ spec:
               value: ""
           resources:
             requests:
-              cpu: 100m
-              memory: 256Mi
+              cpu: 250m
+              memory: 512Mi
             limits:
-              cpu: "2"
-              memory: 2Gi
+              cpu: "3"
+              memory: 3Gi
           volumeMounts:
             - name: dind
               mountPath: /var/lib/docker

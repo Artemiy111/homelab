@@ -21,7 +21,7 @@ data:
       # Параллельные job'ы делят один dockerd сайдкара: при capacity > 1
       # контейнеры разных задач видят друг друга через docker CLI. Для одного
       # пользователя ок; для чужих PR — нет (см. README).
-      capacity: 3
+      capacity: 4
       timeout: 3h
       envs:
         DOCKER_HOST: tcp://dind:2375
