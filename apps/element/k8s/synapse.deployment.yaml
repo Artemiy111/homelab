@@ -4,6 +4,7 @@ metadata:
   name: element-synapse
   namespace: element
 spec:
+  # RWO-том /data: два пода при rolling update пишут в один каталог.
   strategy:
     type: Recreate
   revisionHistoryLimit: 2
@@ -19,6 +20,10 @@ spec:
       # Synapse читает POSTGRES_-переменные и SYNAPSE_-настройки; лишние
       # <SVC>_PORT из service-links не нужны.
       enableServiceLinks: false
+      # fsGroup соответствует uid пользователя synapse в образе (991): том
+      # Longhorn должен быть доступен на запись этому пользователю.
+      securityContext:
+        fsGroup: 991
       initContainers:
         - name: wait-for-db
           image: "postgres:18-alpine@sha256:d3e1620b530c944afa6e887d22eb899824da68e19c52024bf98f5220c88a65b2"
@@ -142,9 +147,8 @@ spec:
               readOnly: true
       volumes:
         - name: data
-          hostPath:
-            path: /storage/apps/element/synapse/data
-            type: Directory
+          persistentVolumeClaim:
+            claimName: element-synapse
         - name: homeserver-config
           hostPath:
             path: /storage/apps/element/synapse/config/homeserver.yaml

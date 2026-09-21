@@ -67,6 +67,5 @@ spec:
               mountPath: /data
       volumes:
         - name: data
-          hostPath:
-            path: /storage/apps/element/redis
-            type: Directory
+          # Кэш/репликация Redis — эфемерные, данные не персистим.
+          emptyDir: {}

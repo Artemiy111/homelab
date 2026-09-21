@@ -1,0 +1,15 @@
+# Медиарепозиторий Synapse: без backup target, поэтому longhorn-retain.
+# RWO-том на одной ноде требует strategy.type: Recreate (см. synapse.deployment.yaml).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: element-synapse
+  namespace: element
+spec:
+  storageClassName: longhorn-retain
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      # Данные ~20 КБ; запас под медиа.
+      storage: 64Mi
