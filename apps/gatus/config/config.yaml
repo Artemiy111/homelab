@@ -508,3 +508,158 @@ endpoints:
     conditions:
       - "[STATUS] == 200"
     alerts: *alerts-all
+
+  # Остальные внешние зависимости: GitHub (публичное зеркало и экшены), ghcr.io
+  # и Docker Hub (источники job-образов), Google и Yandex (общий доступ в
+  # интернет). Устройство то же, что у data.forgejo.org выше. Корни сайтов
+  # отдают редиректы, поэтому проверяются конкретные стабильные эндпоинты.
+  - name: GitHub DNS via CoreDNS
+    group: External
+    url: kube-dns.kube-system.svc.cluster.local
+    interval: 15s
+    dns:
+      query-name: github.com
+      query-type: A
+    conditions: &dns-noerror
+      - "[DNS_RCODE] == NOERROR"
+    alerts: *alerts-all
+
+  - name: GitHub DNS via Technitium
+    group: External
+    url: ${HOST_IP}
+    interval: 15s
+    dns:
+      query-name: github.com
+      query-type: A
+    conditions: *dns-noerror
+    alerts: *alerts-all
+
+  - name: GitHub upstream
+    group: External
+    url: https://github.com/robots.txt
+    interval: 15s
+    client: &external-client
+      timeout: 10s
+    conditions:
+      - "[STATUS] == 200"
+    alerts: *alerts-all
+
+  # У реестров проверяется /v2/: без токена он отвечает 401, и это же означает,
+  # что реестр жив (docker pull сам получает токен на auth.docker.io).
+  - name: GHCR DNS via CoreDNS
+    group: External
+    url: kube-dns.kube-system.svc.cluster.local
+    interval: 15s
+    dns:
+      query-name: ghcr.io
+      query-type: A
+    conditions: *dns-noerror
+    alerts: *alerts-all
+
+  - name: GHCR DNS via Technitium
+    group: External
+    url: ${HOST_IP}
+    interval: 15s
+    dns:
+      query-name: ghcr.io
+      query-type: A
+    conditions: *dns-noerror
+    alerts: *alerts-all
+
+  - name: GHCR upstream
+    group: External
+    url: https://ghcr.io/v2/
+    interval: 15s
+    client: *external-client
+    conditions:
+      - "[STATUS] == 401"
+    alerts: *alerts-all
+
+  - name: Docker Hub DNS via CoreDNS
+    group: External
+    url: kube-dns.kube-system.svc.cluster.local
+    interval: 15s
+    dns:
+      query-name: registry-1.docker.io
+      query-type: A
+    conditions: *dns-noerror
+    alerts: *alerts-all
+
+  - name: Docker Hub DNS via Technitium
+    group: External
+    url: ${HOST_IP}
+    interval: 15s
+    dns:
+      query-name: registry-1.docker.io
+      query-type: A
+    conditions: *dns-noerror
+    alerts: *alerts-all
+
+  - name: Docker Hub upstream
+    group: External
+    url: https://registry-1.docker.io/v2/
+    interval: 15s
+    client: *external-client
+    conditions:
+      - "[STATUS] == 401"
+    alerts: *alerts-all
+
+  - name: Google DNS via CoreDNS
+    group: External
+    url: kube-dns.kube-system.svc.cluster.local
+    interval: 15s
+    dns:
+      query-name: www.google.com
+      query-type: A
+    conditions: *dns-noerror
+    alerts: *alerts-all
+
+  - name: Google DNS via Technitium
+    group: External
+    url: ${HOST_IP}
+    interval: 15s
+    dns:
+      query-name: www.google.com
+      query-type: A
+    conditions: *dns-noerror
+    alerts: *alerts-all
+
+  # generate_204 — лёгкий эндпоинт, отдаёт 204, не тянет главную страницу.
+  - name: Google upstream
+    group: External
+    url: https://www.google.com/generate_204
+    interval: 15s
+    client: *external-client
+    conditions:
+      - "[STATUS] == 204"
+    alerts: *alerts-all
+
+  - name: Yandex DNS via CoreDNS
+    group: External
+    url: kube-dns.kube-system.svc.cluster.local
+    interval: 15s
+    dns:
+      query-name: ya.ru
+      query-type: A
+    conditions: *dns-noerror
+    alerts: *alerts-all
+
+  - name: Yandex DNS via Technitium
+    group: External
+    url: ${HOST_IP}
+    interval: 15s
+    dns:
+      query-name: ya.ru
+      query-type: A
+    conditions: *dns-noerror
+    alerts: *alerts-all
+
+  # Корень ya.ru отдаёт капчу/редирект, поэтому берётся robots.txt.
+  - name: Yandex upstream
+    group: External
+    url: https://ya.ru/robots.txt
+    interval: 15s
+    client: *external-client
+    conditions:
+      - "[STATUS] == 200"
+    alerts: *alerts-all
