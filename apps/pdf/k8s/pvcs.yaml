@@ -1,0 +1,44 @@
+# Пользовательские настройки Stirling-PDF: без backup target, поэтому
+# longhorn-retain. RWO-тома на одной ноде требуют strategy.type: Recreate
+# (см. deployment.yaml).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pdf-configs
+  namespace: pdf
+spec:
+  storageClassName: longhorn-retain
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      # Настройки ~276 КБ; запас под рост.
+      storage: 64Mi
+---
+# Пайплайны обработки Stirling-PDF (~16 КБ).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pdf-pipeline
+  namespace: pdf
+spec:
+  storageClassName: longhorn-retain
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 64Mi
+---
+# Пользовательские файлы Stirling-PDF (сейчас пусто).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pdf-custom-files
+  namespace: pdf
+spec:
+  storageClassName: longhorn-retain
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 64Mi

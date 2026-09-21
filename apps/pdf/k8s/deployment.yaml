@@ -4,6 +4,9 @@ metadata:
   name: stirlingpdf
   namespace: pdf
 spec:
+  # RWO-тома настроек: два пода при rolling update пишут в одни каталоги.
+  strategy:
+    type: Recreate
   revisionHistoryLimit: 2
   replicas: 1
   selector:
@@ -14,6 +17,9 @@ spec:
       labels:
         app: stirlingpdf
     spec:
+      # fsGroup даёт групповую запись в тома Longhorn для процессов под uid 1000.
+      securityContext:
+        fsGroup: 1000
       containers:
         - name: stirlingpdf
           image: "docker.stirlingpdf.com/stirlingtools/stirling-pdf:2.14.3@sha256:3b3670fce70b396ec56ba380a3cc7858e0abf83fe13f31c88f7737847763a396"
@@ -107,22 +113,15 @@ spec:
               mountPath: /customFiles
       volumes:
         - name: tessdata
-          hostPath:
-            path: /storage/apps/pdf/tessdata
-            type: Directory
+          emptyDir: {}
         - name: configs
-          hostPath:
-            path: /storage/apps/pdf/configs
-            type: Directory
+          persistentVolumeClaim:
+            claimName: pdf-configs
         - name: logs
-          hostPath:
-            path: /storage/apps/pdf/logs
-            type: Directory
+          emptyDir: {}
         - name: pipeline
-          hostPath:
-            path: /storage/apps/pdf/pipeline
-            type: Directory
+          persistentVolumeClaim:
+            claimName: pdf-pipeline
         - name: custom-files
-          hostPath:
-            path: /storage/apps/pdf/customFiles
-            type: Directory
+          persistentVolumeClaim:
+            claimName: pdf-custom-files
