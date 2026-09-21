@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: athens
+  namespace: athens
+spec:
+  # RWO-том: два пода одновременно его не смонтируют.
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
+  replicas: 1
+  selector:
+    matchLabels:
+      app: athens
+  template:
+    metadata:
+      labels:
+        app: athens
+    spec:
+      securityContext:
+        # fsGroup даёт групповую запись в том Longhorn под uid/gid 1000.
+        fsGroup: 1000
+      containers:
+        - name: athens
+          image: "gomods/athens:v0.18.1@sha256:cbf1a5e4649a06b6d0089088aa47880af7908f908716f679aa9ac842dfe60b85"
+          args:
+            - athens-proxy
+            - -config_file=/config/config.toml
+          env:
+            # Образ создаёт пользователя athens (uid 1000), но HOME в pod не
+            # проставляется; без него `go` внутри Athens не находит кэш-каталог.
+            - name: HOME
+              value: /home/athens
+          ports:
+            - name: http
+              containerPort: 3000
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 5
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            periodSeconds: 30
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          volumeMounts:
+            - name: config
+              mountPath: /config/config.toml
+              subPath: config.toml
+              readOnly: true
+            - name: data
+              mountPath: /var/lib/athens
+      volumes:
+        - name: config
+          configMap:
+            name: athens
+        - name: data
+          persistentVolumeClaim:
+            claimName: athens-data
