@@ -4,6 +4,7 @@ metadata:
   name: authentik-worker
   namespace: authentik
 spec:
+  # RWO-том /data: два пода при rolling update пишут в один каталог.
   strategy:
     type: Recreate
   revisionHistoryLimit: 2
@@ -17,6 +18,10 @@ spec:
         app: authentik-worker
     spec:
       enableServiceLinks: false
+      # fsGroup даёт групповую запись в том Longhorn, иначе root-owned каталог
+      # тома недоступен пользователю 1000.
+      securityContext:
+        fsGroup: 1000
       initContainers:
         - name: wait-for-db
           image: "postgres:18-alpine@sha256:d3e1620b530c944afa6e887d22eb899824da68e19c52024bf98f5220c88a65b2"
@@ -93,6 +98,5 @@ spec:
               mountPath: /data
       volumes:
         - name: data
-          hostPath:
-            path: /storage/apps/authentik/data
-            type: Directory
+          persistentVolumeClaim:
+            claimName: authentik-data

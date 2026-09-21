@@ -1,0 +1,16 @@
+# Общий каталог /data сервера и воркера Authentik: без backup target, поэтому
+# longhorn-retain. RWO-том на одной ноде требует strategy.type: Recreate у обоих
+# deployment (см. server.deployment.yaml и worker.deployment.yaml).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: authentik-data
+  namespace: authentik
+spec:
+  storageClassName: longhorn-retain
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      # Данных пока нет; запас под кэш и медиа.
+      storage: 64Mi
