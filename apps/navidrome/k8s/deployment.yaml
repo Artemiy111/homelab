@@ -4,7 +4,7 @@ metadata:
   name: navidrome
   namespace: navidrome
 spec:
-  # hostPath-каталоги нельзя монтировать в два пода одновременно.
+  # RWO-том: два пода при rolling update пишут в одну БД.
   strategy:
     type: Recreate
   revisionHistoryLimit: 2
@@ -17,6 +17,10 @@ spec:
       labels:
         app: navidrome
     spec:
+      # fsGroup даёт групповую запись в том Longhorn, иначе root-owned каталог
+      # тома недоступен пользователю 1000.
+      securityContext:
+        fsGroup: 1000
       containers:
         - name: navidrome
           image: "deluan/navidrome:0.63.1@sha256:7c43af9f651654e97278be871705aae85a4ee0fa4b310337989699a8ada9b3ed"
@@ -84,9 +88,8 @@ spec:
               readOnly: true
       volumes:
         - name: data
-          hostPath:
-            path: /storage/apps/navidrome/data
-            type: Directory
+          persistentVolumeClaim:
+            claimName: navidrome-data
         - name: music
           hostPath:
             path: /storage/media/music

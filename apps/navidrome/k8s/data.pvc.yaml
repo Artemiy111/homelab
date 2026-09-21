@@ -1,0 +1,16 @@
+# SQLite Navidrome (метаданные, плейлисты, пользователи): без backup target,
+# поэтому longhorn-retain — удаление PVC не должно стирать данные. RWO-том на
+# одной ноде требует strategy.type: Recreate у deployment (см. deployment.yaml).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: navidrome-data
+  namespace: navidrome
+spec:
+  storageClassName: longhorn-retain
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      # Данные ~2 МБ; запас под рост библиотеки.
+      storage: 64Mi
