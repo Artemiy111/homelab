@@ -4,6 +4,7 @@ metadata:
   name: technitium
   namespace: technitium
 spec:
+  # RWO-тома: два пода при rolling update пишут в одни каталоги.
   strategy:
     type: Recreate
   revisionHistoryLimit: 2
@@ -93,10 +94,8 @@ spec:
               mountPath: /var/lib/dns
       volumes:
         - name: etc
-          hostPath:
-            path: /storage/apps/technitium/etc
-            type: Directory
+          persistentVolumeClaim:
+            claimName: technitium-etc
         - name: data
-          hostPath:
-            path: /storage/apps/technitium/data
-            type: Directory
+          persistentVolumeClaim:
+            claimName: technitium-data
