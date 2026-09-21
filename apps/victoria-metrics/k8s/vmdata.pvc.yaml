@@ -1,0 +1,15 @@
+# TSDB VictoriaMetrics: без backup target, поэтому longhorn-retain. RWO-том на
+# одной ноде требует strategy.type: Recreate (см. victoriametrics.deployment.yaml).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: victoriametrics-vmdata
+  namespace: monitoring
+spec:
+  storageClassName: longhorn-retain
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      # Данные ~2.9 ГБ при retention 180d; запас под рост.
+      storage: 4Gi
