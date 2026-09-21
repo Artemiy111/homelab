@@ -35,7 +35,7 @@ spec:
             - -c
             - >-
               sed -i 's|^  whitelist_peers:|  whitelist_peers:\n  - "$(TALK_RELAY_NETWORK)"|' /conf/eturnal.yml
-              && awk -v ip="$(SERVER_IP)" -v mn="$(TALK_RELAY_MIN_PORT)" -v mx="$(TALK_RELAY_MAX_PORT)" '{print} /^  secret:/{print "  relay_ipv4_addr: \"" ip "\""; print "  relay_min_port: " mn; print "  relay_max_port: " mx}' /conf/eturnal.yml > /conf/eturnal.yml.tmp
+              && awk -v ip="$(HOST_IP)" -v mn="$(TALK_RELAY_MIN_PORT)" -v mx="$(TALK_RELAY_MAX_PORT)" '{print} /^  secret:/{print "  relay_ipv4_addr: \"" ip "\""; print "  relay_min_port: " mn; print "  relay_max_port: " mx}' /conf/eturnal.yml > /conf/eturnal.yml.tmp
               && mv /conf/eturnal.yml.tmp /conf/eturnal.yml
               && sed -i 's|turn_server = "[^"]*"|turn_server = "127.0.0.1"|' /conf/janus.jcfg
               && exec supervisord -c /supervisord.conf
@@ -54,7 +54,7 @@ spec:
                 configMapKeyRef:
                   name: homelab-config
                   key: DOMAIN
-            - name: SERVER_IP
+            - name: HOST_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP

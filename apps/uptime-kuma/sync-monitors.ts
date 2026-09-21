@@ -76,7 +76,7 @@ function fail(message: string): never {
 }
 
 const DOMAIN_PLACEHOLDER = /\{\{\s*DOMAIN\s*\}\}/g;
-const SERVER_IP_PLACEHOLDER = /\{\{\s*SERVER_IP\s*\}\}/g;
+const HOST_IP_PLACEHOLDER = /\{\{\s*HOST_IP\s*\}\}/g;
 
 function expandDomain(value: unknown, domain?: string): unknown {
   if (typeof value !== "string" || !value.includes("{{DOMAIN}}")) {
@@ -88,20 +88,20 @@ function expandDomain(value: unknown, domain?: string): unknown {
   return value.replace(DOMAIN_PLACEHOLDER, domain);
 }
 
-function expandServerIp(value: unknown, serverIp?: string): unknown {
-  if (typeof value !== "string" || !value.includes("{{SERVER_IP}}")) {
+function expandHostIp(value: unknown, hostIp?: string): unknown {
+  if (typeof value !== "string" || !value.includes("{{HOST_IP}}")) {
     return value;
   }
-  if (!serverIp) {
-    fail("В monitors.yaml используется {{SERVER_IP}}, но переменная SERVER_IP не задана.");
+  if (!hostIp) {
+    fail("В monitors.yaml используется {{HOST_IP}}, но переменная HOST_IP не задана.");
   }
-  return value.replace(SERVER_IP_PLACEHOLDER, serverIp);
+  return value.replace(HOST_IP_PLACEHOLDER, hostIp);
 }
 
 export async function loadConfig(
   filePath: string,
   domain: string | undefined = Bun.env.DOMAIN,
-  serverIp: string | undefined = Bun.env.SERVER_IP,
+  hostIp: string | undefined = Bun.env.HOST_IP,
 ): Promise<LoadedConfig> {
   const source = await Bun.file(filePath)
     .text()
@@ -148,11 +148,11 @@ export async function loadConfig(
     }
 
     const merged: Monitor = { ...(DEFAULT_MONITOR as Monitor), ...monitor };
-    merged.url = expandServerIp(expandDomain(merged.url, domain), serverIp) as string | undefined;
-    merged.hostname = expandServerIp(expandDomain(merged.hostname, domain), serverIp) as string | undefined;
-    merged.dns_resolve_server = expandServerIp(
+    merged.url = expandHostIp(expandDomain(merged.url, domain), hostIp) as string | undefined;
+    merged.hostname = expandHostIp(expandDomain(merged.hostname, domain), hostIp) as string | undefined;
+    merged.dns_resolve_server = expandHostIp(
       expandDomain(merged.dns_resolve_server, domain),
-      serverIp,
+      hostIp,
     ) as string | undefined;
     return merged;
   });

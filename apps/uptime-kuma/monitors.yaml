@@ -254,7 +254,7 @@ monitors:
     description: Разрешение пользовательского домена через локальный DNS-сервер Technitium.
     type: dns
     hostname: uptime.{{DOMAIN}}
-    dns_resolve_server: "{{SERVER_IP}}"
+    dns_resolve_server: "{{HOST_IP}}"
     dns_resolve_type: A
     interval: 60
     maxretries: 2
@@ -270,7 +270,7 @@ monitors:
     description: Доступность опубликованного TCP-входа Xray; UDP тем же монитором не
       проверяется.
     type: port
-    hostname: "{{SERVER_IP}}"
+    hostname: "{{HOST_IP}}"
     port: 8443
     interval: 60
     maxretries: 2

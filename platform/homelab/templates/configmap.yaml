@@ -7,9 +7,6 @@ metadata:
   namespace: {{ . }}
 data:
   DOMAIN: {{ $.Values.config.domain }}
-  {{- if has . $.Values.serverIpNamespaces }}
-  SERVER_IP: {{ $.Values.config.serverIp }}
-  {{- end }}
   TZ: {{ $.Values.config.timezone }}
   DEFAULT_LOCALE: {{ $.Values.config.locale }}
 {{- end }}

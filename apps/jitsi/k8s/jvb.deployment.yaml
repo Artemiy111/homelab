@@ -55,7 +55,7 @@ spec:
             - name: colibri
               containerPort: 8080
           env:
-            - name: SERVER_IP
+            - name: HOST_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
@@ -77,7 +77,7 @@ spec:
             - name: COLIBRI_REST_ENABLED
               value: "true"
             - name: JVB_ADVERTISE_IPS
-              value: "$(SERVER_IP)"
+              value: "$(HOST_IP)"
             - name: JVB_AUTH_USER
               value: jvb
             - name: JVB_BREWERY_MUC

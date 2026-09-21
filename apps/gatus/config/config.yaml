@@ -39,7 +39,7 @@ endpoints:
     interval: 60s
     client: &https-client
       timeout: 10s
-      dns-resolver: udp://${SERVER_IP}:53
+      dns-resolver: udp://${HOST_IP}:53
     conditions: &https-ok
       - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > 168h"
@@ -49,16 +49,14 @@ endpoints:
 
   - name: Technitium DNS
     group: Infrastructure
-    url: ${SERVER_IP}
+    url: ${HOST_IP}
     interval: 60s
     dns:
-      # traefik.${DOMAIN} резолвится в IP узла (SERVER_IP) — проверяем DNS
-      # Technitium в k8s.
       query-name: traefik.${DOMAIN}
       query-type: A
     conditions:
       - "[DNS_RCODE] == NOERROR"
-      - "[BODY] == ${SERVER_IP}"
+      - "[BODY] == ${HOST_IP}"
     alerts: *alerts-all
 
   - name: Gitea SSH
@@ -72,7 +70,7 @@ endpoints:
 
   - name: Xray inbound
     group: Infrastructure
-    url: tcp://${SERVER_IP}:8443
+    url: tcp://${HOST_IP}:8443
     interval: 60s
     conditions: *tcp-connected
     alerts:
@@ -85,7 +83,7 @@ endpoints:
     interval: 120s
     client:
       timeout: 30s
-      proxy-url: http://${SERVER_IP}:8440
+      proxy-url: http://${HOST_IP}:8440
     conditions:
       - "[STATUS] == 200"
       - "[RESPONSE_TIME] < 5000"
@@ -490,7 +488,7 @@ endpoints:
 
   - name: Actions DNS via Technitium
     group: External
-    url: ${SERVER_IP}
+    url: ${HOST_IP}
     interval: 15s
     dns:
       query-name: data.forgejo.org

@@ -17,7 +17,7 @@ single-disk: без erasure coding и встроенной избыточнос�
 
 Оба маршрута идут через Traefik, TLS — wildcard-сертификат letsencrypt с
 entrypoint `websecure`. DNS подхватывается wildcard-записью Technitium
-(`*.${DOMAIN}` → `${SERVER_IP}`).
+(`*.${DOMAIN}` → `${HOST_IP}`).
 
 Особенность маршрутизации: браузерная консоль по умолчанию считает S3-endpoint'ом
 собственный хост и шлёт подписанные SigV4-запросы на `rustfs.${DOMAIN}`.

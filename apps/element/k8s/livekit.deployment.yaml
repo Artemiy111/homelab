@@ -49,7 +49,7 @@ spec:
             - --config
             - /etc/livekit/config.yaml
             - --node-ip
-            - $(SERVER_IP)
+            - $(HOST_IP)
           ports:
             - name: http
               containerPort: 7880
@@ -58,7 +58,7 @@ spec:
             - name: metrics
               containerPort: 6789
           env:
-            - name: SERVER_IP
+            - name: HOST_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP

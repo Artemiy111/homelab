@@ -3,7 +3,7 @@
 Technitium — полноценный DNS-сервер с веб-интерфейсом, блокировкой рекламы и
 встроенной рекурсией. Заменяет Pi-hole: слушает порт 53 (DNS). Веб-панель
 доступна через Traefik по адресу `https://dns.${DOMAIN}/`. Локальная
-wildcard-запись разрешает `${DOMAIN}` и все его поддомены в `${SERVER_IP}`.
+wildcard-запись разрешает `${DOMAIN}` и все его поддомены в `${HOST_IP}`.
 
 ## Перед запуском
 
@@ -15,7 +15,7 @@ wildcard-запись разрешает `${DOMAIN}` и все его поддо
 sudo ss -lntup | grep ':53 '
 ```
 
-Затем в настройках DHCP роутера указать `${SERVER_IP}` как DNS-сервер. После
+Затем в настройках DHCP роутера указать `${HOST_IP}` как DNS-сервер. После
 изменения настройки обновить DHCP-аренду на клиентах.
 
 ## Добавление зоны для homelab
@@ -26,23 +26,23 @@ sudo ss -lntup | grep ':53 '
 хранится в `apps/technitium/secrets.enc.env` (`TECHNITIUM_ADMIN_PASSWORD`).
 
 1. Zones → New Zone → Primary → ввести `${DOMAIN}`.
-2. Добавить A-запись: Name `*`, Value `${SERVER_IP}`, TTL `3600`.
+2. Добавить A-запись: Name `*`, Value `${HOST_IP}`, TTL `3600`.
 
 ### Через REST API
 
 ```sh
 # Получить токен
-TOKEN=$(curl -s "http://${SERVER_IP}:5380/api/user/login?user=admin&pass=admin" \
+TOKEN=$(curl -s "http://${HOST_IP}:5380/api/user/login?user=admin&pass=admin" \
   | python3 -c "import sys,json; print(json.load(sys.stdin)['token'])")
 
 # Создать зону
-curl -s "http://${SERVER_IP}:5380/api/zones/create?token=$TOKEN&zone=${DOMAIN}&type=Primary"
+curl -s "http://${HOST_IP}:5380/api/zones/create?token=$TOKEN&zone=${DOMAIN}&type=Primary"
 
 # Добавить wildcard A-запись
-curl -s "http://${SERVER_IP}:5380/api/zones/records/add?token=$TOKEN&domain=%2A.${DOMAIN}&zone=${DOMAIN}&type=A&ipAddress=${SERVER_IP}&ttl=3600"
+curl -s "http://${HOST_IP}:5380/api/zones/records/add?token=$TOKEN&domain=%2A.${DOMAIN}&zone=${DOMAIN}&type=A&ipAddress=${HOST_IP}&ttl=3600"
 
 # Добавить A-запись для dns поддомена
-curl -s "http://${SERVER_IP}:5380/api/zones/records/add?token=$TOKEN&domain=dns.${DOMAIN}&zone=${DOMAIN}&type=A&ipAddress=${SERVER_IP}&ttl=3600"
+curl -s "http://${HOST_IP}:5380/api/zones/records/add?token=$TOKEN&domain=dns.${DOMAIN}&zone=${DOMAIN}&type=A&ipAddress=${HOST_IP}&ttl=3600"
 ```
 
 ## Настройка upstream-резолверов
@@ -52,14 +52,14 @@ curl -s "http://${SERVER_IP}:5380/api/zones/records/add?token=$TOKEN&domain=dns.
 
 ```sh
 # Форвардер DoH
-curl -s "http://${SERVER_IP}:5380/api/settings/set?token=$TOKEN&forwarders=https%3A%2F%2Fcloudflare-dns.com%2Fdns-query&forwarderProtocol=Https"
+curl -s "http://${HOST_IP}:5380/api/settings/set?token=$TOKEN&forwarders=https%3A%2F%2Fcloudflare-dns.com%2Fdns-query&forwarderProtocol=Https"
 
 # Локальная зона: закрепляет имя форвардера на незаблокированные провайдером IP.
 # Канонические IP cloudflare-dns.com из DNS-раунд-робина (104.16.248.249/104.16.249.249)
 # у провайдера блокируются по DPI; соседние anycast работают.
-curl -s "http://${SERVER_IP}:5380/api/zones/create?token=$TOKEN&zone=cloudflare-dns.com&type=Primary"
-curl -s "http://${SERVER_IP}:5380/api/zones/records/add?token=$TOKEN&domain=cloudflare-dns.com&zone=cloudflare-dns.com&type=A&ipAddress=104.16.123.96&ttl=3600"
-curl -s "http://${SERVER_IP}:5380/api/zones/records/add?token=$TOKEN&domain=cloudflare-dns.com&zone=cloudflare-dns.com&type=A&ipAddress=104.16.132.229&ttl=3600"
+curl -s "http://${HOST_IP}:5380/api/zones/create?token=$TOKEN&zone=cloudflare-dns.com&type=Primary"
+curl -s "http://${HOST_IP}:5380/api/zones/records/add?token=$TOKEN&domain=cloudflare-dns.com&zone=cloudflare-dns.com&type=A&ipAddress=104.16.123.96&ttl=3600"
+curl -s "http://${HOST_IP}:5380/api/zones/records/add?token=$TOKEN&domain=cloudflare-dns.com&zone=cloudflare-dns.com&type=A&ipAddress=104.16.132.229&ttl=3600"
 ```
 
 После изменения форвардеров нужно перезапустить Technitium: подключение к
@@ -68,8 +68,8 @@ curl -s "http://${SERVER_IP}:5380/api/zones/records/add?token=$TOKEN&domain=clou
 Проверка здоровья схемы:
 
 ```sh
-dig @${SERVER_IP} cloudflare-dns.com +short   # должны вернуться закреплённые IP
-dig @${SERVER_IP} google.com +short           # внешние имена
+dig @${HOST_IP} cloudflare-dns.com +short   # должны вернуться закреплённые IP
+dig @${HOST_IP} google.com +short           # внешние имена
 ```
 
 ## DNS-петля через роутер (инцидент 2026-08-21)
@@ -86,7 +86,7 @@ Cloudflare (`104.16.248.249`/`104.16.249.249`; соседние anycast рабо
 Итоговая схема и условия работоспособности:
 
 ```
-клиент → Keenetic (system profile → ${SERVER_IP}) → Technitium → DoH Cloudflare (закреплённые IP)
+клиент → Keenetic (system profile → ${HOST_IP}) → Technitium → DoH Cloudflare (закреплённые IP)
 ```
 
 1. На Keenetic транзитные запросы **разрешены**

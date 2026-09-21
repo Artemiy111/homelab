@@ -34,8 +34,12 @@ spec:
             - secretRef:
                 name: gatus
           env:
+            - name: HOST_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
             - name: TELEGRAM_PROXY_URL
-              value: "http://$(SERVER_IP):8440"
+              value: "http://$(HOST_IP):8440"
           startupProbe:
             httpGet:
               path: /

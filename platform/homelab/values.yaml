@@ -38,8 +38,3 @@ namespaces:
   - uptime-kuma
   - vault
   - zitadel
-
-serverIpNamespaces:
-  - default
-  - monitoring
-  - oauth2-proxy

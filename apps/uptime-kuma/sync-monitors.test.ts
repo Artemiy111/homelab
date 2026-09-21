@@ -54,18 +54,18 @@ test("плейсхолдер {{DOMAIN}} подставляется из пере
   assert.equal(config.monitors[1].hostname, "app.example.org");
 });
 
-test("плейсхолдер {{SERVER_IP}} подставляется из переменной SERVER_IP", async () => {
+test("плейсхолдер {{HOST_IP}} подставляется из переменной HOST_IP", async () => {
   const directory = await mkdtemp(join(tmpdir(), "uptime-kuma-test-"));
   const configPath = await writeConfig(directory, {
     version: 1,
     monitors: [
-      { name: "Home Assistant", type: "http", url: "http://{{SERVER_IP}}:8123/" },
-      { name: "Gitea SSH", type: "port", hostname: "{{SERVER_IP}}", port: 2222 },
+      { name: "Home Assistant", type: "http", url: "http://{{HOST_IP}}:8123/" },
+      { name: "Gitea SSH", type: "port", hostname: "{{HOST_IP}}", port: 2222 },
       {
         name: "Pi-hole DNS",
         type: "dns",
         hostname: "uptime.{{DOMAIN}}",
-        dns_resolve_server: "{{SERVER_IP}}",
+        dns_resolve_server: "{{HOST_IP}}",
       },
     ],
   });

@@ -64,7 +64,7 @@ curl --resolve talk-signaling.example.com:443:<node1-ip> \
 - UDP/TCP `3478` привязан к `<node1-ip>` и передаётся eturnal (TURN+STUN).
 - TURN relay: `/start.sh` генерирует `relay_ipv4_addr` из `hostname -i` — это
   внутренний IP контейнера, недостижимый из LAN, поэтому конфиг патчится:
-  relay-адрес становится `SERVER_IP` (LAN-IP), диапазон relay-портов
+  relay-адрес становится `HOST_IP` (LAN-IP), диапазон relay-портов
   сужается до `TALK_RELAY_MIN_PORT..TALK_RELAY_MAX_PORT` (по умолчанию
   `20000..20499`; диапазон выбран ниже зоны эпифемеральных портов ядра
   `32768-60999`, чтобы избежать конфликта с исходящими соединениями) и в
