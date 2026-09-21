@@ -4,6 +4,7 @@ metadata:
   name: jitsi-prosody
   namespace: jitsi
 spec:
+  # RWO-тома: два пода при rolling update пишут в одни каталоги.
   strategy:
     type: Recreate
   revisionHistoryLimit: 2
@@ -17,6 +18,9 @@ spec:
         app: jitsi-prosody
     spec:
       enableServiceLinks: false
+      # fsGroup даёт групповую запись в тома Longhorn для пользователя 1000.
+      securityContext:
+        fsGroup: 1000
       # s6-overlay требует, чтобы /run принадлежал пользователю контейнера;
       # пустой emptyDir создаётся root-овым, поэтому чиним владельца до старта.
       initContainers:
@@ -150,17 +154,14 @@ spec:
               mountPath: /tmp
       volumes:
         - name: config
-          hostPath:
-            path: /storage/apps/jitsi/prosody/config
-            type: Directory
+          persistentVolumeClaim:
+            claimName: jitsi-prosody-config
         - name: plugins
-          hostPath:
-            path: /storage/apps/jitsi/prosody/prosody-plugins-custom
-            type: Directory
+          persistentVolumeClaim:
+            claimName: jitsi-prosody-plugins
         - name: storage
-          hostPath:
-            path: /storage/apps/jitsi/storage/prosody
-            type: Directory
+          persistentVolumeClaim:
+            claimName: jitsi-prosody-storage
         - name: run
           emptyDir:
             sizeLimit: 16Mi

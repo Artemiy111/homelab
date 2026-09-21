@@ -4,6 +4,7 @@ metadata:
   name: jitsi-jvb
   namespace: jitsi
 spec:
+  # RWO-тома: два пода при rolling update пишут в одни каталоги.
   strategy:
     type: Recreate
   revisionHistoryLimit: 2
@@ -21,6 +22,9 @@ spec:
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
       enableServiceLinks: false
+      # fsGroup даёт групповую запись в тома Longhorn для пользователя 1000.
+      securityContext:
+        fsGroup: 1000
       # s6-overlay требует, чтобы /run принадлежал пользователю контейнера;
       # пустой emptyDir создаётся root-овым, поэтому чиним владельца до старта.
       initContainers:
@@ -140,9 +144,8 @@ spec:
               mountPath: /tmp
       volumes:
         - name: config
-          hostPath:
-            path: /storage/apps/jitsi/jvb
-            type: Directory
+          persistentVolumeClaim:
+            claimName: jitsi-jvb-config
         - name: run
           emptyDir:
             sizeLimit: 16Mi
