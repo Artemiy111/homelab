@@ -12,5 +12,6 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      # Данные ~60 КБ; том расширяется на ходу, если rustfs станет backup target.
-      storage: 64Mi
+      # Зеркало CI-артефактов (бакет mirror) + запас под новые версии; том
+      # расширяется на ходу (allowVolumeExpansion), данные при этом сохраняются.
+      storage: 2Gi
