@@ -81,6 +81,5 @@ spec:
               mountPath: /store
       volumes:
         - name: store
-          hostPath:
-            path: /storage/apps/wud/store
-            type: Directory
+          persistentVolumeClaim:
+            claimName: wud-store

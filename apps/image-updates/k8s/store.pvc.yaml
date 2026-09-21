@@ -1,0 +1,16 @@
+# SQLite состояния WUD: без backup target, поэтому longhorn-retain — удаление PVC
+# не должно стирать историю проверок. RWO-том на одной ноде требует
+# strategy.type: Recreate у deployment (см. wud.deployment.yaml).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: wud-store
+  namespace: monitoring
+spec:
+  storageClassName: longhorn-retain
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      # Состояние WUD ~100 КБ; запас под историю проверок.
+      storage: 64Mi
