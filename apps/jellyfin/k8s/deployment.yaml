@@ -4,7 +4,7 @@ metadata:
   name: jellyfin
   namespace: jellyfin
 spec:
-  # hostPath-каталоги нельзя монтировать в два пода одновременно.
+  # RWO-том конфига: два пода при rolling update пишут в одну БД.
   strategy:
     type: Recreate
   revisionHistoryLimit: 2
@@ -21,8 +21,11 @@ spec:
       # а service-links инжектит JELLYFIN_PORT=tcp://… — ломает порт сервера.
       enableServiceLinks: false
       # Доступ к /dev/dri/renderD128 (группа render на хосте).
+      # fsGroup даёт групповую запись в том Longhorn, иначе root-owned каталог
+      # тома недоступен пользователю 1000.
       securityContext:
         supplementalGroups: [105]
+        fsGroup: 1000
       containers:
         - name: jellyfin
           image: "jellyfin/jellyfin:10@sha256:aefb67e6a7ff1debdd154a78a7bbb780fd0c873d8639210a7f6a2016ad2b35db"
@@ -91,13 +94,10 @@ spec:
               mountPath: /dev/dri
       volumes:
         - name: config
-          hostPath:
-            path: /storage/apps/jellyfin/config
-            type: Directory
+          persistentVolumeClaim:
+            claimName: jellyfin-config
         - name: cache
-          hostPath:
-            path: /storage/apps/jellyfin/cache
-            type: Directory
+          emptyDir: {}
         - name: media
           hostPath:
             path: /storage/media

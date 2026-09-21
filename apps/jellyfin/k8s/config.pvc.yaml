@@ -1,0 +1,16 @@
+# Конфиг и БД Jellyfin: без backup target, поэтому longhorn-retain — удаление PVC
+# не должно стирать настройки. RWO-том на одной ноде требует strategy.type:
+# Recreate у deployment (см. deployment.yaml).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jellyfin-config
+  namespace: jellyfin
+spec:
+  storageClassName: longhorn-retain
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      # Конфиг и БД ~650 КБ; запас под метаданные медиатеки.
+      storage: 64Mi
