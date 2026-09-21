@@ -20,6 +20,7 @@ CR» в одном Application не гарантирован.
 | `shared` | `databases` | `paperless` | `paperless` | 17 МБ |
 | `shared` | `databases` | `glitchtip` | `glitchtip` | 34 МБ |
 | `shared` | `databases` | `playground` | `playground` | 8 МБ |
+| `shared` | `databases` | `gatus` (новая, не миграция) | `gatus` | — |
 | `shared` | `databases` | `authentik` (тестовый стенд) | `authentik` | 115 МБ |
 | `zitadel-db` | `zitadel` | `zitadel` | `zitadel` | 20 МБ |
 | `immich-db` | `immich` | `immich` | `immich` | 287 МБ |
@@ -274,7 +275,8 @@ kubectl delete -f platform/cnpg/test18.secret.yaml
    и применяются в **namespace своего кластера**:
    - `databases`: `nextcloud-db-auth`, `forgejo-db-auth`, `element-db-auth`
      (роль `synapse`), `paperless-db-auth`, `glitchtip-db-auth`,
-     `postgres-db-auth` (роль `playground`), `authentik-db-auth`;
+     `postgres-db-auth` (роль `playground`), `gatus-db-auth`,
+     `authentik-db-auth`;
    - `zitadel`: `zitadel-db-auth`;
    - `immich`: `immich-db-auth`;
    - `dawarich`: `dawarich-db-auth`.

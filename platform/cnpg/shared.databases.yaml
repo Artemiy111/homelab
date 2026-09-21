@@ -73,6 +73,19 @@ spec:
   encoding: UTF8
   databaseReclaimPolicy: retain
 ---
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: gatus
+  namespace: databases
+spec:
+  cluster:
+    name: shared
+  name: gatus
+  owner: gatus
+  encoding: UTF8
+  databaseReclaimPolicy: retain
+---
 # Локали здесь не переопределяются: все базы наследуют ICU und из template1.
 # Отдельный случай synapse (на источнике он создан с --locale=C) убран: имя
 # локали на источнике оказалось фантомным (musl-образ такой локали не имеет),

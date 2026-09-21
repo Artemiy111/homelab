@@ -1,6 +1,8 @@
 storage:
-  type: sqlite
-  path: /data/gatus.db
+  type: postgres
+  # История — в общем кластере CNPG (namespace databases), пароль роли gatus
+  # приходит из Secret'а `gatus` (см. k8s/sealedsecret.yaml).
+  path: "postgres://gatus:${GATUS_DB_PASSWORD}@shared-rw.databases.svc.cluster.local:5432/gatus?sslmode=disable"
   caching: true
   maximum-number-of-results: 1000
   maximum-number-of-events: 100

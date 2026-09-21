@@ -2,7 +2,8 @@
 # Оператор CNPG живёт в cnpg-system и обязан ходить в поды кластеров
 # (instance manager, PostgreSQL), поэтому ему разрешён весь трафик.
 # vmagent из monitoring скрейпит встроенный экспортёр instance-manager (9187).
-# Потребители общего кластера перечисляются явно: сейчас это paperless и forgejo.
+# Потребители общего кластера перечисляются явно: сейчас это paperless, forgejo
+# и gatus (под gatus из общего namespace monitoring).
 # Egress не ограничивается — см. комментарий в apps/lute/k8s/networkpolicy.yaml.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -60,6 +61,14 @@ spec:
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: forgejo
+        # monitoring — общий namespace, поэтому доступ к базе дан только поду
+        # gatus, а не всем подам namespace'а (в отличие от paperless/forgejo).
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+          podSelector:
+            matchLabels:
+              app: gatus
       ports:
         - port: 5432
           protocol: TCP

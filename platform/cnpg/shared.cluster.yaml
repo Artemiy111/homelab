@@ -129,6 +129,11 @@ spec:
         login: true
         passwordSecret:
           name: glitchtip-db-auth
+      - name: gatus
+        ensure: present
+        login: true
+        passwordSecret:
+          name: gatus-db-auth
       - name: playground
         ensure: present
         login: true

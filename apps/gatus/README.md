@@ -16,11 +16,14 @@ kubectl apply -k apps/gatus/
 
 ## Хранилище
 
-История проверок — SQLite на PVC `gatus-data` (`/data`). Запросу статусов нужен
-writable temp-каталог: SQLite строит временный b-tree, и без него при росте
-числа результатов API (`/api/v1/endpoints/statuses`, а с ним и дашборд) падает с
-`disk I/O error`. В образе writable `/tmp` нет, поэтому в под монтируется
-`emptyDir` на `/tmp` и задан `TMPDIR=/tmp` (см. `k8s/deployment.yaml`).
+История проверок — PostgreSQL в общем кластере CNPG `shared` (namespace
+`databases`, эндпоинт `shared-rw.databases.svc.cluster.local:5432`). Роль
+`gatus`, база `gatus` и NetworkPolicy объявлены в `platform/cnpg/`; пароль роли
+приходит в под из Secret'а `gatus` (ключ `GATUS_DB_PASSWORD`) и подставляется в
+`storage.path` через `${GATUS_DB_PASSWORD}`.
+
+Бэкапы и ретеншен базы — на стороне CNPG (`platform/cnpg/README.md`). При
+переезде с SQLite история не переносилась: мониторинг начал с чистого листа.
 
 ## Первый запуск
 
