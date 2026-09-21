@@ -4,6 +4,7 @@ metadata:
   name: home-assistant
   namespace: home-assistant
 spec:
+  # RWO-том конфига: два пода при rolling update пишут в один каталог.
   strategy:
     type: Recreate
   revisionHistoryLimit: 2
@@ -94,9 +95,8 @@ spec:
               readOnly: true
       volumes:
         - name: config
-          hostPath:
-            path: /storage/apps/home-assistant
-            type: Directory
+          persistentVolumeClaim:
+            claimName: home-assistant-config
         - name: configuration
           configMap:
             name: home-assistant-configuration

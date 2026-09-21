@@ -1,0 +1,16 @@
+# Конфиг и состояние Home Assistant (.storage, custom_components, БД): без
+# backup target, поэтому longhorn-retain. RWO-том на одной ноде требует
+# strategy.type: Recreate (см. deployment.yaml).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: home-assistant-config
+  namespace: home-assistant
+spec:
+  storageClassName: longhorn-retain
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      # Данные ~190 МБ; запас под БД истории и дополнения.
+      storage: 512Mi
