@@ -1,0 +1,17 @@
+# Код и данные Nextcloud (/var/www/html, включая config.php и custom apps): без
+# backup target, поэтому longhorn-retain. Том общий для app и cron, RWO-том на
+# одной ноде требует strategy.type: Recreate у обоих deployment (см.
+# app.deployment.yaml и cron.deployment.yaml).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nextcloud-html
+  namespace: nextcloud
+spec:
+  storageClassName: longhorn-retain
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      # Данные ~1.6 ГБ; запас под обновления и custom apps.
+      storage: 2Gi

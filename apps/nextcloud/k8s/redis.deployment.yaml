@@ -19,7 +19,8 @@ spec:
       containers:
         - name: redis
           image: "redis:8-alpine@sha256:978f0e01593e65eed801f2402944efcd936d43b5027e4908a7897baf88ed6241"
-          args: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
+          # Кэш эфемерный: персистентность (RDB/AOF) выключена.
+          args: ["redis-server", "--save", "", "--appendonly", "no", "--loglevel", "warning"]
           ports:
             - name: redis
               containerPort: 6379
@@ -58,6 +59,5 @@ spec:
               mountPath: /data
       volumes:
         - name: data
-          hostPath:
-            path: /storage/apps/nextcloud/redis
-            type: Directory
+          # Распределённый file-lock и кэш — эфемерные, данные не персистим.
+          emptyDir: {}

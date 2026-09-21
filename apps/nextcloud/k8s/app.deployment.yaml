@@ -4,6 +4,7 @@ metadata:
   name: nextcloud
   namespace: nextcloud
 spec:
+  # RWO-том html общий с cron: оба пода пишут в один каталог.
   strategy:
     type: Recreate
   revisionHistoryLimit: 2
@@ -161,6 +162,5 @@ spec:
               mountPath: /var/www/html
       volumes:
         - name: html
-          hostPath:
-            path: /storage/apps/nextcloud/html
-            type: Directory
+          persistentVolumeClaim:
+            claimName: nextcloud-html
