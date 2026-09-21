@@ -4,6 +4,7 @@ metadata:
   name: mail
   namespace: mailserver
 spec:
+  # RWO-том данных: два пода при rolling update пишут в один каталог.
   strategy:
     type: Recreate
   revisionHistoryLimit: 2
@@ -17,6 +18,10 @@ spec:
         app: mail
     spec:
       enableServiceLinks: false
+      # fsGroup даёт групповую запись в том Longhorn, иначе root-owned каталог
+      # тома недоступен пользователю 1000.
+      securityContext:
+        fsGroup: 1000
       containers:
         - name: mail
           image: "ghcr.io/bulwarkmail/webmail:1.8@sha256:97d9d96adfb7c1d221b71b90b8380b98e2e5623f64ba62b090e45911f4ee0b3b"
@@ -87,6 +92,5 @@ spec:
               mountPath: /app/data
       volumes:
         - name: data
-          hostPath:
-            path: /storage/apps/mailserver/mail
-            type: Directory
+          persistentVolumeClaim:
+            claimName: mailserver-mail

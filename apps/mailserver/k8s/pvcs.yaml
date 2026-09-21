@@ -1,0 +1,43 @@
+# Данные Stalwart: без backup target, поэтому longhorn-retain. RWO-тома на одной
+# ноде требуют strategy.type: Recreate (см. mailserver.deployment.yaml).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mailserver-data
+  namespace: mailserver
+spec:
+  storageClassName: longhorn-retain
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      # Почтовые данные ~43 МБ; запас под рост.
+      storage: 128Mi
+---
+# Конфигурация Stalwart (~4 КБ).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mailserver-etc
+  namespace: mailserver
+spec:
+  storageClassName: longhorn-retain
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 64Mi
+---
+# Данные веб-клиента Bulwark (~16 КБ).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mailserver-mail
+  namespace: mailserver
+spec:
+  storageClassName: longhorn-retain
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 64Mi

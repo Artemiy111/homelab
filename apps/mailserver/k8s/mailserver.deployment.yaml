@@ -4,7 +4,7 @@ metadata:
   name: mailserver
   namespace: mailserver
 spec:
-  # hostPath-каталоги нельзя монтировать в два пода одновременно.
+  # RWO-тома: два пода при rolling update пишут в один каталог.
   strategy:
     type: Recreate
   revisionHistoryLimit: 2
@@ -24,6 +24,8 @@ spec:
         sysctls:
           - name: net.ipv4.ip_unprivileged_port_start
             value: "0"
+        # fsGroup даёт групповую запись в тома Longhorn для пользователя 1000.
+        fsGroup: 1000
       containers:
         - name: mailserver
           image: "stalwartlabs/stalwart:v0.16@sha256:a8108e19bd927e172d4d8c128907b8dfc93fd180ae8ee07dccdd42cb97eb9dfa"
@@ -109,10 +111,8 @@ spec:
               mountPath: /var/lib/stalwart
       volumes:
         - name: etc
-          hostPath:
-            path: /storage/apps/mailserver/etc
-            type: Directory
+          persistentVolumeClaim:
+            claimName: mailserver-etc
         - name: data
-          hostPath:
-            path: /storage/apps/mailserver/data
-            type: Directory
+          persistentVolumeClaim:
+            claimName: mailserver-data
