@@ -4,7 +4,7 @@ metadata:
   name: rustfs
   namespace: rustfs
 spec:
-  # hostPath-каталоги нельзя монтировать в два пода одновременно.
+  # RWO-том данных: два пода при rolling update пишут в один каталог.
   strategy:
     type: Recreate
   revisionHistoryLimit: 2
@@ -18,6 +18,10 @@ spec:
         app: rustfs
     spec:
       enableServiceLinks: false
+      # fsGroup даёт групповую запись в том Longhorn, иначе root-owned каталог
+      # тома недоступен пользователю 1000.
+      securityContext:
+        fsGroup: 1000
       containers:
         - name: rustfs
           image: "rustfs/rustfs:1.0.0-beta.12@sha256:41fe89380f4120a337790c02af192c3fe7bb55c3edc2e6e9357b487b47c6ab21"
@@ -109,6 +113,5 @@ spec:
               mountPath: /data
       volumes:
         - name: data
-          hostPath:
-            path: /storage/apps/rustfs/data
-            type: Directory
+          persistentVolumeClaim:
+            claimName: rustfs-data

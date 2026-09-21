@@ -1,0 +1,16 @@
+# Данные rustfs (бакеты S3): без backup target, поэтому longhorn-retain —
+# удаление PVC не должно стирать объекты. RWO-том на одной ноде требует
+# strategy.type: Recreate (см. deployment.yaml).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: rustfs-data
+  namespace: rustfs
+spec:
+  storageClassName: longhorn-retain
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      # Данные ~60 КБ; том расширяется на ходу, если rustfs станет backup target.
+      storage: 64Mi
