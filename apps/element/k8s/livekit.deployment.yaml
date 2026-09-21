@@ -17,7 +17,6 @@ spec:
         app: element-livekit
     spec:
       # UDP-медиадиапазон 50000-50499 публикуется напрямую на узле:
-      # произвольные UDP-порты на ingress-VIP (.254) не обслуживаются.
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
       enableServiceLinks: false

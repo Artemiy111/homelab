@@ -19,7 +19,7 @@ spec:
     spec:
       # Обычный (не hostNetwork) под: в pod-netns .NET биндит TCP на IPv4
       # корректно (в hostNetwork он слушал только IPv6). Наружу порт 53
-      # публикуется через kube-proxy externalIPs .254 (см. dns.service.yaml).
+      # публикуется через kube-proxy externalIPs <node1-ip> (см. dns.service.yaml).
       enableServiceLinks: false
       containers:
         - name: technitium

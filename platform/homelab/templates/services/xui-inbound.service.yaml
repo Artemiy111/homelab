@@ -4,7 +4,7 @@ metadata:
   name: xui-inbound
   namespace: 3x-ui
 spec:
-  # Inbound Xray публикуется на IP узла (.254): так же, как раньше через Docker,
+  # Inbound Xray публикуется на IP узла <node1-ip>: так же, как раньше через Docker,
   # и чтобы работал NAT на роутере → {{ .Values.config.serverIp }}:8443. kube-proxy делает DNAT,
   # поэтому firewalld INPUT не мешает.
   type: ClusterIP

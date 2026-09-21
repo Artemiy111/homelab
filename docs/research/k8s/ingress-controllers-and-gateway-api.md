@@ -446,8 +446,8 @@ API, который является надмножеством). Traefik — е
 | Tailscale | на хосте, subnet route `<node1-lan-cidr>` + split DNS; доступ из tailnet починен policy-routing правилом | `apps/tailscale/README.md`, `remote-access-metallb-solutions.md` |
 
 **Важная поправка к «известному контексту» задачи:** MetalLB (в т.ч. пул `<metallb-ip>/32`) в кластере
-**больше нет** — он удалён 2026-09-15, VIP `.253` не используется, вход идёт на `.254` через `externalIPs`.
-Заметки в `remote-access-metallb-solutions.md` описывают более раннее состояние (`.253` + MetalLB) и в этой
+**больше нет** — он удалён 2026-09-15, VIP `<node1-vip>` не используется, вход идёт на `<node1-ip>` через `externalIPs`.
+Заметки в `remote-access-metallb-solutions.md` описывают более раннее состояние (`<node1-vip>` + MetalLB) и в этой
 части устарели относительно `README.md` и манифестов.
 
 ### 8.2. Две проблемы, которые надо решить в любом случае
@@ -468,7 +468,7 @@ API, который является надмножеством). Traefik — е
 | Вариант | Плюсы | Минусы | Итог |
 |---|---|---|---|
 | **A. Оставить как есть (Traefik + externalIPs)** | 0 работы | `externalIPs` deprecated; безопасности нет (CVE-2020-8554 класс) | ❌ не рекомендуется |
-| **B. Traefik + вернуть MetalLB L2, остаться на Ingress/IngressRoute, включить Gateway API-провайдер Traefik** | Минимум изменений; отдаём `.254`/`.253` законно; ACME и TLS уже работают; можно постепенно переводить маршруты | HTTP Core partial; Gateway API-скилл ограничен; Governance/лицензия вне CNCF | ✅ базовый рабочий путь |
+| **B. Traefik + вернуть MetalLB L2, остаться на Ingress/IngressRoute, включить Gateway API-провайдер Traefik** | Минимум изменений; отдаём `<node1-ip>`/`<node1-vip>` законно; ACME и TLS уже работают; можно постепенно переводить маршруты | HTTP Core partial; Gateway API-скилл ограничен; Governance/лицензия вне CNCF | ✅ базовый рабочий путь |
 | **C. Traefik для старых маршрутов + Envoy Gateway как Gateway API-реализация + MetalLB L2** | Полный conformance (core+extended); Envoy — индустриальный data plane; чистый Gateway API-скилл; отраслевой вектор | +1 control plane/data plane на одноузловом кластере; ACME через cert-manager; нужен отдельный адрес/порт | ✅ **рекомендуемый целевой** |
 | **D. NGINX Gateway Fabric + MetalLB L2** | Полный conformance; NGINX-скилл; проще, чем Envoy-модель | Та же история с cert-manager; F5-специфичные политики; ещё один прокси рядом с Traefik | Альтернатива C |
 | **E. Cilium Gateway API (заменить Calico)** | Самый мощный: eBPF, LB-IPAM, BGP/L2, full conformance | Смена CNI в k0s = пересоздание кластера; большой объём работ | Отложить |

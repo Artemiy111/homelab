@@ -4,8 +4,8 @@ metadata:
   name: technitium-dns
   namespace: technitium
 spec:
-  # DNS публикуется на IP узла (.254) через kube-proxy externalIPs: так же,
-  # как раньше через Docker (роутер Keenetic ходит DNS-запросами на .254:53).
+  # DNS публикуется на IP узла <node1-ip> через kube-proxy externalIPs: так же,
+  # как раньше через Docker (роутер Keenetic ходит DNS-запросами на <node1-ip>:53).
   type: ClusterIP
   externalIPs:
     - {{ .Values.config.serverIp }}
