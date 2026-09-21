@@ -75,8 +75,7 @@ spec:
                   mountPath: /opt/deps
           volumes:
             - name: config
-              hostPath:
-                path: /storage/apps/uptime-kuma-sync
-                type: Directory
+              configMap:
+                name: uptime-kuma-sync-files
             - name: deps
               emptyDir: {}

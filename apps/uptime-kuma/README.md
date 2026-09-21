@@ -4,7 +4,16 @@ Uptime-мониторинг сервисов: дашборд статусов, �
 
 ## Запуск
 
-Разворачивается манифестами в `apps/uptime-kuma/k8s/`.
+Разворачивается kustomize-набором из `apps/uptime-kuma/`:
+
+```sh
+kubectl apply -k apps/uptime-kuma/
+```
+
+`monitors.yaml` и `sync-monitors.ts` хранятся в исходном виде, а
+`configMapGenerator` собирает из них ConfigMap `uptime-kuma-sync-files`
+(имя получает hash-суффикс от содержимого), который монтируется в CronJob.
+Ручная копия в `/storage` не нужна.
 
 Завершить первоначальную настройку учётной записи по адресу
 `https://kuma.example.com/`.
