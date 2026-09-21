@@ -40,6 +40,10 @@ spec:
                   fieldPath: status.hostIP
             - name: TELEGRAM_PROXY_URL
               value: "http://$(HOST_IP):8440"
+            # SQLite строит временный b-tree для запроса статусов; в образе нет
+            # writable /tmp, поэтому указываем смонтированный emptyDir ниже.
+            - name: TMPDIR
+              value: /tmp
           startupProbe:
             httpGet:
               path: /
@@ -74,6 +78,8 @@ spec:
               readOnly: true
             - name: data
               mountPath: /data
+            - name: tmp
+              mountPath: /tmp
       volumes:
         - name: config
           configMap:
@@ -81,3 +87,5 @@ spec:
         - name: data
           persistentVolumeClaim:
             claimName: gatus-data
+        - name: tmp
+          emptyDir: {}

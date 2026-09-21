@@ -14,6 +14,14 @@ kubectl apply -k apps/gatus/
 монтирует в под как `/config/config.yaml`. Правка конфига меняет pod-template и
 сама запускает rollout — отдельный `kubectl rollout restart` не нужен.
 
+## Хранилище
+
+История проверок — SQLite на PVC `gatus-data` (`/data`). Запросу статусов нужен
+writable temp-каталог: SQLite строит временный b-tree, и без него при росте
+числа результатов API (`/api/v1/endpoints/statuses`, а с ним и дашборд) падает с
+`disk I/O error`. В образе writable `/tmp` нет, поэтому в под монтируется
+`emptyDir` на `/tmp` и задан `TMPDIR=/tmp` (см. `k8s/deployment.yaml`).
+
 ## Первый запуск
 
 Gatus работает в кластере, поэтому может проверять как пользовательские
