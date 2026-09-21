@@ -4,6 +4,7 @@ metadata:
   name: sure
   namespace: sure
 spec:
+  # RWO-том storage общий с worker: оба пода пишут в один каталог.
   strategy:
     type: Recreate
   revisionHistoryLimit: 2
@@ -16,6 +17,10 @@ spec:
       labels:
         app: sure
     spec:
+      # fsGroup даёт групповую запись в том Longhorn, иначе root-owned каталог
+      # тома недоступен пользователю 1000.
+      securityContext:
+        fsGroup: 1000
       initContainers:
         - name: wait-for-db
           image: "postgres:16@sha256:f992505e18f114c1e5102ac4dcf00f791b44462f6a423d899320f0bbf80e386f"
@@ -149,6 +154,5 @@ spec:
               mountPath: /rails/storage
       volumes:
         - name: storage
-          hostPath:
-            path: /storage/apps/sure/data/app
-            type: Directory
+          persistentVolumeClaim:
+            claimName: sure-storage

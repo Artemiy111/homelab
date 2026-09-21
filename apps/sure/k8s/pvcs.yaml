@@ -1,0 +1,31 @@
+# Данные Sure: без backup target, поэтому longhorn-retain. Том `storage` общий
+# для web и worker, RWO-том на одной ноде требует strategy.type: Recreate у обоих
+# deployment (см. web.deployment.yaml и worker.deployment.yaml).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sure-storage
+  namespace: sure
+spec:
+  storageClassName: longhorn-retain
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      # Данных пока нет; запас под вложения.
+      storage: 64Mi
+---
+# Redis — брокер Sidekiq. Класс longhorn (Delete): потеря очереди допустима.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sure-redis
+  namespace: sure
+spec:
+  storageClassName: longhorn
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      # Данные ~528 КБ; запас под очередь.
+      storage: 64Mi
