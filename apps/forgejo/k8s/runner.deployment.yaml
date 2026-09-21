@@ -97,6 +97,10 @@ spec:
           volumeMounts:
             - name: dind
               mountPath: /var/lib/docker
+            - name: dind-config
+              mountPath: /etc/docker/daemon.json
+              subPath: daemon.json
+              readOnly: true
       volumes:
         - name: config
           configMap:
@@ -109,3 +113,6 @@ spec:
         - name: dind
           persistentVolumeClaim:
             claimName: forgejo-runner-dind
+        - name: dind-config
+          configMap:
+            name: forgejo-runner-dind

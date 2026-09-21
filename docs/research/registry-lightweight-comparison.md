@@ -255,6 +255,8 @@
    Один инстанс, один конфиг на все upstream'ы (`docker.io`, `ghcr.io`,
    `quay.io`, `registry.k8s.io`, …), on-demand-кэш, OIDC (совпадает с Zitadel),
    S3-хранилище (в homelab есть RustFS), UI; образ ~72 MB — на уровне Forgejo.
+   Реализовано для CI: `apps/zot` (pull-through для `ghcr.io`, `docker.io`,
+   `data.forgejo.org`; job-образы раннера ходят через путь кэша — issue #143).
    Потребители:
    - **кластер**: `hosts.toml` на каждый реестр в
      `/etc/k0s/containerd.d/certs.d/<host>/` (drop-in, `version = 3`), либо

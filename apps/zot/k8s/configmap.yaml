@@ -1,0 +1,82 @@
+# Конфигурация Zot. Кэш внешних OCI-реестров для job'ов Forgejo Actions.
+#
+# accessControl с одним anonymousPolicy ["read"] — это режим «anonymous-only»:
+# анонимный pull разрешён (нужен DinD без креденшелов), push запрещён (нет
+# политики на create/update). Смешивать с аутентифицированными политиками
+# нельзя: тогда Zot отдаёт 401 на /v2/ для Docker-клиентов, и анонимный pull
+# ломается (см. https://zotregistry.dev/v2.1.21/articles/authn-authz/).
+#
+# http.compat ["docker2s2"] + preserveDigest у каждом sync-registry — чтобы
+# образы хранились в исходном формате и пины по дайджесту (labels раннера)
+# оставались валидными.
+#
+# registries — pull-through (onDemand): образ скачивается при первом запросе к
+# Zot и дальше отдаётся из локального хранилища. destination задаёт локальный
+# префикс пути (ghcr.io/catthehacker/ubuntu и т. п.).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: zot
+  namespace: zot
+data:
+  config.json: |
+    {
+      "distSpecVersion": "1.1.1",
+      "storage": {
+        "rootDirectory": "/var/lib/zot",
+        "dedupe": true,
+        "gc": true,
+        "gcDelay": "1h",
+        "gcInterval": "24h"
+      },
+      "http": {
+        "address": "0.0.0.0",
+        "port": "5000",
+        "realm": "zot",
+        "compat": ["docker2s2"],
+        "accessControl": {
+          "repositories": {
+            "**": {
+              "anonymousPolicy": ["read"]
+            }
+          }
+        }
+      },
+      "log": {
+        "level": "info"
+      },
+      "extensions": {
+        "sync": {
+          "enable": true,
+          "registries": [
+            {
+              "urls": ["https://ghcr.io"],
+              "onDemand": true,
+              "tlsVerify": true,
+              "preserveDigest": true,
+              "content": [
+                { "prefix": "**", "destination": "/ghcr.io" }
+              ]
+            },
+            {
+              "urls": ["https://index.docker.io"],
+              "onDemand": true,
+              "tlsVerify": true,
+              "preserveDigest": true,
+              "content": [
+                { "prefix": "**", "destination": "/docker.io" }
+              ]
+            },
+            {
+              "urls": ["https://data.forgejo.org"],
+              "onDemand": true,
+              "tlsVerify": true,
+              "preserveDigest": true,
+              "content": [
+                { "prefix": "**", "destination": "/data.forgejo.org" }
+              ]
+            }
+          ]
+        }
+      }
+    }

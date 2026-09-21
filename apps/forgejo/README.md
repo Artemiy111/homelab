@@ -48,6 +48,7 @@ Actions. Сервер только планирует задачи и храни
 | Deployment | `apps/forgejo/k8s/runner.deployment.yaml` |
 | Конфиг | `apps/forgejo/k8s/runner.configmap.yaml` |
 | Секрет регистрации | `apps/forgejo/k8s/runner.sealedsecret.yaml` |
+| Конфиг dockerd | `apps/forgejo/k8s/runner-dind.configmap.yaml` |
 | Том dockerd | PVC `forgejo-runner-dind` (`local-path`, 10Gi) |
 | Область | instance-wide (`--scope ""`), раннер `homelab-runner` |
 
@@ -88,6 +89,14 @@ SealedSecret'е. Токен в ConfigMap не попадает: раннер ч�
 GitHub-подобный образ с git, docker CLI, python и build-essential. Голый
 `node:lts` не подходит: в нём нет docker CLI, и `docker build` в job'е падает.
 Образы пинятся дайджестом: docker по тегу уже скачанный образ не обновляет.
+
+**Кэш образов.** Job-образы тянутся не напрямую из внешних реестров, а через
+pull-through кэш **Zot** (`apps/zot`): в метках указан путь
+`zot.zot.svc.cluster.local:5000/<реестр>/...` с тем же дайджестом. Zot отдаётся
+по http, поэтому его хост добавлен в `insecure-registries` через
+`runner-dind.configmap.yaml` (монтируется в сайдкар `dind`). Дайджесты и
+ограничения (Docker-демон умеет mirror только для Docker Hub) — в
+`apps/zot/README.md`.
 
 ### Релизы и пакеты
 

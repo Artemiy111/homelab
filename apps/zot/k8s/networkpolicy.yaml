@@ -1,0 +1,33 @@
+# Базовый NetworkPolicy: default-deny ingress + явные разрешения.
+# Zot наружу (через Traefik) не публикуется — это внутренний кэш для CI,
+# поэтому единственный внешний потребитель — раннер с его DinD в namespace
+# forgejo. Egress не ограничивается: Zot ходит в upstream-реестры.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: zot
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress
+  namespace: zot
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector: {}
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: forgejo
+      ports:
+        - port: 5000
+          protocol: TCP

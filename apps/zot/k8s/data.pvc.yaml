@@ -1,0 +1,16 @@
+# Кэш образов. Теряется без последствий: при потере тома Zot просто скачает
+# образы заново. Поэтому класс longhorn без Retain (удаление PVC = удаление
+# тома), в отличие от данных сервисов. RWO-том на одной ноде требует
+# strategy.type: Recreate у Deployment.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: zot-data
+  namespace: zot
+spec:
+  storageClassName: longhorn
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
