@@ -115,6 +115,9 @@ production-практикам DevOps.
 - `platform/traefik/` — конфиг самого Traefik: `values.yaml`, `tlsstore.yaml`,
   общие middleware (`oauth2-proxy.middleware.yaml`) и маршрут дашборда.
 - `ansible/` — пакеты и подготовка хоста.
+- `.forgejo/workflows/` — CI на Forgejo Actions: `commitlint`, `gitleaks`,
+  `ansible-lint`, `kubeconform` (валидация манифестов по схемам Kubernetes;
+  артефакты — `scripts/publish-kubeconform-assets.sh`).
 - `etc/`, `dotfiles/`, `scripts/`, `docs/` — конфиги ОС, шелл, скрипты и
   документация.
 

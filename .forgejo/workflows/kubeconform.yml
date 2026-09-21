@@ -1,0 +1,88 @@
+name: kubeconform
+
+on:
+  push:
+    branches: [main]
+    paths: &paths
+      - "apps/**"
+      - "platform/**"
+      - "argocd/**"
+      - ".forgejo/workflows/kubeconform.yml"
+  pull_request:
+    paths: *paths
+
+jobs:
+  kubeconform:
+    name: kubeconform
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - name: Cache kubeconform
+        id: kubeconform
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/bin
+          key: kubeconform-0.8.0-${{ runner.os }}
+      - name: Cache schemas
+        id: schemas
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/kubeconform-schemas
+          # суффикс -2 — инвалидация кэша после перепаковки архива схем
+          # (xattr-free); при обновлении пакета в Forgejo суффикс поднимаем.
+          key: kubeconform-schemas-1.36.3-2-${{ runner.os }}
+      # Бинарь и набор схем лежат в Forgejo generic packages (у раннера нет
+      # доступа к github.com, а до Forgejo — есть). Пакеты публичные, скачивание
+      # анонимное, PAT/секрет не нужен. Скачивается один раз, дальше — из кэша.
+      #
+      # Опубликовать/обновить (нужен PAT со scope write:package) —
+      # scripts/publish-kubeconform-assets.sh:
+      #   kubeconform          0.8.0   kubeconform_0.8.0_linux_amd64.tar.gz
+      #   kubeconform-schemas  1.36.3  kubernetes-json-schema_1.36.3_standalone.tar.gz
+      - name: Install kubeconform
+        if: steps.kubeconform.outputs.cache-hit != 'true'
+        run: |
+          set -euo pipefail
+          url="${{ github.server_url }}/api/packages/${{ github.repository_owner }}/generic/kubeconform/0.8.0/kubeconform_0.8.0_linux_amd64.tar.gz"
+          mkdir -p "$HOME/.local/bin" /tmp/kubeconform
+          curl -fsSL -o /tmp/kubeconform/kubeconform.tar.gz "$url"
+          tar -xzf /tmp/kubeconform/kubeconform.tar.gz -C /tmp/kubeconform kubeconform
+          install -m 0755 /tmp/kubeconform/kubeconform "$HOME/.local/bin/kubeconform"
+      - name: Install schemas
+        if: steps.schemas.outputs.cache-hit != 'true'
+        run: |
+          set -euo pipefail
+          url="${{ github.server_url }}/api/packages/${{ github.repository_owner }}/generic/kubeconform-schemas/1.36.3/kubernetes-json-schema_1.36.3_standalone.tar.gz"
+          mkdir -p "$HOME/.cache/kubeconform-schemas"
+          curl -fsSL -o /tmp/schemas.tar.gz "$url"
+          # Схемы пакуются на macOS, поэтому в архиве могут быть pax-заголовки
+          # с xattr (com.apple.provenance); GNU tar иначе шумит
+          # "Ignoring unknown extended header keyword" на каждый файл.
+          tar --warning=no-unknown-keyword -xzf /tmp/schemas.tar.gz -C "$HOME/.cache/kubeconform-schemas"
+      - name: Add kubeconform to PATH
+        run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      # Схемы берём локальные (offline): дефолтный источник kubeconform —
+      # raw.githubusercontent.com, недоступный из job'ов. Версия схем совпадает
+      # с версией кластера k0s (platform/k0s/README.md).
+      #
+      # Сканируются только каталоги с манифестами: apps/<сервис>/k8s/. Файлы
+      # values/Chart (Helm) и templates чарта homelab — не готовые манифесты, их
+      # исключаем; рендер чарта — отдельная задача.
+      #
+      # -skip — явный реестр CR, для которых нет схем в наборе Kubernetes. Новый
+      # CR в сканируемых путях уронит job, и его надо осознанно добавить сюда
+      # (или завести схемы) — вместо тихого пропуска через -ignore-missing-schemas.
+      - name: Validate manifests
+        run: |
+          set -euo pipefail
+          kubeconform -v
+          kubeconform \
+            -kubernetes-version 1.36.3 \
+            -schema-location "$HOME/.cache/kubeconform-schemas/{{.NormalizedKubernetesVersion}}-standalone{{.StrictSuffix}}/{{.ResourceKind}}{{.KindSuffix}}.json" \
+            -ignore-filename-pattern 'values\.yaml$' \
+            -ignore-filename-pattern 'Chart\.yaml$' \
+            -ignore-filename-pattern 'platform/homelab/templates' \
+            -skip "Application,Beat,Cluster,ClusterConfig,Database,Elasticsearch,Grant,Kibana,MariaDB,Middleware,SealedSecret,TLSStore,User,VolumeSnapshotClass" \
+            -summary \
+            apps/*/k8s platform argocd
