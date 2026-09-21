@@ -4,7 +4,7 @@ metadata:
   name: gatus
   namespace: monitoring
 spec:
-  # SQLite в hostPath: два пода при rolling update пишут в одну БД.
+  # SQLite на RWO-томе: два пода при rolling update пишут в одну БД.
   strategy:
     type: Recreate
   revisionHistoryLimit: 2
@@ -80,6 +80,5 @@ spec:
             path: /home/artlab/projects/homelab/apps/gatus/config
             type: Directory
         - name: data
-          hostPath:
-            path: /storage/apps/gatus/data
-            type: Directory
+          persistentVolumeClaim:
+            claimName: gatus-data

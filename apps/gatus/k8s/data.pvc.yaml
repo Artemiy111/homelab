@@ -1,0 +1,16 @@
+# SQLite с историей проверок: без backup target, поэтому longhorn-retain —
+# удаление PVC не должно стирать данные. Будучи RWO-томом на одной ноде,
+# том требует strategy.type: Recreate у deployment (см. deployment.yaml).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: gatus-data
+  namespace: monitoring
+spec:
+  storageClassName: longhorn-retain
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      # Историческая SQLite ~16 МБ; запас под рост истории.
+      storage: 1Gi
