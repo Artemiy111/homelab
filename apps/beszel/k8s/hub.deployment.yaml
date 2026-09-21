@@ -4,6 +4,7 @@ metadata:
   name: beszel
   namespace: beszel
 spec:
+  # SQLite на RWO-томе: два пода при rolling update пишут в одну БД.
   strategy:
     type: Recreate
   revisionHistoryLimit: 2
@@ -17,6 +18,10 @@ spec:
         app: beszel
     spec:
       enableServiceLinks: false
+      # fsGroup даёт групповую запись в том Longhorn, иначе root-owned каталог
+      # тома недоступен пользователю 1000.
+      securityContext:
+        fsGroup: 1000
       containers:
         - name: beszel
           image: "henrygd/beszel:0.18.7@sha256:a849ad80814b6a1a3be665304dcace5d4854b3bed7bde4dd1227e8ce1b82d477"
@@ -82,9 +87,8 @@ spec:
               mountPath: /beszel_socket
       volumes:
         - name: data
-          hostPath:
-            path: /storage/apps/beszel/data
-            type: Directory
+          persistentVolumeClaim:
+            claimName: beszel-data
         - name: socket
           hostPath:
             path: /storage/apps/beszel/socket

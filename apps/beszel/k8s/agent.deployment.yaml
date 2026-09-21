@@ -96,9 +96,8 @@ spec:
               readOnly: true
       volumes:
         - name: agent
-          hostPath:
-            path: /storage/apps/beszel/agent
-            type: Directory
+          persistentVolumeClaim:
+            claimName: beszel-agent
         - name: socket
           hostPath:
             path: /storage/apps/beszel/socket
