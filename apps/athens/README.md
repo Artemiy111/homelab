@@ -43,12 +43,18 @@ kubectl -n athens get pods,pvc,svc
 
 ```
 GOPROXY=http://athens.athens.svc.cluster.local:3000
-GOSUMDB=sum.golang.org http://athens.athens.svc.cluster.local:3000
+GOSUMDB=sum.golang.org http://athens.athens.svc.cluster.local:3000/sumdb/sum.golang.org
 ```
 
 `GOSUMDB` в формате `<имя> <url>` заставляет `go` проверять контрольные суммы
-через Athens, а не напрямую в `sum.golang.org`. Если проверка сумм не нужна
-(доверенная среда), достаточно `GONOSUMDB=*` или `GOFLAGS=-mod=mod`.
+через Athens, а не напрямую в `sum.golang.org`; путь `/sumdb/<host>` — это и есть
+sumdb-прокси Athens. Если проверка сумм не нужна (доверенная среда), достаточно
+`GONOSUMDB=*`.
+
+В проекте с `go.mod`/`go.sum` сборка тянет только зафиксированные модули и
+обслуживается кэшем целиком. `go install <pkg>@latest` дополнительно спрашивает
+у upstream список версий, поэтому для полностью офлайновых сборок пинить версию
+(`@vX.Y.Z`) или собирать из `go.mod`.
 
 Хост (Ansible-сборка `vals` из `cli_tools`) видит только ClusterIP изнутри
 кластера. Чтобы направить сборку на хосте через Athens, нужен внешний маршрут
@@ -78,8 +84,8 @@ GOPROXY=http://athens.athens.svc.cluster.local:3000 \
    kubectl -n athens run athens-check --rm -it --restart=Never \
      --image=golang:1.26-alpine -- \
      sh -c 'GOPROXY=http://athens.athens.svc.cluster.local:3000 \
-       GOSUMDB="sum.golang.org http://athens.athens.svc.cluster.local:3000" \
-       go install golang.org/x/tools/cmd/stringer@latest'
+       GOSUMDB="sum.golang.org http://athens.athens.svc.cluster.local:3000/sumdb/sum.golang.org" \
+       go install golang.org/x/tools/cmd/stringer@v0.50.0'
    ```
 
    В логах Athens виден запрос к upstream.
