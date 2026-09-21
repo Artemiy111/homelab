@@ -1,254 +1,335 @@
-# Лёгкие саморазмещаемые реестры npm + Docker (OCI) для homelab
+# Слой кэширования внешних пакетов для homelab: OCI, npm, бинарники, apt
 
-Дата проверки: 2026-08-16.
+Дата проверки: 2026-09-21.
+
+> **Что изменилось с редакции 2026-08-16.** Исследование переписано под текущую
+> реальность: в homelab развёрнут **Forgejo 16.x** (Kubernetes k0s + Argo CD,
+> не Docker Compose), а задача сместилась с «хостинга своих пакетов» на
+> **кэширование внешних**. Приоритет — контейнерные образы; npm, бинарники и apt
+> рассмотрены как сопутствующие. Старые таблицы «npm + Docker» и выводы про
+> Gitea больше не отражают действительность; посвящённые им документы удалены,
+> всё существенное сведено в этот файл.
 
 ## Область исследования
 
-Задача — выбрать **минимальный по весу** набор сервисов, закрывающий обе
-потребности homelab:
+Задача — выбрать минимальный по весу набор сервисов, который **кэширует
+внешние источники пакетов**, чтобы падения и rate-limit'ы upstream'ов не
+ломали CI и деплой. Кэш должен обслуживать **и кластер, и CI**:
 
-- **npm**: приватный реестр (хостинг собственных пакетов) и/или прокси с кэшем
-  `registry.npmjs.org` (ускорение установок в локальной сети);
-- **Docker/OCI**: приватный реестр (хостинг собственных образов) и/или кэш
-  Docker Hub (защита от rate-limit и ускорение pull).
+- **кластер k0s** — containerd на узле тянет образы сервисов из `docker.io`,
+  `ghcr.io`, `quay.io`, `registry.k8s.io`, вендорских реестров;
+- **Forgejo Actions runner** — dockerd сайдкара `dind` тянет job-образы
+  (`runs-on`) и образы, которые workflow'ы собирают/пуллят внутри job'ов;
+- **npm** — `bun install`/`npm install` внутри CI;
+- **бинарники/тулчейны** — GitHub Releases, `go.dev`, `static.rust-lang.org`,
+  `archive.apache.org`; сегодня такие артефакты вручную перепубликуются в
+  Forgejo generic packages (`scripts/publish-kubeconform-assets.sh`,
+  `.forgejo/workflows/secrets.yml`);
+- **apt** — пакеты ОС в образах сборки (опционально).
 
-Учитывается уже развёрнутый в homelab **Gitea 1.27.x** (Docker Compose + Traefik),
-который умеет хостить и npm-пакеты, и образы. Пользователи заходят через
-развёрнутый OIDC-провайдер (Pocket ID), поэтому отдельно сравнивается поддержка
-входа по OIDC (роль клиента/RP). «Лёгкость» оценивается по трём осям:
-потребление RAM, размер Docker-образа, количество компонентов/своих зависимостей
-(БД и т. п.).
+«Лёгкость» оценивается по трём осям: потребление RAM, размер Docker-образа,
+число компонентов и своих зависимостей (БД и т. п.). Версии, теги, размеры и
+даты проверены по первичным источникам: GitHub/GitLab/Codeberg Releases API,
+метаданные реестров, официальные документации — 2026-09-21.
 
-Лёгкие кандидаты: Verdaccio, cnpmcore, CNCF Distribution, Zot, Gitea Packages.
-Альтернатива Gitea для пакетного реестра — Forgejo (рассмотрен отдельно).
-Тяжёлые решения (Nexus Repository 3, Harbor, GitLab CE) включены только как
-**точки отсчёта ресурсов**, чтобы подтвердить, что переход на них неоправдан.
+## Текущая реальность homelab
 
-Версии, теги, размеры образов и даты проверены по первичным источникам: GitHub
-Releases API, метаданные Docker Hub / ghcr.io (`docker manifest inspect`),
-официальные документации. Замеры потребления RAM — локальные измерения на
-Docker Desktop (macOS), отмечены явно (см. раздел «Не подтверждённые
-утверждения»).
+| Что | Состояние |
+| --- | --- |
+| Git-платформа | **Forgejo 16.x** (`data.forgejo.org/forgejo:16-rootless`), в k8s |
+| Реестры Forgejo | container + 20+ форматов пакетов (npm, generic, …) — **только хостинг** |
+| OIDC-провайдер | **Zitadel** (`id.example.com`); Authentik — тестовый стенд |
+| Runtime кластера | k0s v1.36.3, containerd 2.x; конфиг `/etc/k0s/containerd.toml`, drop-in'ы `/etc/k0s/containerd.d/*.toml` |
+| CI | Forgejo Runner + `docker:dind` сайдкар; доступ к Forgejo есть, к части внешних хостов (github.com) — нет |
+| OCI-кэш | **отсутствует** |
+| npm-кэш | **отсутствует** |
+| Бинарь-кэш | вручную: Forgejo generic packages |
 
-## Сравнительная таблица
+Ключевой факт: **Forgejo не умеет проксировать/кэшировать** — подтверждено
+официальной документацией и кодом. В `[packages]` нет ключей proxy/mirror/cache,
+а в `routers/api/packages/container/container.go` нет обработки
+`proxy`/`upstream`/`mirror`:
+[Forgejo container registry](https://forgejo.org/docs/latest/user/packages/container/),
+[config cheat sheet](https://forgejo.org/docs/latest/admin/config-cheat-sheet/),
+[`container.go`](https://codeberg.org/forgejo/forgejo/raw/branch/forgejo/routers/api/packages/container/container.go).
+Поэтому кэш — отдельный сервис, а Forgejo остаётся хостом своих пакетов и
+хранилищем generic-артефактов.
 
-| Кандидат | Лицензия | npm: хостинг / кэш | Docker/OCI: хостинг / кэш | RAM* | Образ (сжатый, amd64) | Своя БД / сервисы | Web-UI | Аутентификация | OIDC (вход/RP) | Управление размером кэша | Версия, поддержка | Практический вывод |
+## Ключевые ограничения клиентов
+
+Это определяет, что вообще можно кэшировать прозрачно, и поэтому вынесено
+отдельно от сравнения серверов.
+
+- **Зеркало в containerd/dockerd само не кэширует.** И containerd
+  (`hosts.toml`), и Docker (`registry-mirrors`) лишь перенаправляют клиента;
+  кэшем обязан быть сервер, реализующий pull-through. Без такого сервера
+  «зеркало» бесполезно:
+  [containerd hosts.toml](https://github.com/containerd/containerd/blob/main/docs/hosts.md),
+  [Distribution mirror recipe](https://distribution.github.io/distribution/recipes/mirror/).
+- **containerd настраивается per-registry.** `config_path` + каталог на каждый
+  host (`docker.io/hosts.toml`, `ghcr.io/hosts.toml`, …) или `_default`.
+  `_default` — catch-all, но тогда кэш должен сам разобрать, к какому upstream
+  относится образ. containerd при несовпадении namespace подставляет query
+  `?ns=<registry>`; **ни Distribution, ни Zot это поведение не документируют**
+  (см. «Не подтверждённые утверждения»). Надёжный шаблон — отдельный
+  `hosts.toml` на каждый реестр, указывающий на свой путь/инстанс кэша.
+- **Docker daemon умеет mirror только для Docker Hub.** «It is not possible to
+  run the Docker daemon against a pull through cache with another upstream
+  registry» — `registry-mirrors` не перенаправит `ghcr.io/...` или
+  `quay.io/...`:
+  [Distribution mirror recipe](https://distribution.github.io/distribution/recipes/mirror/),
+  [Docker Hub mirror](https://docs.docker.com/docker-hub/image-library/mirror/).
+- **`dind` принимает конфиг dockerd** либо аргументами (`docker:dind
+  --registry-mirror=...`), либо смонтированным `/etc/docker/daemon.json`;
+  переменной `DOCKERD_CONFIG` не существует:
+  [docker:dind docs](https://github.com/docker-library/docs/blob/master/docker/README.md),
+  [dockerd reference](https://docs.docker.com/reference/cli/dockerd/).
+- **У runner'а нет своего registry-mirror.** Job-образы тянет тот самый dockerd
+  сайдкара (`container.docker_host`). Значит, для не-Hub образов прозрачного
+  кэша нет — остаётся ссылаться на кэш явно в label'ах/workflow'ах:
+  [Forgejo runner config](https://forgejo.org/docs/latest/admin/actions/configuration/),
+  [docker access](https://forgejo.org/docs/latest/admin/actions/docker-access/).
+- **k0s: drop-in'ы containerd.** `/etc/k0s/containerd.d/*.toml` применяются,
+  только пока в `/etc/k0s/containerd.toml` сохранена строка `# k0s_managed=true`;
+  для containerd 2.x drop-in должен быть `version = 3` и использовать плагин
+  `io.containerd.cri.v1.images`. Образы самого k0s можно перевести
+  на свой реестр через `spec.images.repository`:
+  [k0s runtime](https://docs.k0sproject.io/head/runtime/),
+  [k0s configuration](https://docs.k0sproject.io/head/configuration/).
+
+## Сравнительная таблица: OCI pull-through кэш
+
+| Кандидат | Лицензия | Хостинг / кэш | Несколько upstream'ов на инстанс | RAM | Образ (сжатый, amd64) | Своя БД / сервисы | Web-UI | Аутентификация | OIDC | Управление размером кэша | Версия, поддержка | Практический вывод |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Verdaccio `6.9.2` | MIT | **Да / Да** (uplink-кэш npmjs) | — | ~119 MiB idle (изм.) | 66.6 MB | — (файловая ФС) | Да (встроенный) | htpasswd встроен, JWT/legacy | Плагин (сторонний, устарел 2024) | Нет лимита/эвакуации; uplink `cache:false` или фильтр по имени | Активна (релиз 2026-08-02), 225,5M pulls | Главный кандидат для npm |
-| cnpmcore `4.34.3` | MIT | **Да / Да** (sync-зеркало) | — | Заявлено нет; **нужны MySQL + Redis** | 514.2 MB (тег устарел с 2025-03-09) | MySQL + Redis | Да | — | — | — | Активна, но официальный Docker-образ не обновляется | Для homelab избыточен |
-| CNCF Distribution `3.1.1` | Apache-2.0 | — | **Да / Да** (pull-through cache, рецепт) | ~12 MiB idle (изм.) | 19.2 MB | — | Нет | htpasswd / token (спецификация) | — (htpasswd/token) | Pull-through без лимита, но `proxy.ttl` (default 168h) | Активна (push 2026-08-10), 1,76 млрд pulls | Минимальный вес для Docker-кэша |
-| Zot `v2.1.20` | Apache-2.0 | — (не npm-протокол) | **Да / Да** (on-demand pull-through cache) | ~83 MiB idle после прогрева (изм.) | 70.9 MB | — (ФС/S3/GCS/Azure; по умолчанию boltdb-метаданные) | Да (ui extension) | htpasswd, LDAP, OIDC, mTLS | Да (OpenID/OAuth2: GitHub/Google/GitLab/dex) | On-demand; встроенного лимита не документировано | Активна (push 2026-08-16) | Лёгкий современный реестр; первый старт качает trivy-db |
-| Gitea Packages `1.27.x` | MIT | **Да / Нет** | **Да / Нет** | Реестровая часть не выделена (оценка) | 68.7 MB (образ Gitea 1.27.1) | Уже есть (SQLite/PostgreSQL/MySQL) | Да (Gitea) | Gitea personal access token | Да (вход OAuth2/OIDC) | — (без прокси) | Активна (1.27.2, 2026-08-13) | Уже в homelab: хостинг обоих типов без новых компонентов, но без кэша |
-| Forgejo `16.0.2` | GPL-3.0-or-later (с v9.0) | **Да / Нет** | **Да / Нет** | ~104–125 MiB idle (изм.) | 80.3 MB | Уже есть (SQLite/PostgreSQL/MySQL) | Да (Forgejo) | Как Gitea + OIDC-клиент | Да (вход OAuth2/OIDC, `[oauth2_client]`) | — (без прокси) | Стабильная 16.0.2 (до 2026-10-29), LTS 15.0.6 (до 2027-07-15) | Альтернатива Gitea: реестры и OIDC как у Gitea, но переход с Gitea 1.23+ не прозрачен и лицензия GPLv3+ |
+| **Zot** `v2.1.21` | Apache-2.0 | Да / **Да** (on-demand sync) | **Да** (`sync.registries[]`, path-prefix) | ~83 MiB idle после прогрева (изм. 2026-08-16, в. 2.1.20) | 71.7 MB | — (ФС/S3/GCS) | Да (ui extension) | mTLS, htpasswd, LDAP, Bearer/OAuth2, `accessControl` | Да | On-demand; встроенного лимита не документировано | Активна (релиз 2026-09-06) | **Основной кандидат**: один инстанс на все реестры |
+| **CNCF Distribution** `v3.1.1` | Apache-2.0 | Да / **Да** (pull-through рецепт) | **Нет** — один upstream на инстанс | ~12 MiB idle (изм. 2026-08-16) | 19.2 MB | — | Нет | htpasswd (bcrypt) / token | — | `proxy.ttl` (по умолч. 168h) + GC/cleanup | Активна (релиз 2026-05-01) | Минимальный вес, но по инстансу на реестр |
+| **Harbor** `v2.15.2` | Apache-2.0 | Да / **Да** (proxy-cache project) | **Да** (несколько proxy-project'ов) | Min **2 CPU / 4 GiB / 40 GB**; реком. 4/8/160 | 696.4 MB (офлайн-инсталлятор) | PostgreSQL + набор сервисов | Да | БД Harbor, ROBOT, LDAP, OIDC | Да | 7-дневный tag-retention на proxy-project | Активна (релиз 2026-07-02) | Мощно, но заметно тяжелее |
+| **Nexus CE** `3.96.2-01` | EPL-1.0 | Да / **Да** (docker proxy) | **Да** (репозиторий на upstream) | Small: **2 CPU / 8 GiB / 20 GB**; контейнерный деплой с H2 **не поддерживается** — нужен PostgreSQL | 475.7 MB | PostgreSQL (для k8s) | Да | Локальные, LDAP, OIDC, SAML (Pro), Crowd | Спорно (см. ниже) | TTL/cleanup-политики | Активна (релиз 2026-09-18) | Универсальный комбайн, но JVM и 8 GiB |
+| **Forgejo** `v16.0.5` | GPL-3.0-or-later | Да / **Нет** | — | часть реестра отдельно не выделена | ~80 MB (16.0.x) | уже есть (CNPG PostgreSQL) | Да | PAT | вход OIDC | — | Активна (релиз 2026-09-17) | **Кэшем быть не может** — только хостинг |
+| Spegel `v0.7.4` | MIT | не реестр: P2P-повтор между нодами | — | — | — | — | Нет | — | — | — | Активна (2026-07-15) | Best-effort, не диск-кэш; лишь надстройка |
+| Dragonfly `v2.5.2` | Apache-2.0 | P2P + proxy/mirror | — | — | — | supernode/scheduler/manager + Redis/MySQL | — | — | — | — | Активна (2026-09-14) | Оверкилл для одного узла |
+| Trow `v0.7.2` | Apache-2.0 | Да / **Да** («proxy any registry») | Да | — | — | — | — | заявлены в roadmap | — | — | **Релизов нет с 2025-02-21**, beta | Не для прод-стенда |
 
-\* RAM — локальные измерения idle-состояния (Verdaccio, Distribution, Zot,
-Forgejo), см. разделы «Ресурсы» и «Не подтверждённые утверждения».
+## Сравнительная таблица: npm / generic / apt
 
-### Тяжёлые решения (точки отсчёта)
+| Источник | Кандидат | Лицензия | Кэш/прокси | RAM / вес | Примечание |
+| --- | --- | --- | --- | --- | --- |
+| **npm** | Verdaccio `v6.10.4` | MIT | **Да**: uplink-прокси `registry.npmjs.org` | Node.js, лёгкий | Только npm-протокол; встроенной эвикции/лимита нет; OIDC-плагин сторонний и заброшен |
+| **npm/apt/raw** | Nexus CE `3.96.2-01` | EPL-1.0 | **Да**: npm, apt, raw, docker, Go, PyPI и др. | 2 CPU / 8 GiB | Единственный «один на всё», но тяжёлый и требует PostgreSQL в k8s |
+| **generic HTTP** | nginx `proxy_cache` | BSD-2 | **Да**: кэш произвольного HTTPS-upstream (nginx сам TLS-клиент) | минимальный | Нет MITM: клиент ходит на nginx; `proxy_ssl_server_name on` обязателен; ссылки в HTML не переписываются |
+| **generic HTTP** | Squid / ATS / Varnish | GPL / Apache / BSD | Частично | средний | Squid для видимого HTTPS — `SslBump` (MITM); Varnish без TLS (нужен Hitch); ATS-доки не проверились |
+| **Go** | Athens `v0.18.1` | Apache-2.0 | **Да**: GOPROXY | средний | Официальный протокол `GOPROXY`; Nexus/Artifactory тоже умеют |
+| **Rust** | `RUSTUP_DIST_SERVER` + reverse proxy | — | Через env | — | Официального self-host зеркала нет; `panamax` `v1.0.14` (2024-06) не обновляется |
+| **Python** | devpi-server `6.20.3` | MIT | **Да**: PyPI mirror | средний | Плюс Nexus PyPI proxy |
+| **apt** | apt-cacher-ng `3.7.5` | — | **Да** | минимальный | Специализированный кэш; альтернатива — Nexus APT proxy |
+| **GitHub Releases** | Forgejo generic + `gh release download` | — | **Нет готового**: стандартного инструмента нет | — | Только ручная/скриптовая перепубликация (текущий подход) |
+
+## Тяжёлые решения (точки отсчёта)
 
 | Кандидат | RAM (официально) | Образ (сжатый) | БД / компоненты | Практический вывод |
 | --- | --- | --- | --- | --- |
-| Nexus Repository 3 `3.95.1` | Small profile: **2 CPU / 8 GB RAM**, min heap 2703M, host min 8 GB | 475.7 MB | Своя (blob stores) | Разумен только при росте потребностей до нескольких форматов |
-| Harbor `2.15.2` | Min **2 CPU / 4 GB RAM**, рекомендовано 4 CPU / 8 GB RAM / 160 GB диск | 696.4 MB (офлайн-инсталлятор) | PostgreSQL + набор контейнеров | Web-UI и сканирование «из коробки», но заметно тяжелее |
-| GitLab CE `19.2.x` | Single node min **8 vCPU / 16 GB RAM** | 1312.5 MB | PostgreSQL + Redis + свои | Оправдан только при готовности поднять GitLab целиком |
+| Nexus Repository 3 `3.96.2-01` | Small profile: **2 CPU / 8 GB RAM**, H2; в k8s H2 не поддержан → PostgreSQL | 475.7 MB | Своя H2 или PostgreSQL | Разумен только при росте до многих форматов в одном месте |
+| Harbor `2.15.2` | Min **2 CPU / 4 GB RAM**, реком. 4 CPU / 8 GB / 160 GB | 696.4 MB (офлайн-инсталлятор) | PostgreSQL + набор контейнеров | Web-UI и сканирование «из коробки», но тяжелее |
+| GitLab CE `19.4.x` | Single node min **8 vCPU / 16 GB RAM** | 1312.5 MB | PostgreSQL + Redis + свои | Оправдан только при готовности поднять GitLab целиком |
+| Dragonfly `2.5.2` | — | — | supernode, scheduler, manager, Redis, MySQL | P2P оправдан в крупных кластерах |
 
 ## Ресурсы
 
-Размеры образов (сжатые, `linux/amd64`, `docker manifest inspect`,
-2026-08-16), потребление RAM (docker stats, 2026-08-16).
+Размеры образов — сжатые, `linux/amd64`, по метаданным реестров (2026-09-21).
+Замеры RAM — локальные измерения `docker stats` от 2026-08-16 (см. «Не
+подтверждённые утверждения»), версии тогда были чуть старше.
 
-### Verdaccio `6.9.2`
+### Zot `v2.1.21`
 
-Образ `verdaccio/verdaccio:latest` — 66.6 MB, обновлён 2026-08-02, 225 517 068
-pulls: [Docker Hub `verdaccio/verdaccio`](https://hub.docker.com/r/verdaccio/verdaccio).
-Релиз 6.9.2 — 2026-08-02:
-[GitHub Releases `verdaccio/verdaccio`](https://github.com/verdaccio/verdaccio/releases).
+- Релиз 2026-09-06: [Releases `project-zot/zot`](https://github.com/project-zot/zot/releases).
+  Образ `ghcr.io/project-zot/zot:v2.1.21` — **71.7 MB** (сумма config+layers
+  манифеста GHCR), digest `sha256:82584438…`.
+- **Один инстанс — много upstream'ов.** `extensions.sync.registries[]`, у каждого
+  `urls[]`, `onDemand: true` (pull-through) и `content[]` с `prefix`/
+  `destination`/`stripPrefix`. Репозиторий поставляет
+  `examples/config-popular-registries.json` разом для `docker.io`, `gitlab`,
+  `ghcr.io`, `quay.io`, `gcr.io`, `registry.k8s.io`:
+  [Mirroring](https://zotregistry.dev/v2.1.21/articles/mirroring/).
+  Документированный шаблон multi-upstream — **path-prefix**
+  (`zot/ghcr.io/...`), а не прозрачный hostname-mirror.
+- Публикуемый образ собирается со **всеми расширениями**
+  (`debug,imagetrust,lint,metrics,mgmt,profile,scrub,search,sync,ui,userprefs,events`;
+  CVE-сканирование — часть `search`, тянет Trivy DB из
+  `ghcr.io/aquasecurity/trivy-db`): [Makefile v2.1.21](https://raw.githubusercontent.com/project-zot/zot/v2.1.21/Makefile).
+  Есть минимальный образ без расширений.
+- Docker Hub из-за rate-limit рекомендуется подключать **только `onDemand`**;
+  для сохранения digest/подписей — `http.compat: ["docker2s2"]` +
+  `sync.preserveDigest: true`:
+  [Mirroring](https://zotregistry.dev/v2.1.21/articles/mirroring/).
+- Auth: mTLS, htpasswd, LDAP, Bearer/OAuth2 + `accessControl`:
+  [Authn/Authz](https://zotregistry.dev/v2.1.21/articles/authn-authz/).
+  Хранилище: ФС (hardlink-dedupe, inline GC), S3/S3-совместимое, GCS:
+  [Admin config](https://zotregistry.dev/v2.1.21/admin-guide/admin-configuration/).
 
-- Измерено: idle RAM ~118.6 MiB, CPU ~0.01% (Docker Desktop, macOS).
-- npm: хостинг + uplink-прокси с кэшем `registry.npmjs.org`; хранилище —
-  файловая ФС по умолчанию; htpasswd + JWT/legacy токены:
-  [What is Verdaccio](https://verdaccio.org/docs/what-is-verdaccio/),
-  [Uplinks](https://verdaccio.org/docs/uplinks),
-  [Authentication](https://verdaccio.org/docs/authentication).
-- Полное описание и источники — в соседнем документе
-  [npm-registry-selfhosted.md](npm-registry-selfhosted.md).
+### CNCF Distribution `v3.1.1`
 
-### cnpmcore `4.34.3`
+- Релиз 2026-05-01: [Releases `distribution/distribution`](https://github.com/distribution/distribution/releases).
+  Образ `registry:3.1.1` — **19.2 MB** (Docker Hub tag metadata).
+- Pull-through — официальный рецепт: `proxy.remoteurl`, `proxy.username` /
+  `proxy.password`, `proxy.ttl` (по умолчанию `168h`, `0` — без истечения),
+  `proxy.exec` для credential helper. Для очистки нужен
+  `storage.delete.enabled: true`:
+  [Registry as a pull through cache](https://distribution.github.io/distribution/recipes/mirror/).
+- **Ограничение: один upstream на инстанс** — «It's currently possible to mirror
+  only one upstream registry at a time»; URL mirror'а — только корень домена.
+  Поэтому pattern — по инстансу на реестр (или общий reverse-proxy спереди).
+- Auth: htpasswd (только bcrypt) или token; хранилище `filesystem` (рекомендуется
+  для proxy), `s3`, `gcs`, `azure`:
+  [Configuration](https://distribution.github.io/distribution/about/configuration/).
 
-Образ `fengmk2/cnpmcore:latest` — 514.2 MB, обновление на Docker Hub —
-2025-03-09 (**устарел** относительно релизов репозитория 2026-08-16):
-[Docker Hub `fengmk2/cnpmcore`](https://hub.docker.com/r/fengmk2/cnpmcore),
-[GitHub `cnpm/cnpmcore`](https://github.com/cnpm/cnpmcore).
+### Forgejo `v16.0.5` (текущий хостинг)
 
-- Описание проекта — «Private NPM Registry for Enterprise»:
-  [GitHub `cnpm/cnpmcore` — README](https://github.com/cnpm/cnpmcore).
-- Self-host требует внешние БД: в официальном `docker-compose.yml` поднимаются
-  `mysql:9` + `redis:6-alpine` (и phpmyadmin для разработки):
-  [docker-compose.yml `cnpm/cnpmcore`](https://raw.githubusercontent.com/cnpm/cnpmcore/master/docker-compose.yml).
-- Официальных системных требований к RAM/диску найти не удалось (см. раздел
-  «Не подтверждённые утверждения»).
+- Релиз 2026-09-17: [Codeberg releases API](https://codeberg.org/api/v1/repos/forgejo/forgejo/releases).
+  Образ `forgejo/forgejo:16-rootless` ~80 MB (16.0.x), локально измеренный idle
+  RAM ~104–125 MiB (SQLite, 2026-08-16). В homelab база — CNPG PostgreSQL.
+- Контейнерный реестр и 20+ форматов пакетов, **только хостинг**:
+  [Container](https://forgejo.org/docs/latest/user/packages/container/),
+  [Generic](https://forgejo.org/docs/latest/user/packages/generic/),
+  [Config cheat sheet](https://forgejo.org/docs/latest/admin/config-cheat-sheet/).
+- В коде контейнерного API нет обработки proxy/upstream/mirror (см. «Текущая
+  реальность»).
 
-### CNCF Distribution (Docker Distribution, `registry`) `3.1.1`
+### Verdaccio `v6.10.4`
 
-Образ `registry:latest` — 19.2 MB, обновлён 2026-06-23, 1 764 409 466 pulls:
-[Docker Hub `library/registry`](https://hub.docker.com/r/library/registry).
-Релиз v3.1.1 — 2026-05-01:
-[GitHub Releases `distribution/distribution`](https://github.com/distribution/distribution/releases).
+- Релиз 2026-09-20: [Releases `verdaccio/verdaccio`](https://github.com/verdaccio/verdaccio/releases),
+  npm `latest` = 6.10.4.
+- Uplink-кэш: `cache: true` (по умолчанию), `maxage` (2m), `fail_timeout` (5m),
+  `max_fails` (2), `timeout`. **Uplinks обязаны быть npm-совместимыми** — apt,
+  docker и generic HTTP Verdaccio не проксирует:
+  [Uplinks](https://verdaccio.org/docs/uplinks).
+- Хранилище — ФС (`storage:`, `VERDACCIO_STORAGE_PATH`), `store:`-плагины для S3
+  и т. п.; встроенного лимита/эвикции кэша в документации нет:
+  [Configuration](https://verdaccio.org/docs/configuration).
+- OIDC: официального плагина нет; сторонний `verdaccio-openid-connect` 3.0.0
+  (версия 2024, репозиторий не обновлялся ~2 года) — узкое место:
+  [GitHub](https://github.com/deeplay-io/verdaccio-openid-connect),
+  [npm](https://registry.npmjs.org/verdaccio-openid-connect/latest).
 
-- Измерено: idle RAM ~11.5 MiB (стартовый всплеск ~50 MiB).
-- Pull-through cache Docker Hub — официальный рецепт:
-  [Registry as a pull through cache](https://distribution.github.io/distribution/recipes/mirror/);
-  авторизация htpasswd/token:
-  [Configuration — auth](https://distribution.github.io/distribution/about/configuration/).
-- Сборка мусора описана в официальной документации:
-  [Garbage collection](https://distribution.github.io/distribution/about/garbage-collection/).
-- Web-UI нет. Полное описание — в соседнем документе
-  [docker-registry-selfhosted.md](docker-registry-selfhosted.md).
+### Nexus CE `3.96.2-01`
 
-### Zot `v2.1.20`
+- Релиз 2026-09-18: [Releases `sonatype/nexus-public`](https://github.com/sonatype/nexus-public/releases),
+  [release notes 3.96.0](https://help.sonatype.com/en/sonatype-nexus-repository-3-96-0-release-notes.html).
+- В CE (feature matrix) — Alpine, APT, Docker, Go, npm, PyPI, Rust Cargo, raw и
+  др.; PRO — Azure/GCS blob stores, HA, SAML, content replication:
+  [Feature matrix](https://help.sonatype.com/en/nexus-repository-feature-matrix.html).
+- Docker proxy — **один upstream на репозиторий**:
+  [Proxy repository for Docker](https://help.sonatype.com/en/proxy-repository-for-docker.html).
+- Raw proxy умеет проксировать статические деревья (пример из доков —
+  `https://nodejs.org/dist/`):
+  [Raw repositories](https://help.sonatype.com/en/raw-repositories.html).
+- Требования: Small — **2 CPU / 8 GB RAM / 20 GB**, Java 21; контейнерный деплой
+  с H2 **не поддержан** → для k8s нужен внешний PostgreSQL:
+  [System requirements](https://help.sonatype.com/en/sonatype-nexus-repository-system-requirements.html).
 
-Образ `ghcr.io/project-zot/zot:latest` — 70.9 MB (amd64; digest
-`sha256:542e25be…`), соответствует релизу v2.1.20 (2026-08-04):
-[GitHub Releases `project-zot/zot`](https://github.com/project-zot/zot/releases).
+### Generic HTTP-кэш (nginx)
 
-- Релизные бинарные артефакты (GitHub Releases API): `zot-linux-amd64`
-  **214.6 MB** (полная сборка), `zot-linux-amd64-minimal` **78.1 MB**.
-- Измерено: idle RAM ~83.4 MiB после прогрева; при первом старте CPU ~100% —
-  качается база уязвимостей trivy (см. ниже).
-- Опубликованный образ по умолчанию запускает **полную** сборку с включёнными
-  расширениями `search` (CVE/trivy, updateInterval 2h) + `ui` + `mgmt` — это
-  подтверждено извлечением `/etc/zot/config.json` из образа (замечено также в
-  логах первого запуска: download trivy db). Минимальная конфигурация — образ,
-  собранный по `build/Dockerfile-minimal`, и конфиг из
-  [examples/config-minimal.json](https://raw.githubusercontent.com/project-zot/zot/main/examples/config-minimal.json):
-  [build/Dockerfile](https://raw.githubusercontent.com/project-zot/zot/main/build/Dockerfile),
-  [build/Dockerfile-minimal](https://raw.githubusercontent.com/project-zot/zot/main/build/Dockerfile-minimal).
-- Спецификации — OCI Distribution и OCI Image; **npm-протокол не поддерживается**
-  (npm-клиенты к Zot не подключаются):
-  [Zot — features](https://zotregistry.dev/v2.1.20/general/features/).
-- Pull-through cache, хранилища (ФС/S3/GCS/Azure), auth (htpasswd/LDAP/OIDC/mTLS) —
-  [Zot docs](https://zotregistry.dev/v2.1.20/).
+- `ngx_http_proxy_module`: `proxy_cache_path`, `proxy_cache`,
+  `proxy_ssl_server_name on` (по умолчанию **off** — без него SNI upstream'у не
+  уйдёт), `resolver` при `proxy_pass` с переменными:
+  [nginx docs](https://nginx.org/en/docs/http/ngx_http_proxy_module.html).
+- MITM-варианты: Squid `SslBump` (документация сама называет это
+  man-in-the-middle), Varnish без TLS (нужен Hitch), ATS — доки в текущей сессии
+  не проверились:
+  [Squid HTTPS](https://wiki.squid-cache.org/Features/HTTPS),
+  [hitch](https://github.com/varnish/hitch).
 
-### Gitea Packages `1.27.x`
+### apt-cacher-ng `3.7.5`
 
-Образ `docker.gitea.com/gitea:1.27.1` — 68.7 MB.
-Официально «A Raspberry Pi 3 is powerful enough to run Gitea for small workloads»
-и «2 CPU cores and 1GB RAM is typically sufficient for small teams/projects»:
-[What is Gitea?](https://docs.gitea.com/).
-Вклад именно пакетного реестра в RAM отдельно не документирован (оценка).
-
-- npm: [NPM Package Registry](https://docs.gitea.com/usage/packages/npm);
-- container: [Container Registry](https://docs.gitea.com/usage/packages/container);
-- оба — только хостинг своих пакетов/образов, без прокси-кэша.
-
-### Forgejo (альтернатива Gitea)
-
-Образ `codeberg.org/forgejo/forgejo:16.0.2` — 80.3 MB сжатый (amd64,
-`docker manifest inspect` из реестра, 2026-08-16); локальный распакованный —
-~73.0 MiB. Официальное зеркало образов — `data.forgejo.org`, есть rootless-тег
-`:16-rootless`. Стабильный релиз 16.0.2 (2026-07-30, поддержка до 2026-10-29),
-LTS 15.0.6 (поддержка до 2027-07-15):
-[Forgejo — Releases](https://forgejo.org/releases/),
-[Installation with Docker](https://forgejo.org/docs/v16.0/admin/installation/docker/).
-
-- Измерено: idle RAM ~104–125 MiB, CPU ~0.1% (SQLite, отключены Actions и
-  индексаторы, Docker Desktop (macOS), 2026-08-16).
-- npm и Container реестры — как в Gitea (хостинг своих пакетов/образов, без
-  прокси-кэша): [npm Package Registry](https://forgejo.org/docs/v16.0/user/packages/npm/),
-  [Container Registry](https://forgejo.org/docs/v16.0/user/packages/container/).
-- Вход пользователей через внешний OIDC-провайдер (клиент/RP) поддерживается:
-  секция `[oauth2_client]` (`OPENID_CONNECT_SCOPES`, `ENABLE_AUTO_REGISTRATION`,
-  `USERNAME = preferred_username`, `ACCOUNT_LINKING`):
-  [Configuration Cheat Sheet](https://forgejo.org/docs/v16.0/admin/config-cheat-sheet/);
-  подтверждено и в дефолтном `app.example.ini` (строки ~1652–1686).
-- Лицензия: **с v9.0 (коммит «Forgejo v9.0 is GPLv3+», 2024-07-25) Forgejo
-  перешёл на GPL-3.0-or-later** (Gitea — MIT): файл `LICENSE` в репозитории
-  [forgejo/forgejo](https://codeberg.org/forgejo/forgejo).
-- Миграция: прозрачный апгрейд Gitea→Forgejo возможен только до **Gitea v1.22 →
-  Forgejo v10.0.x**; для Gitea 1.23+ нужна ручная правка БД или миграция
-  репозиториев в приложении: [Gitea compatibility](https://forgejo.org/2024-12-gitea-compatibility/).
-  Для текущего homelab (Gitea 1.27.x) переход не прозрачен.
-- Официальных системных требований (RAM/диск) Forgejo не публикует; README
-  позиционирует проект как лёгкий — «Forgejo can easily be hosted on nearly
-  every machine».
+- Специализированный кэш-прокси для пакетов дистрибутива, без интерпретатора и
+  больших зависимостей:
+  [Debian sources](https://sources.debian.org/api/src/apt-cacher-ng/),
+  [ACNG](https://www.unix-ag.uni-kl.de/~bloch/acng/).
 
 ## Вывод для homelab
 
-1. **Хостинг собственных пакетов и образов уже решён** без новых компонентов:
-   Gitea Packages на текущем Gitea 1.27.x умеет и npm-пакеты, и контейнерные
-   образы, а вход пользователей работает через OIDC (Pocket ID). Осталась
-   только задача **кэширования** публичных реестров.
-2. **Рекомендуемый вариант: Gitea + Verdaccio + Distribution.**
-   - Verdaccio `6.9.2` закрывает npm целиком: приватный хостинг (если нужен
-     отдельно от Gitea) + кэширующий uplink `registry.npmjs.org`. OIDC-вход
-     возможен только через сторонний устаревший плагин `verdaccio-openid-connect`
-     (3.0.0, 2024) — если OIDC для npm обязателен, это узкое место. Встроенного
-     ограничения размера кэша у Verdaccio нет (диск растёт с кэшем); при
-     желании ограничить кэшируемое — `cache: false` на uplink + фильтр по имени
-     (`@verdaccio/package-filter`).
-   - CNCF Distribution `3.1.1` — минимальный pull-through кэш Docker Hub
-     (19.2 MB, ~12 MiB RAM); лимита размера нет, но есть `proxy.ttl`
-     (по умолчанию 168h) для истечения кэшированных слоёв.
-   - Дополнительный бюджет: ~150 MiB RAM (Verdaccio ~119 MiB + Distribution
-     ~12 MiB + накладные расходы Docker), ~86 MB образов, два compose-сервиса
-     за Traefik.
-3. **Forgejo вместо Gitea — нецелесообразно.** Возможности пакетного реестра и
-   OIDC-входа у Forgejo такие же, вес сопоставим (~104–125 MiB, образ 80.3 MB),
-   но переход с Gitea 1.23+ не прозрачен (нужна ручная миграция БД), а лицензия
-   с v9.0 — GPL-3.0-or-later. Менять Gitea на Forgejo ради реестров смысла нет.
-4. **Альтернатива: Zot вместо Distribution.** Zot `v2.1.20` даёт встроенный
-   web-UI, LDAP/OIDC, S3/GCS/Azure-хранилище и кэш on-demand при сопоставимом
-   весе (~83 MiB), но официальный образ по умолчанию включает поиск + CVE
-   (первый запуск качает базу trivy); для «голого» минимального кэша — собранный
-   по `Dockerfile-minimal` бинарь. npm при этом всё равно закрывается Verdaccio.
-5. **Избыточно для homelab:** cnpmcore (MySQL + Redis, образ 514 MB, тег на
-   Docker Hub устарел); Nexus (8 GB RAM — при этом OIDC есть уже в Community
-   Edition); Harbor (4–8 GB RAM); GitLab (16 GB RAM). Эти решения остаются
-   актуальными только при перерастании потребностей домашней сети.
+1. **Хостинг первого своего уже решён, кэш — нет.** Forgejo 16.x хостит
+   контейнерные образы и 20+ форматов, но **не проксирует**; значит, слой
+   кэширования — отдельный сервис. Ручная перепубликация бинарников в Forgejo
+   generic packages остаётся рабочим приёмом, но это не кэш, а копия.
+2. **OCI — основной сценарий. Рекомендация: Zot `v2.1.21`.**
+   Один инстанс, один конфиг на все upstream'ы (`docker.io`, `ghcr.io`,
+   `quay.io`, `registry.k8s.io`, …), on-demand-кэш, OIDC (совпадает с Zitadel),
+   S3-хранилище (в homelab есть RustFS), UI; образ ~72 MB — на уровне Forgejo.
+   Потребители:
+   - **кластер**: `hosts.toml` на каждый реестр в
+     `/etc/k0s/containerd.d/certs.d/<host>/` (drop-in, `version = 3`), либо
+     `spec.images.repository` для образов самого k0s;
+   - **CI**: `registry-mirrors` в `/etc/docker/daemon.json` сайдкара `dind`
+     закрывает **только Docker Hub**; для `ghcr.io`/`quay.io` job-образов
+     прозрачного пути нет — ссылаться на путь кэша явно в label'ах/workflow'ах.
+   - Docker Hub подключать `onDemand`; для пинов по digest —
+     `docker2s2` + `preserveDigest`.
+3. **Альтернатива OCI: CNCF Distribution `v3.1.1`.** Абсолютный минимум
+   (19 MB, ~12 MiB RAM), но **по инстансу на upstream**. Выигрывает, если нужен
+   предельно простой кэш для одного-двух реестров и не нужны UI/OIDC/
+   multi-upstream. Для пары десятков реестров это уже много инстансов.
+4. **npm:** Verdaccio `v6.10.4` — единственный лёгкий вариант; закрывает
+   host + uplink-кэш `registry.npmjs.org`. OIDC только сторонним устаревшим
+   плагином — если OIDC обязателен, это его слабое место; в CI чаще достаточно
+   токена/анонимного чтения.
+5. **Бинарники/тулчейны (GitHub Releases, rustup, go.dev, Maven):** стандартного
+   кэша нет. Практичные варианты, по возрастанию веса:
+   - **nginx `proxy_cache`** на фиксированный allowlist upstream'ов + смена URL
+     в workflow'ах / tool-specific env (`RUSTUP_DIST_SERVER`, `GOPROXY`);
+   - оставить текущий приём: разовая публикация в Forgejo generic packages
+     (`gh release download` + `PUT /api/packages/.../generic/...`);
+   - **Nexus CE raw proxy** — если уже поднимается Nexus ради apt/npm.
+6. **apt (опционально):** apt-cacher-ng, если сборка образов часто тянет пакеты.
+7. **Один комбайн вместо набора — Nexus CE `3.96.2-01`** (npm+apt+raw+docker+Go
+   в одном), но цена — **8 GiB RAM**, Java 21 и PostgreSQL в k8s. Для
+   одноузлового homelab это не «лёгкий» выбор; Harbor (4–8 GB) и GitLab (16 GB)
+   тяжелее ещё на порядок. Artifactory OSS — **Java-only**, npm/docker/generic
+   в нём не проксируются: [JFrog Open Source](https://jfrog.com/open-source/).
+8. **Практичная композиция:** **Zot (OCI) + Verdaccio (npm) + nginx
+   `proxy_cache` (бинарники)** дают покрытие всех четырёх категорий при
+   сопоставимом с одним Forgejo бюджете; Nexus/Harbor — только при сознательном
+   согласии на 4–8 GiB ради «одного окна».
 
 ## Не подтверждённые утверждения
 
-- **Замеры RAM** (Verdaccio ~119 MiB, Distribution ~12 MiB, Zot ~83 MiB,
-  Forgejo ~104–125 MiB) — это локальные измерения `docker stats` от 2026-08-16
-  на Docker Desktop (macOS), а не цифры из официальных документов. Для «самых
-  лёгких» кандидатов первичных цифр не существует.
-- **Замер размера образа Forgejo (80.3 MB сжатый, amd64)** — получен из
-  манифеста реестра (`docker manifest inspect`/registry API, 2026-08-16), а не
-  из официальной документации; официальных системных требований Forgejo не
-  публикует.
-- **Forgejo: даты поддержки релизов** — «16.0.2 до 2026-10-29», «15.0.6 LTS до
-  2027-07-15» — по [forgejo.org/releases](https://forgejo.org/releases/) на
-  2026-08-16 и могут сдвигаться.
-- **«Zot npm-клиентами не поддерживается»** — выведено из того, что Zot
-  реализует OCI Distribution и OCI Image спецификации и в официальных материалах
-  не описывается npm-интерфейс; прямого документа «npm не поддерживается» нет.
-- **«Официальный образ Zot включает расширения по умолчанию»** — подтверждено
-  извлечением `/etc/zot/config.json` из опубликованного образа (search/CVE + ui
-  + mgmt), а не документацией; в документации описаны расширения как опция.
-- **Gitea: вклад пакетного реестра в RAM** — официально не выделен; цифра «1 GB
-  RAM достаточно» относится к Gitea в целом.
-- **cnpmcore: системные требования** (RAM, диск) — официального документа не
-  найдено; вывод о тяжести основан на составе образа (514.2 MB) и обязательных
-  внешних MySQL + Redis.
-- **Zot: размер каталога базы trivy** — измерить не удалось (в образе нет
-  командной оболочки).
-- **Verdaccio: плагин OIDC `verdaccio-openid-connect`** — данные npm и GitHub на
-  2026-08-16 (npm 3.0.0 от 2024-10-18, репозиторий deeplay-io, 16 звёзд, без
-  файла лицензии, не архивирован); совместимость заявлена для Verdaccio 4/5/6 и
-  с текущей 6.9.x на практике не проверялась.
-- **«У Verdaccio нет управления размером кэша»** — вывод из документации uplink
-  (`cache`, `maxage`) и назначения плагина `@verdaccio/package-filter` (фильтр
-  по имени, а не очистка); отдельного раздела «управление размером кэша» нет.
-- **Distribution `proxy.ttl`** — описание «expire proxy cache … 168h default,
-  set to 0 to disable» из официальной документации конфигурации; на практике не
+- **Замеры RAM** (Zot ~83 MiB, Distribution ~12 MiB, Forgejo ~104–125 MiB) —
+  локальные `docker stats` от 2026-08-16 (Docker Desktop, macOS), версии чуть
+  старше текущих; официальных цифр для «самых лёгких» кандидатов нет.
+- **Размеры образов** — из метаданных реестров (`docker manifest inspect` /
+  registry API) на 2026-09-21, а не из документации; зависят от тега и
+  архитектуры.
+- **«containerd `?ns=` понимают Distribution/Zot»** — прямых подтверждений в
+  документации/коде не найдено. Официальный multi-upstream у Zot — path-prefix,
+  поэтому в homelab рассчитывать на прозрачный `_default`-mirror нельзя без
+  проверки на стенде.
+- **«Docker daemon mirror только для Docker Hub»** — из документации
+  Distribution и Docker; поведение по версиям Docker Engine отдельно не
   проверялось.
-- **Nexus: OIDC в Community Edition** — выведено из того, что в списке
-  Pro-функций OIDC отсутствует (Pro-реальм — SAML и Crowd), а в документации
-  аутентификации OIDC описан среди реальмов; прямой формулировки «OIDC доступен
-  в CE» документация не содержит.
-- **Путь колбэка OIDC-клиента Forgejo/Gitea** (`{ROOT_URL}/user/oauth2/{name}/callback`)
-  — из официальной документации не подтверждён (секция `[oauth2_client]` путь не
-  описывает); проверить по исходному коду не удалось — codeberg.org был
-  недоступен 2026-08-16. Важно для регистрации redirect URI в Pocket ID.
-- **Pull-счётчики Docker Hub** (Verdaccio 225 517 068, registry 1 764 409 466,
-  nexus3 200 822 619, harbor-portal 22 789 993) — актуальны на 2026-08-16.
+- **Zot: расширения в публикуемом образе** — подтверждено Makefile v2.1.21
+  (собирается со всеми расширениями); в документации расширения описаны как
+  опция. Размер каталога Trivy DB измерить не удалось.
+- **Zot: встроенного управления размером кэша нет** — вывод из отсутствия
+  соответствующего раздела в документации, а не прямое утверждение.
+- **Nexus: OIDC-редакция** — OIDC-реалм описан в документации, но feature
+  matrix отдельно не помечает его; принадлежность CE не подтверждена.
+- **Nexus: «контейнерный деплой с H2 не поддержан»** — формулировка официальной
+  страницы системных требований; подразумевает обязательный внешний PostgreSQL
+  в k8s.
+- **Verdaccio: лимит/эвикция кэша, размер образа** — первичного документа с
+  явным утверждением нет; «управления размером кэша нет» — вывод из описания
+  uplink (`cache`, `maxage`) и назначения `@verdaccio/package-filter`
+  (фильтр по имени, не очистка).
+- **nginx как «стандартный» кэш для CI** — приём распространённый, но
+  первичного источника, что это отраслевой стандарт, нет; JetBrains
+  `artifacts-caching-proxy` и `locaccel` — низкоадоптированные эксперименты.
+- **GitHub Releases mirroring** — стандартного инструмента нет; первичные
+  примитивы — `gh release download` и Forgejo generic packages.
+- **Forgejo runner `config.example.yaml`** — файл прочитать не удалось
+  (code.forgejo.org отдаёт anti-bot challenge), поэтому отсутствие
+  runner-level registry-mirror выведено из публичной документации.
+- **Dragonfly containerd proxy/mirror** — страница документации рендерится
+  клиентским JS, подтверждён только README + sitemap.
+- **GitLab CE `19.4.x`, Harbor `2.15.2`, Nexus `3.96.2-01`,
+  Dragonfly `2.5.2`** — тяжёлые точки отсчёта: RAM/размеры взяты из официальных
+  требований и прошлых редакций документа; актуальность на 2026-09-21 по каждой
+  цифре отдельно не перепроверялась.

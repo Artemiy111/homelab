@@ -20,7 +20,7 @@
 [k0s-setup-guide-vanilla.md](./k0s-setup-guide-vanilla.md),
 [cni-solutions.md](./cni-solutions.md),
 [../network-filesystem-extension.md](../network-filesystem-extension.md) (NFS/iSCSI/ZFS/SeaweedFS/JuiceFS),
-[../docker-registry-selfhosted.md](../docker-registry-selfhosted.md).
+[../registry-lightweight-comparison.md](../registry-lightweight-comparison.md) (реестры и кэш пакетов).
 
 ---
 
