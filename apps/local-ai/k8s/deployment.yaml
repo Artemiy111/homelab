@@ -4,7 +4,7 @@ metadata:
   name: local-ai
   namespace: local-ai
 spec:
-  # hostPath-каталоги нельзя монтировать в два пода одновременно.
+  # RWO-тома: два пода при rolling update пишут в одни каталоги.
   strategy:
     type: Recreate
   revisionHistoryLimit: 2
@@ -18,6 +18,9 @@ spec:
         app: local-ai
     spec:
       terminationGracePeriodSeconds: 120
+      # fsGroup даёт групповую запись в тома Longhorn для пользователя 1000.
+      securityContext:
+        fsGroup: 1000
       containers:
         - name: local-ai
           image: "localai/localai:v4.8.0@sha256:78befe43707579dbe1b1d3f17d9788aa41ec493da30a6b6aabdf39e5efd23b7c"
@@ -100,17 +103,14 @@ spec:
             path: /storage/apps/local-ai/models
             type: Directory
         - name: backends
-          hostPath:
-            path: /storage/apps/local-ai/backends
-            type: Directory
+          persistentVolumeClaim:
+            claimName: local-ai-backends
         - name: configuration
-          hostPath:
-            path: /storage/apps/local-ai/configuration
-            type: Directory
+          persistentVolumeClaim:
+            claimName: local-ai-configuration
         - name: data
-          hostPath:
-            path: /storage/apps/local-ai/data
-            type: Directory
+          persistentVolumeClaim:
+            claimName: local-ai-data
         - name: tmp
           emptyDir:
             sizeLimit: 4Gi

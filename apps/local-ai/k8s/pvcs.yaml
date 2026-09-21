@@ -1,0 +1,45 @@
+# Движки, конфигурация и состояние LocalAI: без backup target, поэтому
+# longhorn-retain. Тома на одной ноде требуют strategy.type: Recreate (см.
+# deployment.yaml). Каталог моделей (`/models`) остаётся hostPath — 84 ГБ,
+# осознанно вне Longhorn.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: local-ai-backends
+  namespace: local-ai
+spec:
+  storageClassName: longhorn-retain
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      # Движки моделей ~1.8 ГБ; запас под дополнительные бэкенды.
+      storage: 3Gi
+---
+# Конфигурация LocalAI (~4 КБ).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: local-ai-configuration
+  namespace: local-ai
+spec:
+  storageClassName: longhorn-retain
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 64Mi
+---
+# Данные LocalAI (~224 КБ).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: local-ai-data
+  namespace: local-ai
+spec:
+  storageClassName: longhorn-retain
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 64Mi
