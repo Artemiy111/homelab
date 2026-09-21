@@ -57,6 +57,5 @@ spec:
               mountPath: /data
       volumes:
         - name: data
-          hostPath:
-            path: /storage/apps/infisical/redis
-            type: Directory
+          # Кэш Redis — эфемерный, данные не персистим.
+          emptyDir: {}
