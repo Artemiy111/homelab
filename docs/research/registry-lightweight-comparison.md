@@ -22,9 +22,8 @@
   (`runs-on`) и образы, которые workflow'ы собирают/пуллят внутри job'ов;
 - **npm** — `bun install`/`npm install` внутри CI;
 - **бинарники/тулчейны** — GitHub Releases, `go.dev`, `static.rust-lang.org`,
-  `archive.apache.org`; сегодня такие артефакты вручную перепубликуются в
-  Forgejo generic packages (`scripts/publish-kubeconform-assets.sh`,
-  `.forgejo/workflows/secrets.yml`);
+  `archive.apache.org`; такие артефакты заранее зеркалируются в RustFS
+  (`mirror/artifacts.tsv` + `scripts/mirror-sync.sh`, CronJob `mirror-sync`);
 - **apt** — пакеты ОС в образах сборки (опционально).
 
 «Лёгкость» оценивается по трём осям: потребление RAM, размер Docker-образа,
@@ -43,7 +42,7 @@
 | CI | Forgejo Runner + `docker:dind` сайдкар; доступ к Forgejo есть, к части внешних хостов (github.com) — нет |
 | OCI-кэш | **отсутствует** |
 | npm-кэш | **отсутствует** |
-| Бинарь-кэш | вручную: Forgejo generic packages |
+| Бинарь-кэш | зеркало в RustFS (CronJob `mirror-sync`) |
 
 Ключевой факт: **Forgejo не умеет проксировать/кэшировать** — подтверждено
 официальной документацией и кодом. В `[packages]` нет ключей proxy/mirror/cache,
@@ -122,7 +121,7 @@
 | **Rust** | `RUSTUP_DIST_SERVER` + reverse proxy | — | Через env | — | Официального self-host зеркала нет; `panamax` `v1.0.14` (2024-06) не обновляется |
 | **Python** | devpi-server `6.20.3` | MIT | **Да**: PyPI mirror | средний | Плюс Nexus PyPI proxy |
 | **apt** | apt-cacher-ng `3.7.5` | — | **Да** | минимальный | Специализированный кэш; альтернатива — Nexus APT proxy |
-| **GitHub Releases** | Forgejo generic + `gh release download` | — | **Нет готового**: стандартного инструмента нет | — | Только ручная/скриптовая перепубликация (текущий подход) |
+| **GitHub Releases** | зеркало в RustFS (`mirror-sync`) | — | **Нет готового**: стандартного инструмента нет | — | Заранее скачанные версии в RustFS, анонимная выдача |
 
 ## Тяжёлые решения (точки отсчёта)
 
@@ -249,8 +248,8 @@
 
 1. **Хостинг первого своего уже решён, кэш — нет.** Forgejo 16.x хостит
    контейнерные образы и 20+ форматов, но **не проксирует**; значит, слой
-   кэширования — отдельный сервис. Ручная перепубликация бинарников в Forgejo
-   generic packages остаётся рабочим приёмом, но это не кэш, а копия.
+   кэширования — отдельный сервис. Бинарники заранее зеркалируются в RustFS
+   (`mirror/artifacts.tsv` + CronJob `mirror-sync`), а не перепубликуются вручную.
 2. **OCI — основной сценарий. Рекомендация: Zot `v2.1.21`.**
    Один инстанс, один конфиг на все upstream'ы (`docker.io`, `ghcr.io`,
    `quay.io`, `registry.k8s.io`, …), on-demand-кэш, OIDC (совпадает с Zitadel),
@@ -278,8 +277,8 @@
    кэша нет. Практичные варианты, по возрастанию веса:
    - **nginx `proxy_cache`** на фиксированный allowlist upstream'ов + смена URL
      в workflow'ах / tool-specific env (`RUSTUP_DIST_SERVER`, `GOPROXY`);
-   - оставить текущий приём: разовая публикация в Forgejo generic packages
-     (`gh release download` + `PUT /api/packages/.../generic/...`);
+   - зеркало в RustFS (`mirror/artifacts.tsv` + CronJob `mirror-sync`) — так и
+     сделано для `gitleaks`/`kubeconform`;
    - **Nexus CE raw proxy** — если уже поднимается Nexus ради apt/npm.
 6. **apt (опционально):** apt-cacher-ng, если сборка образов часто тянет пакеты.
 7. **Один комбайн вместо набора — Nexus CE `3.96.2-01`** (npm+apt+raw+docker+Go
@@ -325,7 +324,7 @@
   первичного источника, что это отраслевой стандарт, нет; JetBrains
   `artifacts-caching-proxy` и `locaccel` — низкоадоптированные эксперименты.
 - **GitHub Releases mirroring** — стандартного инструмента нет; первичные
-  примитивы — `gh release download` и Forgejo generic packages.
+  примитивы — `gh release download` и зеркало в S3 (RustFS).
 - **Forgejo runner `config.example.yaml`** — файл прочитать не удалось
   (code.forgejo.org отдаёт anti-bot challenge), поэтому отсутствие
   runner-level registry-mirror выведено из публичной документации.

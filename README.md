@@ -116,8 +116,10 @@ production-практикам DevOps.
   общие middleware (`oauth2-proxy.middleware.yaml`) и маршрут дашборда.
 - `ansible/` — пакеты и подготовка хоста.
 - `.forgejo/workflows/` — CI на Forgejo Actions: `commitlint`, `gitleaks`,
-  `ansible-lint`, `kubeconform` (валидация манифестов по схемам Kubernetes;
-  артефакты — `scripts/publish-kubeconform-assets.sh`).
+  `ansible-lint`, `kubeconform` (валидация манифестов по схемам Kubernetes).
+- `mirror/` — манифест артефактов для CI (`artifacts.tsv`); их скачивает и
+  складывает в RustFS `scripts/mirror-sync.sh` (CronJob `mirror-sync`, см.
+  `apps/rustfs/README.md`).
 - `etc/`, `dotfiles/`, `scripts/`, `docs/` — конфиги ОС, шелл, скрипты и
   документация.
 

@@ -61,6 +61,43 @@ aws --endpoint-url https://s3.${DOMAIN} \
 на существующих данных создать нового пользователя через консоль/API, а не
 переопределять env.
 
+## Зеркало артефактов для CI
+
+Бакет `mirror` — generic-хранилище заранее скачанных артефактов (бинарники,
+tarball'ы), которые CI тянет анонимно по HTTP, не ходя в интернет:
+
+```text
+http://rustfs.rustfs.svc.cluster.local:9000/mirror/<path>
+```
+
+Что зеркалировать — `mirror/artifacts.tsv` (`<path> <sha256> <url>`). Скачивает
+и складывает CronJob `mirror-sync` (образ `amazon/aws-cli`; egress есть только
+у него); схемы kubeconform он же собирает из git. Артефакты с известным sha256
+проверяются перед загрузкой, а CI — после скачивания. Бакет append-only: чтобы
+заменить версию, удалить объект и перезапустить.
+
+Применение (скрипт и манифест едут в ConfigMap, поэтому двумя шагами):
+
+```sh
+kubectl -n rustfs create configmap mirror-sync \
+  --from-file=mirror-sync.sh=scripts/mirror-sync.sh \
+  --from-file=artifacts.tsv=mirror/artifacts.tsv \
+  --dry-run=client -o yaml | kubectl apply -f -
+kubectl apply -f apps/rustfs/k8s/mirror-sync.cronjob.yaml
+kubectl -n rustfs create job --from=cronjob/mirror-sync mirror-sync-manual
+```
+
+Проверка анонимного доступа:
+
+```sh
+kubectl -n rustfs exec deploy/rustfs -- \
+  curl -fsS -o /dev/null -w '%{http_code}\n' \
+  http://rustfs:9000/mirror/kubeconform/0.8.0/kubeconform_0.8.0_linux_amd64.tar.gz
+```
+
+Доступ из job'ов CI обеспечивает NetworkPolicy `allow-ingress` (namespace
+`forgejo` → порт 9000).
+
 ## Ограничения текущей схемы
 
 - Single-node single-disk: нет ни репликации, ни erasure coding.

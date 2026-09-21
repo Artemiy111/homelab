@@ -26,3 +26,11 @@ spec:
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: traefik
+    # CI (job'ы Forgejo) тянет артефакты из зеркала анонимно по HTTP.
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: forgejo
+      ports:
+        - port: 9000
+          protocol: TCP

@@ -23,43 +23,38 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.local/bin
-          key: kubeconform-0.8.0-${{ runner.os }}
+          key: kubeconform-0.8.0-mirror-${{ runner.os }}
       - name: Cache schemas
         id: schemas
         uses: actions/cache@v4
         with:
           path: ~/.cache/kubeconform-schemas
-          # суффикс -2 — инвалидация кэша после перепаковки архива схем
-          # (xattr-free); при обновлении пакета в Forgejo суффикс поднимаем.
-          key: kubeconform-schemas-1.36.3-2-${{ runner.os }}
-      # Бинарь и набор схем лежат в Forgejo generic packages (у раннера нет
-      # доступа к github.com, а до Forgejo — есть). Пакеты публичные, скачивание
-      # анонимное, PAT/секрет не нужен. Скачивается один раз, дальше — из кэша.
-      #
-      # Опубликовать/обновить (нужен PAT со scope write:package) —
-      # scripts/publish-kubeconform-assets.sh:
-      #   kubeconform          0.8.0   kubeconform_0.8.0_linux_amd64.tar.gz
-      #   kubeconform-schemas  1.36.3  kubernetes-json-schema_1.36.3_standalone.tar.gz
+          key: kubeconform-schemas-1.36.3-mirror-${{ runner.os }}
+      # Бинарь и набор схем берём из зеркала RustFS (issue #149): раннеру не
+      # нужен интернет. У скачанного бинаря сверяем sha256 с
+      # mirror/artifacts.tsv; схемы собираются в зеркало воспроизводимо, поэтому
+      # хэш в манифесте не пинится. Скачивается один раз, дальше — из кэша выше.
+      # Зеркало наполняет CronJob mirror-sync (apps/rustfs).
       - name: Install kubeconform
         if: steps.kubeconform.outputs.cache-hit != 'true'
         run: |
           set -euo pipefail
-          url="${{ github.server_url }}/api/packages/${{ github.repository_owner }}/generic/kubeconform/0.8.0/kubeconform_0.8.0_linux_amd64.tar.gz"
+          asset="kubeconform/0.8.0/kubeconform_0.8.0_linux_amd64.tar.gz"
+          url="http://rustfs.rustfs.svc.cluster.local:9000/mirror/$asset"
+          expected="$(awk -v p="$asset" '$1==p{print $2}' mirror/artifacts.tsv)"
           mkdir -p "$HOME/.local/bin" /tmp/kubeconform
           curl -fsSL -o /tmp/kubeconform/kubeconform.tar.gz "$url"
+          echo "$expected  /tmp/kubeconform/kubeconform.tar.gz" | sha256sum -c -
           tar -xzf /tmp/kubeconform/kubeconform.tar.gz -C /tmp/kubeconform kubeconform
           install -m 0755 /tmp/kubeconform/kubeconform "$HOME/.local/bin/kubeconform"
       - name: Install schemas
         if: steps.schemas.outputs.cache-hit != 'true'
         run: |
           set -euo pipefail
-          url="${{ github.server_url }}/api/packages/${{ github.repository_owner }}/generic/kubeconform-schemas/1.36.3/kubernetes-json-schema_1.36.3_standalone.tar.gz"
+          url="http://rustfs.rustfs.svc.cluster.local:9000/mirror/kubeconform-schemas/1.36.3/kubernetes-json-schema_1.36.3_standalone.tar.gz"
           mkdir -p "$HOME/.cache/kubeconform-schemas"
           curl -fsSL -o /tmp/schemas.tar.gz "$url"
-          # Схемы пакуются на macOS, поэтому в архиве могут быть pax-заголовки
-          # с xattr (com.apple.provenance); GNU tar иначе шумит
-          # "Ignoring unknown extended header keyword" на каждый файл.
-          tar --warning=no-unknown-keyword -xzf /tmp/schemas.tar.gz -C "$HOME/.cache/kubeconform-schemas"
+          tar -xzf /tmp/schemas.tar.gz -C "$HOME/.cache/kubeconform-schemas"
       - name: Add kubeconform to PATH
         run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
       # Схемы берём локальные (offline): дефолтный источник kubeconform —

@@ -1,0 +1,15 @@
+# Манифест зеркала артефактов: что синкать в RustFS (бакет mirror).
+#
+# Формат строки: <path> <sha256> <url>
+#   path — путь объекта в бакете; CI тянет его как <mirror>/<path>;
+#   sha256 — хэш исходника; sync проверяет его перед загрузкой, а CI — после
+#            скачивания (единственный источник правды по хэшам);
+#   url — откуда качать (скачивает sync-Job, не CI).
+#
+# Бакет append-only: если объект уже есть, sync его не трогает. Чтобы заменить
+# версию — поменять строку и удалить старый объект (или завести новый path).
+#
+# Обновление: изменить версию/хэш/url, затем запустить mirror-sync Job
+# (см. apps/rustfs/README.md).
+gitleaks/8.30.1/gitleaks_8.30.1_linux_x64.tar.gz 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz
+kubeconform/0.8.0/kubeconform_0.8.0_linux_amd64.tar.gz 9bc2bffbf71f261128533edaf912153948b7ff238f9a531ae6d34466ec287883 https://github.com/yannh/kubeconform/releases/download/v0.8.0/kubeconform-linux-amd64.tar.gz
