@@ -3,7 +3,16 @@
 Gatus — основной декларативный монитор доступности homelab.
 URL: `https://uptime.example.com/`.
 
-Разворачивается манифестами в apps/gatus/k8s/.
+Разворачивается kustomize-набором из `apps/gatus/`:
+
+```sh
+kubectl apply -k apps/gatus/
+```
+
+`config/config.yaml` лежит в исходном виде, а `configMapGenerator` собирает из
+него ConfigMap `gatus-config` (имя получает hash-суффикс от содержимого) и
+монтирует в под как `/config/config.yaml`. Правка конфига меняет pod-template и
+сама запускает rollout — отдельный `kubectl rollout restart` не нужен.
 
 ## Первый запуск
 

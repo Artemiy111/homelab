@@ -76,9 +76,8 @@ spec:
               mountPath: /data
       volumes:
         - name: config
-          hostPath:
-            path: /home/artlab/projects/homelab/apps/gatus/config
-            type: Directory
+          configMap:
+            name: gatus-config
         - name: data
           persistentVolumeClaim:
             claimName: gatus-data

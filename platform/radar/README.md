@@ -72,8 +72,9 @@ curl --resolve radar.${DOMAIN}:443:<node1-ip> \
 
 После логина в oauth2-proxy — UI Radar на https://radar.example.com/.
 Gatus проверяет `http://radar.radar.svc.cluster.local/api/health` из
-namespace `monitoring` (после правки `apps/gatus/config/config.yaml` под
-`gatus` нужно один раз перезапустить: конфиг приезжает hostPath'ом).
+namespace `monitoring` (правка `apps/gatus/config/config.yaml` плюс
+`kubectl apply -k apps/gatus/` сама перезапускает под: ConfigMap с конфигом
+собирается с хэшем содержимого).
 
 ## Права
 
