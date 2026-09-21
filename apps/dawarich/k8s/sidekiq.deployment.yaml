@@ -4,6 +4,7 @@ metadata:
   name: dawarich-sidekiq
   namespace: dawarich
 spec:
+  # RWO-тома storage/watched общие с app: оба пода пишут в один каталог.
   strategy:
     type: Recreate
   revisionHistoryLimit: 2
@@ -165,14 +166,10 @@ spec:
               mountPath: /var/app/storage
       volumes:
         - name: public
-          hostPath:
-            path: /storage/apps/dawarich/public
-            type: Directory
+          emptyDir: {}
         - name: watched
-          hostPath:
-            path: /storage/apps/dawarich/watched
-            type: Directory
+          persistentVolumeClaim:
+            claimName: dawarich-watched
         - name: storage
-          hostPath:
-            path: /storage/apps/dawarich/storage
-            type: Directory
+          persistentVolumeClaim:
+            claimName: dawarich-storage

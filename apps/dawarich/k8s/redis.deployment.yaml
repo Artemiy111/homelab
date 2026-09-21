@@ -16,6 +16,9 @@ spec:
       labels:
         app: dawarich-redis
     spec:
+      # fsGroup даёт групповую запись в том Longhorn для пользователя 999.
+      securityContext:
+        fsGroup: 999
       containers:
         - name: redis
           image: "redis:7.4-alpine@sha256:e7723ff73d963f5cc6d9c4643ea3d989527a402a319239054e9472a7fb9219a2"
@@ -67,6 +70,5 @@ spec:
               mountPath: /data
       volumes:
         - name: data
-          hostPath:
-            path: /storage/apps/dawarich/redis
-            type: Directory
+          persistentVolumeClaim:
+            claimName: dawarich-redis

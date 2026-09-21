@@ -1,0 +1,46 @@
+# Данные Dawarich: без backup target, поэтому longhorn-retain. Тома `storage` и
+# `watched` общие для app и sidekiq, RWO-тома на одной ноде требуют
+# strategy.type: Recreate у обоих deployment (см. app.deployment.yaml и
+# sidekiq.deployment.yaml).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: dawarich-storage
+  namespace: dawarich
+spec:
+  storageClassName: longhorn-retain
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      # Active Storage ~2 МБ; запас под загрузки.
+      storage: 64Mi
+---
+# Каталог входящих импортов (~0).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: dawarich-watched
+  namespace: dawarich
+spec:
+  storageClassName: longhorn-retain
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 64Mi
+---
+# Redis — брокер Sidekiq. Класс longhorn (Delete): потеря очереди допустима.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: dawarich-redis
+  namespace: dawarich
+spec:
+  storageClassName: longhorn
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      # Данные ~4.5 МБ; запас под очередь.
+      storage: 64Mi
