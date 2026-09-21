@@ -117,9 +117,9 @@ production-практикам DevOps.
 - `ansible/` — пакеты и подготовка хоста.
 - `.forgejo/workflows/` — CI на Forgejo Actions: `commitlint`, `gitleaks`,
   `ansible-lint`, `kubeconform` (валидация манифестов по схемам Kubernetes).
-- `mirror/` — манифест артефактов для CI (`artifacts.tsv`); их скачивает и
-  складывает в RustFS `scripts/mirror-sync.sh` (CronJob `mirror-sync`, см.
-  `apps/rustfs/README.md`).
+- `apps/rustfs/artifacts.tsv` — манифест артефактов для CI; их скачивает и
+  складывает в RustFS `apps/rustfs/mirror-sync.sh` (CronJob `mirror-sync`,
+  применяется через `kubectl apply -k apps/rustfs`).
 - `etc/`, `dotfiles/`, `scripts/`, `docs/` — конфиги ОС, шелл, скрипты и
   документация.
 

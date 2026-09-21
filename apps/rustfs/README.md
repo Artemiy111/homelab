@@ -53,7 +53,7 @@ aws --endpoint-url https://s3.${DOMAIN} \
 
 ## Эксплуатация
 
-Разворачивается манифестами в apps/rustfs/k8s/.
+Разворачивается через kustomize: `kubectl apply -k apps/rustfs`.
 
 Смена root-креденшелов: отредактировать `secrets.enc.env` на сервере
 (`sops rustfs/secrets.enc.env` от имени artlab) и пересоздать под.
@@ -70,20 +70,17 @@ tarball'ы), которые CI тянет анонимно по HTTP, не хо�
 http://rustfs.rustfs.svc.cluster.local:9000/mirror/<path>
 ```
 
-Что зеркалировать — `mirror/artifacts.tsv` (`<path> <sha256> <url>`). Скачивает
-и складывает CronJob `mirror-sync` (образ `amazon/aws-cli`; egress есть только
-у него); схемы kubeconform он же собирает из git. Артефакты с известным sha256
-проверяются перед загрузкой, а CI — после скачивания. Бакет append-only: чтобы
-заменить версию, удалить объект и перезапустить.
+Что зеркалировать — `apps/rustfs/artifacts.tsv` (`<path> <sha256> <url>`).
+Скачивает и складывает CronJob `mirror-sync` (образ `amazon/aws-cli`; egress
+есть только у него); схемы kubeconform он же собирает из git. Артефакты с
+известным sha256 проверяются перед загрузкой, а CI — после скачивания. Бакет
+append-only: чтобы заменить версию, удалить объект и перезапустить.
 
-Применение (скрипт и манифест едут в ConfigMap, поэтому двумя шагами):
+Скрипт (`mirror-sync.sh`) и манифест (`artifacts.tsv`) едут в ConfigMap
+`mirror-sync` через kustomize — отдельного шага нет:
 
 ```sh
-kubectl -n rustfs create configmap mirror-sync \
-  --from-file=mirror-sync.sh=scripts/mirror-sync.sh \
-  --from-file=artifacts.tsv=mirror/artifacts.tsv \
-  --dry-run=client -o yaml | kubectl apply -f -
-kubectl apply -f apps/rustfs/k8s/mirror-sync.cronjob.yaml
+kubectl apply -k apps/rustfs
 kubectl -n rustfs create job --from=cronjob/mirror-sync mirror-sync-manual
 ```
 

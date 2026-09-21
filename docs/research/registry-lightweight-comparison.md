@@ -23,7 +23,7 @@
 - **npm** — `bun install`/`npm install` внутри CI;
 - **бинарники/тулчейны** — GitHub Releases, `go.dev`, `static.rust-lang.org`,
   `archive.apache.org`; такие артефакты заранее зеркалируются в RustFS
-  (`mirror/artifacts.tsv` + `scripts/mirror-sync.sh`, CronJob `mirror-sync`);
+  (`apps/rustfs/artifacts.tsv` + `apps/rustfs/mirror-sync.sh`, CronJob `mirror-sync`);
 - **apt** — пакеты ОС в образах сборки (опционально).
 
 «Лёгкость» оценивается по трём осям: потребление RAM, размер Docker-образа,
@@ -249,7 +249,7 @@
 1. **Хостинг первого своего уже решён, кэш — нет.** Forgejo 16.x хостит
    контейнерные образы и 20+ форматов, но **не проксирует**; значит, слой
    кэширования — отдельный сервис. Бинарники заранее зеркалируются в RustFS
-   (`mirror/artifacts.tsv` + CronJob `mirror-sync`), а не перепубликуются вручную.
+   (`apps/rustfs/artifacts.tsv` + CronJob `mirror-sync`), а не перепубликуются вручную.
 2. **OCI — основной сценарий. Рекомендация: Zot `v2.1.21`.**
    Один инстанс, один конфиг на все upstream'ы (`docker.io`, `ghcr.io`,
    `quay.io`, `registry.k8s.io`, …), on-demand-кэш, OIDC (совпадает с Zitadel),
@@ -277,7 +277,7 @@
    кэша нет. Практичные варианты, по возрастанию веса:
    - **nginx `proxy_cache`** на фиксированный allowlist upstream'ов + смена URL
      в workflow'ах / tool-specific env (`RUSTUP_DIST_SERVER`, `GOPROXY`);
-   - зеркало в RustFS (`mirror/artifacts.tsv` + CronJob `mirror-sync`) — так и
+   - зеркало в RustFS (`apps/rustfs/artifacts.tsv` + CronJob `mirror-sync`) — так и
      сделано для `gitleaks`/`kubeconform`;
    - **Nexus CE raw proxy** — если уже поднимается Nexus ради apt/npm.
 6. **apt (опционально):** apt-cacher-ng, если сборка образов часто тянет пакеты.

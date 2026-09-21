@@ -1,13 +1,10 @@
 # Синк зеркала артефактов в RustFS (issue #149). Периодически (и вручную)
-# скачивает в бакет mirror то, что перечислено в mirror/artifacts.tsv, плюс
-# схемы kubeconform, и открывает бакет на анонимное чтение.
+# скачивает в бакет mirror то, что перечислено в apps/rustfs/artifacts.tsv,
+# плюс схемы kubeconform, и открывает бакет на анонимное чтение.
 #
-# Манифест и скрипт лежат в репозитории и в ConfigMap mirror-sync (создаётся
-# отдельной командой, см. apps/rustfs/README.md):
-#   kubectl -n rustfs create configmap mirror-sync \
-#     --from-file=mirror-sync.sh=scripts/mirror-sync.sh \
-#     --from-file=artifacts.tsv=mirror/artifacts.tsv \
-#     --dry-run=client -o yaml | kubectl apply -f -
+# Скрипт (apps/rustfs/mirror-sync.sh) и манифест (apps/rustfs/artifacts.tsv)
+# едут в ConfigMap mirror-sync через kustomize:
+#   kubectl apply -k apps/rustfs
 #
 # Ручной запуск: kubectl -n rustfs create job --from=cronjob/mirror-sync mirror-sync-manual
 apiVersion: batch/v1
