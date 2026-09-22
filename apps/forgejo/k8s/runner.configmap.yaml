@@ -41,7 +41,11 @@ data:
       enabled: true
     container:
       docker_host: tcp://127.0.0.1:2375
-      options: "--add-host=dind:host-gateway"
+      # Job-контейнеры создаёт dockerd сайдкара, поэтому лимиты контейнеров
+      # runner/dind на них не действуют: без этих флагов четыре параллельных
+      # job'а (capacity: 4) не ограничены ни по CPU, ни по памяти, и всплеск
+      # уводит узел в swap и iowait. memory-swap = memory: без свопа.
+      options: "--add-host=dind:host-gateway --cpus=2 --memory=2g --memory-swap=2g"
     server:
       connections:
         forgejo:

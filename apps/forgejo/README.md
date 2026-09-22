@@ -68,7 +68,10 @@ dind свой `/var/lib/docker` на PVC. Том — `local-path`, а не Longh
 в workflow задаётся `concurrency: { cancel-in-progress: false }` — без `group`
 Forgejo перестаёт управлять конкурентностью, и запуски просто идут параллельно.
 Число одновременно исполняемых job'ов ограничивает `runner.capacity` в
-ConfigMap'е (сейчас `4`); параллельные job'ы делят dockerd сайдкара.
+ConfigMap'е (сейчас `4`); параллельные job'ы делят dockerd сайдкара. Лимиты
+ресурсов задаются там же, в `container.options` (`--cpus`/`--memory`): job'ы
+создаёт внутренний dockerd, и лимиты контейнеров runner/dind на них не
+распространяются.
 
 Регистрация оффлайн (без UI), идемпотентно:
 
