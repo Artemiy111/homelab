@@ -19,4 +19,5 @@ configMapGenerator:
       - config/cache.config
       - config/storage.config
       - config/plugin.config
+      - config/ip_allow.yaml
       - config/run.sh

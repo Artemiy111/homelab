@@ -40,8 +40,10 @@ Apache Traffic Server (ATS) — обратный прокси с **дисков�
   Поэтому в `records.yaml` требование снято, а TTL задан явно в `cache.config`
   по `dest_domain`. В `cache.config` указаны и хосты CDN после редиректа.
 - Хранилище — `storage.config`: файл кэша фиксированного размера на PVC. ATS
-  резервирует его целиком, поэтому размер в `storage.config` (5G) должен
-  совпадать с `requests.storage` PVC.
+  создаёт файл при старте, поэтому размер должен быть **меньше** объёма PVC с
+  запасом: Longhorn отдаёт файловой системе чуть меньше заявленного (том 5Gi →
+  ~4.9G), и кэш впритык не создастся (ATS пишет `cache unable to open ... :
+  Permission denied` и стартует с отключённым кэшем). Поэтому PVC 5Gi, кэш 4G.
 
 ## Конфигурация
 
@@ -57,12 +59,20 @@ Apache Traffic Server (ATS) — обратный прокси с **дисков�
 | `cache.config` | TTL по `dest_domain` |
 | `storage.config` | путь и размер дискового кэша |
 | `plugin.config` | `stats_over_http.so` (метрики) |
+| `ip_allow.yaml` | ACL методов (PURGE из приватных сетей) |
 | `run.sh` | entrypoint: подстановка секрета PURGE в `remap.config` |
 
 Конфиги монтируются по `subPath` в **`/opt/etc/trafficserver`**: именно там
 лежат конфиги в образе (не `/etc/trafficserver`). Монтировать каталог целиком
 нельзя — перекроются дефолты образа (`body_factory`, `strategies.yaml`,
 `sni.yaml` и т. д.).
+
+### Права и `fsGroup`
+
+`traffic_server` всегда сбрасывает привилегии на `proxy.config.admin.user_id`
+(в образе — `nobody`, uid/gid 65534; настройка read-only) и уже от него пишет
+`cache.db`. Тому Longhorn принадлежит root, поэтому в `securityContext` пода
+задан `fsGroup: 65534` — групповая запись в том для `nobody`.
 
 ### PURGE и секрет
 
@@ -75,6 +85,18 @@ Secret, после чего запускает `traffic_server --conf_dir /run/a
 
 Secret `ats` приходит из `k8s/sealedsecret.yaml` (значение также в
 `secrets.enc.env`); имя ключа — `ATS_PURGE_TOKEN`.
+
+`PURGE` защищён секретом, но по умолчанию `ip_allow.yaml` образа разрешает
+этот метод только с localhost (иначе — `403`). Свой `config/ip_allow.yaml`
+разрешает приватным сетям кластера все методы; вне них разрушительные методы
+(`PURGE`/`PUSH`/`DELETE`/`TRACE`) закрыты. Правило с ограниченным списком
+методов разрешает только их, а остальные для этого диапазона запрещает, поэтому
+для приватных сетей указан `methods: ALL`, а защиту `PURGE` даёт секрет.
+
+`PURGE` инвалидирует **всё правило remap** (весь origin), а не один объект:
+плагин увеличивает generation id, и объекты прежнего поколения в кэше
+становятся невалидными. `PURGE` на URL, которого нет в кэше, возвращает `404`,
+на существующий — `200`.
 
 ## Развёртывание
 
@@ -155,8 +177,7 @@ curl -X PURGE -H "X-ATS-Purge: $ATS_PURGE_TOKEN" \
 
    Ожидаемый sha256 совпадает с `apps/rustfs/artifacts.tsv`
    (`2d03fb5f...2fe452`). Важно, что вернулся **файл**, а не `302`.
-3. Повторный запрос — быстрее, без обращения к upstream. Проверить можно
-   метрикой кэша (`traffic_ctl metric get proxy.process.http.cache_hit_fresh`)
-   или временно убрав origin из `cache.config`/закрыв egress.
-4. `curl -X PURGE -H "X-ATS-Purge: <секрет>" <url>` — содержимое origin'а
-   удаляется из кэша.
+3. Повторный запрос — быстрее, из кэша: `GET2 t≈0.15s` против `GET1 t≈1.0s`,
+   счётчик `traffic_ctl metric get proxy.process.http.cache_hit_fresh` растёт.
+4. `curl -X PURGE -H "X-ATS-Purge: <секрет>" <url>` возвращает `200`, и
+   следующий запрос снова идёт в upstream (счётчик хитов не растёт).

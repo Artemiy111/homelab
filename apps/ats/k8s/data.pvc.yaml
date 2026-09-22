@@ -1,8 +1,8 @@
 # Дисковый кэш ATS (cache.db фиксированного размера). Потеря тома означает лишь
 # повторную загрузку из upstream, поэтому longhorn без Retain. RWO-том на одной
 # ноде требует strategy.type: Recreate у Deployment.
-# Размер (5Gi) должен совпадать с storage.config: ATS резервирует файл кэша
-# сразу целиком.
+# Размер кэша в storage.config (4G) задаётся меньше объёма тома: Longhorn отдаёт
+# ФС чуть меньше заявленного, файл кэша впритык не создастся.
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:

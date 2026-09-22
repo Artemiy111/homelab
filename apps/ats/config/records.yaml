@@ -20,6 +20,12 @@ records:
     client:
       # TLS к origin: SNI по hostname из remap-правила.
       sni_policy: host
+      CA:
+        cert:
+          # Без явного бандла ATS не находит issuer и обрывает коннект
+          # («unable to get local issuer certificate»). В образе лежит
+          # системный бандл Debian.
+          filename: /etc/ssl/certs/ca-certificates.crt
       verify:
         server:
           # Проверять сертификат upstream. В образе дефолт PERMISSIVE; держим

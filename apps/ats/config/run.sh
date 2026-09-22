@@ -8,7 +8,7 @@ set -eu
 CONF=/run/ats
 mkdir -p "$CONF"
 
-for f in records.yaml remap.config cache.config storage.config plugin.config; do
+for f in records.yaml remap.config cache.config storage.config plugin.config ip_allow.yaml; do
   cp "/opt/etc/trafficserver/$f" "$CONF/$f"
 done
 

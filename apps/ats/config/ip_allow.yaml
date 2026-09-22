@@ -1,0 +1,56 @@
+# ip_allow.yaml — ACL входящих методов.
+# Дефолт образа запрещает PURGE/PUSH/DELETE/TRACE везде, кроме localhost, поэтому
+# ручная инвалидация из кластера получала 403. Разрешаем приватным сетям кластера
+# ВСЕ методы: правило с ограниченным списком методов разрешает только их, а
+# остальные методы для этого диапазона запрещает. PURGE при этом дополнительно
+# защищён секретом (заголовок X-ATS-Purge), а снаружи приватных сетей
+# разрушительные методы закрыты.
+ip_allow:
+  - apply: in
+    ip_addrs: 127.0.0.1
+    action: allow
+    methods: ALL
+  - apply: in
+    ip_addrs: ::1
+    action: allow
+    methods: ALL
+  - apply: in
+    ip_addrs:
+      - 10.0.0.0/8
+      - 172.16.0.0/12
+      - 192.168.0.0/16
+      - fc00::/7
+    action: allow
+    methods: ALL
+  - apply: in
+    ip_addrs: 0/0
+    action: deny
+    methods:
+      - PURGE
+      - PUSH
+      - DELETE
+      - TRACE
+  - apply: in
+    ip_addrs: ::/0
+    action: deny
+    methods:
+      - PURGE
+      - PUSH
+      - DELETE
+      - TRACE
+  - apply: out
+    ip_addrs:
+      - 0.0.0.0/8
+      - 127.0.0.0/8
+      - "::"
+      - ::1
+      - 10.0.0.0/8
+      - 172.16.0.0/12
+      - 192.168.0.0/16
+      - 169.254.0.0/16
+      - ::/96
+      - fc00::/7
+      - fe80::/10
+      - ::ffff:0:0/96
+    action: deny
+    methods: CONNECT

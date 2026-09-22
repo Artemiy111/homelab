@@ -17,10 +17,12 @@ spec:
       labels:
         app: ats
     spec:
-      # В образе ATS нет непривилегированного пользователя (User не задан),
-      # процесс работает root и пишет рантайм-файлы в /opt/var — снижать uid
-      # без подготовки образа нельзя, иначе traffic_server не стартует.
-      # Изоляцию дают NetworkPolicy и read-only монтирование конфигов.
+      # traffic_server всегда сбрасывает привилегии на proxy.config.admin.user_id
+      # (в образе это `nobody`, uid/gid 65534, запись read-only) и уже от него
+      # пишет cache.db. PVC Longhorn принадлежит root, поэтому даём тому
+      # групповую запись для gid nobody через fsGroup.
+      securityContext:
+        fsGroup: 65534
       enableServiceLinks: false
       containers:
         - name: ats
@@ -83,6 +85,10 @@ spec:
             - name: config
               mountPath: /opt/etc/trafficserver/plugin.config
               subPath: plugin.config
+              readOnly: true
+            - name: config
+              mountPath: /opt/etc/trafficserver/ip_allow.yaml
+              subPath: ip_allow.yaml
               readOnly: true
             - name: config
               mountPath: /opt/run/run.sh
