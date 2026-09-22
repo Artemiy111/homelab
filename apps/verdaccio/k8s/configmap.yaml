@@ -1,0 +1,38 @@
+# Конфигурация Verdaccio — npm-реестр с uplink-прокси на registry.npmjs.org.
+#
+# Режим read-only: анонимное чтение ($all), регистрация выключена
+# (max_users: -1), публикация не задана — то есть запрещена. `proxy: npmjs`
+# отправляет неизвестные пакеты в uplink, upstream-ответы и тарболлы
+# кэшируются в storage и дальше отдаются локально.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: verdaccio
+  namespace: verdaccio
+data:
+  config.yaml: |
+    storage: /verdaccio/storage/data
+
+    auth:
+      htpasswd:
+        file: /verdaccio/storage/htpasswd
+        max_users: -1
+
+    uplinks:
+      npmjs:
+        url: https://registry.npmjs.org/
+        cache: true
+        maxage: 2m
+
+    packages:
+      '@*/*':
+        access: $all
+        proxy: npmjs
+      '**':
+        access: $all
+        proxy: npmjs
+
+    log:
+      type: stdout
+      format: pretty
+      level: http

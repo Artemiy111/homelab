@@ -1,0 +1,16 @@
+# Кэш npm-пакетов (тарболлы и метаданные). Теряется без последствий: при
+# потере тома Verdaccio скачает пакеты из uplink заново. Поэтому класс longhorn
+# без Retain, в отличие от данных сервисов. RWO-том на одной ноде требует
+# strategy.type: Recreate у Deployment.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: verdaccio-data
+  namespace: verdaccio
+spec:
+  storageClassName: longhorn
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
