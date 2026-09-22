@@ -8,7 +8,7 @@ Verdaccio — npm-реестр с **uplink-прокси** на `registry.npmjs.o
 | | |
 |---|---|
 | Namespace | `verdaccio` |
-| Развёртывание | манифестами `apps/verdaccio/k8s/` (`kubectl apply -f`) |
+| Развёртывание | `kubectl apply -k apps/verdaccio` (kustomize) |
 | Образ | `verdaccio/verdaccio:6.10.4` (пин по тегу и дайджесту, amd64) |
 | Данные | PVC `verdaccio-data` на `longhorn` (кэш, потеря не страшна) |
 | API | `http://verdaccio.verdaccio.svc.cluster.local:4873` — только внутри кластера |
@@ -30,9 +30,14 @@ Verdaccio — npm-реестр с **uplink-прокси** на `registry.npmjs.o
 ## Развёртывание
 
 ```sh
-kubectl apply -f apps/verdaccio/k8s/
+kubectl apply -k apps/verdaccio
 kubectl -n verdaccio get pods,pvc,svc
 ```
+
+`config/config.yaml` попадает в ConfigMap через `configMapGenerator` в
+`kustomization.yaml`: kustomize добавляет хэш содержимого к имени ConfigMap и
+переписывает ссылку в Deployment, поэтому правка конфига сама запускает
+rollout (SoT — файл в git, а не ConfigMap в кластере).
 
 ## Как подключить клиента
 
