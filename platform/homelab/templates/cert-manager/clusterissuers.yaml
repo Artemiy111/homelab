@@ -39,5 +39,11 @@ spec:
             tsigSecretSecretRef:
               name: {{ $cm.tsigSecretName }}
               key: tsig-secret
+        # Пропускаем self-check: DNS-провайдер принимает обновление (TXT-запись
+        # создаётся), но ответный read от него приходит нестабильно — таймаут
+        # на read роняет challenge. Вместо своей проверки ждём фиксированное
+        # время и отдаём валидацию ACME-серверу. Значение — 2m с запасом на
+        # propagation у anycast-DNS.
+        waitInsteadOfSelfCheck: 2m
 {{- end }}
 {{- end }}
