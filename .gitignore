@@ -17,6 +17,10 @@ argocd/applications/*.private.yaml
 # merge-patch поверх шаблонов из platform/cert-manager/ (см. её README).
 platform/cert-manager/*.private.yaml
 
+# Вложенные независимые git-репозитории с переиспользуемыми компонентами.
+# У каждого свой remote и issue-трекер; родитель их не отслеживает.
+/packages/
+
 __pycache__/
 
 # Кэш ansible-lint (автоустановка collections, fact cache).

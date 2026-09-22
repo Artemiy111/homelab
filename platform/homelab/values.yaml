@@ -6,17 +6,17 @@ config:
 
 # cert-manager: выпуск wildcard-сертификата через ACME DNS-01.
 #
-# acmeEmail и tsigKeyName — environment-specific и относятся к «внутреннему»
-# уровню (docs/agents/information-handling.md): в git лежат плейсхолдеры,
-# реальные значения — в untracked values.private.yaml.
-# nameserver — авторитативный сервер DNS-зоны; сам хост нейтрален.
+# acmeEmail — environment-specific и относится к «внутреннему» уровню
+# (docs/agents/information-handling.md): в git плейсхолдер, реальное значение —
+# в untracked values.private.yaml.
+#
+# webhookGroupName — группа API собственного webhook'а-солвера
+# (packages/cert-manager-webhook-dns01); должна совпадать с groupName в чарте
+# webhook'а (argocd/applications/dns01-webhook.yaml).
 certManager:
   enabled: true
   acmeEmail: acme@example.com
-  nameserver: ns1.example.com:53
-  tsigKeyName: tsig-000000.example.com
-  tsigSecretName: acme-rfc2136-tsig
-  tsigAlgorithm: HMACSHA512
+  webhookGroupName: acme.homelab.local
 
 namespaces:
   - 3x-ui

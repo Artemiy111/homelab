@@ -1,22 +1,21 @@
 {{- if .Values.certManager.enabled }}
 {{- $cm := .Values.certManager }}
 {{- $domain := .Values.config.domain }}
-# ACME-эмитент Let's Encrypt. Challenge — DNS-01 через RFC2136: cert-manager
-# пишет TXT-запись `_acme-challenge.<домен>` в публичную DNS-зону, подписывая
-# обновление TSIG-ключом. Публичный IP и A/AAAA-запись не нужны — валидация
-# идёт через DNS, ACME-сервер до узла не стучится.
+# ACME-эмитент Let's Encrypt. Challenge — DNS-01 через собственный webhook
+# (packages/cert-manager-webhook-dns01): тот публикует TXT-запись через REST API
+# DNS-провайдера. Публичный IP и A/AAAA не нужны — валидация идёт через DNS.
 #
-# nameserver — авторитативный сервер зоны (обновления принимает он, не
-# резолвер). TSIG-ключ создаётся у DNS-провайдера, значение — в SealedSecret
-# {{ $cm.tsigSecretName }} (namespace cert-manager: там ClusterIssuer ищет
-# Secret для solver'а). tsigAlgorithm совпадает с алгоритмом ключа.
+# Почему webhook, а не встроенный rfc2136: у провайдера RFC2136 не поддерживает
+# удаление записей (`update delete` → SERVFAIL), а solver'у cert-manager удаление
+# нужно в Present и CleanUp. Webhook ходит в REST API, где удаление есть.
 #
-# protocol: TCP — solver по умолчанию ходит UDP, а DNS-провайдер за
-# anycast-адресом отвечает на UDP нестабильно (таймауты), из-за чего
-# challenge падает. По TCP обновления проходят стабильно.
+# Имя `_acme-challenge.<домен>` у провайдера зарезервировано под их собственный
+# выпуск, поэтому challenge-имя CNAME-ом делегировано на `acme.<домен>` — туда
+# webhook и пишет TXT (config.challengeRecord). CNAME создаётся один раз и вручную.
 #
-# prod и staging — пара: staging нужен для первичной отладки без жёстких
-# rate limits прода. Переключение — issuerRef в Certificate.
+# groupName/solverName совпадают с чартом webhook'а (см. argocd/applications/dns01-webhook.yaml).
+#
+# prod и staging — пара: staging нужен для отладки без жёстких rate limits прода.
 {{- range $env := list "prod" "staging" }}
 ---
 apiVersion: cert-manager.io/v1
@@ -31,13 +30,11 @@ spec:
       name: letsencrypt-{{ $env }}-account-key
     solvers:
       - dns01:
-          rfc2136:
-            nameserver: {{ $cm.nameserver }}
-            protocol: TCP
-            tsigKeyName: {{ $cm.tsigKeyName }}
-            tsigAlgorithm: {{ $cm.tsigAlgorithm }}
-            tsigSecretSecretRef:
-              name: {{ $cm.tsigSecretName }}
-              key: tsig-secret
+          webhook:
+            groupName: {{ $cm.webhookGroupName }}
+            solverName: dns01
+            config:
+              zoneName: {{ $domain }}
+              challengeRecord: acme
 {{- end }}
 {{- end }}
