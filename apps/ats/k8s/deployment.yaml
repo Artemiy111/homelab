@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ats
+  namespace: ats
+spec:
+  # RWO-том: два пода одновременно его не смонтируют.
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ats
+  template:
+    metadata:
+      labels:
+        app: ats
+    spec:
+      # В образе ATS нет непривилегированного пользователя (User не задан),
+      # процесс работает root и пишет логи/рантайм-файлы в /opt/var — снижать
+      # uid без подготовки образа нельзя, иначе traffic_server не стартует.
+      # Изоляцию дают NetworkPolicy и read-only монтирование конфигов.
+      enableServiceLinks: false
+      containers:
+        - name: ats
+          image: "trafficserver/trafficserver:10.2.0@sha256:8b6d118cfbe220f7e034bd0431c1bfd9325b275f456ecc3ba95f9b46a552ced3"
+          ports:
+            - name: http
+              containerPort: 8080
+          # Порт занят всё время работы процесса; traffic_server сам ловит
+          # конфигурационные ошибки на старте и не открывает сокет, поэтому
+          # TCP-пробы достаточно.
+          startupProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 5
+            failureThreshold: 30
+          livenessProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 30
+          readinessProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "2"
+              memory: 1Gi
+          volumeMounts:
+            # Конфиги в образе лежат в /opt/etc/trafficserver (не /etc/...).
+            # Монтируем каждый файл своим subPath: каталог целиком перекрыл бы
+            # дефолты образа (body_factory, strategies.yaml, sni.yaml и пр.).
+            - name: config
+              mountPath: /opt/etc/trafficserver/records.yaml
+              subPath: records.yaml
+              readOnly: true
+            - name: config
+              mountPath: /opt/etc/trafficserver/remap.config
+              subPath: remap.config
+              readOnly: true
+            - name: config
+              mountPath: /opt/etc/trafficserver/cache.config
+              subPath: cache.config
+              readOnly: true
+            - name: config
+              mountPath: /opt/etc/trafficserver/storage.config
+              subPath: storage.config
+              readOnly: true
+            - name: config
+              mountPath: /opt/etc/trafficserver/plugin.config
+              subPath: plugin.config
+              readOnly: true
+            - name: cache
+              mountPath: /var/cache/trafficserver
+      volumes:
+        - name: config
+          configMap:
+            name: ats
+        - name: cache
+          persistentVolumeClaim:
+            claimName: ats-cache

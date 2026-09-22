@@ -1,0 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: ats
+resources:
+  - k8s/namespace.yaml
+  - k8s/service.yaml
+  - k8s/deployment.yaml
+  - k8s/data.pvc.yaml
+  - k8s/networkpolicy.yaml
+configMapGenerator:
+  # Конфиги ATS собираются в ConfigMap `ats`; kustomize добавляет хэш
+  # содержимого к имени и переписывает ссылку в Deployment, поэтому правка
+  # любого конфига сама запускает rollout.
+  - name: ats
+    files:
+      - config/records.yaml
+      - config/remap.config
+      - config/cache.config
+      - config/storage.config
+      - config/plugin.config

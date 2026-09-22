@@ -1,0 +1,34 @@
+# records.yaml — глобальные настройки Traffic Server (формат 10.x, YAML).
+# Здесь только то, что отличается от дефолтов образа; остальное ATS берёт сам.
+records:
+  http:
+    # Сколько редиректов ATS проходит сам, прежде чем вернуть Location клиенту.
+    # Дефолт 0 (редиректы не разворачиваются). GitHub Releases отвечает 302 на
+    # release-assets.githubusercontent.com, и без этого кэшировался бы сам
+    # редирект, а не файл.
+    number_of_redirections: 3
+    cache:
+      # Дефолт 2 — кэшировать только объекты с явным Cache-Control/Expires.
+      # У ассетов релизов таких заголовков нет, поэтому политику TTL задаём
+      # явно в cache.config, а здесь снимаем требование заголовков.
+      required_headers: 0
+      # Кэшировать объекты, у которых в URL есть query (GitHub-ассеты бывают с
+      # query-параметрами), и не обходить кэш из-за Cookie клиента.
+      cache_urls_that_look_dynamic: 1
+      cache_responses_to_cookies: 1
+  ssl:
+    client:
+      # TLS к origin: SNI по hostname из remap-правила.
+      sni_policy: host
+      verify:
+        server:
+          # Проверять сертификат upstream. В образе дефолт PERMISSIVE; держим
+          # строгий режим, это защищает от подмены origin.
+          policy: ENFORCED
+          properties: ALL
+  reverse_proxy:
+    enabled: 1
+  url_remap:
+    # remap обязателен: без правил любой запрос отвергается. Это и есть
+    # allowlist — открытым прокси ATS не становится.
+    remap_required: 1
