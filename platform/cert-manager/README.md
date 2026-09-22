@@ -77,12 +77,13 @@ helm template platform/homelab -f platform/homelab/values.private.yaml | kubectl
 
 ## Секреты
 
-Всё, что перечислено ниже, создаётся **вручную на сервере** (в Git — только
-шифротекст SealedSecret, либо ничего).
+Пакеты реестра Forgejo (образ и OCI-чарт) **публичные** — Argo и kubelet тянут их
+анонимно, ни repo-creds, ни imagePullSecret не нужны.
 
-**Токен DNS-провайдера** — Secret в namespace `cert-manager`, из которого
-webhook читает переменную `DYNV6_TOKEN`. Имя задаётся в
-`argocd/applications/dns01-webhook.yaml` (`dynv6.existingSecret`).
+Остаётся один секрет — **токен DNS-провайдера**: Secret в namespace
+`cert-manager`, из которого webhook читает переменную `DYNV6_TOKEN`. Имя задано
+в `argocd/applications/dns01-webhook.yaml` (`dynv6.existingSecret`). Значение
+запечатывается `kubeseal` на сервере — в Git уходит только шифротекст.
 
 ```sh
 kubectl -n cert-manager create secret generic dns01-webhook-dynv6 \
@@ -90,31 +91,6 @@ kubectl -n cert-manager create secret generic dns01-webhook-dynv6 \
   --dry-run=client -o yaml \
   | kubeseal --format yaml > platform/cert-manager/sealedsecret.yaml
 kubectl apply -f platform/cert-manager/sealedsecret.yaml
-```
-
-**Креды реестра** — реестр Forgejo приватный, поэтому нужны:
-
-- **Argo repo-creds** (namespace `argocd`) для OCI-чарта;
-- **imagePullSecret** (namespace `cert-manager`, имя `forgejo-registry`) для образа.
-
-Оба — из personal access token со scope `read:package`:
-
-```sh
-# Argo repo-creds
-kubectl -n argocd create secret generic forgejo-registry-creds \
-  --from-literal=type=helm \
-  --from-literal=enableOCI=true \
-  --from-literal=url=forgejo.biplane.v6.rocks \
-  --from-literal=username=<пользователь> \
-  --from-literal=password=<token>
-kubectl -n argocd label secret forgejo-registry-creds \
-  argocd.argoproj.io/secret-type=repo-creds
-
-# imagePullSecret
-kubectl -n cert-manager create secret docker-registry forgejo-registry \
-  --docker-server=forgejo.biplane.v6.rocks \
-  --docker-username=<пользователь> \
-  --docker-password=<token>
 ```
 
 ## Порядок первого выпуска: staging → prod

@@ -1,15 +1,11 @@
 # DNS-01 webhook-солвер для cert-manager (packages/cert-manager-webhook-dns01).
 #
 # Ставится из OCI-чарта, который публикует CI этого репозитория в контейнерный
-# реестр Forgejo. Реестр приватный, поэтому Argo нужен repo-creds
-# (Secret в namespace argocd, тип helm, enableOCI: true) — он создаётся вручную,
-# в git не лежит (см. platform/cert-manager/README.md).
+# реестр Forgejo. Пакеты публичные — чарт и образ тянутся анонимно, поэтому ни
+# repo-creds, ни imagePullSecret не нужны.
 #
 # groupName обязан совпадать с webhookGroupName в platform/homelab/values.yaml
 # (оттуда его берёт ClusterIssuer).
-#
-# image.pullSecrets ссылается на Secret с кредами реестра в namespace webhook'а —
-# тоже создаётся вручную.
 #
 # Вебхук-чарт сам создаёт self-signed CA и serving-сертификат и APIService.
 apiVersion: argoproj.io/v1alpha1
@@ -30,8 +26,6 @@ spec:
         image:
           repository: forgejo.biplane.v6.rocks/artemiy/cert-manager-webhook-dns01
           tag: 0.1.0
-          pullSecrets:
-            - name: forgejo-registry
         dynv6:
           existingSecret: dns01-webhook-dynv6
   destination:
