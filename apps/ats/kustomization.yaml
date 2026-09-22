@@ -7,6 +7,7 @@ resources:
   - k8s/deployment.yaml
   - k8s/data.pvc.yaml
   - k8s/networkpolicy.yaml
+  - k8s/sealedsecret.yaml
 configMapGenerator:
   # Конфиги ATS собираются в ConfigMap `ats`; kustomize добавляет хэш
   # содержимого к имени и переписывает ссылку в Deployment, поэтому правка
@@ -18,3 +19,4 @@ configMapGenerator:
       - config/cache.config
       - config/storage.config
       - config/plugin.config
+      - config/run.sh

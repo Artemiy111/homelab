@@ -18,19 +18,28 @@ spec:
         app: ats
     spec:
       # В образе ATS нет непривилегированного пользователя (User не задан),
-      # процесс работает root и пишет логи/рантайм-файлы в /opt/var — снижать
-      # uid без подготовки образа нельзя, иначе traffic_server не стартует.
+      # процесс работает root и пишет рантайм-файлы в /opt/var — снижать uid
+      # без подготовки образа нельзя, иначе traffic_server не стартует.
       # Изоляцию дают NetworkPolicy и read-only монтирование конфигов.
       enableServiceLinks: false
       containers:
         - name: ats
           image: "trafficserver/trafficserver:10.2.0@sha256:8b6d118cfbe220f7e034bd0431c1bfd9325b275f456ecc3ba95f9b46a552ced3"
+          # Секрет PURGE подставляется в remap.config на старте (см. run.sh).
+          # Шелл нужен для подстановки; exec внутри run.sh сохраняет PID 1.
+          command: ["/bin/sh", "/opt/run/run.sh"]
+          env:
+            - name: ATS_PURGE_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: ats
+                  key: ATS_PURGE_TOKEN
           ports:
             - name: http
               containerPort: 8080
           # Порт занят всё время работы процесса; traffic_server сам ловит
           # конфигурационные ошибки на старте и не открывает сокет, поэтому
-          # TCP-пробы достаточно.
+          # TCP-проб достаточно.
           startupProbe:
             tcpSocket:
               port: http
@@ -74,6 +83,10 @@ spec:
             - name: config
               mountPath: /opt/etc/trafficserver/plugin.config
               subPath: plugin.config
+              readOnly: true
+            - name: config
+              mountPath: /opt/run/run.sh
+              subPath: run.sh
               readOnly: true
             - name: cache
               mountPath: /var/cache/trafficserver

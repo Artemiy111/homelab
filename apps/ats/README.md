@@ -16,7 +16,7 @@ Apache Traffic Server (ATS) — обратный прокси с **дисков�
 | Namespace | `ats` |
 | Развёртывание | `kubectl apply -k apps/ats` (kustomize) |
 | Образ | `trafficserver/trafficserver:10.2.0` (пин по тегу и дайджесту, amd64) |
-| Данные | PVC `ats-cache` на `longhorn` 20Gi (кэш, потеря не страшна) |
+| Данные | PVC `ats-cache` на `longhorn` 5Gi (кэш, потеря не страшна) |
 | API | `http://ats.ats.svc.cluster.local:8080` — внутри кластера |
 | Потребитель | CI, Ansible-провижининг хоста |
 
@@ -40,7 +40,7 @@ Apache Traffic Server (ATS) — обратный прокси с **дисков�
   Поэтому в `records.yaml` требование снято, а TTL задан явно в `cache.config`
   по `dest_domain`. В `cache.config` указаны и хосты CDN после редиректа.
 - Хранилище — `storage.config`: файл кэша фиксированного размера на PVC. ATS
-  резервирует его целиком, поэтому размер в `storage.config` (20G) должен
+  резервирует его целиком, поэтому размер в `storage.config` (5G) должен
   совпадать с `requests.storage` PVC.
 
 ## Конфигурация
@@ -56,12 +56,25 @@ Apache Traffic Server (ATS) — обратный прокси с **дисков�
 | `remap.config` | allowlist origin'ов (префикс → HTTPS-база) |
 | `cache.config` | TTL по `dest_domain` |
 | `storage.config` | путь и размер дискового кэша |
-| `plugin.config` | `remap_purge.so` (PURGE), `stats_over_http.so` (метрики) |
+| `plugin.config` | `stats_over_http.so` (метрики) |
+| `run.sh` | entrypoint: подстановка секрета PURGE в `remap.config` |
 
 Конфиги монтируются по `subPath` в **`/opt/etc/trafficserver`**: именно там
 лежат конфиги в образе (не `/etc/trafficserver`). Монтировать каталог целиком
 нельзя — перекроются дефолты образа (`body_factory`, `strategies.yaml`,
 `sni.yaml` и т. д.).
+
+### PURGE и секрет
+
+Плагин инвалидации (`remap_purge.so`) подключается **в `remap.config`** через
+`@plugin=` (он remap-плагин, не глобальный — в `plugin.config` его быть не
+должно). Ему обязательны `--secret` и `--state-file`; без них он не
+инициализируется. Секрета в git быть не должно, поэтому `run.sh` на старте
+копирует конфиги в `/run/ats` (tmpfs) и подставляет `$(ATS_PURGE_TOKEN)` из
+Secret, после чего запускает `traffic_server --conf_dir /run/ats`.
+
+Secret `ats` приходит из `k8s/sealedsecret.yaml` (значение также в
+`secrets.enc.env`); имя ключа — `ATS_PURGE_TOKEN`.
 
 ## Развёртывание
 
@@ -116,11 +129,16 @@ RUSTUP_DIST_SERVER=http://ats.ats.svc.cluster.local:8080/rust             # stat
 
 ## Размер кэша и очистка
 
-Том — `longhorn`, 20Gi, без `Retain`. Удалить объект из кэша:
+Том — `longhorn`, 5Gi, без `Retain`. Удалить объект из кэша (секрет — из
+`secrets.enc.env` на сервере, `sops -d`):
 
 ```sh
-curl -X PURGE http://ats.ats.svc.cluster.local:8080/github/<path>
+curl -X PURGE -H "X-ATS-Purge: $ATS_PURGE_TOKEN" \
+  http://ats.ats.svc.cluster.local:8080/github/<path>
 ```
+
+Плагин привязывает PURGE ко всему правилу remap: запрос с секретом удаляет
+содержимое этого origin'а.
 
 Удалить весь кэш: удалить PVC `ats-cache` (ATS заполнит заново).
 
@@ -140,4 +158,5 @@ curl -X PURGE http://ats.ats.svc.cluster.local:8080/github/<path>
 3. Повторный запрос — быстрее, без обращения к upstream. Проверить можно
    метрикой кэша (`traffic_ctl metric get proxy.process.http.cache_hit_fresh`)
    или временно убрав origin из `cache.config`/закрыв egress.
-4. `curl -X PURGE <url>` — объект удаляется.
+4. `curl -X PURGE -H "X-ATS-Purge: <секрет>" <url>` — содержимое origin'а
+   удаляется из кэша.
