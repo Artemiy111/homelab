@@ -81,12 +81,12 @@ helm template platform/homelab -f platform/homelab/values.private.yaml | kubectl
 анонимно, ни repo-creds, ни imagePullSecret не нужны.
 
 Остаётся один секрет — **токен DNS-провайдера**: Secret в namespace
-`cert-manager`, из которого webhook читает переменную `DYNV6_TOKEN`. Имя задано
-в `argocd/applications/dns01-webhook.yaml` (`dynv6.existingSecret`). Значение
-запечатывается `kubeseal` на сервере — в Git уходит только шифротекст.
+`cert-manager`, из которого webhook читает переменную `PROVIDER_TOKEN`. Имя
+задано в `argocd/applications/dns01-webhook.yaml` (`provider.existingSecret`).
+Значение запечатывается `kubeseal` на сервере — в Git уходит только шифротекст.
 
 ```sh
-kubectl -n cert-manager create secret generic dns01-webhook-dynv6 \
+kubectl -n cert-manager create secret generic dns01-webhook-token \
   --from-literal=token='<HTTP-токен провайдера>' \
   --dry-run=client -o yaml \
   | kubeseal --format yaml > platform/cert-manager/sealedsecret.yaml
