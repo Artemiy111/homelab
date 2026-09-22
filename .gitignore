@@ -13,6 +13,10 @@ platform/homelab/values.private.yaml
 # шаблона из argocd/applications/ (см. argocd/README.md).
 argocd/applications/*.private.yaml
 
+# Приватные значения platform-манифестов (email ACME, имя RFC2136-ключа):
+# merge-patch поверх шаблонов из platform/cert-manager/ (см. её README).
+platform/cert-manager/*.private.yaml
+
 __pycache__/
 
 # Кэш ansible-lint (автоустановка collections, fact cache).

@@ -1,0 +1,28 @@
+{{- if .Values.certManager.enabled }}
+{{- $domain := .Values.config.domain }}
+# Wildcard-сертификат для всех сервисов, за TLSStore default в Traefik.
+#
+# Certificate живёт в namespace traefik: именно оттуда его читает TLSStore
+# (platform/traefik/tlsstore.yaml, `defaultCertificate.secretName: wildcard-tls`).
+# Secret в другом namespace TLSStore не увидит.
+#
+# dnsNames — apex и wildcard: apex для самого `<домен>`, wildcard для
+# поддоменов. renewBefore 30d при 90-дневном сроке Let's Encrypt даёт запас
+# на задержку выпуска (rate limit, недоступный DNS-провайдер).
+#
+# issuerRef меняется на letsencrypt-staging для отладки первого выпуска.
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: wildcard
+  namespace: traefik
+spec:
+  secretName: wildcard-tls
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  dnsNames:
+    - {{ $domain }}
+    - "*.{{ $domain }}"
+  renewBefore: 720h
+{{- end }}

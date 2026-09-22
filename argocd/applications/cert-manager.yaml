@@ -1,0 +1,82 @@
+# cert-manager — выпуск и ротация TLS-сертификатов из кластера.
+# Ставится официальным чартом cert-manager из charts.jetstack.io; Argo рендерит
+# его сам (см. argocd/README.md).
+#
+# CRD ставим вместе с оператором (crds.enabled: true) — как cloudnative-pg и
+# mariadb-operator. CRD кластерные; Prune=false не даёт удалить их вместе с
+# приложением (иначе снесло бы все Certificate/Issuer кластера).
+#
+# Эмитент и Certificate живут не здесь, а в шаблонах чарта platform/homelab
+# (templates/cert-manager/): CRD должны существовать раньше CR, а порядок
+# «сначала оператор, потом CR» Argo в одном приложении не гарантирует.
+#
+# Вебхук-сертификаты cert-manager выпускает сам (self-signed bootstrap CA).
+# Helm `lookup` в Argo не работает, поэтому здесь задан ignoreDifferences на
+# поля, которые дописывает контроллер; RespectIgnoreDifferences в syncOptions
+# не даёт selfHeal переписывать их обратно.
+#
+# Метрики: prometheus.enabled оставлен дефолтным true — cert-manager и его
+# вебхук получают аннотации `prometheus.io/scrape`, vmagent заберёт их
+# pod-discovery. CRD prometheus-operator (monitoring.coreos.com) в кластере
+# нет, поэтому никаких PodMonitor/ServiceMonitor не создаём.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cert-manager
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://charts.jetstack.io
+    chart: cert-manager
+    targetRevision: v1.21.2
+    helm:
+      releaseName: cert-manager
+      valuesObject:
+        crds:
+          enabled: true
+        # Дефолт у чарта: resources: {} у controller, webhook и cainjector.
+        # Для одноузлового кластера это плохо: без requests планировщик не
+        # знает, что размещает, а без limits разъехавшийся контроллер способен
+        # вытеснить рабочие поды.
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: "1"
+            memory: 256Mi
+        webhook:
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
+        cainjector:
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+            limits:
+              cpu: 100m
+              memory: 256Mi
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: cert-manager
+  ignoreDifferences:
+    - group: ""
+      kind: Secret
+      name: cert-manager-webhook-ca
+      namespace: cert-manager
+      jsonPointers:
+        - /data
+  syncPolicy:
+    syncOptions:
+      - ServerSideApply=true
+      - Prune=false
+      - CreateNamespace=true
+      - RespectIgnoreDifferences=true
+    automated:
+      selfHeal: true

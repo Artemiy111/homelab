@@ -78,6 +78,6 @@ jobs:
             -ignore-filename-pattern 'values\.yaml$' \
             -ignore-filename-pattern 'Chart\.yaml$' \
             -ignore-filename-pattern 'platform/homelab/templates' \
-            -skip "Application,Beat,Cluster,ClusterConfig,Database,Elasticsearch,Grant,Kibana,MariaDB,Middleware,SealedSecret,TLSStore,User,VolumeSnapshotClass" \
+            -skip "Application,Beat,Certificate,Cluster,ClusterConfig,ClusterIssuer,Database,Elasticsearch,Grant,Kibana,MariaDB,Middleware,SealedSecret,TLSStore,User,VolumeSnapshotClass" \
             -summary \
             apps/*/k8s platform argocd

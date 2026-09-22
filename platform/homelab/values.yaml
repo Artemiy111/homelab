@@ -4,6 +4,20 @@ config:
   timezone: Asia/Yekaterinburg
   locale: ru
 
+# cert-manager: выпуск wildcard-сертификата через ACME DNS-01.
+#
+# acmeEmail и tsigKeyName — environment-specific и относятся к «внутреннему»
+# уровню (docs/agents/information-handling.md): в git лежат плейсхолдеры,
+# реальные значения — в untracked values.private.yaml.
+# nameserver — авторитативный сервер DNS-зоны; сам хост нейтрален.
+certManager:
+  enabled: true
+  acmeEmail: acme@example.com
+  nameserver: ns1.example.com:53
+  tsigKeyName: tsig-000000.example.com
+  tsigSecretName: acme-rfc2136-tsig
+  tsigAlgorithm: HMACSHA512
+
 namespaces:
   - 3x-ui
   - authentik

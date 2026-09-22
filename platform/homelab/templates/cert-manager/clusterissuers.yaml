@@ -1,0 +1,38 @@
+{{- if .Values.certManager.enabled }}
+{{- $cm := .Values.certManager }}
+{{- $domain := .Values.config.domain }}
+# ACME-эмитент Let's Encrypt. Challenge — DNS-01 через RFC2136: cert-manager
+# пишет TXT-запись `_acme-challenge.<домен>` в публичную DNS-зону, подписывая
+# обновление TSIG-ключом. Публичный IP и A/AAAA-запись не нужны — валидация
+# идёт через DNS, ACME-сервер до узла не стучится.
+#
+# nameserver — авторитативный сервер зоны (обновления принимает он, не
+# резолвер). TSIG-ключ создаётся у DNS-провайдера, значение — в SealedSecret
+# {{ $cm.tsigSecretName }} (namespace cert-manager: там ClusterIssuer ищет
+# Secret для solver'а). tsigAlgorithm совпадает с алгоритмом ключа.
+#
+# prod и staging — пара: staging нужен для первичной отладки без жёстких
+# rate limits прода. Переключение — issuerRef в Certificate.
+{{- range $env := list "prod" "staging" }}
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-{{ $env }}
+spec:
+  acme:
+    server: https://acme-{{ if eq $env "staging" }}staging-{{ end }}v02.api.letsencrypt.org/directory
+    email: {{ $cm.acmeEmail }}
+    privateKeySecretRef:
+      name: letsencrypt-{{ $env }}-account-key
+    solvers:
+      - dns01:
+          rfc2136:
+            nameserver: {{ $cm.nameserver }}
+            tsigKeyName: {{ $cm.tsigKeyName }}
+            tsigAlgorithm: {{ $cm.tsigAlgorithm }}
+            tsigSecretSecretRef:
+              name: {{ $cm.tsigSecretName }}
+              key: tsig-secret
+{{- end }}
+{{- end }}
