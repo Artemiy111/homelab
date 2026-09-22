@@ -1,0 +1,20 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: verdaccio
+  namespace: verdaccio
+spec:
+  ingressClassName: traefik
+  rules:
+    # Реестр read-only: `npm`/`bun` не умеют forward auth, а тарболлы тянет
+    # пачкой. Поэтому без oauth2-proxy и без ratelimit — только LAN/Tailscale.
+    - host: npm.{{ .Values.config.domain }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: verdaccio
+                port:
+                  number: 4873

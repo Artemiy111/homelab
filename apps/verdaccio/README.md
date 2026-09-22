@@ -11,7 +11,8 @@ Verdaccio — npm-реестр с **uplink-прокси** на `registry.npmjs.o
 | Развёртывание | `kubectl apply -k apps/verdaccio` (kustomize) |
 | Образ | `verdaccio/verdaccio:6.10.4` (пин по тегу и дайджесту, amd64) |
 | Данные | PVC `verdaccio-data` на `longhorn` (кэш, потеря не страшна) |
-| API | `http://verdaccio.verdaccio.svc.cluster.local:4873` — только внутри кластера |
+| API | `http://verdaccio.verdaccio.svc.cluster.local:4873` — внутри кластера |
+| Маршрут | `https://npm.<домен>` (Traefik, чарт `platform/homelab`) |
 | Потребитель | CI (`commitlint.yml`), локальный `bun install` |
 
 ## Как это работает
@@ -52,8 +53,15 @@ npm_config_registry=http://verdaccio.verdaccio.svc.cluster.local:4873/
 требует перегенерации lockfile. Для `npm` то же самое — `.npmrc`
 (`registry=`) или `NPM_CONFIG_REGISTRY`.
 
-Хостам вне кластера нужен маршрут (например `npm.<домен>` через Traefik) —
-пока не сделано.
+С машины разработчика тот же реестр доступен по маршруту Traefik
+(`platform/homelab/templates/routes/verdaccio.yaml`):
+
+```
+npm_config_registry=https://npm.<домен>/ bun install
+```
+
+Маршрут без аутентификации (npm/bun не умеют forward auth), поэтому доступен
+только в LAN/Tailscale.
 
 ## Размер кэша и очистка
 
