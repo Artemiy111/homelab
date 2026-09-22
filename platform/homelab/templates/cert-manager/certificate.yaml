@@ -6,9 +6,15 @@
 # (platform/traefik/tlsstore.yaml, `defaultCertificate.secretName: wildcard-tls`).
 # Secret в другом namespace TLSStore не увидит.
 #
-# dnsNames — apex и wildcard: apex для самого `<домен>`, wildcard для
-# поддоменов. renewBefore 30d при 90-дневном сроке Let's Encrypt даёт запас
-# на задержку выпуска (rate limit, недоступный DNS-провайдер).
+# dnsNames — ТОЛЬКО wildcard, без apex. Apex и wildcard дают два identifier'а,
+# а DNS-01 проверяет оба через ОДНО имя `_acme-challenge.<домен>`: rfc2136
+# solver делает delete-all + add при каждом present, и два параллельных
+# challenge затирают токены друг друга → ACME-валидация видит чужой токен →
+# invalid. Один identifier = одна запись = гонки нет. Apex в маршрутах не
+# используется (все хосты — поддомены), потеря SAN незаметна.
+#
+# renewBefore 30d при 90-дневном сроке Let's Encrypt даёт запас на задержку
+# выпуска (rate limit, недоступный DNS-провайдер).
 #
 # issuerRef меняется на letsencrypt-staging для отладки первого выпуска.
 apiVersion: cert-manager.io/v1
@@ -22,7 +28,6 @@ spec:
     name: letsencrypt-prod
     kind: ClusterIssuer
   dnsNames:
-    - {{ $domain }}
     - "*.{{ $domain }}"
   renewBefore: 720h
 {{- end }}
