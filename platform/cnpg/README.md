@@ -19,6 +19,7 @@ CR» в одном Application не гарантирован.
 | `shared` | `databases` | `synapse` (element) | `synapse` | 15 МБ |
 | `shared` | `databases` | `paperless` | `paperless` | 17 МБ |
 | `shared` | `databases` | `glitchtip` | `glitchtip` | 34 МБ |
+| `shared` | `databases` | `infisical` | `infisical` | 160 МБ |
 | `shared` | `databases` | `playground` | `playground` | 8 МБ |
 | `shared` | `databases` | `gatus` (новая, не миграция) | `gatus` | — |
 | `shared` | `databases` | `authentik` (тестовый стенд) | `authentik` | 115 МБ |
@@ -26,8 +27,7 @@ CR» в одном Application не гарантирован.
 | `immich-db` | `immich` | `immich` | `immich` | 287 МБ |
 | `dawarich-db` | `dawarich` | `dawarich` | `dawarich` | 93 МБ |
 
-Не входят: `sure` (PostgreSQL 16) и `infisical` (PostgreSQL 14) — сначала
-апгрейд версии, потом перенос; `seafile` — это MariaDB, CNPG не про неё.
+Не входят: `sure` (PostgreSQL 16). `seafile` — это MariaDB, CNPG не про неё.
 
 Четыре кластера вместо двенадцати отдельных Deployment'ов.
 
@@ -93,7 +93,8 @@ namespace и имени.
 Обратно том не сжимается, поэтому запас — не бесплатная опция: Longhorn
 учитывает запрошенный размер при планировании.
 
-Ориентиры: `shared` — пол + 132 МБ ≈ 171 МБ (том 1Gi), `zitadel-db` — пол + 20 МБ
+Ориентиры: `shared` — пол + 292 МБ (с `infisical`) ≈ 331 МБ (том 1Gi),
+`zitadel-db` — пол + 20 МБ
 ≈ 59 МБ (256Mi), `immich-db` — пол + 287 МБ и растёт с библиотекой (1Gi),
 `dawarich-db` — пол + 93 МБ плюс запас под пересчёт истории (3Gi).
 
@@ -275,7 +276,7 @@ kubectl delete -f platform/cnpg/test18.secret.yaml
    и применяются в **namespace своего кластера**:
    - `databases`: `nextcloud-db-auth`, `forgejo-db-auth`, `element-db-auth`
      (роль `synapse`), `paperless-db-auth`, `glitchtip-db-auth`,
-     `postgres-db-auth` (роль `playground`), `gatus-db-auth`,
+     `infisical-db-auth`, `postgres-db-auth` (роль `playground`), `gatus-db-auth`,
      `authentik-db-auth`;
    - `zitadel`: `zitadel-db-auth`;
    - `immich`: `immich-db-auth`;
@@ -367,8 +368,8 @@ kubectl -n databases exec shared-1 -c postgres -- \
   `cnpg.io/podRole`, служебные базы (`template*`, `postgres`, `app`) отброшены
   по `datname`. Для баз на CNPG отдельные экспортёры
   (`apps/db-exporters/k8s/postgres.exporters.yaml`) больше не нужны: они сняты
-  для `immich`, `dawarich`, `zitadel` и `paperless`. Остальные (`authentik`,
-  `element`, `forgejo`, `glitchtip`, `nextcloud`, `infisical`, `sure`) — до их
+  для `immich`, `dawarich`, `zitadel`, `paperless` и `infisical`. Остальные
+  (`authentik`, `element`, `forgejo`, `glitchtip`, `nextcloud`, `sure`) — до их
   переезда.
 - **Бэкапы.** Ради них всё и затевается: ObjectStore/ScheduledBackup в rustfs
   (S3-совместимый) + **Barman Cloud Plugin** дают непрерывные бэкапы и PITR

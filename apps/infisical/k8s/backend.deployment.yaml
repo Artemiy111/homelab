@@ -17,25 +17,6 @@ spec:
         app: infisical
     spec:
       initContainers:
-        - name: wait-for-db
-          image: "postgres:14-alpine@sha256:727876d274666da0b92a445390ba093c84b8e9f8343e1c53cd4e9a7ab2d85310"
-          command: ["/bin/sh", "-c", "until pg_isready -h infisical-postgres -p 5432 -U infisical; do echo waiting for infisical-postgres; sleep 2; done"]
-          securityContext:
-            runAsUser: 70
-            runAsGroup: 70
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: ["ALL"]
-            seccompProfile:
-              type: RuntimeDefault
-          resources:
-            requests:
-              cpu: 10m
-              memory: 32Mi
-            limits:
-              cpu: 100m
-              memory: 64Mi
         - name: wait-for-redis
           image: "redis:7-alpine@sha256:e7723ff73d963f5cc6d9c4643ea3d989527a402a319239054e9472a7fb9219a2"
           command: ["/bin/sh", "-c", "until redis-cli -h infisical-redis ping | grep -q PONG; do echo waiting for infisical-redis; sleep 2; done"]
@@ -91,7 +72,7 @@ spec:
             - name: SITE_URL
               value: "https://infisical.$(DOMAIN)"
             - name: DB_CONNECTION_URI
-              value: "postgresql://infisical:$(POSTGRES_PASSWORD)@infisical-postgres:5432/infisical?sslmode=disable"
+              value: "postgresql://infisical:$(POSTGRES_PASSWORD)@shared-rw.databases.svc.cluster.local/infisical?sslmode=disable"
             - name: REDIS_URL
               value: "redis://infisical-redis:6379"
             - name: HOST

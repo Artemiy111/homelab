@@ -289,7 +289,6 @@ data:
               - element-db-exporter.element.svc.cluster.local:9187
               - forgejo-db-exporter.forgejo.svc.cluster.local:9187
               - glitchtip-postgres-exporter.glitchtip.svc.cluster.local:9187
-              - infisical-postgres-exporter.infisical.svc.cluster.local:9187
               - nextcloud-db-exporter.nextcloud.svc.cluster.local:9187
               - postgres-db.postgres.svc.cluster.local:9187
               - sure-db-exporter.sure.svc.cluster.local:9187
