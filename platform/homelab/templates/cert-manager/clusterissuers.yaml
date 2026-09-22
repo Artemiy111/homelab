@@ -11,6 +11,10 @@
 # {{ $cm.tsigSecretName }} (namespace cert-manager: там ClusterIssuer ищет
 # Secret для solver'а). tsigAlgorithm совпадает с алгоритмом ключа.
 #
+# protocol: TCP — solver по умолчанию ходит UDP, а DNS-провайдер за
+# anycast-адресом отвечает на UDP нестабильно (таймауты), из-за чего
+# challenge падает. По TCP обновления проходят стабильно.
+#
 # prod и staging — пара: staging нужен для первичной отладки без жёстких
 # rate limits прода. Переключение — issuerRef в Certificate.
 {{- range $env := list "prod" "staging" }}
@@ -29,6 +33,7 @@ spec:
       - dns01:
           rfc2136:
             nameserver: {{ $cm.nameserver }}
+            protocol: TCP
             tsigKeyName: {{ $cm.tsigKeyName }}
             tsigAlgorithm: {{ $cm.tsigAlgorithm }}
             tsigSecretSecretRef:
