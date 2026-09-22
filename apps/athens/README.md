@@ -8,7 +8,7 @@ Athens — прокси Go-модулей по официальному прот
 | | |
 |---|---|
 | Namespace | `athens` |
-| Развёртывание | манифестами `apps/athens/k8s/` (`kubectl apply -f`) |
+| Развёртывание | kustomize `apps/athens/` (`kubectl apply -k`) |
 | Образ | `gomods/athens:v0.18.1` (пин по тегу и дайджесту, amd64) |
 | Данные | PVC `athens-data` на `longhorn` (кэш, потеря не страшна) |
 | API | `http://athens.athens.svc.cluster.local:3000` — внутри кластера |
@@ -34,7 +34,7 @@ Athens — прокси Go-модулей по официальному прот
 ## Развёртывание
 
 ```sh
-kubectl apply -f apps/athens/k8s/
+kubectl apply -k apps/athens/
 kubectl -n athens get pods,pvc,svc
 ```
 

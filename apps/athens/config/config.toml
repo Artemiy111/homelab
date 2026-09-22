@@ -5,21 +5,14 @@
 # DownloadMode "sync" — pull-through: при первом запросе модуль скачивается и
 # сохраняется, дальше отдаётся из хранилища. SumDBs — Athens проксирует
 # sum.golang.org, чтобы клиент мог проверять контрольные суммы через сам Athens.
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: athens
-  namespace: athens
-data:
-  config.toml: |
-    GoEnv = "production"
-    Port = ":3000"
-    LogLevel = "info"
-    StorageType = "disk"
-    SingleFlightType = "memory"
-    DownloadMode = "sync"
-    SumDBs = ["https://sum.golang.org"]
-    GoBinaryEnvVars = ["GOPROXY=https://proxy.golang.org"]
+GoEnv = "production"
+Port = ":3000"
+LogLevel = "info"
+StorageType = "disk"
+SingleFlightType = "memory"
+DownloadMode = "sync"
+SumDBs = ["https://sum.golang.org"]
+GoBinaryEnvVars = ["GOPROXY=https://proxy.golang.org"]
 
-    [Storage.Disk]
-      RootPath = "/var/lib/athens"
+[Storage.Disk]
+  RootPath = "/var/lib/athens"
