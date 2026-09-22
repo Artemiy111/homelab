@@ -62,6 +62,16 @@ spec:
             limits:
               cpu: 100m
               memory: 256Mi
+        # Self-check DNS-01: cert-manager сам проверяет, что TXT-запись
+        # `_acme-challenge.<домен>` видна в DNS, прежде чем отдать challenge
+        # ACME-серверу. Внутренний кластерный резолвер (CoreDNS) знает про
+        # локальную зону, но не про публичную, поэтому проверка падает с
+        # «no such host» даже когда запись реально создана. Указываем публичный
+        # резолвер и Only=true — иначе внутренний ответ перебьёт публичный.
+        # Резолверы — публичная инфраструктура, не секрет (как nameserver в
+        # issuer'е).
+        dns01RecursiveNameservers: "1.1.1.1:53,8.8.8.8:53"
+        dns01RecursiveNameserversOnly: true
   destination:
     server: https://kubernetes.default.svc
     namespace: cert-manager
