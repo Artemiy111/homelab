@@ -121,3 +121,18 @@ spec:
   owner: infisical
   encoding: UTF8
   databaseReclaimPolicy: retain
+---
+# sure на источнике называл базу sure_production (суффикс от RAILS_ENV); среда в
+# homelab одна, поэтому база — sure.
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: sure
+  namespace: databases
+spec:
+  cluster:
+    name: shared
+  name: sure
+  owner: sure
+  encoding: UTF8
+  databaseReclaimPolicy: retain

@@ -23,11 +23,12 @@ CR» в одном Application не гарантирован.
 | `shared` | `databases` | `playground` | `playground` | 8 МБ |
 | `shared` | `databases` | `gatus` (новая, не миграция) | `gatus` | — |
 | `shared` | `databases` | `authentik` (тестовый стенд) | `authentik` | 115 МБ |
+| `shared` | `databases` | `sure` | `sure` | 16 МБ |
 | `zitadel-db` | `zitadel` | `zitadel` | `zitadel` | 20 МБ |
 | `immich-db` | `immich` | `immich` | `immich` | 287 МБ |
 | `dawarich-db` | `dawarich` | `dawarich` | `dawarich` | 93 МБ |
 
-Не входят: `sure` (PostgreSQL 16). `seafile` — это MariaDB, CNPG не про неё.
+Не входят: `seafile` — это MariaDB, CNPG не про неё.
 
 Четыре кластера вместо двенадцати отдельных Deployment'ов.
 
@@ -93,7 +94,7 @@ namespace и имени.
 Обратно том не сжимается, поэтому запас — не бесплатная опция: Longhorn
 учитывает запрошенный размер при планировании.
 
-Ориентиры: `shared` — пол + 292 МБ (с `infisical`) ≈ 331 МБ (том 1Gi),
+Ориентиры: `shared` — пол + 308 МБ (с `infisical` и `sure`) ≈ 347 МБ (том 1Gi),
 `zitadel-db` — пол + 20 МБ
 ≈ 59 МБ (256Mi), `immich-db` — пол + 287 МБ и растёт с библиотекой (1Gi),
 `dawarich-db` — пол + 93 МБ плюс запас под пересчёт истории (3Gi).
@@ -176,12 +177,13 @@ CRI-O 1.31+, чарт CNPG 0.26.0+. Расширение объявляется 
   (`readline` считает терминал однобайтовым). Лечится `spec.env` с
   `LANG=C.utf8`; на клиентские запросы это не влияет (`psql -c` работает и без
   него, потому что не идёт через `readline`).
-- **Имя роли `postgres` зарезервировано оператором.** Immich и sure сейчас
-  ходят под `postgres`; для них заведена роль `immich` (sure — при переносе).
-  Значит у сервиса меняются не только хост, но и пользователь.
-- **Имена баз ≠ имена сервисов** у sure (`sure_production`). Dawarich при
-  переносе переименован из `dawarich_production` в `dawarich`: суффикс шёл от
-  `RAILS_ENV`, а среда в homelab одна.
+- **Имя роли `postgres` зарезервировано оператором.** Immich и sure ходили под
+  `postgres`; для них заведены роли `immich` и `sure`. Значит у сервиса
+  меняются не только хост, но и пользователь.
+- **Имена баз ≠ имена сервисов** у sure: на источнике база называлась
+  `sure_production`. При переносе переименована в `sure` — как и dawarich,
+  который был `dawarich_production`: суффикс шёл от `RAILS_ENV`, а среда в
+  homelab одна.
 - **Суперпользователь сервису не нужен.** `zitadel` и так работал
   непривилегированной ролью; Immich нужен был суперпользователь только ради
   `CREATE EXTENSION` — это закрывает `Database.spec.extensions`, где расширение
@@ -277,7 +279,7 @@ kubectl delete -f platform/cnpg/test18.secret.yaml
    - `databases`: `nextcloud-db-auth`, `forgejo-db-auth`, `element-db-auth`
      (роль `synapse`), `paperless-db-auth`, `glitchtip-db-auth`,
      `infisical-db-auth`, `postgres-db-auth` (роль `playground`), `gatus-db-auth`,
-     `authentik-db-auth`;
+     `authentik-db-auth`, `sure-db-auth`;
    - `zitadel`: `zitadel-db-auth`;
    - `immich`: `immich-db-auth`;
    - `dawarich`: `dawarich-db-auth`.
@@ -367,10 +369,10 @@ kubectl -n databases exec shared-1 -c postgres -- \
   keep по порту `metrics`, лейблы `cluster`/`role` из `cnpg.io/cluster` и
   `cnpg.io/podRole`, служебные базы (`template*`, `postgres`, `app`) отброшены
   по `datname`. Для баз на CNPG отдельные экспортёры
-  (  `apps/db-exporters/k8s/postgres.exporters.yaml`) больше не нужны: они сняты
+  (`apps/db-exporters/k8s/postgres.exporters.yaml`) больше не нужны: они сняты
   для `immich`, `dawarich`, `zitadel`, `paperless`, `infisical`, `glitchtip`,
-  `playground` и `authentik`. Остальные (`element`, `forgejo`, `nextcloud`,
-  `sure`) — до их переезда.
+  `playground`, `authentik` и `sure`. Остальные (`element`, `forgejo`,
+  `nextcloud`) — до их переезда.
 - **Бэкапы.** Ради них всё и затевается: ObjectStore/ScheduledBackup в rustfs
   (S3-совместимый) + **Barman Cloud Plugin** дают непрерывные бэкапы и PITR
   вместо текущего «dump перед restic». В `standard`-образах бинарей Barman нет

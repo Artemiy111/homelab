@@ -152,3 +152,11 @@ spec:
         login: true
         passwordSecret:
           name: infisical-db-auth
+      # sure пришёл с PostgreSQL 16 под пользователем postgres и базой
+      # sure_production; postgres в CNPG зарезервирован, поэтому роль — sure,
+      # а база по конвенции — sure (среда одна).
+      - name: sure
+        ensure: present
+        login: true
+        passwordSecret:
+          name: sure-db-auth

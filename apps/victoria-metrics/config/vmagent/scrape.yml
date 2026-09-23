@@ -277,7 +277,6 @@ scrape_configs:
           - element-db-exporter.element.svc.cluster.local:9187
           - forgejo-db-exporter.forgejo.svc.cluster.local:9187
           - nextcloud-db-exporter.nextcloud.svc.cluster.local:9187
-          - sure-db-exporter.sure.svc.cluster.local:9187
 
   - job_name: redis
     static_configs:

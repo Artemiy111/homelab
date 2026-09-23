@@ -24,7 +24,7 @@ spec:
       initContainers:
         - name: wait-for-db
           image: "postgres:16@sha256:f992505e18f114c1e5102ac4dcf00f791b44462f6a423d899320f0bbf80e386f"
-          command: ["/bin/sh", "-c", "until pg_isready -h sure-db -p 5432 -U postgres; do echo waiting for sure-db; sleep 2; done"]
+          command: ["/bin/sh", "-c", "until pg_isready -h shared-rw.databases.svc.cluster.local -p 5432 -U sure; do echo waiting for shared-rw; sleep 2; done"]
           securityContext:
             runAsUser: 999
             runAsGroup: 999
@@ -71,11 +71,14 @@ spec:
                   name: homelab-config
                   key: DOMAIN
             - name: POSTGRES_USER
-              value: postgres
+              value: sure
             - name: POSTGRES_PASSWORD
-              value: postgres
+              valueFrom:
+                secretKeyRef:
+                  name: sure-db-auth
+                  key: password
             - name: POSTGRES_DB
-              value: sure_production
+              value: sure
             - name: SECRET_KEY_BASE
               valueFrom:
                 secretKeyRef:
@@ -93,7 +96,7 @@ spec:
             - name: RAILS_ASSUME_SSL
               value: "true"
             - name: DB_HOST
-              value: sure-db
+              value: shared-rw.databases.svc.cluster.local
             - name: DB_PORT
               value: "5432"
             - name: REDIS_URL
