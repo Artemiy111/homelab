@@ -63,6 +63,4 @@ spec:
               mountPath: /cache
       volumes:
         - name: model-cache
-          hostPath:
-            path: /storage/apps/immich/model-cache
-            type: Directory
+          emptyDir: {}

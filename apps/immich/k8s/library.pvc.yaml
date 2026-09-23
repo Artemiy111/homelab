@@ -1,0 +1,15 @@
+# Библиотека Immich (пользовательские ассеты): без backup target, поэтому
+# longhorn-retain. Данных при переходе ~10G; запрос с умеренным запасом — том
+# расширяется на ходу, сжать нельзя.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: immich-library
+  namespace: immich
+spec:
+  storageClassName: longhorn-retain
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 16Gi

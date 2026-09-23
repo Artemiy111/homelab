@@ -5,6 +5,8 @@ metadata:
   namespace: immich
 spec:
   strategy:
+    # RWO-том library нельзя монтировать двум подам сразу: rolling update поднял
+    # бы новый под до остановки старого.
     type: Recreate
   revisionHistoryLimit: 2
   replicas: 1
@@ -134,9 +136,8 @@ spec:
               readOnly: true
       volumes:
         - name: library
-          hostPath:
-            path: /storage/apps/immich/library
-            type: Directory
+          persistentVolumeClaim:
+            claimName: immich-library
         - name: media-user
           hostPath:
             path: /storage/media/visual/Artemiy/Library
