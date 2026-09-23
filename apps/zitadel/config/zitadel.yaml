@@ -1,0 +1,12 @@
+# Конфиг Zitadel, передаётся в контейнер через --config (см.
+# k8s/zitadel.deployment.yaml). Здесь только то, что нельзя задать env:
+# SystemAPIUsers связывает login-client с X.509-сертификатом, публичная часть
+# которого монтируется в /secrets/login-client. Остальные настройки остаются в
+# env — Zitadel даёт им приоритет над файлом.
+SystemAPIUsers:
+  login-client:
+    Path: /secrets/login-client/tls.crt
+    Memberships:
+      - MemberType: System
+        Roles:
+          - IAM_LOGIN_CLIENT

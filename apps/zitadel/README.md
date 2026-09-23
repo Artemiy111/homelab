@@ -6,7 +6,11 @@ Zitadel — IdP homelab. Доступен через Traefik по `https://id.ex
 
 ## Первый запуск
 
-Разворачивается манифестами в `apps/zitadel/k8s/`.
+Разворачивается kustomize-набором `apps/zitadel/`:
+
+```sh
+kubectl apply -k apps/zitadel/
+```
 
 Postgres поднимается кластером CloudNativePG: суперпользователь остаётся у
 оператора, а ZITADEL работает под непривилегированной managed-ролью `zitadel` —
@@ -20,11 +24,16 @@ Postgres поднимается кластером CloudNativePG: суперпо
 
 `ZITADEL_FIRSTINSTANCE_*` применяется только на пустой базе.
 
-Masterkey хранится отдельным файлом `/storage/apps/zitadel/masterkey`
-(права `0600`); контейнер монтирует его read-only и читает через
-`--masterkeyFile`. Не менять
-ключ после инициализации: им зашифрованы секреты, замена делает данные
-нечитаемыми.
+## Секреты
+
+- Masterkey — SealedSecret `zitadel-masterkey` (ключ `masterkey`); контейнер
+  получает его переменной `ZITADEL_MASTERKEY` (`--masterkeyFromEnv`). Ключ менять
+  нельзя: им зашифрованы секреты, замена делает данные нечитаемыми. Значение
+  лежит и в `secrets.enc.env` (ключ `MASTERKEY`) — восстановимая копия.
+- login-client аутентифицируется X.509-парой вместо PAT-файла: SealedSecret
+  `zitadel-login-service-key` (`tls.crt`/`tls.key`). Публичная часть монтируется в
+  `zitadel` и описана в `config/zitadel.yaml` (`SystemAPIUsers`), приватная — в
+  `zitadel-login` (`ZITADEL_LOGINCLIENT_KEYFILE`).
 
 ## Passkey-only
 

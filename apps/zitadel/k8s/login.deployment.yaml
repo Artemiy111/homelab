@@ -38,8 +38,10 @@ spec:
               value: http://zitadel:8080
             - name: NEXT_PUBLIC_BASE_PATH
               value: /ui/v2/login
-            - name: ZITADEL_SERVICE_USER_TOKEN_FILE
-              value: /zitadel/bootstrap/login-client.pat
+            - name: ZITADEL_LOGINCLIENT_KEYFILE
+              value: /login-service-key/tls.key
+            - name: AUDIENCE
+              value: "https://id.$(DOMAIN)"
             - name: CUSTOM_REQUEST_HEADERS
               value: "Host:id.$(DOMAIN),X-Forwarded-Proto:https"
           startupProbe:
@@ -77,11 +79,13 @@ spec:
               cpu: "1"
               memory: 256Mi
           volumeMounts:
-            - name: bootstrap
-              mountPath: /zitadel/bootstrap
+            - name: login-service-key
+              mountPath: /login-service-key
               readOnly: true
       volumes:
-        - name: bootstrap
-          hostPath:
-            path: /storage/apps/zitadel/bootstrap
-            type: Directory
+        - name: login-service-key
+          secret:
+            secretName: zitadel-login-service-key
+            items:
+              - key: tls.key
+                path: tls.key
