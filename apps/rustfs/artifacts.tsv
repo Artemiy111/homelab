@@ -17,4 +17,5 @@ actionlint/1.7.12/actionlint_1.7.12_linux_amd64.tar.gz 8aca8db96f1b94770f1b0d72b
 kube-linter/0.8.3/kube-linter-linux.tar.gz 1a6d8419b11971372971fdbc22682b684ebfb7cf1c39591662d1b6ca736c41df https://github.com/stackrox/kube-linter/releases/download/v0.8.3/kube-linter-linux.tar.gz
 helm/4.3.0/helm-4.3.0-linux-amd64.tar.gz 86584a54def73570558f66f5111cc53dfed56689637ae32c1201205d494f54fb https://get.helm.sh/helm-v4.3.0-linux-amd64.tar.gz
 go/1.26.0/go1.26.0.linux-amd64.tar.gz aac1b08a0fb0c4e0a7c1555beb7b59180b05dfc5a3d62e40e9de90cd42f88235 https://go.dev/dl/go1.26.0.linux-amd64.tar.gz
+# bun для CI сейчас отдаёт кэш ATS (apps/ats); запись оставлена оффлайн-фолбэком.
 bun/1.4.0/bun-linux-x64.zip 2d03fb5fb83ac8b567aca0a281b2ce1a1a19d488f56c2968d88c3f25e92fe452 https://github.com/oven-sh/bun/releases/download/bun-v1.4.0/bun-linux-x64.zip

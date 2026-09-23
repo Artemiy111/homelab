@@ -95,6 +95,12 @@ kubectl -n rustfs exec deploy/rustfs -- \
 Доступ из job'ов CI обеспечивает NetworkPolicy `allow-ingress` (namespace
 `forgejo` → порт 9000).
 
+Часть артефактов со временем уходит на прозрачный кэш ATS (`apps/ats`): он сам
+разворачивает `302` с GitHub Releases, поэтому версию не нужно сопровождать
+руками. Для таких артефактов запись в `artifacts.tsv` остаётся оффлайн-фолбэком
+(в бакете объект уже есть), а workflow тянет файл из ATS. Так сделано для `bun`
+(workflow `commitlint`).
+
 ## Ограничения текущей схемы
 
 - Single-node single-disk: нет ни репликации, ни erasure coding.

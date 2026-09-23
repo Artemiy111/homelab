@@ -20,15 +20,16 @@ jobs:
           fetch-depth: 0
       # setup-bun берётся из зеркала на локальном инстансе (org `oven-sh`) —
       # как и остальные `uses:` при DEFAULT_ACTIONS_URL=http://forgejo-http:3000.
-      # Bинарь качаем из зеркала RustFS: GitHub отдаёт release-ассет 302 на
-      # подписанный CDN-URL, а HTTP-клиент внутри setup-bun по нему не идёт и
-      # уходит в таймаут. registries пишет bunfig.toml, поэтому `bun install`
-      # идёт через локальный кэш Verdaccio (apps/verdaccio).
+      # Bинарь качаем через кэш ATS (apps/ats): GitHub отдаёт release-ассет 302
+      # на подписанный CDN-URL, а HTTP-клиент внутри setup-bun по нему не идёт и
+      # уходит в таймаут. ATS же разворачивает редирект сам и кэширует файл.
+      # registries пишет bunfig.toml, поэтому `bun install` идёт через локальный
+      # кэш Verdaccio (apps/verdaccio).
       - name: Setup bun
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.4.0
-          bun-download-url: http://rustfs.rustfs.svc.cluster.local:9000/mirror/bun/1.4.0/bun-linux-x64.zip
+          bun-download-url: http://ats.ats.svc.cluster.local:8080/github/oven-sh/bun/releases/download/bun-v1.4.0/bun-linux-x64.zip
           registries: http://verdaccio.verdaccio.svc.cluster.local:4873/
       - name: Cache dependencies
         uses: actions/cache@v4
