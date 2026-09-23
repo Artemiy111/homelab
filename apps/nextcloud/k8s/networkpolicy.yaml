@@ -1,6 +1,6 @@
 # Базовый NetworkPolicy: default-deny ingress + явные разрешения.
 # traefik — веб; vmagent из monitoring скрейпит nextcloud-exporter (9205) и
-# экспортёры БД (9187) / Redis (9121). Egress не ограничивается.
+# экспортёр Redis (9121). Egress не ограничивается.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -36,8 +36,6 @@ spec:
               app: vmagent
       ports:
         - port: 9205
-          protocol: TCP
-        - port: 9187
           protocol: TCP
         - port: 9121
           protocol: TCP

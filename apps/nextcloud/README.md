@@ -7,13 +7,29 @@ PostgreSQL и Redis на хост не публикуются.
 ## Состав
 
 - `app` — Nextcloud с Apache;
-- `db` — PostgreSQL;
+- `db` — PostgreSQL в общем кластере CNPG `shared` (подробнее «База»);
 - `redis` — кеш, сессии и блокировки файлов;
 - `cron` — рекомендуемый Nextcloud планировщик фоновых заданий;
 - `backup-db` — одноразовый дамп PostgreSQL.
 
 Постоянное состояние хранится в томе сервиса. Каталог `html` разделяется
 контейнерами `app` и `cron`.
+
+## База
+
+PostgreSQL в общем кластере CNPG `shared` (namespace `databases`, эндпоинт
+`shared-rw.databases.svc.cluster.local:5432`). Роль `nextcloud`, база `nextcloud`
+и NetworkPolicy объявлены в `platform/cnpg/`; пароль роль берёт из Secret'а
+`nextcloud-db-auth`, а приложение — из своего Secret'а `nextcloud` (ключ
+`POSTGRES_PASSWORD`), это один плейнтекст в двух SealedSecret'ах.
+
+Реальные параметры подключения живут в `config.php` внутри тома `html`, а не в
+env: переменная `POSTGRES_HOST` учитывается только при первой установке. Поэтому
+при переезде хост, пользователь и пароль БД меняются через
+`occ config:system:set dbhost/dbuser/dbpassword`, а не правкой Deployment'ов.
+Данные перенесены из локального `nextcloud-db` дампом (`pg_dump`/`pg_restore`);
+пользователь БД сменился с установочного `oc_admin` на роль `nextcloud`. Старый
+DB-Deployment и его hostPath-каталог удалены.
 
 ## Первый запуск
 

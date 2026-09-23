@@ -372,8 +372,8 @@ kubectl -n databases exec shared-1 -c postgres -- \
   по `datname`. Для баз на CNPG отдельные экспортёры
   (`apps/db-exporters/k8s/postgres.exporters.yaml`) больше не нужны: они сняты
   для `immich`, `dawarich`, `zitadel`, `paperless`, `infisical`, `glitchtip`,
-  `playground`, `authentik`, `forgejo` и `sure`. Остальные (`element`,
-  `nextcloud`) — до их переезда.
+  `playground`, `authentik`, `forgejo`, `sure` и `nextcloud`. Остальные
+  (`element`) — до его переезда.
 - **Бэкапы.** Ради них всё и затевается: ObjectStore/ScheduledBackup в rustfs
   (S3-совместимый) + **Barman Cloud Plugin** дают непрерывные бэкапы и PITR
   вместо текущего «dump перед restic». В `standard`-образах бинарей Barman нет
