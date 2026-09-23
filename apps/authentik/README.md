@@ -37,6 +37,15 @@ Authentik поддерживает passwordless-аутентификацию ч�
 на независимых устройствах и заранее определите аварийный порядок
 восстановления доступа.
 
+## Хранилище
+
+База — PostgreSQL в общем кластере CNPG `shared` (namespace `databases`,
+эндпоинт `shared-rw.databases.svc.cluster.local:5432`). Роль `authentik`, база
+`authentik` и NetworkPolicy объявлены в `platform/cnpg/`; пароль роль берёт из
+Secret'а `authentik-db-auth`, приложение — из своего Secret'а `authentik`
+(ключ `AUTHENTIK_POSTGRESQL_PASSWORD`), поэтому менялся только хост. Данные
+перенесены из локального `authentik-postgresql` дампом, старый Deployment снят.
+
 ## Проверка
 
 ```sh

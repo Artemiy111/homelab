@@ -283,7 +283,6 @@ data:
       - job_name: postgres
         static_configs:
           - targets:
-              - authentik-postgresql-exporter.authentik.svc.cluster.local:9187
               - element-db-exporter.element.svc.cluster.local:9187
               - forgejo-db-exporter.forgejo.svc.cluster.local:9187
               - nextcloud-db-exporter.nextcloud.svc.cluster.local:9187
