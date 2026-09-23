@@ -165,3 +165,8 @@ spec:
         login: true
         passwordSecret:
           name: sure-db-auth
+      - name: openwebui
+        ensure: present
+        login: true
+        passwordSecret:
+          name: openwebui-db-auth

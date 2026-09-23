@@ -149,3 +149,16 @@ spec:
   owner: sure
   encoding: UTF8
   databaseReclaimPolicy: retain
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: openwebui
+  namespace: databases
+spec:
+  cluster:
+    name: shared
+  name: openwebui
+  owner: openwebui
+  encoding: UTF8
+  databaseReclaimPolicy: retain

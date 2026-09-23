@@ -4,9 +4,6 @@ metadata:
   name: open-webui
   namespace: open-webui
 spec:
-  # SQLite на RWO-томе: два пода при rolling update пишут в одну БД.
-  strategy:
-    type: Recreate
   revisionHistoryLimit: 2
   replicas: 1
   selector:
@@ -17,10 +14,6 @@ spec:
       labels:
         app: open-webui
     spec:
-      # fsGroup даёт групповую запись в том Longhorn, иначе root-owned каталог
-      # тома недоступен пользователю 1000.
-      securityContext:
-        fsGroup: 1000
       containers:
         - name: open-webui
           image: "ghcr.io/open-webui/open-webui:v0.11.0@sha256:72c0ba641ba75e7aa52655cb242570906ececd09b1140fb736483038a22b3228"
@@ -36,8 +29,22 @@ spec:
                 secretKeyRef:
                   name: open-webui
                   key: WEBUI_SECRET_KEY
+            - name: OPENWEBUI_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: open-webui
+                  key: OPENWEBUI_DB_PASSWORD
             - name: HOME
               value: /tmp/open-webui
+            # Временные данные приложения (uploads, кэши, аудит) — в memory-backed
+            # /tmp: БД теперь в Postgres, постоянного состояния на поде нет.
+            - name: DATA_DIR
+              value: /tmp/open-webui
+            # Данные — в общем кластере CNPG shared (роль и база openwebui).
+            # Пароль подставляется из Secret'а open-webui на строку выше, чтобы
+            # не запечатывать готовый DSN.
+            - name: DATABASE_URL
+              value: "postgresql://openwebui:$(OPENWEBUI_DB_PASSWORD)@shared-rw.databases.svc.cluster.local:5432/openwebui"
             - name: PYTHONDONTWRITEBYTECODE
               value: "1"
             - name: WEBUI_URL
@@ -48,8 +55,6 @@ spec:
               value: "false"
             - name: ENABLE_OPENAI_API
               value: "false"
-            - name: HF_HOME
-              value: /app/backend/data/cache/huggingface
           startupProbe:
             httpGet:
               path: /health
@@ -89,14 +94,9 @@ spec:
               cpu: "4"
               memory: 4Gi
           volumeMounts:
-            - name: data
-              mountPath: /app/backend/data
             - name: tmp
               mountPath: /tmp
       volumes:
-        - name: data
-          persistentVolumeClaim:
-            claimName: open-webui-data
         - name: tmp
           emptyDir:
             sizeLimit: 1Gi
