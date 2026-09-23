@@ -42,6 +42,8 @@ spec:
               value: /tmp/open-webui
             # Модели эмбеддингов (RAG) качаются в /tmp: образ кладёт их в
             # read-only слой, куда huggingface_hub не может писать lock-файлы.
+            - name: SENTENCE_TRANSFORMERS_HOME
+              value: /tmp/open-webui/cache/sentence-transformers
             - name: HF_HOME
               value: /tmp/open-webui/cache/hf
             # Данные — в общем кластере CNPG shared (роль и база openwebui).
