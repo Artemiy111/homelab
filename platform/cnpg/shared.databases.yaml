@@ -105,6 +105,10 @@ spec:
   name: synapse
   owner: synapse
   encoding: UTF8
+  # Synapse (check_database) требует collation/ctype, совместимые с `C`/`C.UTF-8`
+  # и не принимает `C.utf8` (дефолт кластера, см. platform/cnpg/README.md —
+  # «Решения»). Поэтому ctype переопределяется только для этой базы.
+  lcCtype: "C.UTF-8"
   databaseReclaimPolicy: retain
 ---
 # authentik — тестовый стенд. База объявлена, пока стенд жив; при снятии
@@ -140,14 +144,19 @@ spec:
 apiVersion: postgresql.cnpg.io/v1
 kind: Database
 metadata:
-  name: sure
+  name: synapse
   namespace: databases
 spec:
   cluster:
     name: shared
-  name: sure
-  owner: sure
+  name: synapse
+  owner: synapse
   encoding: UTF8
+  # Synapse строго проверяет ctype и не принимает `C.utf8` (дефолт кластера,
+  # см. комментарий в shared.cluster.yaml): падает `IncorrectDatabaseSetup`.
+  # Поэтому базе задан свой ctype `C.UTF-8`. База переносится пустой, а не
+  # дампом, так что правка коллации не теряет данные.
+  lcCtype: C.UTF-8
   databaseReclaimPolicy: retain
 ---
 apiVersion: postgresql.cnpg.io/v1
