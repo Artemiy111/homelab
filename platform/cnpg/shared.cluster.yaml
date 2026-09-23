@@ -134,6 +134,11 @@ spec:
         login: true
         passwordSecret:
           name: gatus-db-auth
+      - name: grafana
+        ensure: present
+        login: true
+        passwordSecret:
+          name: grafana-db-auth
       - name: playground
         ensure: present
         login: true

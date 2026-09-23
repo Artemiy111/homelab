@@ -185,7 +185,7 @@ ssh homelab-agent 'systemctl is-active k0scontroller; dig +short @<node1-ip> upt
 Сначала проверить diff/server-side результат, затем применить:
 
 ```sh
-ssh homelab-agent 'sudo -u artlab bash -lc "cd /home/artlab/projects/homelab && kubectl apply -f apps/grafana/k8s/ && kubectl get pods"'
+ssh homelab-agent 'sudo -u artlab bash -lc "cd /home/artlab/projects/homelab && kubectl apply -k apps/grafana/ && kubectl get pods"'
 ```
 
 Общая конфигурация (`homelab-config`) и все HTTP-маршруты живут в Helm-чарте

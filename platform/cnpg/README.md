@@ -22,6 +22,7 @@ CR» в одном Application не гарантирован.
 | `shared` | `databases` | `infisical` | `infisical` | 160 МБ |
 | `shared` | `databases` | `playground` | `playground` | 8 МБ |
 | `shared` | `databases` | `gatus` (новая, не миграция) | `gatus` | — |
+| `shared` | `databases` | `grafana` | `grafana` | ~2 МБ (SQLite) |
 | `shared` | `databases` | `authentik` (тестовый стенд) | `authentik` | 115 МБ |
 | `shared` | `databases` | `sure` | `sure` | 16 МБ |
 | `zitadel-db` | `zitadel` | `zitadel` | `zitadel` | 20 МБ |
@@ -279,7 +280,7 @@ kubectl delete -f platform/cnpg/test18.secret.yaml
    - `databases`: `nextcloud-db-auth`, `forgejo-db-auth`, `element-db-auth`
      (роль `synapse`), `paperless-db-auth`, `glitchtip-db-auth`,
      `infisical-db-auth`, `postgres-db-auth` (роль `playground`), `gatus-db-auth`,
-     `authentik-db-auth`, `sure-db-auth`;
+     `grafana-db-auth`, `authentik-db-auth`, `sure-db-auth`;
    - `zitadel`: `zitadel-db-auth`;
    - `immich`: `immich-db-auth`;
    - `dawarich`: `dawarich-db-auth`.

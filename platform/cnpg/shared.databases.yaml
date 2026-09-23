@@ -84,6 +84,19 @@ spec:
 apiVersion: postgresql.cnpg.io/v1
 kind: Database
 metadata:
+  name: grafana
+  namespace: databases
+spec:
+  cluster:
+    name: shared
+  name: grafana
+  owner: grafana
+  encoding: UTF8
+  databaseReclaimPolicy: retain
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
   name: synapse
   namespace: databases
 spec:

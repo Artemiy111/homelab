@@ -4,9 +4,6 @@ metadata:
   name: grafana
   namespace: monitoring
 spec:
-  # RWO-том: два пода при rolling update пишут в одну SQLite.
-  strategy:
-    type: Recreate
   revisionHistoryLimit: 2
   replicas: 1
   selector:
@@ -18,8 +15,7 @@ spec:
         app: grafana
     spec:
       enableServiceLinks: false
-      # fsGroup даёт групповую запись в том Longhorn, иначе root-owned каталог
-      # тома недоступен пользователю 1000.
+      # fsGroup даёт групповую запись в emptyDir, смонтированный в /var/lib/grafana.
       securityContext:
         fsGroup: 1000
       containers:
@@ -55,6 +51,25 @@ spec:
               value: grafanaAdvisor
             - name: GF_SERVER_ROOT_URL
               value: "https://grafana.$(DOMAIN)"
+            # Данные (пользователи, дашборды, аннотации) — в общем кластере CNPG
+            # shared, а не в SQLite. Роль grafana и база grafana объявлены в
+            # platform/cnpg/; пароль — из Secret'а grafana-db (см.
+            # k8s/sealedsecret.yaml).
+            - name: GF_DATABASE_TYPE
+              value: postgres
+            - name: GF_DATABASE_HOST
+              value: shared-rw.databases.svc.cluster.local:5432
+            - name: GF_DATABASE_NAME
+              value: grafana
+            - name: GF_DATABASE_USER
+              value: grafana
+            - name: GF_DATABASE_SSL_MODE
+              value: disable
+            - name: GF_DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: grafana-db
+                  key: GRAFANA_DB_PASSWORD
           startupProbe:
             httpGet:
               path: /api/health
@@ -93,15 +108,28 @@ spec:
               cpu: "1"
               memory: 1Gi
           volumeMounts:
-            - name: grafana-data
+            - name: lib
               mountPath: /var/lib/grafana
-            - name: provisioning
+            - name: datasources
               mountPath: /etc/grafana/provisioning/datasources
               readOnly: true
+            - name: dashboards-provisioning
+              mountPath: /etc/grafana/provisioning/dashboards
+              readOnly: true
+            - name: dashboards
+              mountPath: /var/lib/grafana/dashboards
+              readOnly: true
       volumes:
-        - name: grafana-data
-          persistentVolumeClaim:
-            claimName: grafana-data
-        - name: provisioning
+        # /var/lib/grafana остаётся writable-скретчем (кэш плагинов, индекс
+        # поиска): данные теперь в Postgres, поэтому том не нужен.
+        - name: lib
+          emptyDir: {}
+        - name: datasources
           configMap:
-            name: grafana-provisioning
+            name: grafana-datasources
+        - name: dashboards-provisioning
+          configMap:
+            name: grafana-dashboards-provisioning
+        - name: dashboards
+          configMap:
+            name: grafana-dashboards

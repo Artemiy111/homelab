@@ -1,0 +1,15 @@
+apiVersion: 1
+
+datasources:
+  # uid зафиксирован вручную: на него ссылаются панели провижинящихся дашбордов
+  # (`config/dashboards/`). Без него Grafana сгенерировала бы uid заново и
+  # дашборды остались бы без datasource.
+  - name: VictoriaMetrics
+    uid: victoriametrics
+    type: prometheus
+    access: proxy
+    url: http://victoriametrics:8428
+    isDefault: true
+    editable: false
+    jsonData:
+      timeInterval: 15s

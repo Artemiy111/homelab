@@ -1,0 +1,22 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: monitoring
+resources:
+  - k8s/grafana.deployment.yaml
+  - k8s/grafana.service.yaml
+  - k8s/sealedsecret.yaml
+configMapGenerator:
+  # Провижининг datasources и dashboards + сами дашборды собираются из файлов
+  # configMapGenerator'ом: kustomize добавляет хэш содержимого к имени и
+  # переписывает ссылки в Deployment, поэтому правка конфига сама запускает
+  # rollout.
+  - name: grafana-datasources
+    files:
+      - config/datasources.yaml
+  - name: grafana-dashboards-provisioning
+    files:
+      - config/dashboards.yaml
+  - name: grafana-dashboards
+    files:
+      - config/dashboards/cloudnative-pg.json
+      - config/dashboards/postgresql-database.json
