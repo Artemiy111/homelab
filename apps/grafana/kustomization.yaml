@@ -18,5 +18,8 @@ configMapGenerator:
       - config/dashboards.yaml
   - name: grafana-dashboards
     files:
+      # Дашборды в minified-виде: суммарный ConfigMap должен укладываться в лимит
+      # аннотации kubectl.kubernetes.io/last-applied-configuration (262144 Б),
+      # иначе client-side apply падает с metadata.annotations: Too long.
       - config/dashboards/cloudnative-pg.json
       - config/dashboards/postgresql-database.json
