@@ -87,9 +87,11 @@ spec:
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: open-webui
-        # element — выделенный namespace, поэтому доступ дан всем подам
-        # namespace'а (как open-webui/paperless/forgejo/infisical/glitchtip/
-        # postgres/authentik/sure/nextcloud).
+        # element — выделенный namespace (только synapse), поэтому доступ дан
+        # всем подам namespace'а.
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: element
         # monitoring — общий namespace, поэтому доступ к базе дан только подам
         # gatus и grafana, а не всем подам namespace'а (в отличие от paperless/
         # forgejo/infisical/glitchtip/postgres/authentik/sure/nextcloud).
