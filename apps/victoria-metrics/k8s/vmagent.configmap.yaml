@@ -278,9 +278,7 @@ data:
             regex: "template0|template1|postgres|app"
             action: drop
 
-      # Базы вне CNPG: экспортёры по одному на инстанс (apps/db-exporters),
-      # у playground-базы экспортёр — сайдкар в поде базы (apps/postgres), поэтому
-      # цель — сервис базы, а не отдельный экспортёр.
+      # Базы вне CNPG: экспортёры по одному на инстанс (apps/db-exporters).
       # instance = адрес цели, т.е. какая это база.
       - job_name: postgres
         static_configs:
@@ -289,7 +287,6 @@ data:
               - element-db-exporter.element.svc.cluster.local:9187
               - forgejo-db-exporter.forgejo.svc.cluster.local:9187
               - nextcloud-db-exporter.nextcloud.svc.cluster.local:9187
-              - postgres-db.postgres.svc.cluster.local:9187
               - sure-db-exporter.sure.svc.cluster.local:9187
 
       - job_name: redis

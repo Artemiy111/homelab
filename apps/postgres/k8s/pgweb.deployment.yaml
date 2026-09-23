@@ -21,7 +21,7 @@ spec:
         # depends_on: service_healthy).
         - name: wait-for-db
           image: "postgres:18.4-alpine@sha256:9a8afca54e7861fd90fab5fdf4c42477a6b1cb7d293595148e674e0a3181de15"
-          command: ["/bin/sh", "-c", "until pg_isready -h postgres-db -p 5432 -U playground; do echo waiting for postgres-db; sleep 2; done"]
+          command: ["/bin/sh", "-c", "until pg_isready -h shared-rw.databases.svc.cluster.local -p 5432 -U playground; do echo waiting for shared-rw; sleep 2; done"]
           securityContext:
             runAsUser: 70
             runAsGroup: 70
@@ -56,7 +56,7 @@ spec:
                   name: postgres
                   key: PGWEB_AUTH_PASS
             - name: PGWEB_DATABASE_URL
-              value: "postgres://playground:$(POSTGRES_PASSWORD)@postgres-db:5432/playground?sslmode=disable"
+              value: "postgres://playground:$(POSTGRES_PASSWORD)@shared-rw.databases.svc.cluster.local:5432/playground?sslmode=disable"
             - name: PGWEB_AUTH_USER
               value: pgweb
             - name: PGWEB_LOCK_SESSION

@@ -1,6 +1,6 @@
 # Базовый NetworkPolicy для namespace сервиса: default-deny ingress плюс
-# явные разрешения. Метрики отдаёт postgres-exporter-сайдкар (9187), скрейпит
-# vmagent из default. Egress не ограничивается.
+# явные разрешения. Внутрь ходят traefik (pgweb) и поды namespace.
+# Метрики базы отдаёт CNPG, не этот namespace. Egress не ограничивается.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -27,13 +27,3 @@ spec:
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: traefik
-    - from:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: monitoring
-          podSelector:
-            matchLabels:
-              app: vmagent
-      ports:
-        - port: 9187
-          protocol: TCP

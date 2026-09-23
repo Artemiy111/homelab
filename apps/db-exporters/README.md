@@ -11,9 +11,9 @@ namespace своего сервиса.
 **Базы в CloudNativePG сюда не входят.** Встроенный экспортёр instance-manager
 отдаёт `/metrics` на порту `metrics` (9187) каждого пода кластера, а vmagent
 находит их service discovery (job `cnpg`). Поэтому для `immich`, `dawarich`,
-`zitadel`, `paperless`, `infisical` и `glitchtip` отдельных подов нет: их метрики
-приходят из кластеров `immich-db`, `dawarich-db`, `zitadel-db` и `shared`
-(различать базы внутри кластера нужно по `datname`).
+`zitadel`, `paperless`, `infisical`, `glitchtip` и `playground` отдельных подов
+нет: их метрики приходят из кластеров `immich-db`, `dawarich-db`, `zitadel-db` и
+`shared` (различать базы внутри кластера нужно по `datname`).
 
 ## Почему по поду на базу
 
@@ -26,13 +26,6 @@ namespace своего сервиса.
   зашифрованный конфиг;
 - **sidecar** (экспортер контейнером рядом с БД) — production-паттерн без
   лишних подов, но правит все DB-Deployment'ы и Service'ы и роллаутит базы.
-
-Исключение — playground-база (`apps/postgres`): у неё экспортер вынесен
-**сайдкаром** — второй контейнер `postgres-exporter` в том же поде,
-подключение через `localhost:5432`. Это пилотный шаг к CNPG, где экспортер
-встроен в `instance-manager` и сайдкар не нужен. Цель в scrape — сервис базы
-(`postgres-db:9187`), а различать базы внутри кластера потом придётся по
-`datname`, а не по имени экспортера.
 
 ## Состав
 
