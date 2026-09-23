@@ -60,12 +60,19 @@ Apache Traffic Server (ATS) — обратный прокси с **дисков�
 | `storage.config` | путь и размер дискового кэша |
 | `plugin.config` | `stats_over_http.so` (метрики) |
 | `ip_allow.yaml` | ACL методов (PURGE из приватных сетей) |
-| `run.sh` | entrypoint: подстановка секрета PURGE в `remap.config` |
+| `run.sh` | entrypoint: копирует конфиги и подставляет секрет PURGE |
 
-Конфиги монтируются по `subPath` в **`/opt/etc/trafficserver`**: именно там
-лежат конфиги в образе (не `/etc/trafficserver`). Монтировать каталог целиком
-нельзя — перекроются дефолты образа (`body_factory`, `strategies.yaml`,
-`sni.yaml` и т. д.).
+ATS читает конфиги из **`/opt/etc/trafficserver`** (там они лежат в образе, не
+в `/etc/trafficserver`). Опцией `--conf_dir` этот каталог подменить нельзя: по
+usage она помечена как «config dir to verify» и действует только для команд
+`-C` (`verify_config` и т. п.), а не для запуска.
+
+Поэтому ConfigMap монтируется целиком в staging-каталог `/run/ats-src`, а
+`run.sh` на старте копирует оттуда шесть своих файлов в
+`/opt/etc/trafficserver` и запускает `traffic_server`. Так подстановка секрета
+PURGE реально попадает в загружаемый `remap.config`, а дефолты образа
+(`body_factory/`, `strategies.yaml`, `ssl_multicert.config` и пр.) не
+затрагиваются.
 
 ### Права и `fsGroup`
 
@@ -80,8 +87,8 @@ Apache Traffic Server (ATS) — обратный прокси с **дисков�
 `@plugin=` (он remap-плагин, не глобальный — в `plugin.config` его быть не
 должно). Ему обязательны `--secret` и `--state-file`; без них он не
 инициализируется. Секрета в git быть не должно, поэтому `run.sh` на старте
-копирует конфиги в `/run/ats` (tmpfs) и подставляет `$(ATS_PURGE_TOKEN)` из
-Secret, после чего запускает `traffic_server --conf_dir /run/ats`.
+подставляет `$(ATS_PURGE_TOKEN)` из Secret в `remap.config` (см. «Конфигурация»
+выше).
 
 Secret `ats` приходит из `k8s/sealedsecret.yaml` (значение также в
 `secrets.enc.env`); имя ключа — `ATS_PURGE_TOKEN`.
@@ -96,7 +103,12 @@ Secret `ats` приходит из `k8s/sealedsecret.yaml` (значение т�
 `PURGE` инвалидирует **всё правило remap** (весь origin), а не один объект:
 плагин увеличивает generation id, и объекты прежнего поколения в кэше
 становятся невалидными. `PURGE` на URL, которого нет в кэше, возвращает `404`,
-на существующий — `200`.
+на существующий — `200` (успешный ответ — `200` с телом `PURGED <origin>`).
+
+Generation id хранится в `--state-file` на PVC (`/var/cache/trafficserver/
+purge-<origin>`), поэтому переживает рестарт пода. При старте плагин пишет
+`ERROR Can not open file`, если файла нет; `run.sh` предсоздаёт пустые файлы от
+имени `nobody`, чтобы этот штатный случай не засорял лог.
 
 ## Развёртывание
 
@@ -179,5 +191,8 @@ curl -X PURGE -H "X-ATS-Purge: $ATS_PURGE_TOKEN" \
    (`2d03fb5f...2fe452`). Важно, что вернулся **файл**, а не `302`.
 3. Повторный запрос — быстрее, из кэша: `GET2 t≈0.15s` против `GET1 t≈1.0s`,
    счётчик `traffic_ctl metric get proxy.process.http.cache_hit_fresh` растёт.
-4. `curl -X PURGE -H "X-ATS-Purge: <секрет>" <url>` возвращает `200`, и
-   следующий запрос снова идёт в upstream (счётчик хитов не растёт).
+4. `curl -X PURGE -H "X-ATS-Purge: <секрет>" <url>` возвращает `200` с телом
+   `PURGED <origin>`, и следующий запрос снова идёт в upstream. Проверить
+   персистентность: `/var/cache/trafficserver/purge-<origin>` на PVC содержит
+   выросший generation id, и после рестарта пода он читается (ошибок
+   `remap_purge` в `diags.log` для этого origin'а нет).

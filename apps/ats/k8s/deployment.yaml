@@ -29,7 +29,7 @@ spec:
           image: "trafficserver/trafficserver:10.2.0@sha256:8b6d118cfbe220f7e034bd0431c1bfd9325b275f456ecc3ba95f9b46a552ced3"
           # Секрет PURGE подставляется в remap.config на старте (см. run.sh).
           # Шелл нужен для подстановки; exec внутри run.sh сохраняет PID 1.
-          command: ["/bin/sh", "/opt/run/run.sh"]
+          command: ["/bin/sh", "/run/ats-src/run.sh"]
           env:
             - name: ATS_PURGE_TOKEN
               valueFrom:
@@ -63,36 +63,13 @@ spec:
               cpu: "2"
               memory: 1Gi
           volumeMounts:
-            # Конфиги в образе лежат в /opt/etc/trafficserver (не /etc/...).
-            # Монтируем каждый файл своим subPath: каталог целиком перекрыл бы
-            # дефолты образа (body_factory, strategies.yaml, sni.yaml и пр.).
+            # ConfigMap со всеми конфигами монтируется в staging-каталог, а
+            # run.sh копирует их в /opt/etc/trafficserver (там их читает ATS) и
+            # подставляет секрет PURGE. Монтировать файлы напрямую в
+            # /opt/etc/trafficserver нельзя: они стали бы read-only и
+            # подстановка секрета не применилась бы.
             - name: config
-              mountPath: /opt/etc/trafficserver/records.yaml
-              subPath: records.yaml
-              readOnly: true
-            - name: config
-              mountPath: /opt/etc/trafficserver/remap.config
-              subPath: remap.config
-              readOnly: true
-            - name: config
-              mountPath: /opt/etc/trafficserver/cache.config
-              subPath: cache.config
-              readOnly: true
-            - name: config
-              mountPath: /opt/etc/trafficserver/storage.config
-              subPath: storage.config
-              readOnly: true
-            - name: config
-              mountPath: /opt/etc/trafficserver/plugin.config
-              subPath: plugin.config
-              readOnly: true
-            - name: config
-              mountPath: /opt/etc/trafficserver/ip_allow.yaml
-              subPath: ip_allow.yaml
-              readOnly: true
-            - name: config
-              mountPath: /opt/run/run.sh
-              subPath: run.sh
+              mountPath: /run/ats-src
               readOnly: true
             - name: cache
               mountPath: /var/cache/trafficserver
