@@ -34,7 +34,7 @@ jobs:
         run: |
           set -euo pipefail
           asset="kube-linter/0.8.3/kube-linter-linux.tar.gz"
-          url="http://rustfs.rustfs.svc.cluster.local:9000/mirror/$asset"
+          url="http://rustfs.rustfs.svc.cluster.local/mirror/$asset"
           expected="$(awk -v p="$asset" '$1==p{print $2}' apps/rustfs/artifacts.tsv)"
           mkdir -p "$HOME/.local/bin"
           curl -fsSL -o /tmp/kube-linter.tar.gz "$url"

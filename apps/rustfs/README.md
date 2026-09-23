@@ -21,7 +21,7 @@ entrypoint `websecure`. DNS подхватывается wildcard-записью
 
 Особенность маршрутизации: браузерная консоль по умолчанию считает S3-endpoint'ом
 собственный хост и шлёт подписанные SigV4-запросы на `rustfs.${DOMAIN}`.
-Поэтому Traefik направляет на порт 9000 (API) любые запросы к
+Поэтому Traefik направляет на порт 80 (S3 API) любые запросы к
 `rustfs.${DOMAIN}` с заголовком `Authorization: AWS4-HMAC-SHA256`, путь
 `/rustfs/console/*` — на порт 9001 (UI), а корень хоста редиректит на UI.
 Убирать эти роутеры нельзя: без них вход в консоль ломается
@@ -67,7 +67,7 @@ aws --endpoint-url https://s3.${DOMAIN} \
 tarball'ы), которые CI тянет анонимно по HTTP, не ходя в интернет:
 
 ```text
-http://rustfs.rustfs.svc.cluster.local:9000/mirror/<path>
+http://rustfs.rustfs.svc.cluster.local/mirror/<path>
 ```
 
 Что зеркалировать — `apps/rustfs/artifacts.tsv` (`<path> <sha256> <url>`).
@@ -89,7 +89,7 @@ kubectl -n rustfs create job --from=cronjob/mirror-sync mirror-sync-manual
 ```sh
 kubectl -n rustfs exec deploy/rustfs -- \
   curl -fsS -o /dev/null -w '%{http_code}\n' \
-  http://rustfs:9000/mirror/kubeconform/0.8.0/kubeconform_0.8.0_linux_amd64.tar.gz
+  http://rustfs/mirror/kubeconform/0.8.0/kubeconform_0.8.0_linux_amd64.tar.gz
 ```
 
 Доступ из job'ов CI обеспечивает NetworkPolicy `allow-ingress` (namespace

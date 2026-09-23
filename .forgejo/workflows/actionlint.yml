@@ -31,7 +31,7 @@ jobs:
         run: |
           set -euo pipefail
           asset="actionlint/1.7.12/actionlint_1.7.12_linux_amd64.tar.gz"
-          url="http://rustfs.rustfs.svc.cluster.local:9000/mirror/$asset"
+          url="http://rustfs.rustfs.svc.cluster.local/mirror/$asset"
           expected="$(awk -v p="$asset" '$1==p{print $2}' apps/rustfs/artifacts.tsv)"
           mkdir -p "$HOME/.local/bin"
           curl -fsSL -o /tmp/actionlint.tar.gz "$url"

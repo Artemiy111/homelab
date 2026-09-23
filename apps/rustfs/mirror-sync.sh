@@ -12,7 +12,7 @@
 # строки "<path> <sha256> <url>".
 #
 # Окружение:
-#   S3_ENDPOINT         S3 API RustFS (например http://rustfs.rustfs.svc.cluster.local:9000)
+#   S3_ENDPOINT         S3 API RustFS (например http://rustfs.rustfs.svc.cluster.local)
 #   MIRROR_BUCKET       имя бакета (по умолчанию mirror)
 #   KUBERNETES_VERSION  если задано — собрать и опубликовать схемы kubeconform
 #   SCHEMA_REPO         upstream репозиторий схем (по умолчанию yannh/kubernetes-json-schema)

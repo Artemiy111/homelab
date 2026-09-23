@@ -40,7 +40,7 @@ jobs:
         run: |
           set -euo pipefail
           asset="kubeconform/0.8.0/kubeconform_0.8.0_linux_amd64.tar.gz"
-          url="http://rustfs.rustfs.svc.cluster.local:9000/mirror/$asset"
+          url="http://rustfs.rustfs.svc.cluster.local/mirror/$asset"
           expected="$(awk -v p="$asset" '$1==p{print $2}' apps/rustfs/artifacts.tsv)"
           mkdir -p "$HOME/.local/bin" /tmp/kubeconform
           curl -fsSL -o /tmp/kubeconform/kubeconform.tar.gz "$url"
@@ -51,7 +51,7 @@ jobs:
         if: steps.schemas.outputs.cache-hit != 'true'
         run: |
           set -euo pipefail
-          url="http://rustfs.rustfs.svc.cluster.local:9000/mirror/kubeconform-schemas/1.36.3/kubernetes-json-schema_1.36.3_standalone.tar.gz"
+          url="http://rustfs.rustfs.svc.cluster.local/mirror/kubeconform-schemas/1.36.3/kubernetes-json-schema_1.36.3_standalone.tar.gz"
           mkdir -p "$HOME/.cache/kubeconform-schemas"
           curl -fsSL -o /tmp/schemas.tar.gz "$url"
           tar -xzf /tmp/schemas.tar.gz -C "$HOME/.cache/kubeconform-schemas"

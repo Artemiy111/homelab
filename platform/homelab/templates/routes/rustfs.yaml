@@ -12,7 +12,7 @@ spec:
       kind: Rule
       services:
         - name: rustfs
-          port: 9000
+          port: 80
     # Подписанные S3-запросы браузерной консоли к её же хосту уходят на API:
     # redirect или другой path ломают SigV4-подпись (SignatureDoesNotMatch).
     - match: Host(`rustfs.{{ .Values.config.domain }}`) && HeaderRegexp(`Authorization`, `^AWS4-HMAC-SHA256`)
@@ -20,7 +20,7 @@ spec:
       priority: 110
       services:
         - name: rustfs
-          port: 9000
+          port: 80
     # Консоль: только её base path.
     - match: Host(`rustfs.{{ .Values.config.domain }}`) && PathPrefix(`/rustfs/console`)
       kind: Rule
@@ -36,4 +36,4 @@ spec:
         - name: rustfs-root-redirect
       services:
         - name: rustfs
-          port: 9000
+          port: 80

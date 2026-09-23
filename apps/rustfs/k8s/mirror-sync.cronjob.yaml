@@ -32,7 +32,7 @@ spec:
                 - /scripts/mirror-sync.sh
               env:
                 - name: S3_ENDPOINT
-                  value: http://rustfs.rustfs.svc.cluster.local:9000
+                  value: http://rustfs.rustfs.svc.cluster.local
                 - name: AWS_DEFAULT_REGION
                   value: us-east-1
                 - name: KUBERNETES_VERSION
