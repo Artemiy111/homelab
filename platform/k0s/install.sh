@@ -59,8 +59,14 @@ fi
 echo ""
 echo "Configuring firewalld..."
 
-# Проверка совместимости бэкендов (k0s -> nftables, firewalld -> nftables на Fedora)
-K0S_IPTABLES=$(ls -la /var/lib/k0s/bin/iptables 2>/dev/null | grep -o 'nftables\|iptables' || echo "unknown")
+# Проверка совместимости бэкендов (k0s -> nftables, firewalld -> nftables на Fedora).
+# k0s линкует /var/lib/k0s/bin/iptables на xtables-{nft,legacy}-multi — бэкенд
+# определяем по цели симлинка и приводим к словарю firewalld.
+case "$(readlink -f /var/lib/k0s/bin/iptables 2>/dev/null)" in
+  *-nft-multi) K0S_IPTABLES=nftables ;;
+  *-legacy-multi) K0S_IPTABLES=iptables ;;
+  *) K0S_IPTABLES=unknown ;;
+esac
 FW_BACKEND=$(grep FirewallBackend /etc/firewalld/firewalld.conf 2>/dev/null | awk '{print $3}' || echo "unknown")
 
 if [[ "$K0S_IPTABLES" != "unknown" && "$FW_BACKEND" != "unknown" && "$K0S_IPTABLES" != "$FW_BACKEND" ]]; then

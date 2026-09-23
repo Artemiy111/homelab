@@ -40,10 +40,37 @@ jobs:
           install -m 0755 /tmp/actionlint "$HOME/.local/bin/actionlint"
       - name: Add actionlint to PATH
         run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-      # shellcheck/pyflakes отключены явно: на раннере их нет, и поведение не
-      # должно зависеть от образа раннера. Включение — отдельная задача.
+      # shellcheck нужен actionlint'у для проверки inline `run:` (SC-правила).
+      # Берём тот же закэшированный бинарь, что и workflow shellcheck.yml (общий
+      # ключ кэша — качается один раз на оба workflow). Доставка через ATS, см.
+      # комментарий в shellcheck.yml.
+      - name: Cache shellcheck
+        id: shellcheck
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/shellcheck
+          key: shellcheck-0.11.0-${{ runner.os }}
+      - name: Install shellcheck
+        if: steps.shellcheck.outputs.cache-hit != 'true'
+        run: |
+          set -euo pipefail
+          ver="0.11.0"
+          asset="shellcheck-v${ver}.linux.x86_64.tar.gz"
+          expected="b7af85e41cc99489dcc21d66c6d5f3685138f06d34651e6d34b42ec6d54fe6f6"
+          url="http://ats.ats.svc.cluster.local:8080/github/koalaman/shellcheck/releases/download/v${ver}/${asset}"
+          mkdir -p "$HOME/.local/shellcheck" /tmp/shellcheck
+          curl -fsSL -o "/tmp/shellcheck/${asset}" "$url"
+          echo "$expected  /tmp/shellcheck/${asset}" | sha256sum -c -
+          tar -xzf "/tmp/shellcheck/${asset}" -C /tmp/shellcheck "shellcheck-v${ver}/shellcheck"
+          install -m 0755 "/tmp/shellcheck/shellcheck-v${ver}/shellcheck" "$HOME/.local/shellcheck/shellcheck"
+      - name: Add shellcheck to PATH
+        run: echo "$HOME/.local/shellcheck" >> "$GITHUB_PATH"
+      # pyflakes по-прежнему отключён явно: на раннере его нет, а shell-скрипты
+      # в run: — не Python. shellcheck actionlint находит в PATH и гоняет его по
+      # inline shell сам.
       - name: Lint workflows
         run: |
           set -euo pipefail
           actionlint -version
-          actionlint -shellcheck= -pyflakes= -config-file .forgejo/actionlint.yaml .forgejo/workflows/*.yml
+          shellcheck --version
+          actionlint -pyflakes= -config-file .forgejo/actionlint.yaml .forgejo/workflows/*.yml

@@ -1,0 +1,52 @@
+name: shellcheck
+
+on:
+  push:
+    branches: [main]
+    paths: &paths
+      - "**/*.sh"
+      - ".forgejo/workflows/shellcheck.yml"
+  pull_request:
+    paths: *paths
+
+jobs:
+  shellcheck:
+    name: shellcheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - name: Cache shellcheck
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/shellcheck
+          key: shellcheck-0.11.0-${{ runner.os }}
+      # Бинарь берём через кэш ATS (apps/ats): GitHub отдаёт релиз-ассет
+      # редиректом на короткоживущий CDN-URL (#211), а ATS сам разворачивает
+      # 302 и кэширует файл. Ассет неизменяемый, поэтому кэшируем и у себя,
+      # чтобы не ходить в ATS на каждом прогоне. sha256 сверяем всегда.
+      - name: Install shellcheck
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          set -euo pipefail
+          ver="0.11.0"
+          asset="shellcheck-v${ver}.linux.x86_64.tar.gz"
+          expected="b7af85e41cc99489dcc21d66c6d5f3685138f06d34651e6d34b42ec6d54fe6f6"
+          url="http://ats.ats.svc.cluster.local:8080/github/koalaman/shellcheck/releases/download/v${ver}/${asset}"
+          mkdir -p "$HOME/.local/shellcheck" /tmp/shellcheck
+          curl -fsSL -o "/tmp/shellcheck/${asset}" "$url"
+          echo "$expected  /tmp/shellcheck/${asset}" | sha256sum -c -
+          tar -xzf "/tmp/shellcheck/${asset}" -C /tmp/shellcheck "shellcheck-v${ver}/shellcheck"
+          install -m 0755 "/tmp/shellcheck/shellcheck-v${ver}/shellcheck" "$HOME/.local/shellcheck/shellcheck"
+      - name: Add shellcheck to PATH
+        run: echo "$HOME/.local/shellcheck" >> "$GITHUB_PATH"
+      # Линтим все отслеживаемые *.sh по расширению; .agents и .claude — это
+      # шаблоны скиллов и инструментовка, их не проверяем. Порог warning задан
+      # явно, чтобы набор правил не зависел от дефолтов версии.
+      - name: Lint scripts
+        run: |
+          set -euo pipefail
+          shellcheck --version
+          mapfile -t scripts < <(git ls-files -- '*.sh' ':!.agents/**' ':!.claude/**')
+          shellcheck -S warning "${scripts[@]}"
