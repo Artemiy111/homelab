@@ -578,7 +578,7 @@ Grafana как есть. Проверить, что CRD появились, а w
 (в VM-чарте `admissionWebhooks.policy: Ignore` — разумный дефолт для одной ноды).
 
 **Этап 2 — перевести сборщик.** Заменить `vmagent.deployment.yaml` +
-`vmagent.configmap.yaml` на `VMAgent` CR (тот же образ `vmagent:v1.150.0` →
+`config/vmagent/scrape.yml` на `VMAgent` CR (тот же образ `vmagent:v1.150.0` →
 позже обновить) и перенести джобы по таблице §5. Начать с «сырых»:
 node-exporter, kube-state-metrics, kubelet/cAdvisor (`VMNodeScrape`), app-метрики.
 Секреты авторизуемых целей — `Secret`-ссылки в CRD. Это самый трудоёмкий шаг;
