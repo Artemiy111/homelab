@@ -1,0 +1,298 @@
+# Скрейп-конфиг vmagent. vmagent забирает /metrics приложений напрямую и
+# пишет в VictoriaMetrics; секретов в файле нет — значения подставляются из
+# окружения по ссылкам %{VAR} (поддержка env в -promscrape.config:
+# https://docs.victoriametrics.com/victoriametrics/vmagent/#how-to-collect-metrics-in-prometheus-format).
+# Окружение приходит из k8s Secrets/ConfigMap (см. apps/victoria-metrics/k8s/vmagent.deployment.yaml).
+#
+# Цели адресуются по именам Service'ов кластера. Приложения без аутентификации
+# отдают метрики внутри кластера открыто; креды нужны только помеченным целям.
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  # Хост, контейнеры и Docker: netdata агрегирует их и отдаёт Prometheus-формат.
+  - job_name: netdata
+    metrics_path: /api/v1/allmetrics
+    params:
+      format:
+        - prometheus
+    static_configs:
+      - targets:
+          - netdata.monitoring.svc.cluster.local:19999
+
+  - job_name: node-exporter
+    static_configs:
+      - targets:
+          - node-exporter.monitoring.svc.cluster.local:9100
+
+  # Состояние объектов кластера (kube_*): реплики, статусы Pod, Job, PVC.
+  - job_name: kube-state-metrics
+    static_configs:
+      - targets:
+          - kube-state-metrics.monitoring.svc.cluster.local:8080
+
+  # kubelet и встроенный в него cAdvisor: ресурсы контейнеров и Pod'ов
+  # (container_*). Цели находятся через service discovery (role: node) — по
+  # одной на каждую ноду, поэтому кластер может расти. kubelet на :10250
+  # требует bearer-токен SA с правом на non-resource URL'ы (/metrics,
+  # /metrics/cadvisor) — см. vmagent-rbac.yaml. insecure_skip_verify: у
+  # kubelet self-signed сертификат (так же по умолчанию делает
+  # kube-prometheus-stack).
+  - job_name: kubelet
+    scheme: https
+    bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+    tls_config:
+      insecure_skip_verify: true
+    kubernetes_sd_configs:
+      - role: node
+    relabel_configs:
+      - action: labelmap
+        regex: __meta_kubernetes_node_label_(.+)
+      - source_labels: [__meta_kubernetes_node_address_InternalIP]
+        regex: "(.+)"
+        target_label: __address__
+        replacement: "${1}:10250"
+
+  - job_name: cadvisor
+    scheme: https
+    metrics_path: /metrics/cadvisor
+    bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+    tls_config:
+      insecure_skip_verify: true
+    kubernetes_sd_configs:
+      - role: node
+    relabel_configs:
+      - action: labelmap
+        regex: __meta_kubernetes_node_label_(.+)
+      - source_labels: [__meta_kubernetes_node_address_InternalIP]
+        regex: "(.+)"
+        target_label: __address__
+        replacement: "${1}:10250"
+
+  # Собственные метрики стека.
+  - job_name: victoriametrics
+    static_configs:
+      - targets:
+          - victoriametrics.monitoring.svc.cluster.local:8428
+
+  - job_name: vmagent
+    static_configs:
+      - targets:
+          - localhost:8429
+
+  # Ingress: метрики entrypoints/routers/services (helm-чарт публикует
+  # отдельный Service traefik-metrics в namespace traefik).
+  - job_name: traefik
+    static_configs:
+      - targets:
+          - traefik-metrics.traefik.svc.cluster.local:9100
+
+  # Приложения, отдающие /metrics без аутентификации.
+  - job_name: authentik
+    static_configs:
+      - targets:
+          - authentik.authentik.svc.cluster.local:9300
+
+  - job_name: wud
+    static_configs:
+      - targets:
+          - wud.monitoring.svc.cluster.local:3000
+
+  - job_name: gatus
+    static_configs:
+      - targets:
+          - gatus.monitoring.svc.cluster.local:8080
+
+  - job_name: synapse
+    metrics_path: /_synapse/metrics
+    static_configs:
+      - targets:
+          - synapse.element.svc.cluster.local:9009
+
+  - job_name: immich
+    static_configs:
+      - targets:
+          - immich.immich.svc.cluster.local:8081
+
+  - job_name: livekit
+    static_configs:
+      - targets:
+          - livekit.element.svc.cluster.local:6789
+
+  - job_name: grafana
+    static_configs:
+      - targets:
+          - grafana.monitoring.svc.cluster.local:80
+
+  - job_name: jitsi-jvb
+    static_configs:
+      - targets:
+          - jitsi-jvb.jitsi.svc.cluster.local:8080
+
+  - job_name: oauth2-proxy
+    static_configs:
+      - targets:
+          - oauth2-proxy.oauth2-proxy.svc.cluster.local:9100
+
+  - job_name: vault
+    metrics_path: /v1/sys/metrics
+    params:
+      format:
+        - prometheus
+    static_configs:
+      - targets:
+          - vault.vault.svc.cluster.local:8200
+
+  - job_name: infisical
+    static_configs:
+      - targets:
+          - infisical.infisical.svc.cluster.local:9464
+
+  # OTLP-приёмник: приложения, отдающие метрики push'ем, попадают сюда
+  # (resource attributes в лейблах, напр. service_name="rustfs").
+  - job_name: otel-collector
+    static_configs:
+      - targets:
+          - otel-collector.monitoring.svc.cluster.local:8889
+
+  - job_name: jellyfin
+    static_configs:
+      - targets:
+          - jellyfin-exporter.jellyfin.svc.cluster.local:9594
+
+  - job_name: nextcloud
+    static_configs:
+      - targets:
+          - nextcloud-exporter.nextcloud.svc.cluster.local:9205
+
+  # Приложения с аутентификацией (креды из окружения).
+
+  # LocalAI отдаёт /metrics за API-ключом (Bearer). disable_compression:
+  # LocalAI при Accept-Encoding: gzip сжимает ответ дважды (баг), и vmagent
+  # не может его распарсить — просим отдавать несжатый текст.
+  - job_name: local-ai
+    disable_compression: true
+    authorization:
+      credentials: "%{LOCALAI_API_KEY}"
+    static_configs:
+      - targets:
+          - local-ai.local-ai.svc.cluster.local:8080
+
+  # Home Assistant отдаёт /api/prometheus за Bearer-токеном.
+  - job_name: home-assistant
+    metrics_path: /api/prometheus
+    authorization:
+      credentials: "%{HOME_ASSISTANT_TOKEN}"
+    static_configs:
+      - targets:
+          - home-assistant.home-assistant.svc.cluster.local:8123
+
+  # API-ключ Kuma передаётся как пароль basic auth без username.
+  - job_name: uptime-kuma
+    basic_auth:
+      password: "%{UPTIME_KUMA_METRICS_API_KEY}"
+    static_configs:
+      - targets:
+          - uptime-kuma.uptime-kuma.svc.cluster.local:3001
+
+  # Секретный путь метрик Navidrome (ND_PROMETHEUS_ENABLED).
+  - job_name: navidrome
+    metrics_path: /metrics_%{NAVIDROME_METRICS_PATH}
+    static_configs:
+      - targets:
+          - navidrome.navidrome.svc.cluster.local:4533
+
+  # Dawarich редиректит внутренние запросы на публичный HTTPS-URL, поэтому
+  # скрейпим его через Traefik (basic auth).
+  - job_name: dawarich
+    scheme: https
+    metrics_path: /metrics
+    basic_auth:
+      username: netdata
+      password: "%{DAWARICH_METRICS_PASSWORD}"
+    static_configs:
+      - targets:
+          - dawarich.%{DOMAIN}
+
+  # Токен передаётся как Bearer (Forgejo [metrics] TOKEN).
+  - job_name: forgejo
+    authorization:
+      credentials: "%{FORGEJO_METRICS_TOKEN}"
+    static_configs:
+      - targets:
+          - forgejo.forgejo.svc.cluster.local:3000
+
+  # Technitium отдаёт метрики дашборда; Bearer-токен из secrets.
+  - job_name: technitium
+    metrics_path: /api/dashboard/metrics/text
+    authorization:
+      credentials: "%{TECHNITIUM_METRICS_TOKEN}"
+    static_configs:
+      - targets:
+          - technitium.technitium.svc.cluster.local:5380
+
+  # Stalwart (почта): Telemetry → Metrics → Prometheus, basic auth.
+  - job_name: stalwart
+    metrics_path: /metrics/prometheus
+    basic_auth:
+      username: metrics
+      password: "%{STALWART_METRICS_PASSWORD}"
+    static_configs:
+      - targets:
+          - mailserver.mailserver.svc.cluster.local:8080
+
+  # CNPG: встроенный экспортёр instance-manager отдаёт /metrics на порту
+  # metrics (9187) каждого пода кластера; цели находятся service discovery
+  # (role: pod) по метке cnpg.io/cluster, поэтому новые кластеры не требуют
+  # правки конфига. Базы внутри одного кластера различаются по datname.
+  - job_name: cnpg
+    kubernetes_sd_configs:
+      - role: pod
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_cnpg_io_cluster]
+        regex: ".+"
+        action: keep
+      - source_labels: [__meta_kubernetes_pod_container_port_name]
+        regex: metrics
+        action: keep
+      - source_labels: [__meta_kubernetes_namespace]
+        target_label: namespace
+      - source_labels: [__meta_kubernetes_pod_label_cnpg_io_cluster]
+        target_label: cluster
+      - source_labels: [__meta_kubernetes_pod_label_cnpg_io_podRole]
+        target_label: role
+      - source_labels: [__meta_kubernetes_pod_name]
+        target_label: pod
+    metric_relabel_configs:
+      # Служебные базы (initdb app, postgres, шаблоны) не мониторим.
+      - source_labels: [datname]
+        regex: "template0|template1|postgres|app"
+        action: drop
+
+  # Базы вне CNPG: экспортёры по одному на инстанс (apps/db-exporters).
+  # instance = адрес цели, т.е. какая это база.
+  - job_name: postgres
+    static_configs:
+      - targets:
+          - element-db-exporter.element.svc.cluster.local:9187
+          - forgejo-db-exporter.forgejo.svc.cluster.local:9187
+          - nextcloud-db-exporter.nextcloud.svc.cluster.local:9187
+          - sure-db-exporter.sure.svc.cluster.local:9187
+
+  - job_name: redis
+    static_configs:
+      - targets:
+          - dawarich-redis-exporter.dawarich.svc.cluster.local:9121
+          - element-redis-exporter.element.svc.cluster.local:9121
+          - glitchtip-valkey-exporter.glitchtip.svc.cluster.local:9121
+          - immich-valkey-exporter.immich.svc.cluster.local:9121
+          - infisical-redis-exporter.infisical.svc.cluster.local:9121
+          - nextcloud-redis-exporter.nextcloud.svc.cluster.local:9121
+          - paperless-broker-exporter.paperless.svc.cluster.local:9121
+          - seafile-redis-exporter.seafile.svc.cluster.local:9121
+          - sure-redis-exporter.sure.svc.cluster.local:9121
+
+  - job_name: mysql
+    static_configs:
+      - targets:
+          - seafile-mariadb-exporter.seafile.svc.cluster.local:9104

@@ -530,7 +530,7 @@ datasource типа `prometheus`, все они совместимы.
 ## 5. 🔁 Миграция: текущий `scrape.yml` → CRD, построчно
 
 Ниже — концептуальное соответствие джобов из
-`apps/victoria-metrics/k8s/vmagent.configmap.yaml`. Столбец «CRD» подразумевает
+`apps/victoria-metrics/config/vmagent/scrape.yml`. Столбец «CRD» подразумевает
 развёрнутый VM Operator + `VMAgent` CR (или, альтернативно, prometheus-operator CRD,
 которые конвертер VM прочитает).
 

@@ -20,7 +20,7 @@ setuid-binary, и запрет новых привилегий ломает сб
 Netdata не собирает метрики приложений: их забирает **vmagent** напрямую из
 `/metrics` каждого сервиса и пишет в VictoriaMetrics (оригинальные имена и
 лейблы, без netdata-префиксов). Netdata отвечает только за хост и контейнеры.
-Цели и их аутентификация описаны в `apps/victoria-metrics/k8s/vmagent.configmap.yaml`.
+Цели и их аутентификация описаны в `apps/victoria-metrics/config/vmagent/scrape.yml`.
 
 Наружу Netdata отдаёт только собственный Prometheus-эндпоинт — его скрейпит
 vmagent (job `netdata`):

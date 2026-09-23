@@ -1,0 +1,19 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: monitoring
+resources:
+  - k8s/sealedsecret.yaml
+  - k8s/victoriametrics.deployment.yaml
+  - k8s/victoriametrics.service.yaml
+  - k8s/vmagent-rbac.yaml
+  - k8s/vmagent.deployment.yaml
+  - k8s/vmagent.service.yaml
+  - k8s/vmdata.pvc.yaml
+configMapGenerator:
+  # scrape.yml собирается в ConfigMap `vmagent-scrape`; kustomize добавляет хэш
+  # содержимого к имени и переписывает ссылку в Deployment, поэтому правка
+  # конфига сама запускает rollout. vmagent не перечитывает файл на ходу
+  # (см. docs.victoriametrics.com/vmagent/#configuration-update).
+  - name: vmagent-scrape
+    files:
+      - config/vmagent/scrape.yml

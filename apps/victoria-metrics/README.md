@@ -5,7 +5,7 @@
 историю всех сигналов. Дашборды строит Grafana — это отдельный сервис,
 см. `apps/grafana/`.
 
-Сервисы развёрнуты в Kubernetes (`apps/victoria-metrics/k8s/`).
+Сервисы развёрнуты kustomize-набором `apps/victoria-metrics/`.
 
 Состав:
 
@@ -47,11 +47,19 @@ Secrets и ConfigMap (см. `apps/victoria-metrics/k8s/vmagent.deployment.yaml`)
 
 ## Развёртывание в Kubernetes
 
-Манифесты в `apps/victoria-metrics/k8s/`:
+kustomize-набор в `apps/victoria-metrics/`: манифесты в `k8s/`, а скрейп-конфиг
+`config/vmagent/scrape.yml` собирается в ConfigMap `vmagent-scrape` через
+`configMapGenerator`. Kustomize добавляет к имени ConfigMap хэш содержимого и
+переписывает ссылку в `vmagent.deployment.yaml`, поэтому правка `scrape.yml`
+сама меняет pod-template и запускает rollout — отдельный
+`kubectl rollout restart` не нужен (vmagent не перечитывает файл на ходу).
 
 - `victoriametrics.deployment.yaml`, `victoriametrics.service.yaml` — TSDB;
 - `vmagent.deployment.yaml`, `vmagent.service.yaml` — сборщик; монтирует
-  `config/vmagent/scrape.yml` (hostPath) и получает креды целей из Secrets;
+  собранный из `config/vmagent/scrape.yml` ConfigMap и получает креды целей из
+  Secrets;
+- `vmagent-rbac.yaml` — доступ к kubelet/cAdvisor и service discovery;
+- `vmdata.pvc.yaml` — том TSDB;
 - `sealedsecret.yaml` — Secret `vmagent` (`UPTIME_KUMA_METRICS_API_KEY`); прочие
   креды берутся из Secrets соответствующих сервисов (`navidrome`, `dawarich`,
   `forgejo`, `technitium`, `mailserver`).
@@ -59,8 +67,7 @@ Secrets и ConfigMap (см. `apps/victoria-metrics/k8s/vmagent.deployment.yaml`)
 Применение (от `artlab` на сервере, после `git pull --ff-only`):
 
 ```sh
-kubectl apply -f apps/victoria-metrics/k8s/
-kubectl rollout restart deploy/vmagent   # после правки scrape.yml
+kubectl apply -k apps/victoria-metrics/
 ```
 
 ## Проверка

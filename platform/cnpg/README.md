@@ -363,7 +363,7 @@ kubectl -n databases exec shared-1 -c postgres -- \
 
 - **Метрики.** У оператора нет CRD prometheus-operator, поэтому PodMonitor не
   используется. Вместо него — job `cnpg` в
-  `apps/victoria-metrics/k8s/vmagent.configmap.yaml`: service discovery по подам,
+  `apps/victoria-metrics/config/vmagent/scrape.yml`: service discovery по подам,
   keep по порту `metrics`, лейблы `cluster`/`role` из `cnpg.io/cluster` и
   `cnpg.io/podRole`, служебные базы (`template*`, `postgres`, `app`) отброшены
   по `datname`. Для баз на CNPG отдельные экспортёры
