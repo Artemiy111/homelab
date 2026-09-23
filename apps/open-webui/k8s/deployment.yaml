@@ -40,6 +40,10 @@ spec:
             # /tmp: БД теперь в Postgres, постоянного состояния на поде нет.
             - name: DATA_DIR
               value: /tmp/open-webui
+            # Модели эмбеддингов (RAG) качаются в /tmp: образ кладёт их в
+            # read-only слой, куда huggingface_hub не может писать lock-файлы.
+            - name: HF_HOME
+              value: /tmp/open-webui/cache/hf
             # Данные — в общем кластере CNPG shared (роль и база openwebui).
             # Пароль подставляется из Secret'а open-webui на строку выше, чтобы
             # не запечатывать готовый DSN.
