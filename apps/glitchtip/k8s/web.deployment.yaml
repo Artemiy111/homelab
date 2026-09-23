@@ -36,7 +36,7 @@ spec:
                   name: glitchtip
                   key: POSTGRES_PASSWORD
             - name: DATABASE_URL
-              value: "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@glitchtip-postgres:5432/$(POSTGRES_DB)"
+              value: "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@shared-rw.databases.svc.cluster.local:5432/$(POSTGRES_DB)"
             - name: GLITCHTIP_CLIENT_ID
               valueFrom:
                 secretKeyRef:
@@ -98,7 +98,7 @@ spec:
                   name: glitchtip
                   key: SECRET_KEY
             - name: DATABASE_URL
-              value: "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@glitchtip-postgres:5432/$(POSTGRES_DB)"
+              value: "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@shared-rw.databases.svc.cluster.local:5432/$(POSTGRES_DB)"
             - name: VALKEY_URL
               value: "redis://glitchtip-valkey:6379/0"
             - name: GLITCHTIP_DOMAIN

@@ -3,7 +3,7 @@
 # (instance manager, PostgreSQL), поэтому ему разрешён весь трафик.
 # vmagent из monitoring скрейпит встроенный экспортёр instance-manager (9187).
 # Потребители общего кластера перечисляются явно: сейчас это paperless, forgejo,
-# infisical и gatus (под gatus из общего namespace monitoring).
+# infisical, glitchtip и gatus (под gatus из общего namespace monitoring).
 # Egress не ограничивается — см. комментарий в apps/lute/k8s/networkpolicy.yaml.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -64,9 +64,12 @@ spec:
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: infisical
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: glitchtip
         # monitoring — общий namespace, поэтому доступ к базе дан только поду
         # gatus, а не всем подам namespace'а (в отличие от paperless/forgejo/
-        # infisical).
+        # infisical/glitchtip).
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: monitoring

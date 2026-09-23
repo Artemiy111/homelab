@@ -1,6 +1,6 @@
 # Базовый NetworkPolicy: default-deny ingress + явные разрешения.
-# traefik — веб; vmagent из monitoring скрейпит метрики экспортёров
-# БД (9187) и Valkey (9121). Egress не ограничивается.
+# traefik — веб; vmagent из monitoring скрейпит метрики Valkey (9121).
+# Egress не ограничивается.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -35,7 +35,5 @@ spec:
             matchLabels:
               app: vmagent
       ports:
-        - port: 9187
-          protocol: TCP
         - port: 9121
           protocol: TCP

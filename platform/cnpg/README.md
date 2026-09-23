@@ -367,9 +367,9 @@ kubectl -n databases exec shared-1 -c postgres -- \
   keep по порту `metrics`, лейблы `cluster`/`role` из `cnpg.io/cluster` и
   `cnpg.io/podRole`, служебные базы (`template*`, `postgres`, `app`) отброшены
   по `datname`. Для баз на CNPG отдельные экспортёры
-  (`apps/db-exporters/k8s/postgres.exporters.yaml`) больше не нужны: они сняты
-  для `immich`, `dawarich`, `zitadel`, `paperless` и `infisical`. Остальные
-  (`authentik`, `element`, `forgejo`, `glitchtip`, `nextcloud`, `sure`) — до их
+  (  `apps/db-exporters/k8s/postgres.exporters.yaml`) больше не нужны: они сняты
+  для `immich`, `dawarich`, `zitadel`, `paperless`, `infisical` и `glitchtip`.
+  Остальные (`authentik`, `element`, `forgejo`, `nextcloud`, `sure`) — до их
   переезда.
 - **Бэкапы.** Ради них всё и затевается: ObjectStore/ScheduledBackup в rustfs
   (S3-совместимый) + **Barman Cloud Plugin** дают непрерывные бэкапы и PITR

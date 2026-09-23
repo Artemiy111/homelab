@@ -11,9 +11,9 @@ namespace своего сервиса.
 **Базы в CloudNativePG сюда не входят.** Встроенный экспортёр instance-manager
 отдаёт `/metrics` на порту `metrics` (9187) каждого пода кластера, а vmagent
 находит их service discovery (job `cnpg`). Поэтому для `immich`, `dawarich`,
-`zitadel`, `paperless` и `infisical` отдельных подов нет: их метрики приходят из
-кластеров `immich-db`, `dawarich-db`, `zitadel-db` и `shared` (различать базы
-внутри кластера нужно по `datname`).
+`zitadel`, `paperless`, `infisical` и `glitchtip` отдельных подов нет: их метрики
+приходят из кластеров `immich-db`, `dawarich-db`, `zitadel-db` и `shared`
+(различать базы внутри кластера нужно по `datname`).
 
 ## Почему по поду на базу
 
@@ -38,18 +38,17 @@ namespace своего сервиса.
 
 Тип | Под | Порт | Инстансы
 ---|---|---|---
-PostgreSQL | `postgres-exporter` (`v0.20.1`) | 9187 | 6
+PostgreSQL | `postgres-exporter` (`v0.20.1`) | 9187 | 5
 Redis/Valkey | `redis-exporter` (`v1.91.1`) | 9121 | 9
 MariaDB | `mysqld-exporter` (`v0.20.0`) | 9104 | 1
 
-### PostgreSQL (6)
+### PostgreSQL (5)
 
 | Экспортер | База | Пароль |
 |---|---|---|
 | `authentik-postgresql-exporter` | `authentik-postgresql` | Secret `authentik`/`AUTHENTIK_POSTGRESQL_PASSWORD` |
 | `element-db-exporter` | `element-db` | Secret `element`/`POSTGRES_PASSWORD` |
 | `forgejo-db-exporter` | `forgejo-db` | Secret `forgejo`/`POSTGRES_PASSWORD` |
-| `glitchtip-postgres-exporter` | `glitchtip-postgres` | Secret `glitchtip`/`POSTGRES_PASSWORD` |
 | `nextcloud-db-exporter` | `nextcloud-db` | Secret `nextcloud`/`POSTGRES_PASSWORD` |
 | `sure-db-exporter` | `sure-db` | литерал `postgres` (как в самом DB-Deployment) |
 

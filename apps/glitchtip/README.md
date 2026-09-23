@@ -10,6 +10,16 @@ URL: `https://glitchtip.example.com/`
 Миграции БД выполняются init-контейнером перед стартом `web`; повторный запуск
 идемпотентен.
 
+## Хранилище
+
+База — PostgreSQL в общем кластере CNPG `shared` (namespace `databases`,
+эндпоинт `shared-rw.databases.svc.cluster.local:5432`). Роль `glitchtip`, база
+`glitchtip` и NetworkPolicy объявлены в `platform/cnpg/`; пароль роль берёт из
+Secret'а `glitchtip-db-auth`, а приложение — из своего Secret'а `glitchtip`
+(ключ `POSTGRES_PASSWORD`), поэтому в `DATABASE_URL` менялся только хост. Данные
+перенесены из локального `glitchtip-postgres` дампом (`pg_dump`/`pg_restore`),
+старый Deployment снят.
+
 ## Вход через Zitadel (OIDC)
 
 Провайдер настраивается переменными из `secrets.enc.env` — вручную ничего в БД
