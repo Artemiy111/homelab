@@ -33,7 +33,7 @@ jobs:
           ver="0.11.0"
           asset="shellcheck-v${ver}.linux.x86_64.tar.gz"
           expected="b7af85e41cc99489dcc21d66c6d5f3685138f06d34651e6d34b42ec6d54fe6f6"
-          url="http://ats.ats.svc.cluster.local:8080/github/koalaman/shellcheck/releases/download/v${ver}/${asset}"
+          url="http://ats.ats.svc.cluster.local/github/koalaman/shellcheck/releases/download/v${ver}/${asset}"
           mkdir -p "$HOME/.local/shellcheck" /tmp/shellcheck
           curl -fsSL -o "/tmp/shellcheck/${asset}" "$url"
           echo "$expected  /tmp/shellcheck/${asset}" | sha256sum -c -

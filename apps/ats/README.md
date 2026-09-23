@@ -17,13 +17,13 @@ Apache Traffic Server (ATS) — обратный прокси с **дисков�
 | Развёртывание | `kubectl apply -k apps/ats` (kustomize) |
 | Образ | `trafficserver/trafficserver:10.2.0` (пин по тегу и дайджесту, amd64) |
 | Данные | PVC `ats-cache` на `longhorn` 5Gi (кэш, потеря не страшна) |
-| API | `http://ats.ats.svc.cluster.local:8080` — внутри кластера |
+| API | `http://ats.ats.svc.cluster.local` — внутри кластера |
 | Потребитель | CI, Ansible-провижининг хоста |
 
 ## Как это работает
 
-- ATS слушает `:8080`. Клиент адресует **наш** хост с префиксом origin'а:
-  `http://ats.ats.svc.cluster.local:8080/github/<path>`.
+- ATS отдаётся через Service на `:80`. Клиент адресует **наш** хост с префиксом
+  origin'а: `http://ats.ats.svc.cluster.local/github/<path>`.
 - `remap.config` — это allowlist: каждое `map`-правило переводит клиентский
   префикс в origin-базу. Запросов вне правил ATS не обсуживает
   (`url_remap.remap_required: 1`), открытым прокси он не становится.
@@ -131,14 +131,14 @@ kubectl -n ats get pods,pvc,svc
 
 ```
 # вместо https://github.com/cli/cli/releases/download/...
-curl http://ats.ats.svc.cluster.local:8080/github/cli/cli/releases/download/...
+curl http://ats.ats.svc.cluster.local/github/cli/cli/releases/download/...
 ```
 
 Там, где инструмент умеет менять источник целиком, удобнее задать его целиком:
 
 ```
-GO_DOWNLOAD_BASE_URL=http://ats.ats.svc.cluster.local:8080/godev          # go.dev/dl
-RUSTUP_DIST_SERVER=http://ats.ats.svc.cluster.local:8080/rust             # static.rust-lang.org
+GO_DOWNLOAD_BASE_URL=http://ats.ats.svc.cluster.local/godev          # go.dev/dl
+RUSTUP_DIST_SERVER=http://ats.ats.svc.cluster.local/rust             # static.rust-lang.org
 ```
 
 Кэш доступен только внутри кластера (ClusterIP). Внешний маршрут Traefik
@@ -168,7 +168,7 @@ RUSTUP_DIST_SERVER=http://ats.ats.svc.cluster.local:8080/rust             # stat
 
 ```sh
 curl -X PURGE -H "X-ATS-Purge: $ATS_PURGE_TOKEN" \
-  http://ats.ats.svc.cluster.local:8080/github/<path>
+  http://ats.ats.svc.cluster.local/github/<path>
 ```
 
 Плагин привязывает PURGE ко всему правилу remap: запрос с секретом удаляет
@@ -183,7 +183,7 @@ curl -X PURGE -H "X-ATS-Purge: $ATS_PURGE_TOKEN" \
 
    ```sh
    curl -fsS -o /tmp/bun.zip -w '%{http_code} %{size_download}\n' \
-     http://ats.ats.svc.cluster.local:8080/github/oven-sh/bun/releases/download/bun-v1.4.0/bun-linux-x64.zip
+     http://ats.ats.svc.cluster.local/github/oven-sh/bun/releases/download/bun-v1.4.0/bun-linux-x64.zip
    sha256sum /tmp/bun.zip
    ```
 
