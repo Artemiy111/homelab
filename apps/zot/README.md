@@ -12,7 +12,7 @@ Zot — лёгкий OCI-реестр, используемый как **pull-th
 | Развёртывание | манифестами `apps/zot/k8s/` (`kubectl apply -f`) |
 | Образ | `ghcr.io/project-zot/zot:v2.1.21` (пин по тегу и дайджесту) |
 | Данные | PVC `zot-data` на `longhorn` (кэш, потеря не страшна) |
-| API | `http://zot.zot.svc.cluster.local:5000` — только внутри кластера |
+| API | `http://zot.zot.svc.cluster.local` — только внутри кластера |
 | Потребитель | Forgejo Runner + DinD (`apps/forgejo`) |
 
 Кластерные образы (kubelet/containerd) через Zot **не** ходят: кэш нужен только
@@ -20,7 +20,9 @@ Zot — лёгкий OCI-реестр, используемый как **pull-th
 
 ## Как это работает
 
-- Zot слушает `:5000` и по конфигу (`configmap.yaml`) знает upstream-реестры
+- Zot слушает `:5000` в контейнере (это `targetPort` Service'а), а наружу
+  Service отдаёт его на стандартном порту 80. По конфигу (`configmap.yaml`)
+  Zot знает upstream-реестры
   (`extensions.sync.registries`), каждый с `onDemand: true` — это и есть
   pull-through: образ скачивается при первом запросе, затем отдаётся локально.
 - `http.compat: ["docker2s2"]` + `preserveDigest: true` сохраняют исходный
@@ -51,11 +53,11 @@ kubectl -n zot logs deploy/zot --tail=20
 ## Как подключён раннер
 
 Метки (`runs-on`) в `apps/forgejo/k8s/runner.configmap.yaml` ссылаются на образ
-**через путь кэша** (`zot.zot.svc.cluster.local:5000/<реестр>/...`), а DinD
+**через путь кэша** (`zot.zot.svc.cluster.local/<реестр>/...`), а DinD
 тянет его из Zot. Пример:
 
 ```
-ubuntu-latest:docker://zot.zot.svc.cluster.local:5000/ghcr.io/catthehacker/ubuntu@sha256:...
+ubuntu-latest:docker://zot.zot.svc.cluster.local/ghcr.io/catthehacker/ubuntu@sha256:...
 ```
 
 Дайджест — тот же, что у upstream.
@@ -65,7 +67,7 @@ ubuntu-latest:docker://zot.zot.svc.cluster.local:5000/ghcr.io/catthehacker/ubunt
 Docker-демон умеет `registry-mirrors` **только для Docker Hub**. Поэтому
 подменить реестр «зеркалом» для `ghcr.io`/`quay.io` нельзя — там путь кэша
 указывается явно (в метках раннера, а при необходимости и в workflow'ах:
-`docker pull zot.zot.svc.cluster.local:5000/ghcr.io/<образ>`). Для `docker.io`
+`docker pull zot.zot.svc.cluster.local/ghcr.io/<образ>`). Для `docker.io`
 внутри job'ов mirror тоже не настроен: он потянул бы за собой плоский протокол
 Hub, несовместимый с path-prefix раскладкой Zot. Если понадобится — делать
 отдельным шагом.

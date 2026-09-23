@@ -11,5 +11,5 @@ metadata:
 data:
   daemon.json: |
     {
-      "insecure-registries": ["zot.zot.svc.cluster.local:5000"]
+      "insecure-registries": ["zot.zot.svc.cluster.local"]
     }

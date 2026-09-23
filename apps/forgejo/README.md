@@ -95,7 +95,7 @@ GitHub-подобный образ с git, docker CLI, python и build-essential
 
 **Кэш образов.** Job-образы тянутся не напрямую из внешних реестров, а через
 pull-through кэш **Zot** (`apps/zot`): в метках указан путь
-`zot.zot.svc.cluster.local:5000/<реестр>/...` с тем же дайджестом. Zot отдаётся
+`zot.zot.svc.cluster.local/<реестр>/...` с тем же дайджестом. Zot отдаётся
 по http, поэтому его хост добавлен в `insecure-registries` через
 `runner-dind.configmap.yaml` (монтируется в сайдкар `dind`). Дайджесты и
 ограничения (Docker-демон умеет mirror только для Docker Hub) — в

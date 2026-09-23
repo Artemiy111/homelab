@@ -34,9 +34,9 @@ data:
         # Образы тянутся через кэш Zot (apps/zot): путь кэша — это префикс
         # реестра (ghcr.io/..., data.forgejo.org/...). Zot отдаётся по http,
         # поэтому его хост помечен insecure в runner-dind.configmap.yaml.
-        - ubuntu-latest:docker://zot.zot.svc.cluster.local:5000/ghcr.io/catthehacker/ubuntu@sha256:f5f5c29208c4fd541704fe7b8df33d3bf620ce4ac46f36853b7abeb0159705c4
-        - ubuntu-22.04:docker://zot.zot.svc.cluster.local:5000/ghcr.io/catthehacker/ubuntu@sha256:f5f5c29208c4fd541704fe7b8df33d3bf620ce4ac46f36853b7abeb0159705c4
-        - docker:docker://zot.zot.svc.cluster.local:5000/data.forgejo.org/oci/docker@sha256:018edbc908e08fcc9dbf029c812c34251e9b4719e6f71ca0e5eae2a987d014ca
+        - ubuntu-latest:docker://zot.zot.svc.cluster.local/ghcr.io/catthehacker/ubuntu@sha256:f5f5c29208c4fd541704fe7b8df33d3bf620ce4ac46f36853b7abeb0159705c4
+        - ubuntu-22.04:docker://zot.zot.svc.cluster.local/ghcr.io/catthehacker/ubuntu@sha256:f5f5c29208c4fd541704fe7b8df33d3bf620ce4ac46f36853b7abeb0159705c4
+        - docker:docker://zot.zot.svc.cluster.local/data.forgejo.org/oci/docker@sha256:018edbc908e08fcc9dbf029c812c34251e9b4719e6f71ca0e5eae2a987d014ca
     cache:
       enabled: true
     container:
