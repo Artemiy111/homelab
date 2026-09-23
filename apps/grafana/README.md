@@ -23,6 +23,10 @@ VictoriaMetrics как datasource.
   `apps/grafana/k8s/sealedsecret.yaml`. Регистрация новых пользователей
   отключена; доступ к UI контролирует `oauth2-proxy`, локальный вход нужен для
   правок datasource и диагностики.
+- Пароли `GRAFANA_ADMIN_PASSWORD` и `GRAFANA_DB_PASSWORD` продублированы в
+  расшифровываемом реестре `apps/grafana/secrets.enc.env` (SOPS поверх age;
+  приватный ключ — только на сервере). SealedSecret необратим, поэтому исходные
+  значения достаются из этого файла.
 
 ## Провижининг
 
