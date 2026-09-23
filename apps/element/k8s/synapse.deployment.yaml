@@ -27,7 +27,7 @@ spec:
       initContainers:
         - name: wait-for-db
           image: "postgres:18-alpine@sha256:d3e1620b530c944afa6e887d22eb899824da68e19c52024bf98f5220c88a65b2"
-          command: ["/bin/sh", "-c", "until pg_isready -h element-db -U synapse -d synapse; do echo waiting for element-db; sleep 3; done"]
+          command: ["/bin/sh", "-c", "until pg_isready -h shared-rw.databases.svc.cluster.local -p 5432 -U synapse -d synapse; do echo waiting for shared-rw; sleep 3; done"]
           securityContext:
             runAsUser: 70
             runAsGroup: 70
@@ -91,7 +91,7 @@ spec:
             - name: SYNAPSE_CONFIG_FILE
               value: /data/homeserver.yaml
             - name: POSTGRES_HOST
-              value: element-db
+              value: shared-rw.databases.svc.cluster.local
             - name: POSTGRES_PORT
               value: "5432"
             - name: POSTGRES_DB
@@ -101,8 +101,8 @@ spec:
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: element
-                  key: POSTGRES_PASSWORD
+                  name: element-db-auth
+                  key: password
           startupProbe:
             httpGet:
               path: /health

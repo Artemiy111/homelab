@@ -12,9 +12,9 @@ namespace своего сервиса.
 отдаёт `/metrics` на порту `metrics` (9187) каждого пода кластера, а vmagent
 находит их service discovery (job `cnpg`). Поэтому для `immich`, `dawarich`,
 `zitadel`, `paperless`, `infisical`, `glitchtip`, `playground`, `authentik`,
-`forgejo`, `sure` и `nextcloud` отдельных подов нет: их метрики приходят из
-кластеров `immich-db`, `dawarich-db`, `zitadel-db` и `shared` (различать базы
-внутри кластера нужно по `datname`).
+`forgejo`, `sure`, `nextcloud` и `element` отдельных подов нет: их метрики
+приходят из кластеров `immich-db`, `dawarich-db`, `zitadel-db` и `shared`
+(различать базы внутри кластера нужно по `datname`).
 
 ## Почему по поду на базу
 
@@ -32,18 +32,8 @@ namespace своего сервиса.
 
 Тип | Под | Порт | Инстансы
 ---|---|---|---
-PostgreSQL | `postgres-exporter` (`v0.20.1`) | 9187 | 1
 Redis/Valkey | `redis-exporter` (`v1.91.1`) | 9121 | 9
 MariaDB | `mysqld-exporter` (`v0.20.0`) | 9104 | 1
-
-### PostgreSQL (1)
-
-| Экспортер | База | Пароль |
-|---|---|---|
-| `element-db-exporter` | `element-db` | Secret `element`/`POSTGRES_PASSWORD` |
-
-Креды задаются через `DATA_SOURCE_URI` / `DATA_SOURCE_USER` / `DATA_SOURCE_PASS`
-(без сборки DSN, чтобы спецсимволы в пароле не ломали подключение).
 
 ### Redis/Valkey (9)
 
@@ -66,19 +56,19 @@ kubectl apply -f apps/db-exporters/k8s/
 Проверка, что все экспортеры живы:
 
 ```sh
-kubectl get pods -l 'app in (dawarich-db-exporter,seafile-mariadb-exporter)'
+kubectl get pods -l 'app in (seafile-mariadb-exporter,seafile-redis-exporter)'
 ```
 
 Состояние целей в VictoriaMetrics (ожидаем `1` для всех инстансов):
 
 ```sh
 kubectl exec deploy/victoriametrics -- wget -qO- \
-  'http://127.0.0.1:8428/api/v1/query?query=up{job=~"postgres|redis|mysql"}'
+  'http://127.0.0.1:8428/api/v1/query?query=up{job=~"redis|mysql"}'
 ```
 
-Экспортер, вернувший `pg_up 0`/`mysql_up 0` при `up 1`, означает, что сам
+Экспортер, вернувший `mysql_up 0` при `up 1`, означает, что сам
 экспортер жив, но не может подключиться к базе — смотреть его логи:
 
 ```sh
-kubectl logs deploy/dawarich-db-exporter
+kubectl logs deploy/seafile-mariadb-exporter
 ```

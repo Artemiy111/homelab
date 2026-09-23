@@ -14,7 +14,9 @@ Element — web-клиент Matrix, а Synapse — его homeserver. В это
 - `livekit` — SFU для Element Call;
 - `matrix-rtc-auth` — выдаёт LiveKit-токены по `/livekit/jwt`;
 - `turn` — coturn для клиентов, которым нужен relay;
-- PostgreSQL и Redis — внутренние хранилища Synapse и LiveKit.
+- Redis — внутреннее хранилище Synapse и LiveKit;
+- база `synapse` живёт в CloudNativePG в общем кластере `shared`
+  (namespace `databases`), см. `platform/cnpg/README.md`.
 
 Traefik маршрутизирует HTTP(S): корень домена ведёт в Element Web,
 `/_matrix` — в Synapse, `/livekit/sfu` — в LiveKit, `/livekit/jwt` — в
@@ -60,9 +62,11 @@ LiveKit рекламирует LAN-адрес сервера (`<node1-ip>`), а 
 Конфигурации генерируются в персистентном каталоге данных сервиса, там же
 сохраняется timezone `Asia/Yekaterinburg`.
 
-PostgreSQL хранит данные в персистентном каталоге сервиса и использует штатный
-каталог образа `/var/lib/postgresql/data`. Не удаляйте эти данные при
-обновлении.
+База Synapse (`synapse`) живёт в общем кластере CNPG `shared`
+(`shared-rw.databases.svc.cluster.local`): роль `synapse` и база объявлены в
+`platform/cnpg/` (пароль пары Secret'ов `databases/element-db-auth` и
+`element/element-db-auth`). Строка подключения задана в
+`homeserver.yaml` в конфиге сервиса.
 
 Push-уведомления Sygnal не настроены: для них необходимы реальные FCM
 credentials.

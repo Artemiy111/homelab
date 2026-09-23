@@ -272,12 +272,9 @@ scrape_configs:
         action: drop
 
   # Базы вне CNPG: экспортёры по одному на инстанс (apps/db-exporters).
-  # instance = адрес цели, т.е. какая это база.
-  - job_name: postgres
-    static_configs:
-      - targets:
-          - element-db-exporter.element.svc.cluster.local:9187
-
+  # instance = адрес цели, т.е. какая это база. PostgreSQL-экспортёров больше
+  # нет: все базы переехали в CNPG, метрики отдаёт встроенный instance-manager
+  # (job `cnpg` выше).
   - job_name: redis
     static_configs:
       - targets:

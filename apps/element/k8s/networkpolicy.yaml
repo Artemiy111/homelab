@@ -1,7 +1,7 @@
 # Базовый NetworkPolicy: default-deny ingress + явные разрешения.
 # traefik — маршруты (synapse, element-web, livekit, matrix-rtc-auth);
-# vmagent из monitoring скрейпит synapse (9009) и экспортёры БД (9187) /
-# Redis (9121). livekit/turn — hostNetwork, политика к ним не применяется.
+# vmagent из monitoring скрейпит synapse (9009) и Redis (9121).
+# livekit/turn — hostNetwork, политика к ним не применяется.
 # Egress не ограничивается.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -38,8 +38,6 @@ spec:
               app: vmagent
       ports:
         - port: 9009
-          protocol: TCP
-        - port: 9187
           protocol: TCP
         - port: 9121
           protocol: TCP

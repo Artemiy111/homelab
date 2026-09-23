@@ -4,7 +4,8 @@
 # vmagent из monitoring скрейпит встроенный экспортёр instance-manager (9187).
 # Потребители общего кластера перечисляются явно: сейчас это paperless, forgejo,
 # infisical, glitchtip, postgres (pgweb), authentik, sure, nextcloud, open-webui,
-# gatus и grafana (под gatus/grafana из общего namespace monitoring).
+# gatus, grafana (под gatus/grafana из общего namespace monitoring) и element
+# (synapse).
 # Egress не ограничивается — см. комментарий в apps/lute/k8s/networkpolicy.yaml.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -86,6 +87,9 @@ spec:
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: open-webui
+        # element — выделенный namespace, поэтому доступ дан всем подам
+        # namespace'а (как open-webui/paperless/forgejo/infisical/glitchtip/
+        # postgres/authentik/sure/nextcloud).
         # monitoring — общий namespace, поэтому доступ к базе дан только подам
         # gatus и grafana, а не всем подам namespace'а (в отличие от paperless/
         # forgejo/infisical/glitchtip/postgres/authentik/sure/nextcloud).
