@@ -215,12 +215,14 @@ scrape_configs:
           - dawarich.%{DOMAIN}
 
   # Токен передаётся как Bearer (Forgejo [metrics] TOKEN).
+  # Forgejo ставится чартом forgejo-helm (argocd/applications/forgejo.yaml),
+  # который создаёт Service `forgejo-http`, а не `forgejo`.
   - job_name: forgejo
     authorization:
       credentials: "%{FORGEJO_METRICS_TOKEN}"
     static_configs:
       - targets:
-          - forgejo.forgejo.svc.cluster.local:3000
+          - forgejo-http.forgejo.svc.cluster.local:3000
 
   # Technitium отдаёт метрики дашборда; Bearer-токен из secrets.
   - job_name: technitium
@@ -275,7 +277,6 @@ scrape_configs:
     static_configs:
       - targets:
           - element-db-exporter.element.svc.cluster.local:9187
-          - forgejo-db-exporter.forgejo.svc.cluster.local:9187
           - nextcloud-db-exporter.nextcloud.svc.cluster.local:9187
 
   - job_name: redis
