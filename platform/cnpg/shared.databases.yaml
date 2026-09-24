@@ -105,13 +105,15 @@ spec:
   name: synapse
   owner: synapse
   encoding: UTF8
-  # Synapse (check_database) не принимает ctype `C.utf8` — дефолт кластера
-  # (см. platform/cnpg/README.md — «Решения»). Поэтому только для этой базы
-  # задан `localeCType: C.UTF-8`. Внимание: у CNPG Database поле называется
-  # `localeCType` (не `lcCtype`) — проверено по CRD.
-  # База переносится пустой, а не дампом, так что переопределение коллации
-  # не теряет данные.
-  localeCType: "C.UTF-8"
+  # Synapse (PostgresEngine.check_database) требует, чтобы и datcollate, и
+  # datctype были ровно `C` — от любой другой локали (включая C.UTF-8) падает
+  # IncorrectDatabaseSetup. Поэтому только у этой базы во всём shared
+  # collate/ctype заданы как `C`.
+  # Поля localeCollate/localeCType у CNPG Database иммутабельны, но база
+  # переносится пустой, а не дампом, поэтому CR при необходимости
+  # пересоздаётся без потерь.
+  localeCollate: "C"
+  localeCType: "C"
   databaseReclaimPolicy: retain
 ---
 # authentik — тестовый стенд. База объявлена, пока стенд жив; при снятии
