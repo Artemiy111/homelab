@@ -1,8 +1,8 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: home
-  namespace: home
+  name: homepage
+  namespace: homepage
 spec:
   ingressClassName: traefik
   rules:
@@ -13,6 +13,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: home
+                name: homepage
                 port:
-                  number: 3000
+                  number: 80

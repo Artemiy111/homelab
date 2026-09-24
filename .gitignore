@@ -3,9 +3,6 @@ node_modules
 
 /config.env
 
-# Генерируется из apps/home/config/settings.tpl.yaml.
-apps/home/config/settings.yaml
-
 # Приватные значения Helm-чарта: реальный домен и адрес сервера.
 platform/homelab/values.private.yaml
 
