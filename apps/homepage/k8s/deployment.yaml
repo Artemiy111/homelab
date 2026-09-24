@@ -1,57 +1,41 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: home
-  namespace: home
+  name: homepage
+  namespace: homepage
 spec:
   revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
-      app: home
+      app: homepage
   template:
     metadata:
       labels:
-        app: home
+        app: homepage
     spec:
+      serviceAccountName: homepage
+      automountServiceAccountToken: true
       securityContext:
         runAsUser: 1000 
         runAsGroup: 1000
         fsGroup: 1000
         runAsNonRoot: true
-      initContainers:
-        # Рендерим settings.yaml через vals.
-        # DEFAULT_LOCALE берём из общего ConfigMap homelab-config (единый источник правды).
-        - name: render-settings
-          image: debian:12-slim
-          envFrom:
-            - configMapRef:
-                name: homelab-config
-          command:
-            - /bin/sh
-            - -c
-            - /vals eval < /app/config/settings.tpl.yaml > /app/config/settings.yaml
-          volumeMounts:
-            - name: config
-              mountPath: /app/config
-            - name: vals
-              mountPath: /vals
-              readOnly: true
       containers:
-        - name: home
+        - name: homepage
           image: "ghcr.io/gethomepage/homepage:v1.13.2@sha256:a0b71c8e757298d02560186bab9fbe3fc2d375c523a62cc1019177b37e48aa28"
           ports:
             - containerPort: 3000
               name: http
-          envFrom:
-            - configMapRef:
-                name: homelab-config
           env:
             - name: HOMEPAGE_ALLOWED_HOSTS
               value: "*"
             # Homepage резолвит {{HOMEPAGE_VAR_DOMAIN}} из этой переменной; берём из $(DOMAIN)
             - name: HOMEPAGE_VAR_DOMAIN
-              value: "$(DOMAIN)"
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-config
+                  key: DOMAIN
             - name: LOG_TARGETS
               value: "stdout"
             - name: PUID
@@ -90,18 +74,14 @@ spec:
           volumeMounts:
             - name: config
               mountPath: /app/config
+              readOnly: true
             - name: tmp
               mountPath: /tmp
       volumes:
         - name: config
-          hostPath:
-            path: /home/artlab/projects/homelab/apps/home/config
-            type: Directory
+          configMap:
+            name: homepage-config
         - name: tmp
           emptyDir:
             medium: Memory
             sizeLimit: 64Mi
-        - name: vals
-          hostPath:
-            path: /usr/local/bin/vals
-            type: File
