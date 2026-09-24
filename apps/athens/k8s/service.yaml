@@ -9,6 +9,6 @@ spec:
     app: athens
   ports:
     - name: http
-      port: 3000
+      port: 80
       targetPort: http
       protocol: TCP

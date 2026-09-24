@@ -11,7 +11,7 @@ Athens — прокси Go-модулей по официальному прот
 | Развёртывание | kustomize `apps/athens/` (`kubectl apply -k`) |
 | Образ | `gomods/athens:v0.18.1` (пин по тегу и дайджесту, amd64) |
 | Данные | PVC `athens-data` на `longhorn` (кэш, потеря не страшна) |
-| API | `http://athens.athens.svc.cluster.local:3000` — внутри кластера |
+| API | `http://athens.athens.svc.cluster.local` — внутри кластера (порт 80) |
 | Маршрут | `https://goproxy.<домен>` (Traefik, чарт `platform/homelab`) |
 | Потребитель | CI (`actions/setup-go`), сборка Go на хосте |
 
@@ -43,8 +43,8 @@ kubectl -n athens get pods,pvc,svc
 В job'е (или на хосте, где есть доступ к сервису) выставить:
 
 ```
-GOPROXY=http://athens.athens.svc.cluster.local:3000
-GOSUMDB=sum.golang.org http://athens.athens.svc.cluster.local:3000/sumdb/sum.golang.org
+GOPROXY=http://athens.athens.svc.cluster.local
+GOSUMDB=sum.golang.org http://athens.athens.svc.cluster.local/sumdb/sum.golang.org
 ```
 
 `GOSUMDB` в формате `<имя> <url>` заставляет `go` проверять контрольные суммы
@@ -74,7 +74,7 @@ GOSUMDB=sum.golang.org https://goproxy.<домен>/sumdb/sum.golang.org
 кэш заранее можно ручным запросом, например:
 
 ```
-GOPROXY=http://athens.athens.svc.cluster.local:3000 \
+GOPROXY=http://athens.athens.svc.cluster.local \
   go install golang.org/x/tools/cmd/stringer@latest
 ```
 
@@ -91,8 +91,8 @@ GOPROXY=http://athens.athens.svc.cluster.local:3000 \
    ```sh
    kubectl -n athens run athens-check --rm -it --restart=Never \
      --image=golang:1.26-alpine -- \
-     sh -c 'GOPROXY=http://athens.athens.svc.cluster.local:3000 \
-       GOSUMDB="sum.golang.org http://athens.athens.svc.cluster.local:3000/sumdb/sum.golang.org" \
+     sh -c 'GOPROXY=http://athens.athens.svc.cluster.local \
+       GOSUMDB="sum.golang.org http://athens.athens.svc.cluster.local/sumdb/sum.golang.org" \
        go install golang.org/x/tools/cmd/stringer@v0.50.0'
    ```
 

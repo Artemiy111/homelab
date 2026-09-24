@@ -18,7 +18,7 @@ spec:
         app: athens
     spec:
       # Kubernetes иначе инжектит в под env сервиса, в т. ч.
-      # ATHENS_PORT=tcp://<ClusterIP>:3000, а Athens читает ATHENS_PORT как свой
+      # ATHENS_PORT=tcp://<ClusterIP>:80, а Athens читает ATHENS_PORT как свой
       # порт и падает на "too many colons in address".
       enableServiceLinks: false
       securityContext:
