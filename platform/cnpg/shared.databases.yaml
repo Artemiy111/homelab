@@ -107,11 +107,14 @@ spec:
   encoding: UTF8
   # Synapse (PostgresEngine.check_database) требует, чтобы и datcollate, и
   # datctype были ровно `C` — от любой другой локали (включая C.UTF-8) падает
-  # IncorrectDatabaseSetup. Поэтому только у этой базы во всём shared
-  # collate/ctype заданы как `C`.
-  # Поля localeCollate/localeCType у CNPG Database иммутабельны, но база
-  # переносится пустой, а не дампом, поэтому CR при необходимости
-  # пересоздаётся без потерь.
+  # IncorrectDatabaseSetup. Поэтому только у этой базы collate/ctype заданы как
+  # `C`. Шаблон — `template0`: дефолтный template1 навязывает ctype кластера
+  # (`C.utf8`), а от него PostgreSQL не даёт задать другую локаль (SQLSTATE
+  # 22023). С template0 база создаётся пустой с нужной локалью.
+  # Поля localeCollate/localeCType/template у CNPG Database иммутабельны, но
+  # база переносится пустой, поэтому CR при необходимости пересоздаётся
+  # без потерь.
+  template: template0
   localeCollate: "C"
   localeCType: "C"
   databaseReclaimPolicy: retain
