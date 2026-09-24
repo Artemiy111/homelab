@@ -30,7 +30,7 @@ jobs:
         with:
           bun-version: 1.4.0
           bun-download-url: http://ats.ats.svc.cluster.local/github/oven-sh/bun/releases/download/bun-v1.4.0/bun-linux-x64.zip
-          registries: http://verdaccio.verdaccio.svc.cluster.local:4873/
+          registries: http://verdaccio.verdaccio.svc.cluster.local/
       - name: Cache dependencies
         uses: actions/cache@v4
         with:

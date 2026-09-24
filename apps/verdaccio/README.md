@@ -11,7 +11,7 @@ Verdaccio — npm-реестр с **uplink-прокси** на `registry.npmjs.o
 | Развёртывание | `kubectl apply -k apps/verdaccio` (kustomize) |
 | Образ | `verdaccio/verdaccio:6.10.4` (пин по тегу и дайджесту, amd64) |
 | Данные | PVC `verdaccio-data` на `longhorn` (кэш, потеря не страшна) |
-| API | `http://verdaccio.verdaccio.svc.cluster.local:4873` — внутри кластера |
+| API | `http://verdaccio.verdaccio.svc.cluster.local` — внутри кластера (порт 80) |
 | Маршрут | `https://npm.<домен>` (Traefik, чарт `platform/homelab`) |
 | Потребитель | CI (`commitlint.yml`), локальный `bun install` |
 
@@ -45,7 +45,7 @@ rollout (SoT — файл в git, а не ConfigMap в кластере).
 CI и локальная разработка указывают реестр перед установкой:
 
 ```
-npm_config_registry=http://verdaccio.verdaccio.svc.cluster.local:4873/
+npm_config_registry=http://verdaccio.verdaccio.svc.cluster.local/
 ```
 
 `bun install --frozen-lockfile` резолвит пакеты по этой настройке; `bun.lock`
@@ -75,7 +75,7 @@ npm_config_registry=https://npm.<домен>/ bun install
 2. Изнутри кластера в окружении с пустым кэшем:
 
    ```sh
-   npm_config_registry=http://verdaccio.verdaccio.svc.cluster.local:4873/ \
+   npm_config_registry=http://verdaccio.verdaccio.svc.cluster.local/ \
      npm view @commitlint/cli version
    ```
 

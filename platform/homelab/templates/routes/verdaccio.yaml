@@ -17,4 +17,4 @@ spec:
               service:
                 name: verdaccio
                 port:
-                  number: 4873
+                  number: 80

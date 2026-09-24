@@ -18,7 +18,7 @@ spec:
         app: verdaccio
     spec:
       # Kubernetes иначе инжектит в под env сервиса, в т. ч.
-      # VERDACCIO_PORT=tcp://<ClusterIP>:4873, и Verdaccio собирает из него
+      # VERDACCIO_PORT=tcp://<ClusterIP>:80, и Verdaccio собирает из него
       # невалидный адрес прослушивания.
       enableServiceLinks: false
       securityContext:

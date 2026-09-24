@@ -9,6 +9,6 @@ spec:
     app: verdaccio
   ports:
     - name: http
-      port: 4873
+      port: 80
       targetPort: http
       protocol: TCP
