@@ -269,7 +269,7 @@ async function synchronize(socket: Socket, desiredMonitors: Monitor[]): Promise<
 }
 
 async function main(): Promise<void> {
-  const url = Bun.env.UPTIME_KUMA_URL || "http://uptime-kuma:3001";
+  const url = Bun.env.UPTIME_KUMA_URL || "http://uptime-kuma";
   const username = Bun.env.UPTIME_KUMA_USERNAME;
   const password = Bun.env.UPTIME_KUMA_PASSWORD;
   const configPath = Bun.env.UPTIME_KUMA_MONITORS_FILE || "/app/monitors.yaml";
