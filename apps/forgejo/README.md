@@ -107,7 +107,7 @@ pull-through кэш **Zot** (`apps/zot`): в метках указан путь
 `data.forgejo.org`: тот периодически недоступен (мониторится в Gatus), и job
 падает на загрузке экшена ещё до старта шагов. Задаёт источник
 `actions.DEFAULT_ACTIONS_URL` в `argocd/applications/forgejo.yaml`
-(`http://forgejo-http:3000`).
+(`http://forgejo-http`).
 
 Настройка **instance-wide**: любой `uses: <owner>/<repo>` без схемы
 разворачивается в `<URL>/<owner>/<repo>`, поэтому под локальным инстансом должен
@@ -159,7 +159,7 @@ Settings → Actions → Secrets репозитория. Детали:
 
 - реестр контейнеров — публичный хост Forgejo (`docker login`/`docker push` по
   `forgejo.example.com`). Внутренний `github.server_url`
-  (`http://forgejo-http:3000`) не годится: там нет TLS;
+  (`http://forgejo-http`) не годится: там нет TLS;
 - реестр пакетов живёт под `/api/packages/{owner}/...`, а не `/api/v1`;
 - generic-пакеты: `PUT /api/packages/{owner}/generic/{package}/{version}/{file}`;
 - **пакет не привязывается к репозиторию сам.** URL push'а содержит только
@@ -218,7 +218,7 @@ dind, сервис-контейнеры (`services:`), матрицы, `needs`/o
 - **Артефакты только `@v3`.** `upload-artifact`/`download-artifact` `@v4+`
   используют `@actions/artifact v2` и новый API, которого в Forgejo нет —
   падают с `GHESNotSupportedError`. Использовать `@v3`.
-- **`GITHUB_SERVER_URL` внутренний.** Job'ы получают `http://forgejo-http:3000`
+- **`GITHUB_SERVER_URL` внутренний.** Job'ы получают `http://forgejo-http`
   (адрес из `server.connections`), а не публичный URL. Checkout и API по нему
   работают, но ссылки, которые экшены печатают в лог, будут внутренними.
   Публичный URL в конфиге даст красивее ссылки, но добавит зависимость от

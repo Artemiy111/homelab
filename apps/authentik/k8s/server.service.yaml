@@ -9,7 +9,7 @@ spec:
     app: authentik
   ports:
     - name: http
-      port: 9000
+      port: 80
       targetPort: http
       protocol: TCP
     # Prometheus-метрики (скрейпит vmagent).

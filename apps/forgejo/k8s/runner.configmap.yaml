@@ -49,6 +49,6 @@ data:
     server:
       connections:
         forgejo:
-          url: http://forgejo-http:3000
+          url: http://forgejo-http
           uuid: 61633062-3231-3231-3830-393361346634
           token_url: file:/etc/forgejo-runner/token

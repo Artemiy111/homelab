@@ -222,7 +222,7 @@ scrape_configs:
       credentials: "%{FORGEJO_METRICS_TOKEN}"
     static_configs:
       - targets:
-          - forgejo-http.forgejo.svc.cluster.local:3000
+          - forgejo-http.forgejo.svc.cluster.local
 
   # Technitium отдаёт метрики дашборда; Bearer-токен из secrets.
   - job_name: technitium

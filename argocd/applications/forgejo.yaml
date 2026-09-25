@@ -102,7 +102,7 @@ spec:
               # загрузке экшена до старта шагов. Настройка instance-wide, поэтому
               # в org `actions` зазеркален весь набор. Детали и обновление —
               # apps/forgejo/README.md.
-              DEFAULT_ACTIONS_URL: http://forgejo-http:3000
+              DEFAULT_ACTIONS_URL: http://forgejo-http
             cron:
               ENABLED: true
               RUN_AT_START: true
@@ -152,6 +152,9 @@ spec:
             mountPath: /data/gitea/default_merge_message
             readOnly: true
         service:
+          http:
+            # Стандартный порт 80 (см. issue #269); контейнер слушает 3000.
+            port: 80
           ssh:
             type: ClusterIP
             port: 2222
