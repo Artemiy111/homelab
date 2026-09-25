@@ -21,7 +21,7 @@
 ## Развёртывание
 
 ```sh
-kubectl apply --server-side --field-manager=homelab -f apps/node-exporter/k8s/
+kubectl apply -f apps/node-exporter/k8s/
 ```
 
 ## Проверка

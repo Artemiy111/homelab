@@ -8,7 +8,7 @@ Verdaccio — npm-реестр с **uplink-прокси** на `registry.npmjs.o
 | | |
 |---|---|
 | Namespace | `verdaccio` |
-| Развёртывание | `kubectl apply --server-side --field-manager=homelab -k apps/verdaccio` (kustomize) |
+| Развёртывание | `kubectl apply -k apps/verdaccio` (kustomize) |
 | Образ | `verdaccio/verdaccio:6.10.4` (пин по тегу и дайджесту, amd64) |
 | Данные | PVC `verdaccio-data` на `longhorn` (кэш, потеря не страшна) |
 | API | `http://verdaccio.verdaccio.svc.cluster.local` — внутри кластера (порт 80) |
@@ -31,7 +31,7 @@ Verdaccio — npm-реестр с **uplink-прокси** на `registry.npmjs.o
 ## Развёртывание
 
 ```sh
-kubectl apply --server-side --field-manager=homelab -k apps/verdaccio
+kubectl apply -k apps/verdaccio
 kubectl -n verdaccio get pods,pvc,svc
 ```
 

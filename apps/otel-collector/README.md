@@ -22,7 +22,7 @@ RustFS ──OTLP──> otel-collector:4318 ──Prometheus──> :8889 <─�
 ## Развёртывание
 
 ```sh
-kubectl apply --server-side --field-manager=homelab -f apps/otel-collector/k8s/
+kubectl apply -f apps/otel-collector/k8s/
 ```
 
 ## Подключение приложения

@@ -44,6 +44,12 @@ JSON-файлы хранятся в minified-виде (одна строка): �
 (262144 Б), с которым падает client-side apply. Это экспорт из Grafana, а не
 рукописный файл; при добавлении дашбордов следите за суммарным размером.
 
+Дашборды: `cloudnative-pg.json` и `postgresql-database.json` — экспорт из UI
+Grafana; `traefik.json` — написан руками под метрики Traefik. Панели по
+маршрутам в нём опираются на `traefik_router_*`, которые появляются только при
+`metrics.prometheus.addRoutersLabels=true` в `argocd/applications/traefik.yaml`
+(#284). Datasource везде указан как `uid: victoriametrics`.
+
 База при переезде с SQLite не переносилась: дашборды экспортированы из старой
 базы в JSON, единственный пользователь `admin` создаётся заново, алертов и
 аннотаций не было.
@@ -53,7 +59,7 @@ JSON-файлы хранятся в minified-виде (одна строка): �
 Разворачивается kustomize-набором:
 
 ```sh
-kubectl apply --server-side --field-manager=homelab -k apps/grafana/
+kubectl apply -k apps/grafana/
 ```
 
 `k8s/grafana.deployment.yaml` — Deployment (uid/gid 1000, probes, ресурсы,

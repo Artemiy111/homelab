@@ -345,7 +345,7 @@ push-зеркало в GitHub — git распределённый, и код п
 1. Посмотреть release notes Forgejo и тег чарта (`forgejo-helm` на Codeberg).
 2. В `argocd/applications/forgejo.yaml` поднять `targetRevision` (тег чарта) и
    `image.tag`/`image.digest` (образ Forgejo) — это две независимые вещи.
-3. `kubectl apply --server-side --field-manager=homelab -f argocd/applications/forgejo.yaml`, дождаться sync.
+3. `kubectl apply -f argocd/applications/forgejo.yaml`, дождаться sync.
 4. Миграции схемы выполняет init-контейнер чарта (`forgejo migrate`); если он
    циклится, смотреть его логи: обычно это недоступная база.
 

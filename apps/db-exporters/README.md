@@ -50,7 +50,7 @@ mariadb-operator), пользователь `root`, пароль из Secret
 ## Развёртывание
 
 ```sh
-kubectl apply --server-side --field-manager=homelab -f apps/db-exporters/k8s/
+kubectl apply -f apps/db-exporters/k8s/
 ```
 
 Проверка, что все экспортеры живы:

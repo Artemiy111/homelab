@@ -7,7 +7,7 @@ Uptime-мониторинг сервисов: дашборд статусов, �
 Разворачивается kustomize-набором из `apps/uptime-kuma/`:
 
 ```sh
-kubectl apply --server-side --field-manager=homelab -k apps/uptime-kuma/
+kubectl apply -k apps/uptime-kuma/
 ```
 
 `monitors.yaml` и `sync-monitors.ts` хранятся в исходном виде, а

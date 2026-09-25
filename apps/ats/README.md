@@ -14,7 +14,7 @@ Apache Traffic Server (ATS) — обратный прокси с **дисков�
 | | |
 |---|---|
 | Namespace | `ats` |
-| Развёртывание | `kubectl apply --server-side --field-manager=homelab -k apps/ats` (kustomize) |
+| Развёртывание | `kubectl apply -k apps/ats` (kustomize) |
 | Образ | `trafficserver/trafficserver:10.2.0` (пин по тегу и дайджесту, amd64) |
 | Данные | PVC `ats-cache` на `longhorn` 5Gi (кэш, потеря не страшна) |
 | API | `http://ats.ats.svc.cluster.local` — внутри кластера |
@@ -113,7 +113,7 @@ purge-<origin>`), поэтому переживает рестарт пода. �
 ## Развёртывание
 
 ```sh
-kubectl apply --server-side --field-manager=homelab -k apps/ats
+kubectl apply -k apps/ats
 kubectl -n ats get pods,pvc,svc
 ```
 
