@@ -153,7 +153,9 @@ spec:
             readOnly: true
         service:
           http:
-            # Стандартный порт 80 (см. issue #269); контейнер слушает 3000.
+            # Стандартный порт 80 (см. issue #269). Чарт тянет и containerPort
+            # за service.http.port, поэтому контейнер тоже слушает 80
+            # (rootless-образу позволяет net.ipv4.ip_unprivileged_port_start).
             port: 80
           ssh:
             type: ClusterIP

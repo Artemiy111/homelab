@@ -1,7 +1,8 @@
 # Базовый NetworkPolicy: default-deny ingress + явные разрешения.
 # traefik — веб; SSH (2222) открыт наружу для git-клиентов; vmagent из
-# monitoring скрейпит метрики приложения на порту 3000 (встроенный экспортёр
-# CNPG отдаёт метрики базы отдельно, из namespace databases).
+# monitoring скрейпит метрики приложения на порту 80 — чарт тянул containerPort
+# за service.http.port (см. argocd/applications/forgejo.yaml).
+# CNPG отдаёт метрики базы отдельно, из namespace databases.
 # Egress не ограничивается.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -37,7 +38,7 @@ spec:
             matchLabels:
               app: vmagent
       ports:
-        - port: 3000
+        - port: 80
           protocol: TCP
     - from:
         - ipBlock:
