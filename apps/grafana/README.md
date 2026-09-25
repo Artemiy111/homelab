@@ -57,8 +57,8 @@ ConfigMap это не влияет, и отдельного подтвержде
 
 Дашборды: `cloudnative-pg.json` и `postgresql-database.json` — экспорт из UI
 Grafana; `traefik.json` — написан руками под метрики Traefik;
-`traefik-official.json` — официальный дашборд Traefik с grafana.com, вендорен
-дословно (см. ниже).
+`traefik-official.json` — официальный дашборд Traefik с grafana.com, вендорен с
+правками под наш datasource (см. ниже).
 
 `traefik.json` и `traefik-official.json` не дублируют друг друга: официальный
 не содержит ни одного запроса `traefik_router_*` (все 14 панелей смотрят на
@@ -74,33 +74,44 @@ Grafana не умеет импортировать дашборд с grafana.com
 
 | Файл | grafana.com ID | Ревизия | revisionId | uid в Grafana |
 |---|---|---|---|---|
-| `traefik-official.json` | 17346 | 9 | 33826 | `n5bu_kv45` |
+| `traefik-official.json` | 17346 | 9 | 33826 | `traefik-official` |
 
-`traefik-official.json` хранится **дословной копией оригинала**: datasource не
-переписывается, вместо него сохранена исходная переменная `DS_PROMETHEUS` типа
-`datasource` с `query: prometheus` — Grafana сама резолвит её в VictoriaMetrics,
-единственный datasource этого типа. `uid` тоже оставлен оригинальный, иначе
-перекачивание файла создало бы второй дашборд вместо обновления существующего.
-Единственная обработка — форматирование `indent=2`.
+Файл **не** хранится дословной копией оригинала — в нём три отличия, каждое
+вызвано конкретной ошибкой, а не stylistic выбором:
 
-Обновление сводится к перекачиванию и переформатированию, правок вручную не
-требуется:
+1. **`datasource` у всех панелей, targets и query-переменных заменён на
+   `uid: victoriametrics`.** В оригинале везде `${DS_PROMETHEUS}`. Если datasource
+   переменной не резолвится, Grafana показывает «Datasource ${DS_PROMETHEUS} was
+   not found», а панели, фильтруемые по `$service`/`$entrypoint`, остаются пустыми.
+   Так же сделано в `cloudnative-pg.json` и `postgresql-database.json`.
+2. **Переменная `DS_PROMETHEUS` оставлена объявленной**, но на неё никто не
+   ссылается — как в двух других дашбордах. Удалять её нельзя: Grafana 13
+   отбрасывает `type: datasource` переменные при загрузке из файла, и если
+   объявить, но не использовать, её исчезновение ничего не ломает.
+3. **`uid` — `traefik-official`, а не оригинальный `n5bu_kv45`.** С оригинальным
+   uid провижининг падал при каждой попытке сохранения:
+   `Operation cannot be fulfilled on dashboards.dashboard.grafana.app "n5bu_kv45":
+   deprecatedInternalID=... is already in use`. Пока uid не совпадает с тем, что
+   уже занято в unified storage, дашборд не перезаписывается — молча, без
+   ошибки в интерфейсе. Проверять это надо по логам Grafana
+   (`logger=provisioning.dashboard`), а не по содержимому БД: несохранённый
+   файл выглядит в базе как валидный.
+
+Обновление: перекачать JSON, повторить те же три правки, обновить ревизию в
+таблице выше.
 
 ```sh
 curl -s -o apps/grafana/config/dashboards/traefik-official.json \
   https://grafana.com/api/dashboards/17346/revisions/latest/download
-python3 -c "import json,sys;d=json.load(open(sys.argv[1]));json.dump(d,open(sys.argv[1],'w'),ensure_ascii=False,indent=2)" \
-  apps/grafana/config/dashboards/traefik-official.json
 ```
 
-После этого обновить ревизию в таблице выше и проверить, что у дашборда нет
-ссылок на несуществующие переменные (`$VAR` в `targets[].expr`,
-`targets[].legendFormat`, `templating[].datasource` и `panels[].datasource`
-должны ссылаться только на объявленные переменные).
+После применения **проверять логи**, а не только состояние Grafana:
 
-База при переезде с SQLite не переносилась: дашборды экспортированы из старой
-базы в JSON, единственный пользователь `admin` создаётся заново, алертов и
-аннотаций не было.
+```sh
+kubectl logs deploy/grafana -n monitoring --tail=200 | grep provisioning.dashboard
+```
+
+Ожидается `finished to provision dashboards` без записей `level=error`.
 
 ## Развёртывание в Kubernetes
 
