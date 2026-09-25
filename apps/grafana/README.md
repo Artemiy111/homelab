@@ -56,15 +56,15 @@ server-side для них — отдельная задача, не смешив
 ConfigMap это не влияет, и отдельного подтверждения не требует.
 
 Дашборды: `cloudnative-pg.json` и `postgresql-database.json` — экспорт из UI
-Grafana; `traefik.json` — написан руками под метрики Traefik; `traefik-official.json`
-— официальный дашборд Traefik с grafana.com, вендорен в репозиторий.
+Grafana; `traefik.json` — написан руками под метрики Traefik;
+`traefik-official.json` — официальный дашборд Traefik с grafana.com, вендорен
+дословно (см. ниже).
 
 `traefik.json` и `traefik-official.json` не дублируют друг друга: официальный
 не содержит ни одного запроса `traefik_router_*` (все 14 панелей смотрят на
 service/entrypoint), per-router панели есть только в самописном. Per-router
 метрики появляются при `metrics.prometheus.addRoutersLabels=true` в
-`argocd/applications/traefik.yaml` (#284). Datasource везде указан как
-`uid: victoriametrics`.
+`argocd/applications/traefik.yaml` (#284).
 
 ### Вендоренные дашборды с grafana.com
 
@@ -72,15 +72,31 @@ Grafana не умеет импортировать дашборд с grafana.com
 провижининг читает только файлы, git или HTTP. Поэтому community-дашборд
 скачивается один раз и коммитится, а обновляется вручную.
 
-| Файл | grafana.com ID | Ревизия | revisionId | Дата |
+| Файл | grafana.com ID | Ревизия | revisionId | uid в Grafana |
 |---|---|---|---|---|
-| `traefik-official.json` | 17346 | 9 | 33826 | 2026-09-26 |
+| `traefik-official.json` | 17346 | 9 | 33826 | `n5bu_kv45` |
 
-При обновлении: скачать JSON, сверить с `uid: victoriametrics` (в исходнике
-`${DS_PROMETHEUS}`), удалить ставшую ненужной переменную `DS_PROMETHEUS` типа
-`datasource`, записать новую ревизию в таблицу выше. Скрипта автоматизации нет
-сознательно — обновление редкое, а лишняя автоматизация вендоринга приводит к
-тихим правкам дашборда.
+`traefik-official.json` хранится **дословной копией оригинала**: datasource не
+переписывается, вместо него сохранена исходная переменная `DS_PROMETHEUS` типа
+`datasource` с `query: prometheus` — Grafana сама резолвит её в VictoriaMetrics,
+единственный datasource этого типа. `uid` тоже оставлен оригинальный, иначе
+перекачивание файла создало бы второй дашборд вместо обновления существующего.
+Единственная обработка — форматирование `indent=2`.
+
+Обновление сводится к перекачиванию и переформатированию, правок вручную не
+требуется:
+
+```sh
+curl -s -o apps/grafana/config/dashboards/traefik-official.json \
+  https://grafana.com/api/dashboards/17346/revisions/latest/download
+python3 -c "import json,sys;d=json.load(open(sys.argv[1]));json.dump(d,open(sys.argv[1],'w'),ensure_ascii=False,indent=2)" \
+  apps/grafana/config/dashboards/traefik-official.json
+```
+
+После этого обновить ревизию в таблице выше и проверить, что у дашборда нет
+ссылок на несуществующие переменные (`$VAR` в `targets[].expr`,
+`targets[].legendFormat`, `templating[].datasource` и `panels[].datasource`
+должны ссылаться только на объявленные переменные).
 
 База при переезде с SQLite не переносилась: дашборды экспортированы из старой
 базы в JSON, единственный пользователь `admin` создаётся заново, алертов и
