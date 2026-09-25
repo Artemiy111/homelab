@@ -39,6 +39,11 @@ spec:
           # сервисом victoriametrics; задаём адрес явно (порт 80 сервиса).
           # Доступ из namespace radar в monitoring открыт NetworkPolicy.
           prometheusUrl: http://victoriametrics.monitoring.svc.cluster.local
+        service:
+          # Чарт использует service.port и как порт контейнера (--port), и как
+          # порт Service; перевод сервиса на стандартный 80 меняет оба (см.
+          # issue #269). Порт нигде больше не зашит (NetworkPolicy без портов).
+          port: 80
   destination:
     server: https://kubernetes.default.svc
     namespace: radar

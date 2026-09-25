@@ -15,4 +15,4 @@ spec:
               service:
                 name: immich
                 port:
-                  number: 2283
+                  number: 80

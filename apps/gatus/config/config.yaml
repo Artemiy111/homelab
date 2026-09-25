@@ -175,9 +175,7 @@ endpoints:
     group: Monitoring
     # UI закрыт forward auth (302 без авторизации), поэтому проверяем health
     # API напрямую; доступ из monitoring в radar разрешён NetworkPolicy.
-    # Порт 9280 — единственный у сервиса (тот же, что в IngressRoute): без него
-    # Gatus стучится на :80 и висит до таймаута.
-    url: http://radar.radar.svc.cluster.local:9280/api/health
+    url: http://radar.radar.svc.cluster.local/api/health
     interval: 60s
     client: *docker-client
     conditions:

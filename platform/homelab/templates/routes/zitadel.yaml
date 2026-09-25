@@ -15,14 +15,14 @@ spec:
         - name: zitadel-root-rewrite
       services:
         - name: zitadel-login
-          port: 3000
+          port: 80
     # Login UI (v2).
     - match: Host(`id.{{ .Values.config.domain }}`) && PathPrefix(`/ui/v2/login`)
       kind: Rule
       priority: 250
       services:
         - name: zitadel-login
-          port: 3000
+          port: 80
     # API/gRPC-шлюз (strip /api, h2c до бэкенда).
     - match: Host(`id.{{ .Values.config.domain }}`) && PathPrefix(`/api`)
       kind: Rule
@@ -31,7 +31,7 @@ spec:
         - name: zitadel-strip-api
       services:
         - name: zitadel
-          port: 8080
+          port: 80
           scheme: h2c
     # Всё остальное → консоль ZITADEL.
     - match: Host(`id.{{ .Values.config.domain }}`) && !PathPrefix(`/ui/v2/login`) && !PathPrefix(`/api`) && !Path(`/`)
@@ -39,5 +39,5 @@ spec:
       priority: 100
       services:
         - name: zitadel
-          port: 8080
+          port: 80
           scheme: h2c

@@ -15,4 +15,4 @@ spec:
               service:
                 name: jitsi-web
                 port:
-                  number: 8000
+                  number: 80

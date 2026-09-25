@@ -35,7 +35,7 @@ spec:
                   name: homelab-config
                   key: TZ
             - name: ZITADEL_API_URL
-              value: http://zitadel:8080
+              value: http://zitadel
             - name: NEXT_PUBLIC_BASE_PATH
               value: /ui/v2/login
             - name: ZITADEL_LOGINCLIENT_KEYFILE

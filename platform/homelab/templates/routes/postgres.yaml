@@ -15,4 +15,4 @@ spec:
               service:
                 name: postgres-pgweb
                 port:
-                  number: 8081
+                  number: 80
