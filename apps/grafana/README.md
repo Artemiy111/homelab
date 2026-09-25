@@ -56,10 +56,31 @@ server-side для них — отдельная задача, не смешив
 ConfigMap это не влияет, и отдельного подтверждения не требует.
 
 Дашборды: `cloudnative-pg.json` и `postgresql-database.json` — экспорт из UI
-Grafana; `traefik.json` — написан руками под метрики Traefik. Панели по
-маршрутам в нём опираются на `traefik_router_*`, которые появляются только при
-`metrics.prometheus.addRoutersLabels=true` в `argocd/applications/traefik.yaml`
-(#284). Datasource везде указан как `uid: victoriametrics`.
+Grafana; `traefik.json` — написан руками под метрики Traefik; `traefik-official.json`
+— официальный дашборд Traefik с grafana.com, вендорен в репозиторий.
+
+`traefik.json` и `traefik-official.json` не дублируют друг друга: официальный
+не содержит ни одного запроса `traefik_router_*` (все 14 панелей смотрят на
+service/entrypoint), per-router панели есть только в самописном. Per-router
+метрики появляются при `metrics.prometheus.addRoutersLabels=true` в
+`argocd/applications/traefik.yaml` (#284). Datasource везде указан как
+`uid: victoriametrics`.
+
+### Вендоренные дашборды с grafana.com
+
+Grafana не умеет импортировать дашборд с grafana.com по ID в рантайме —
+провижининг читает только файлы, git или HTTP. Поэтому community-дашборд
+скачивается один раз и коммитится, а обновляется вручную.
+
+| Файл | grafana.com ID | Ревизия | revisionId | Дата |
+|---|---|---|---|---|
+| `traefik-official.json` | 17346 | 9 | 33826 | 2026-09-26 |
+
+При обновлении: скачать JSON, сверить с `uid: victoriametrics` (в исходнике
+`${DS_PROMETHEUS}`), удалить ставшую ненужной переменную `DS_PROMETHEUS` типа
+`datasource`, записать новую ревизию в таблицу выше. Скрипта автоматизации нет
+сознательно — обновление редкое, а лишняя автоматизация вендоринга приводит к
+тихим правкам дашборда.
 
 База при переезде с SQLite не переносилась: дашборды экспортированы из старой
 базы в JSON, единственный пользователь `admin` создаётся заново, алертов и

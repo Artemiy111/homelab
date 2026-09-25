@@ -27,3 +27,4 @@ configMapGenerator:
       - config/dashboards/cloudnative-pg.json
       - config/dashboards/postgresql-database.json
       - config/dashboards/traefik.json
+      - config/dashboards/traefik-official.json
