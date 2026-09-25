@@ -6,7 +6,7 @@ URL: `https://uptime.example.com/`.
 Разворачивается kustomize-набором из `apps/gatus/`:
 
 ```sh
-kubectl apply -k apps/gatus/
+kubectl apply --server-side --field-manager=homelab -k apps/gatus/
 ```
 
 `config/config.yaml` лежит в исходном виде, а `configMapGenerator` собирает из

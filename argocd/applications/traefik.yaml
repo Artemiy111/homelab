@@ -37,6 +37,14 @@ spec:
           prometheus:
             service:
               enabled: true
+            # Per-router метрики. По умолчанию в Traefik выключены
+            # (addRoutersLabels=false), и без них в VM нет ни одной серии
+            # traefik_router_* — метрики только по бэкенд-сервисам, по роутеру
+            # не понять, какой маршрут ведёт себя неправильно. #284.
+            # Цена: серий примерно вдвое больше (объём дают бакеты гистограмм),
+            # а запас по диску vmdata после инцидента 0003 не расширялся —
+            # решение принято осознанно, отслеживать расход в #284.
+            addRoutersLabels: true
         additionalArguments:
           - --ping
         ingressRoute:

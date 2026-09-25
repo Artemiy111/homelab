@@ -53,7 +53,7 @@ aws --endpoint-url https://s3.${DOMAIN} \
 
 ## Эксплуатация
 
-Разворачивается через kustomize: `kubectl apply -k apps/rustfs`.
+Разворачивается через kustomize: `kubectl apply --server-side --field-manager=homelab -k apps/rustfs`.
 
 Смена root-креденшелов: отредактировать `secrets.enc.env` на сервере
 (`sops rustfs/secrets.enc.env` от имени artlab) и пересоздать под.
@@ -80,7 +80,7 @@ append-only: чтобы заменить версию, удалить объек
 `mirror-sync` через kustomize — отдельного шага нет:
 
 ```sh
-kubectl apply -k apps/rustfs
+kubectl apply --server-side --field-manager=homelab -k apps/rustfs
 kubectl -n rustfs create job --from=cronjob/mirror-sync mirror-sync-manual
 ```
 

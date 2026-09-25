@@ -32,7 +32,7 @@ helm install argocd argo/argo-cd \
   -f argocd/install/values.yaml \
   --wait
 
-helm template platform/homelab -f platform/homelab/values.private.yaml | kubectl apply -f -
+helm template platform/homelab -f platform/homelab/values.private.yaml | kubectl apply --server-side --field-manager=homelab -f -
 ```
 
 ## Проверка
@@ -114,13 +114,13 @@ argocd account update-password
 
 ## Обновление Application: спека живёт в кластере
 
-Application'ы применяются руками (`kubectl apply -f argocd/applications/<name>.yaml`), app-of-apps
+Application'ы применяются руками (`kubectl apply --server-side --field-manager=homelab -f argocd/applications/<name>.yaml`), app-of-apps
 здесь нет. Поэтому Argo читает желаемое состояние **из объекта в кластере**, а манифест в git
 нужен только чтобы не потерять это состояние: пока файл не применён, правка values в git
 ничего не меняет (приложение остаётся `Synced` на старой спеке).
 
 ```sh
-kubectl apply -f argocd/applications/local-path-provisioner.yaml   # обновить спеку
+kubectl apply --server-side --field-manager=homelab -f argocd/applications/local-path-provisioner.yaml   # обновить спеку
 argocd app sync local-path-provisioner                    # или ручной sync, см. ниже
 ```
 
@@ -133,7 +133,7 @@ argocd app sync local-path-provisioner                    # или ручной 
 применяется сразу после шаблона:
 
 ```sh
-kubectl apply -f argocd/applications/forgejo.yaml
+kubectl apply --server-side --field-manager=homelab -f argocd/applications/forgejo.yaml
 kubectl -n argocd patch application forgejo --type=merge \
   --patch-file argocd/applications/forgejo.private.yaml
 ```
@@ -167,7 +167,7 @@ kubectl -n argocd patch application forgejo --type=merge \
 **только** под Argo — не дублировать манифестами для будущего Flux.
 
 ```sh
-kubectl apply -f argocd/applications/kube-state-metrics.yaml
+kubectl apply --server-side --field-manager=homelab -f argocd/applications/kube-state-metrics.yaml
 argocd app get kube-state-metrics
 argocd app diff kube-state-metrics
 ```
@@ -191,7 +191,7 @@ argocd app get kube-state-metrics
 пересоздания** ресурсов. Порядок применим и к боевому Traefik.
 
 ```sh
-kubectl apply -f argocd/applications/headlamp.yaml
+kubectl apply --server-side --field-manager=homelab -f argocd/applications/headlamp.yaml
 
 argocd app diff headlamp        # желаемое (чарт) vs живое: расхождений быть не должно
 argocd app sync headlamp        # server-side apply берёт ownership, Pod не пересоздаётся
@@ -245,7 +245,7 @@ service-account. Маршрут (`platform/homelab/templates/routes/headlamp.yam
 `sealed-secrets.yaml` — адопция боевого контроллера в `kube-system`. Отличия:
 
 - `skipCrds: true` — CRD `sealedsecrets.bitnami.com` кластерный, обновляется
-  вручную (`helm show crds ... | kubectl apply -f -`).
+  вручную (`helm show crds ... | kubectl apply --server-side --field-manager=homelab -f -`).
 - values — только `fullnameOverride`; без него ресурсы назывались бы
   `sealed-secrets`, а не `sealed-secrets-controller`.
 - приватный ключ `sealed-secrets-key*` чартом не управляется, Argo его не

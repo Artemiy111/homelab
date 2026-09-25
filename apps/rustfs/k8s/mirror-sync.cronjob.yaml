@@ -4,7 +4,7 @@
 #
 # Скрипт (apps/rustfs/mirror-sync.sh) и манифест (apps/rustfs/artifacts.tsv)
 # едут в ConfigMap mirror-sync через kustomize:
-#   kubectl apply -k apps/rustfs
+#   kubectl apply --server-side --field-manager=homelab -k apps/rustfs
 #
 # Ручной запуск: kubectl -n rustfs create job --from=cronjob/mirror-sync mirror-sync-manual
 apiVersion: batch/v1

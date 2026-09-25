@@ -53,7 +53,7 @@ JSON-файлы хранятся в minified-виде (одна строка): �
 Разворачивается kustomize-набором:
 
 ```sh
-kubectl apply -k apps/grafana/
+kubectl apply --server-side --field-manager=homelab -k apps/grafana/
 ```
 
 `k8s/grafana.deployment.yaml` — Deployment (uid/gid 1000, probes, ресурсы,

@@ -72,7 +72,7 @@ kustomize-набор в `apps/victoria-metrics/`: манифесты в `k8s/`, 
 Применение (от `artlab` на сервере, после `git pull --ff-only`):
 
 ```sh
-kubectl apply -k apps/victoria-metrics/
+kubectl apply --server-side --field-manager=homelab -k apps/victoria-metrics/
 ```
 
 ## Проверка

@@ -9,7 +9,7 @@ Zot — лёгкий OCI-реестр, используемый как **pull-th
 | | |
 |---|---|
 | Namespace | `zot` |
-| Развёртывание | манифестами `apps/zot/k8s/` (`kubectl apply -f`) |
+| Развёртывание | манифестами `apps/zot/k8s/` (`kubectl apply --server-side --field-manager=homelab -f`) |
 | Образ | `ghcr.io/project-zot/zot:v2.1.21` (пин по тегу и дайджесту) |
 | Данные | PVC `zot-data` на `longhorn` (кэш, потеря не страшна) |
 | API | `http://zot.zot.svc.cluster.local` — только внутри кластера |
@@ -39,7 +39,7 @@ Zot — лёгкий OCI-реестр, используемый как **pull-th
 ## Развёртывание
 
 ```sh
-kubectl apply -f apps/zot/k8s/
+kubectl apply --server-side --field-manager=homelab -f apps/zot/k8s/
 kubectl -n zot get pods,pvc,svc
 ```
 

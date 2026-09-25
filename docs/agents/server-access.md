@@ -185,7 +185,7 @@ ssh homelab-agent 'systemctl is-active k0scontroller; dig +short @<node1-ip> upt
 Сначала проверить diff/server-side результат, затем применить:
 
 ```sh
-ssh homelab-agent 'sudo -u artlab bash -lc "cd /home/artlab/projects/homelab && kubectl apply -k apps/grafana/ && kubectl get pods"'
+ssh homelab-agent 'sudo -u artlab bash -lc "cd /home/artlab/projects/homelab && kubectl apply --server-side --field-manager=homelab -k apps/grafana/ && kubectl get pods"'
 ```
 
 Общая конфигурация (`homelab-config`) и все HTTP-маршруты живут в Helm-чарте
@@ -194,7 +194,7 @@ ssh homelab-agent 'sudo -u artlab bash -lc "cd /home/artlab/projects/homelab && 
 `values.yaml` с плейсхолдерами:
 
 ```sh
-ssh homelab-agent 'sudo -u artlab bash -lc "cd /home/artlab/projects/homelab && helm template platform/homelab -f platform/homelab/values.private.yaml | kubectl apply -f -"'
+ssh homelab-agent 'sudo -u artlab bash -lc "cd /home/artlab/projects/homelab && helm template platform/homelab -f platform/homelab/values.private.yaml | kubectl apply --server-side --field-manager=homelab -f -"'
 ```
 
 `values.private.yaml` существует только на сервере и не коммитится (см.

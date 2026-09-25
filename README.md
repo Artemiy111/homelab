@@ -121,7 +121,7 @@ production-практикам DevOps.
   манифестов по allow-list в `.kube-linter.yaml`).
 - `apps/rustfs/artifacts.tsv` — манифест артефактов для CI; их скачивает и
   складывает в RustFS `apps/rustfs/mirror-sync.sh` (CronJob `mirror-sync`,
-  применяется через `kubectl apply -k apps/rustfs`).
+  применяется через `kubectl apply --server-side --field-manager=homelab -k apps/rustfs`).
 - `etc/`, `dotfiles/`, `scripts/`, `docs/` — конфиги ОС, шелл, скрипты и
   документация.
 
@@ -135,10 +135,36 @@ production-практикам DevOps.
 2. На сервере: `git pull --ff-only`.
 3. Применить затронутое:
    ```sh
-   kubectl apply -f apps/<сервис>/k8s/
-   helm template platform/homelab -f platform/homelab/values.private.yaml | kubectl apply -f -
+   kubectl apply --server-side --field-manager=homelab -f apps/<сервис>/k8s/
+   helm template platform/homelab -f platform/homelab/values.private.yaml | kubectl apply --server-side --field-manager=homelab -f -
    ```
 4. Проверить health, DNS и HTTP-маршрут.
+
+### Почему `--server-side`
+
+Манифесты применяются только server-side apply, без флага команда считается
+ошибкой. `kubectl apply` без него (client-side) мержит на стороне клиента и
+хранит в каждом объекте аннотацию `kubectl.kubernetes.io/last-applied-configuration`
+с полной копией манифеста. Отсюда три проблемы:
+
+- **Лимит размера.** Суммарный размер аннотаций объекта ограничен 262144 Б.
+  Из-за этого дашборды Grafana приходилось минифицировать, а большой
+  community-дашборд не влезал в принципе (`apps/grafana/kustomization.yaml`).
+- **Конфликт с GitOps.** Часть объектов в кластере управляется Argo CD, который
+  тоже применяет server-side. Client-side apply не различает менеджеров и
+  считает «чужие» поля своими, из-за чего два применения начинают спорить.
+  Server-side apply хранит владение полями в `metadata.managedFields` по
+  имени менеджера, поэтому `homelab` и `argocd` не мешают друг другу.
+- **Неверные подсказки при удалении.** Client-side считает удалённым то, чего
+  нет в аннотации, и может удалить поле, выставленное контроллером.
+
+`--field-manager=homelab` задаёт имя менеджера явно: по умолчанию kubectl подставил
+бы имя своего бинарника, и при смене версии владение полями уехало бы на другой
+менеджер. При конфликте apiserver вернёт 409 с указанием поля и текущего
+владельца; лечится осознанно — `--force-conflicts` после разбора.
+
+Проверить, кто чем владеет: `kubectl get <объект> -o yaml` (секция
+`metadata.managedFields`) либо `kubectl diff --server-side -f <манифест>`.
 
 Платформенные компоненты (Traefik, sealed-secrets, Longhorn, Argo CD)
 поставляются Helm'ом; порядок их установки и обновления описан в

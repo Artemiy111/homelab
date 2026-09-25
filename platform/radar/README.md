@@ -41,15 +41,15 @@ Radar ходит под своим ServiceAccount с read-only `ClusterRole`. Э
 Все команды — на сервере из корня репозитория, после `git pull --ff-only`.
 
 ```sh
-kubectl apply -f argocd/applications/radar.yaml
+kubectl apply --server-side --field-manager=homelab -f argocd/applications/radar.yaml
 
 # Дождаться, пока Argo создаст namespace, под и слой RBAC.
 kubectl -n radar get pods
 argocd app get radar
 
-kubectl apply -f platform/radar/networkpolicy.yaml
+kubectl apply --server-side --field-manager=homelab -f platform/radar/networkpolicy.yaml
 
-helm template platform/homelab -f platform/homelab/values.private.yaml | kubectl apply -f -
+helm template platform/homelab -f platform/homelab/values.private.yaml | kubectl apply --server-side --field-manager=homelab -f -
 ```
 
 Порядок важен: Application создаёт namespace `radar` (`CreateNamespace=true`),
@@ -73,7 +73,7 @@ curl --resolve radar.${DOMAIN}:443:<node1-ip> \
 После логина в oauth2-proxy — UI Radar на https://radar.example.com/.
 Gatus проверяет `http://radar.radar.svc.cluster.local/api/health` из
 namespace `monitoring` (правка `apps/gatus/config/config.yaml` плюс
-`kubectl apply -k apps/gatus/` сама перезапускает под: ConfigMap с конфигом
+`kubectl apply --server-side --field-manager=homelab -k apps/gatus/` сама перезапускает под: ConfigMap с конфигом
 собирается с хэшем содержимого).
 
 ## Права
@@ -110,7 +110,7 @@ Radar ищет well-known имена и не распознаёт сервис `
 ## Обновление версии
 
 Меняем `targetRevision` (версия чарта) в `argocd/applications/radar.yaml`,
-применяем `kubectl apply -f argocd/applications/radar.yaml` — Argo обновит
+применяем `kubectl apply --server-side --field-manager=homelab -f argocd/applications/radar.yaml` — Argo обновит
 релиз сам (self-heal + automated sync). Для отката возвращаем версию в файле и
 применяем снова. Перед апгрейдом смотреть release notes:
 https://github.com/skyhook-io/radar/releases

@@ -9,7 +9,7 @@ Zitadel — IdP homelab. Доступен через Traefik по `https://id.ex
 Разворачивается kustomize-набором `apps/zitadel/`:
 
 ```sh
-kubectl apply -k apps/zitadel/
+kubectl apply --server-side --field-manager=homelab -k apps/zitadel/
 ```
 
 Postgres поднимается кластером CloudNativePG: суперпользователь остаётся у

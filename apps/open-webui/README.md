@@ -27,7 +27,7 @@ OpenAI-совместимый API не подключены (`ENABLE_OLLAMA_API=
 Разворачивается через kustomize:
 
 ```sh
-kubectl apply -k apps/open-webui/
+kubectl apply --server-side --field-manager=homelab -k apps/open-webui/
 ```
 
 ## Подключение движка (позже)

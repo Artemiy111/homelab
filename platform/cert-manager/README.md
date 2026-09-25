@@ -64,15 +64,15 @@ Webhook ставится отдельным Argo Application (`argocd/applicatio
 
 ```sh
 # 1. Оператор и CRD
-kubectl apply -f argocd/applications/cert-manager.yaml
+kubectl apply --server-side --field-manager=homelab -f argocd/applications/cert-manager.yaml
 kubectl -n cert-manager get pods    # controller, webhook, cainjector
 
 # 2. Webhook-солвер (нужны repo-creds и imagePullSecret, см. ниже)
-kubectl apply -f argocd/applications/dns01-webhook.yaml
+kubectl apply --server-side --field-manager=homelab -f argocd/applications/dns01-webhook.yaml
 kubectl -n cert-manager get pods    # dns01-webhook-...
 
 # 3. Эмитенты и Certificate — из чарта (домен, email из values)
-helm template platform/homelab -f platform/homelab/values.private.yaml | kubectl apply -f -
+helm template platform/homelab -f platform/homelab/values.private.yaml | kubectl apply --server-side --field-manager=homelab -f -
 ```
 
 ## Секреты
@@ -90,7 +90,7 @@ kubectl -n cert-manager create secret generic dns01-webhook-token \
   --from-literal=token='<HTTP-токен провайдера>' \
   --dry-run=client -o yaml \
   | kubeseal --format yaml > platform/cert-manager/sealedsecret.yaml
-kubectl apply -f platform/cert-manager/sealedsecret.yaml
+kubectl apply --server-side --field-manager=homelab -f platform/cert-manager/sealedsecret.yaml
 ```
 
 ## Порядок первого выпуска: staging → prod

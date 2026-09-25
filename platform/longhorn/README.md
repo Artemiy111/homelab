@@ -64,21 +64,21 @@ ansible-playbook host.yml --check --diff
 ansible-playbook host.yml
 
 # 2. CSI-снапшоты (CRD + контроллер) — до того, как понадобится первый snapshot
-kubectl apply -f argocd/applications/snapshot-controller.yaml
+kubectl apply --server-side --field-manager=homelab -f argocd/applications/snapshot-controller.yaml
 
 # 3. Longhorn
-kubectl apply -f argocd/applications/longhorn.yaml
+kubectl apply --server-side --field-manager=homelab -f argocd/applications/longhorn.yaml
 
 # 4. Дождаться, пока Argo докатит релиз
 kubectl -n argocd get application longhorn -o wide
 kubectl -n longhorn-system get pods --watch
 
 # 5. Классы и снапшот-класс
-kubectl apply -f platform/longhorn/storageclasses.yaml
-kubectl apply -f platform/longhorn/volumesnapshotclass.yaml
+kubectl apply --server-side --field-manager=homelab -f platform/longhorn/storageclasses.yaml
+kubectl apply --server-side --field-manager=homelab -f platform/longhorn/volumesnapshotclass.yaml
 
 # 6. UI за oauth2-proxy
-helm template platform/homelab -f platform/homelab/values.private.yaml | kubectl apply -f -
+helm template platform/homelab -f platform/homelab/values.private.yaml | kubectl apply --server-side --field-manager=homelab -f -
 ```
 
 DNS трогать не нужно: в зоне есть wildcard `*.example.com`.
