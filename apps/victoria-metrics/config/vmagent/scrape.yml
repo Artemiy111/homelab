@@ -87,6 +87,24 @@ scrape_configs:
       - targets:
           - traefik-metrics.traefik.svc.cluster.local:9100
 
+  # cert-manager: controller, webhook и cainjector. Метрики на порту 9402,
+  # без аутентификации. Чарт добавляет аннотации prometheus.io/scrape, но
+  # job с pod-discovery по ним в этом файле нет, поэтому адресуем Service'ы
+  # явно. Отдельный job на каждый компонент: имена Service'ов не пересекаются
+  # с существующими целями, дублей не будет.
+  - job_name: cert-manager
+    static_configs:
+      - targets:
+          - cert-manager.cert-manager.svc.cluster.local:9402
+  - job_name: cert-manager-webhook
+    static_configs:
+      - targets:
+          - cert-manager-webhook.cert-manager.svc.cluster.local:9402
+  - job_name: cert-manager-cainjector
+    static_configs:
+      - targets:
+          - cert-manager-cainjector.cert-manager.svc.cluster.local:9402
+
   # Приложения, отдающие /metrics без аутентификации.
   - job_name: authentik
     static_configs:

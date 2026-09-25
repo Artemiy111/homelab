@@ -40,6 +40,11 @@ Secrets и ConfigMap (см. `apps/victoria-metrics/k8s/vmagent.deployment.yaml`)
 `gatus`, `synapse`, `immich`, `livekit` (без аутентификации); `uptime-kuma`,
 `navidrome`, `dawarich`, `forgejo`, `technitium`, `stalwart` (креды из Secrets).
 
+cert-manager скрейпится тремя отдельными job'ами (`cert-manager`,
+`cert-manager-webhook`, `cert-manager-cainjector`) по Service'ам на порту 9402.
+Чарт cert-manager развешивает аннотации `prometheus.io/scrape` на своих подах,
+но job с pod-discovery по аннотациям в конфиге нет, поэтому цели заданы явно.
+
 ## Хранение
 
 Постоянные данные — `/storage/apps/victoria-metrics/vmdata`, retention

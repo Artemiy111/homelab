@@ -15,10 +15,13 @@
 # поля, которые дописывает контроллер; RespectIgnoreDifferences в syncOptions
 # не даёт selfHeal переписывать их обратно.
 #
-# Метрики: prometheus.enabled оставлен дефолтным true — cert-manager и его
-# вебхук получают аннотации `prometheus.io/scrape`, vmagent заберёт их
-# pod-discovery. CRD prometheus-operator (monitoring.coreos.com) в кластере
-# нет, поэтому никаких PodMonitor/ServiceMonitor не создаём.
+# Метрики: prometheus.enabled оставлен дефолтным true — чарт развешивает
+# аннотации `prometheus.io/scrape` на подах controller, webhook и cainjector.
+# Забирает их vmagent статическими job'ами по Service'ам на порту 9402
+# (apps/victoria-metrics/config/vmagent/scrape.yml). Pod-discovery по аннотациям
+# в scrape.yml отсутствует, поэтому рассчитывать на него нельзя. CRD
+# prometheus-operator (monitoring.coreos.com) в кластере нет, поэтому никаких
+# PodMonitor/ServiceMonitor не создаём.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
