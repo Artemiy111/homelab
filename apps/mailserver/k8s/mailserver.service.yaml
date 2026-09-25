@@ -10,6 +10,6 @@ spec:
   ports:
     # JMAP/API/админка Stalwart за Traefik (mailserver.<домен>).
     - name: http
-      port: 8080
+      port: 80
       targetPort: http
       protocol: TCP

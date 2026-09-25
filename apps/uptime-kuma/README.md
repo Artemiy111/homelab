@@ -29,7 +29,7 @@ OOM, значение можно поднять.
 
 ## Метрики
 
-Kuma отдаёт Prometheus-метрики на `:3001/metrics`. Доступ — по API-ключу
+Kuma отдаёт Prometheus-метрики на `:80/metrics`. Доступ — по API-ключу
 (Настройки → API Keys, без срока действия): ключ хранится как
 `UPTIME_KUMA_METRICS_API_KEY`, netdata скрейпит их как цель `uptime-kuma`
 (см. `apps/netdata/README.md`). После добавления первого API-ключа basic auth на

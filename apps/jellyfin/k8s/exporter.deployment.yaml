@@ -23,7 +23,7 @@ spec:
               containerPort: 9594
           env:
             - name: JELLYFIN_ADDRESS
-              value: "http://jellyfin:8096"
+              value: "http://jellyfin"
             - name: JELLYFIN_TOKEN
               valueFrom:
                 secretKeyRef:

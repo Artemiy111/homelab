@@ -6,7 +6,7 @@
 
 - SMTP: `25` (приём), `587` (submission)
 - IMAP: `993`
-- JMAP / API Stalwart: порт `8080`, за Traefik на
+- JMAP / API Stalwart: порт `80` (Service; в контейнере слушает 8080), за Traefik на
   `https://mailserver.example.com/`
 - Веб-почта Bulwark: `https://mail.example.com/`
 
@@ -29,7 +29,7 @@
 
 `JMAP_SERVER_URL` указывает на публичный HTTPS-адрес
 админки Stalwart (`https://mailserver.<домен>`), а не на внутренний
-`http://mailserver:8080`: Bulwark v1.8 выполняет обнаружение JMAP-сессии из
+`http://mailserver`: Bulwark v1.8 выполняет обнаружение JMAP-сессии из
 браузера, и внутренний хостнейм там недоступен. Публичный адрес
 обходит и CSP (`connect-src 'self' https:`), и недоступность `mailserver` вне
 внутренней сети.

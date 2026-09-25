@@ -9,6 +9,6 @@ spec:
     app: navidrome
   ports:
     - name: http
-      port: 4533
+      port: 80
       targetPort: http
       protocol: TCP

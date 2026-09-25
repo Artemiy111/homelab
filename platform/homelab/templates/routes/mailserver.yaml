@@ -12,7 +12,7 @@ spec:
       kind: Rule
       services:
         - name: mailserver
-          port: 8080
+          port: 80
 ---
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
@@ -28,4 +28,4 @@ spec:
       kind: Rule
       services:
         - name: mail
-          port: 3000
+          port: 80

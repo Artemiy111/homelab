@@ -32,7 +32,7 @@ kubectl apply -k apps/open-webui/
 
 ## Подключение движка (позже)
 
-- LocalAI: `ENABLE_OPENAI_API=true`, `OPENAI_API_BASE_URL=http://local-ai-api:8080/v1`
+- LocalAI: `ENABLE_OPENAI_API=true`, `OPENAI_API_BASE_URL=http://local-ai/v1`
   и `OPENAI_API_KEY` со значением из `local-ai/secrets.enc.env`;
 - свой Ollama: добавить сервис в манифесты с
   `OLLAMA_MODELS=/storage/media/ai/models`, тогда веса будут в общей папке.

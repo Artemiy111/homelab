@@ -13,5 +13,5 @@ spec:
       services:
         # hostNetwork-под: Traefik достигает его только через ClusterIP.
         - name: home-assistant
-          port: 8123
+          port: 80
           nativeLB: true
