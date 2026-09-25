@@ -9,6 +9,6 @@ spec:
     app: paperless
   ports:
     - name: http
-      port: 8000
+      port: 80
       targetPort: http
       protocol: TCP

@@ -9,6 +9,6 @@ spec:
     app: lute
   ports:
     - name: lute-web
-      port: 5001
+      port: 80
       targetPort: 5001
       protocol: TCP

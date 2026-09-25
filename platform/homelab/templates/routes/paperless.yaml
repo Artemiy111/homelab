@@ -15,4 +15,4 @@ spec:
               service:
                 name: paperless
                 port:
-                  number: 8000
+                  number: 80

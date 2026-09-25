@@ -15,4 +15,4 @@ spec:
               service:
                 name: lute
                 port:
-                  number: 5001
+                  number: 80
