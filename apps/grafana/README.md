@@ -50,9 +50,10 @@ kubectl apply --server-side --field-manager=homelab -k apps/grafana/
 
 Остальные приложения репозитория пока применяются client-side; переход на
 server-side для них — отдельная задача, не смешивать её с правками Grafana.
-Причина миграции: `kustomize` переписывает имя ConfigMap дашбордов, добавляя хэш
-содержимого, и при client-side apply это поле принадлежит менеджеру
-`kubectl-client-side-apply` — смена любого дашборда ломала бы применение.
+Причина миграции именно в размере: client-side apply падает на лимите аннотации
+(проверено на стенде — `metadata.annotations: Too long` при 337946 Б). Побочный
+плюс server-side — владение полями в `metadata.managedFields`, но на повреждённый
+ConfigMap это не влияет, и отдельного подтверждения не требует.
 
 Дашборды: `cloudnative-pg.json` и `postgresql-database.json` — экспорт из UI
 Grafana; `traefik.json` — написан руками под метрики Traefik. Панели по
