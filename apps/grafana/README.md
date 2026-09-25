@@ -39,10 +39,20 @@ Datasource VictoriaMetrics описан декларативно в `config/data
 монтируются в под через `configMapGenerator` (см. `kustomization.yaml`), поэтому
 правка конфига сама запускает rollout.
 
-JSON-файлы хранятся в minified-виде (одна строка): так суммарный ConfigMap
-укладывается в лимит аннотации `kubectl.kubernetes.io/last-applied-configuration`
-(262144 Б), с которым падает client-side apply. Это экспорт из Grafana, а не
-рукописный файл; при добавлении дашбордов следите за суммарным размером.
+JSON-файлы хранятся в читаемом виде (`indent=2`), суммарно 337946 Б. Это больше
+лимита аннотации `kubectl.kubernetes.io/last-applied-configuration` (262144 Б),
+с которым падает client-side apply, поэтому **Grafana применяется только
+server-side apply** — он эту аннотацию не пишет:
+
+```sh
+kubectl apply --server-side --field-manager=homelab -k apps/grafana/
+```
+
+Остальные приложения репозитория пока применяются client-side; переход на
+server-side для них — отдельная задача, не смешивать её с правками Grafana.
+Причина миграции: `kustomize` переписывает имя ConfigMap дашбордов, добавляя хэш
+содержимого, и при client-side apply это поле принадлежит менеджеру
+`kubectl-client-side-apply` — смена любого дашборда ломала бы применение.
 
 Дашборды: `cloudnative-pg.json` и `postgresql-database.json` — экспорт из UI
 Grafana; `traefik.json` — написан руками под метрики Traefik. Панели по
