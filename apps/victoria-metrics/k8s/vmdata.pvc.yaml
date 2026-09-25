@@ -11,5 +11,5 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      # Данные ~2.9 ГБ при retention 180d; запас под рост.
-      storage: 4Gi
+      # Данные ~3.8 ГБ при retention 180d; запас под рост.
+      storage: 8Gi
