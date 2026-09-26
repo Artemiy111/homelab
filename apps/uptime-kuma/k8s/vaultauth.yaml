@@ -28,16 +28,8 @@ subjects:
     name: vso-uptime-kuma
     namespace: uptime-kuma
 ---
-# Аутентификация оператора в Vault методом kubernetes.
-#
-# Роль vso-uptime-kuma и её policy создаются в Vault вручную — декларативно они
-# не появляются. Соответствующая политика:
-#
-#   path "kv/data/uptime-kuma/*"     { capabilities = ["read"] }
-#   path "kv/metadata/uptime-kuma/*" { capabilities = ["read", "list"] }
-#
-# audiences обязателен: на Vault 1.21+ роль без audience не проходит
-# аутентификацию. Значение должно совпадать с audience в самой роли.
+# Роль и политика — в terraform/vault (roles.tf, policies.tf).
+# https://developer.hashicorp.com/vault/docs/auth/kubernetes
 apiVersion: secrets.hashicorp.com/v1beta1
 kind: VaultAuth
 metadata:

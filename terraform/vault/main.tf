@@ -9,7 +9,6 @@ terraform {
   }
 }
 
-# Провайдер настраивается окружением, а не кодом: address приходит из
-# VAULT_ADDR, token — из ~/.vault-token. Блок объявлен явно, чтобы конфигурация
-# провайдера была видна в коде, а не подразумевалась.
+# Провайдер настраивается окружением: address из VAULT_ADDR, token из
+# ~/.vault-token. https://developer.hashicorp.com/terraform/providers/hashicorp/vault
 provider "vault" {}

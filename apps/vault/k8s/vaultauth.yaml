@@ -45,17 +45,8 @@ metadata:
 spec:
   address: http://vault.vault.svc.cluster.local:8200
 ---
-# Аутентификация оператора в Vault методом kubernetes.
-#
-# Роль vso-reader и её policy создаются в Vault после инициализации и unseal —
-# декларативно они не создаются. Соответствующая политика:
-#
-#   path "kv/data/poc/*"      { capabilities = ["read"] }
-#   path "kv/metadata/poc/*"  { capabilities = ["read", "list"] }
-#
-# audiences обязателен: начиная с Vault 1.21 роль без audience не проходит
-# аутентификацию, а мы на 2.x. Значение должно совпадать с audience в самой
-# роли Vault.
+# Роль и политика — в terraform/vault (roles.tf, policies.tf).
+# https://developer.hashicorp.com/vault/docs/auth/kubernetes
 apiVersion: secrets.hashicorp.com/v1beta1
 kind: VaultAuth
 metadata:

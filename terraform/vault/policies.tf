@@ -33,7 +33,7 @@ resource "vault_policy" "terraform" {
 }
 
 resource "vault_policy" "uptime-kuma" {
-  name = "uptime-kuma"
+  name = "app/uptime-kuma"
 
   policy = <<-EOT
     path "kv/data/uptime-kuma/sync"     { capabilities = ["read"] }

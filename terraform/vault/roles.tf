@@ -14,6 +14,6 @@ resource "vault_kubernetes_auth_backend_role" "vso_uptime_kuma" {
   audience                         = "vault"
   bound_service_account_names      = ["vso-uptime-kuma"]
   bound_service_account_namespaces = ["uptime-kuma"]
-  token_policies                   = ["uptime-kuma"]
+  token_policies                   = ["app/uptime-kuma"]
   token_ttl                        = 3600
 }
