@@ -44,11 +44,16 @@ spec:
               cpu: 500m
               memory: 1Gi
           dataStorage:
-            # Дефолт чарта — 10Gi и StorageClass кластера по умолчанию. На k0s это
-            # local-path (node-local, нереплицируемый), а хранилище Vault нельзя
-            # терять с нодой, поэтому держимся longhorn-retain, как в PVC ручного
-            # деплоя. Longhorn тонко выделяет размер, 1Gi — только потолок.
-            size: 1Gi
+            # StorageClass: дефолт чарта — класс кластера по умолчанию, а на k0s
+            # это local-path (node-local, нереплицируемый), а хранилище Vault нельзя
+            # терять с нодой. Поэтому longhorn-retain, как в PVC ручного деплоя.
+            # Longhorn тонко выделяет размер, указанное значение — только потолок.
+            #
+            # 128Mi — с запасом над фактическими ~9 МБ raft-данных. Менять
+            # уменьшением нельзя: PVC в Kubernetes не сжимается на месте, поэтому
+            # при смене размера том удаляется и пересоздаётся, а Vault после этого
+            # требует нового operator init ( unseal-ключи меняются).
+            size: 128Mi
             storageClass: longhorn-retain
             accessMode: ReadWriteOnce
           # Явно перестраховываемся от пересоздания PVC вместе со StatefulSet.
