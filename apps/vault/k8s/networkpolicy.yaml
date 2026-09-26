@@ -1,6 +1,10 @@
-# Базовый NetworkPolicy для namespace сервиса: default-deny ingress плюс
-# явные разрешения. Метрики Vault (8200) скрейпит vmagent из default.
-# Egress не ограничивается.
+# Базовый NetworkPolicy для namespace Vault: default-deny ingress плюс явные
+# разрешения. Метрики Vault скрейпит vmagent из monitoring. Egress не
+# ограничивается.
+#
+# Первое правило (from: podSelector {}) пропускает весь трафик от любых подов
+# внутри кластера — им нужен доступ к Service vault:8200. Второе оставлено для
+# traefik, третье ограничивает скрейпинг метрик портом.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:

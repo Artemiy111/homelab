@@ -1,0 +1,19 @@
+# NetworkPolicy для namespace оператора. Контроллер VSO не принимает входящих
+# соединений — он только ходит наружу (Vault, API Kubernetes) — поэтому ingress
+# закрыт целиком, egress не ограничен.
+#
+# Отдельный файл, а не третий документ в networkpolicy.yaml: namespace
+# vault-secrets-operator создаёт ArgoCD (CreateNamespace в
+# argocd/applications/vault-secrets-operator.yaml). Пока его нет, применение
+# падает с NotFound, и один такой отказ уводит в отказ весь
+# `kubectl apply -f apps/vault/k8s/`. Поэтому файл применяется вторым, после
+# синка Argo.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: vault-secrets-operator
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress

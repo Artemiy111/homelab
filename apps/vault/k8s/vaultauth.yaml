@@ -1,0 +1,72 @@
+# Подключение Vault Secrets Operator к Vault, который поднят чартом
+# hashicorp/vault-helm (argocd/applications/vault.yaml).
+#
+# Файл применяется kubectl, как остальные манифесты в apps/*/k8s/ — оператором
+# ArgoCD не управляется, потому что это не часть чарта.
+#
+# Цепочка: VaultStaticSecret ссылается на VaultAuth, тот на VaultConnection.
+# ServiceAccount указывается в неймспейсе самого секрета (vault), а не
+# неймспейса оператора.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: vso-vault-auth
+  namespace: vault
+---
+# Vault проверяет предъявленный ServiceAccount-токен через TokenReview API.
+# Создавать tokenreviews может только субъект с system:auth-delegator, поэтому
+# биндинг нужен на тот самый ServiceAccount, чей токен уходит в Vault.
+#
+# Отдельный от server-биндинга чарта: чарт вешает system:auth-delegator на
+# ServiceAccount самого Vault-сервера, а не на этот.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: vso-vault-auth-delegator
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:auth-delegator
+subjects:
+  - kind: ServiceAccount
+    name: vso-vault-auth
+    namespace: vault
+---
+# Адрес Vault. Порт 8200 — как в чарте (server.service.port); ручной Service
+# отдавал наружу 80, и это значение больше нигде не используется.
+#
+# caBundle не задаём: listener Vault работает на tls_disable, TLS терминирует
+# Traefik, внутри кластера CA Vault не нужно.
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultConnection
+metadata:
+  name: vault
+  namespace: vault
+spec:
+  address: http://vault.vault.svc.cluster.local:8200
+---
+# Аутентификация оператора в Vault методом kubernetes.
+#
+# Роль vso-reader и её policy создаются в Vault после инициализации и unseal —
+# декларативно они не создаются. Соответствующая политика:
+#
+#   path "kv/data/poc/*"      { capabilities = ["read"] }
+#   path "kv/metadata/poc/*"  { capabilities = ["read", "list"] }
+#
+# audiences обязателен: начиная с Vault 1.21 роль без audience не проходит
+# аутентификацию, а мы на 2.x. Значение должно совпадать с audience в самой
+# роли Vault.
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultAuth
+metadata:
+  name: vso-reader
+  namespace: vault
+spec:
+  vaultConnectionRef: vault
+  method: kubernetes
+  mount: kubernetes
+  kubernetes:
+    role: vso-reader
+    serviceAccount: vso-vault-auth
+    audiences:
+      - vault

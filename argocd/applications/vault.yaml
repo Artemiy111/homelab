@@ -1,0 +1,116 @@
+# Vault — сервер, официальный чарт hashicorp/vault-helm.
+#
+# Чарт берём из git-репозитория HashiCorp, а не из helm.releases.hashicorp.com:
+# CDN HashiCorp отдаёт 403 (CloudFront WAF, x-cache: Error from cloudfront) из
+# этой сети — и с macOS, и с ноды кластера. ArgoCD умеет рендерить чарт прямо из
+# git, поэтому repoURL указывает на репозиторий, а чарт лежит в его корне.
+# Версия зафиксирована тегом v0.34.1 (Vault 2.0.4).
+#
+# namespace: тот же, что и раньше (apps/vault/k8s/namespace.yaml удалён — его
+# создаёт CreateNamespace).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: vault
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/hashicorp/vault-helm
+    path: /
+    targetRevision: v0.34.1
+    helm:
+      releaseName: vault
+      valuesObject:
+        # sidecar-инжект не используется — его роль взял VSO. csi в связке с VSO
+        # вообще Enterprise-only, поэтому тоже выключен.
+        injector:
+          enabled: false
+        csi:
+          enabled: false
+        server:
+          # RWO-том на одной ноде: RollingUpdate StatefulSet поднял бы второй под
+          # на тот же том. Recreate у StatefulSet недопустим (только OnDelete и
+          # RollingUpdate), поэтому OnDelete — дефолт, и он тут единственно
+          # корректный.
+          updateStrategyType: OnDelete
+          # Дефолт чарта — пустой resources: для одноузлового кластера это плохо,
+          # без requests планировщик не знает, что размещает (ср. cert-manager).
+          resources:
+            requests:
+              cpu: 50m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 1Gi
+          dataStorage:
+            # Дефолт чарта — 10Gi и StorageClass кластера по умолчанию. На k0s это
+            # local-path (node-local, нереплицируемый), а хранилище Vault нельзя
+            # терять с нодой, поэтому держимся longhorn-retain, как в PVC ручного
+            # деплоя. Longhorn тонко выделяет размер, 1Gi — только потолок.
+            size: 1Gi
+            storageClass: longhorn-retain
+            accessMode: ReadWriteOnce
+          # Явно перестраховываемся от пересоздания PVC вместе со StatefulSet.
+          persistentVolumeClaimRetentionPolicy:
+            whenDeleted: Retain
+            whenScaled: Retain
+          # Дефолт чарта — storage "file". Раньше был raft; для возможности
+          # добавить ноды и для консистентности с прежним хранилищем оставляем
+          # raft. node_id обязан совпадать с именем пода vault-0.
+          #
+          # telemetry внутри listener снимает требование токена на /v1/sys/metrics —
+          # иначе vmagent получает 401 (job «vault» в scrape.yml). В дефолте чарта
+          # этот блок закомментирован.
+          standalone:
+            config: |-
+              ui = true
+
+              disable_mlock = true
+
+              storage "raft" {
+                path = "/vault/data"
+                node_id = "vault-0"
+              }
+
+              listener "tcp" {
+                tls_disable = 1
+                address = "[::]:8200"
+                cluster_address = "[::]:8201"
+                telemetry {
+                  unauthenticated_metrics_access = "true"
+                }
+              }
+
+              api_addr = "http://vault:8200"
+              cluster_addr = "http://vault:8201"
+
+              telemetry {
+                prometheus_retention_time = "30s"
+                disable_hostname          = true
+              }
+          # Дефолт чарта ограничивается allowPrivilegeEscalation: false и не роняет
+          # capabilities. Vault 2.0.2+ не умеет mlock() в контейнере (сборка
+          # capability cap_ipc_lock удалена), поэтому drop ALL безопасен и
+          # сохраняет hardening ручного деплоя.
+          statefulSet:
+            securityContext:
+              container:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+                seccompProfile:
+                  type: RuntimeDefault
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: vault
+  syncPolicy:
+    syncOptions:
+      # Prune=false: удаление StatefulSet унесло бы PVC с raft-данными. У
+      # cert-manager и cloudnative-pg та же причина.
+      - ServerSideApply=true
+      - Prune=false
+      - CreateNamespace=true
+    automated:
+      selfHeal: true

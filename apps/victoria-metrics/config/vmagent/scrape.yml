@@ -159,7 +159,11 @@ scrape_configs:
         - prometheus
     static_configs:
       - targets:
-          - vault.vault.svc.cluster.local
+          # Порт 8200 явный: у Service из чарта vault-helm server.service.port,
+          # а без порта статический конфиг смотрел бы на 80 — это был порт
+          # ручного Service, которого больше нет. Метрики отдаются без токена,
+          # см. telemetry в listener (argocd/applications/vault.yaml).
+          - vault.vault.svc.cluster.local:8200
 
   - job_name: infisical
     static_configs:

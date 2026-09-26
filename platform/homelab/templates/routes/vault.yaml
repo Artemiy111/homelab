@@ -12,7 +12,9 @@ spec:
           - path: /
             pathType: Prefix
             backend:
-              service:
-                name: vault
-                port:
-                  number: 80
+            service:
+              name: vault
+              # 8200, а не 80: ручной Service отдавал наружу 80, у Service из
+              # чарта hashicorp/vault-helm порт 8200 (server.service.port).
+              port:
+                number: 8200
