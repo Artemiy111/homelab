@@ -143,11 +143,35 @@ UI перезаписывается при следующем провижини
 
 ### Канал доставки
 
-Один канал — **ntfy** (`https://ntfy.sh/$NTFY_TOPIC`), через `webhook`-contact
-point: встроенной интеграции ntfy в Grafana нет, а webhook отправляет в топик
-JSON-конверт алерта, и ntfy показывает его как есть. Тема приходит из Secret'а
+Один канал — **ntfy** (`https://ntfy.sh/$NTFY_TOPIC?template=alertmanager`),
+через `webhook`-contact point: встроенной интеграции ntfy в Grafana нет.
+Параметр `template=alertmanager` заставляет ntfy отформатировать тело, иначе
+уведомление приходит JSON-конвертом целиком. Тема приходит из Secret'а
 `grafana-alerting` (`NTFY_TOPIC`) и совпадает с темой Gatus, поэтому проверки
 доступности и метрические алерты приходят в один поток.
+
+Шаблон `alertmanager`, а не `grafana`: первый рассчитан на payload Unified
+Alerting (`receiver`/`status`/`alerts[]`), второй — на плоский legacy-формат
+`{status, title, message}` и на нашем payload падает с 400.
+
+**Тема лежит в URL открыто, и это не чинится переездом на access token.**
+Публичный `ntfy.sh` не включает access control («all topics on ntfy.sh are
+public»), поэтому защитить топик токеном там нельзя: тема и есть пароль. А
+спрятать её из URL нельзя потому, что ntfy принимает топик либо в пути, либо в
+JSON-теле, а Grafana webhook не умеет подставлять своё тело. Значит на
+публичном инстансе тема обязана быть в URL, а значит — в contact point'е, в БД
+Grafana и в экспорте конфигурации.
+
+Что реально проверено и работает: `authorization_credentials` у webhook
+складывается Grafana в `secureSettings` и в БД лежит зашифрованным (проверено
+на стенде — значение не находится открытым текстом ни в одной колонке).
+Поэтому схема «токен в `secureSettings`, тема — просто имя» реализуема, но
+**только на self-hosted ntfy** с `auth-default-access: deny-all`. Цена —
+Android push на своём инстансе требует собственного Firebase-ключа или
+UnifiedPush, то есть надёжность доставки в фоне падает. Если тема в БД Grafana
+неприемлема, осознанный вариант — вынести ntfy-конфиг во внутренний Alertmanager
+(`prometheus-alertmanager`-contact point), и тогда тема живёт в SealedSecret, а
+не в БД Grafana. Отдельная задача, не текущая.
 
 Telegram сознательно не подключён: из кластера **не доходит**
 `api.telegram.org` (проверено с пода в `monitoring` — соединение не

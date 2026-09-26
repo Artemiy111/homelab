@@ -1,17 +1,29 @@
 apiVersion: 1
 
 # Ntfy — единственный канал метрических алертов. Встроенной интеграции ntfy в
-# Grafana нет (тогда webhook отправляет в топик ntfy JSON-конверт алерта), но
-# есть два практических довода против Telegram: из кластера не доходит
-# `api.telegram.org` (Gatus ходит в него через прокси 3x-ui на порту 8440,
-# который Grafana не разделяет), а `ntfy.sh` доступен напрямую.
+# Grafana нет, поэтому канал сделан через webhook. Есть два практических довода
+# против Telegram: из кластера не доходит `api.telegram.org` (Gatus ходит в него
+# через прокси 3x-ui на порту 8440, который Grafana не разделяет), а `ntfy.sh`
+# доступен напрямую.
+#
+# `?template=alertmanager` заставляет ntfy отформатировать тело: без него
+# уведомление приходит JSON-конвертом целиком. Шаблон `alertmanager` рассчитан
+# ровно на тот payload, который шлёт Unified Alerting (receiver/status/alerts[]).
+# Внимание: `?template=grafana` — не то же самое, он ждёт плоский legacy-формат
+# `{status, title, message}` и на нашем payload падает с 400.
+#
+# Цена параметра: если ntfy не сможет выполнить шаблон, он вернёт 400 и
+# уведомление не уйдёт вовсе. Ловится это по ошибкам нотификатора в логах
+# Grafana, откат — убрать query-параметр.
 #
 # Если переменная NTFY_TOPIC не подставилась, URL станет `https://ntfy.sh/`
 # и публикация вернёт ошибку — канал деградирует заметно, а не молча.
 #
-# Тема ntfy приходит из Secret'а `grafana-alerting` (см. k8s/sealedsecret-
-# alerting.yaml); она же используется Gatus, поэтому уведомления о проверках и
-# о метриках приходят в один канал.
+# Тема ntfy приходит из Secret'а `grafana-alerting` (см.
+# k8s/sealedsecret-alerting.yaml); она же используется Gatus, поэтому
+# уведомления о проверках и о метриках приходят в один канал. На публичном
+# ntfy.sh тема и есть пароль (access control там не включён), поэтому в URL
+# она лежит открыто — см. README, раздел «Канал доставки».
 contactPoints:
   - orgId: 1
     name: ntfy
@@ -20,5 +32,5 @@ contactPoints:
         type: webhook
         disableResolveMessage: false
         settings:
-          url: https://ntfy.sh/$NTFY_TOPIC
+          url: https://ntfy.sh/$NTFY_TOPIC?template=alertmanager
           httpMethod: POST
