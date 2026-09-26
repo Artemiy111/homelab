@@ -8,6 +8,7 @@ spec:
   selector:
     matchLabels:
       app: nextcloud-exporter
+  revisionHistoryLimit: 2
   template:
     metadata:
       labels:
@@ -70,4 +71,3 @@ spec:
             runAsGroup: 65534
             seccompProfile:
               type: RuntimeDefault
-  revisionHistoryLimit: 2

@@ -8,6 +8,9 @@ spec:
   selector:
     matchLabels:
       app: zitadel-login
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
   template:
     metadata:
       labels:
@@ -86,6 +89,3 @@ spec:
             items:
               - key: tls.key
                 path: tls.key
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2

@@ -8,6 +8,10 @@ spec:
   selector:
     matchLabels:
       app: ats
+  # RWO-том: два пода одновременно его не смонтируют.
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
   template:
     metadata:
       labels:
@@ -76,7 +80,3 @@ spec:
       # групповую запись для gid nobody через fsGroup.
       securityContext:
         fsGroup: 65534
-  # RWO-том: два пода одновременно его не смонтируют.
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2

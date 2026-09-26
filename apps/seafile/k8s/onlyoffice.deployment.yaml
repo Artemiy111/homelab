@@ -8,6 +8,10 @@ spec:
   selector:
     matchLabels:
       app: onlyoffice
+  # RWO-тома: два пода при rolling update пишут в одни каталоги.
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
   template:
     metadata:
       labels:
@@ -87,7 +91,3 @@ spec:
         - name: lib
           persistentVolumeClaim:
             claimName: seafile-onlyoffice-lib
-  # RWO-тома: два пода при rolling update пишут в одни каталоги.
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2

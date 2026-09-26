@@ -8,6 +8,9 @@ spec:
   selector:
     matchLabels:
       app: element-redis
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
   template:
     metadata:
       labels:
@@ -66,6 +69,3 @@ spec:
         - name: data
           # Кэш/репликация Redis — эфемерные, данные не персистим.
           emptyDir: {}
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2

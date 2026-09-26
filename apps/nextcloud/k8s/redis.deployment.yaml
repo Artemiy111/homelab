@@ -8,6 +8,9 @@ spec:
   selector:
     matchLabels:
       app: nextcloud-redis
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
   template:
     metadata:
       labels:
@@ -58,6 +61,3 @@ spec:
         - name: data
           # Распределённый file-lock и кэш — эфемерные, данные не персистим.
           emptyDir: {}
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2

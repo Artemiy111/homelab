@@ -8,6 +8,7 @@ spec:
   selector:
     matchLabels:
       app: grafana
+  revisionHistoryLimit: 2
   template:
     metadata:
       labels:
@@ -132,4 +133,3 @@ spec:
       # fsGroup даёт групповую запись в emptyDir, смонтированный в /var/lib/grafana.
       securityContext:
         fsGroup: 1000
-  revisionHistoryLimit: 2

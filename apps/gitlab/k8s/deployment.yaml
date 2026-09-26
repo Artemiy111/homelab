@@ -15,6 +15,9 @@ spec:
   selector:
     matchLabels:
       app: gitlab
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
   template:
     metadata:
       labels:
@@ -107,6 +110,3 @@ spec:
           emptyDir:
             medium: Memory
             sizeLimit: 256Mi
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2

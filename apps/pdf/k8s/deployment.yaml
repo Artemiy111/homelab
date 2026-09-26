@@ -8,6 +8,10 @@ spec:
   selector:
     matchLabels:
       app: stirlingpdf
+  # RWO-тома настроек: два пода при rolling update пишут в одни каталоги.
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
   template:
     metadata:
       labels:
@@ -121,7 +125,3 @@ spec:
       # fsGroup даёт групповую запись в тома Longhorn для процессов под uid 1000.
       securityContext:
         fsGroup: 1000
-  # RWO-тома настроек: два пода при rolling update пишут в одни каталоги.
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2

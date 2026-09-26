@@ -11,6 +11,10 @@ spec:
   selector:
     matchLabels:
       app: netdata
+  # RWO-том состояния: два пода при rolling update пишут в один каталог.
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
   template:
     metadata:
       labels:
@@ -167,7 +171,3 @@ spec:
           hostPath:
             path: /var/run/docker.sock
             type: Socket
-  # RWO-том состояния: два пода при rolling update пишут в один каталог.
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2

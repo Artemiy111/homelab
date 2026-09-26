@@ -8,6 +8,10 @@ spec:
   selector:
     matchLabels:
       app: jitsi-jicofo
+  # RWO-тома: два пода при rolling update пишут в одни каталоги.
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
   template:
     metadata:
       labels:
@@ -123,7 +127,3 @@ spec:
       # fsGroup даёт групповую запись в тома Longhorn для пользователя 1000.
       securityContext:
         fsGroup: 1000
-  # RWO-тома: два пода при rolling update пишут в одни каталоги.
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2

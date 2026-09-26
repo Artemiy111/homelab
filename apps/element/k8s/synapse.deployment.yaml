@@ -8,6 +8,10 @@ spec:
   selector:
     matchLabels:
       app: element-synapse
+  # RWO-том /data: два пода при rolling update пишут в один каталог.
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
   template:
     metadata:
       labels:
@@ -149,7 +153,3 @@ spec:
       # Longhorn должен быть доступен на запись этому пользователю.
       securityContext:
         fsGroup: 991
-  # RWO-том /data: два пода при rolling update пишут в один каталог.
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2

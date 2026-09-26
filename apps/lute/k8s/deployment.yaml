@@ -8,6 +8,7 @@ spec:
   selector:
     matchLabels:
       app: lute
+  revisionHistoryLimit: 2
   template:
     metadata:
       labels:
@@ -57,4 +58,3 @@ spec:
         - name: backup
           persistentVolumeClaim:
             claimName: lute-backup
-  revisionHistoryLimit: 2

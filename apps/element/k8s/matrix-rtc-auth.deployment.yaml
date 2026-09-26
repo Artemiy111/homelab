@@ -8,6 +8,7 @@ spec:
   selector:
     matchLabels:
       app: matrix-rtc-auth
+  revisionHistoryLimit: 2
   template:
     metadata:
       labels:
@@ -81,4 +82,3 @@ spec:
             allowPrivilegeEscalation: false
             seccompProfile:
               type: RuntimeDefault
-  revisionHistoryLimit: 2

@@ -10,6 +10,9 @@ spec:
   selector:
     matchLabels:
       app: element-turn
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
   template:
     metadata:
       labels:
@@ -48,6 +51,3 @@ spec:
           hostPath:
             path: /storage/apps/element/turn/turnserver.conf
             type: File
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2

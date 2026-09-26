@@ -8,6 +8,10 @@ spec:
   selector:
     matchLabels:
       app: beszel
+  # SQLite на RWO-томе: два пода при rolling update пишут в одну БД.
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
   template:
     metadata:
       labels:
@@ -89,7 +93,3 @@ spec:
       # тома недоступен пользователю 1000.
       securityContext:
         fsGroup: 1000
-  # SQLite на RWO-томе: два пода при rolling update пишут в одну БД.
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2

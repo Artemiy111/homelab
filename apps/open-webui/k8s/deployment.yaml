@@ -8,6 +8,7 @@ spec:
   selector:
     matchLabels:
       app: open-webui
+  revisionHistoryLimit: 2
   template:
     metadata:
       labels:
@@ -105,4 +106,3 @@ spec:
         - name: tmp
           emptyDir:
             sizeLimit: 1Gi
-  revisionHistoryLimit: 2

@@ -8,6 +8,10 @@ spec:
   selector:
     matchLabels:
       app: jellyfin
+  # RWO-том конфига: два пода при rolling update пишут в одну БД.
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
   template:
     metadata:
       labels:
@@ -102,7 +106,3 @@ spec:
       securityContext:
         fsGroup: 1000
         supplementalGroups: [105]
-  # RWO-том конфига: два пода при rolling update пишут в одну БД.
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2

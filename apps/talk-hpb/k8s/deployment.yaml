@@ -10,6 +10,9 @@ spec:
   selector:
     matchLabels:
       app: talk-hpb
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
   template:
     metadata:
       labels:
@@ -131,6 +134,3 @@ spec:
           emptyDir: {}
         - name: tmp
           emptyDir: {}
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2

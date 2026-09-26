@@ -8,6 +8,10 @@ spec:
   selector:
     matchLabels:
       app: sure-worker
+  # RWO-том storage общий с web: оба пода пишут в один каталог.
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
   template:
     metadata:
       labels:
@@ -138,7 +142,3 @@ spec:
       # тома недоступен пользователю 1000.
       securityContext:
         fsGroup: 1000
-  # RWO-том storage общий с web: оба пода пишут в один каталог.
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2

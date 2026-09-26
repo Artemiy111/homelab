@@ -8,6 +8,10 @@ spec:
   selector:
     matchLabels:
       app: athens
+  # RWO-том: два пода одновременно его не смонтируют.
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
   template:
     metadata:
       labels:
@@ -80,7 +84,3 @@ spec:
       securityContext:
         # fsGroup даёт групповую запись в том Longhorn под uid/gid 1000.
         fsGroup: 1000
-  # RWO-том: два пода одновременно его не смонтируют.
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2

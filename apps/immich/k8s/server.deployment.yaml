@@ -8,6 +8,11 @@ spec:
   selector:
     matchLabels:
       app: immich-server
+  strategy:
+    # RWO-том library нельзя монтировать двум подам сразу: rolling update поднял
+    # бы новый под до остановки старого.
+    type: Recreate
+  revisionHistoryLimit: 2
   template:
     metadata:
       labels:
@@ -145,8 +150,3 @@ spec:
           hostPath:
             path: /etc/localtime
             type: File
-  strategy:
-    # RWO-том library нельзя монтировать двум подам сразу: rolling update поднял
-    # бы новый под до остановки старого.
-    type: Recreate
-  revisionHistoryLimit: 2

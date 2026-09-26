@@ -8,6 +8,9 @@ spec:
   selector:
     matchLabels:
       app: infisical-redis
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
   template:
     metadata:
       labels:
@@ -56,6 +59,3 @@ spec:
         - name: data
           # Кэш Redis — эфемерный, данные не персистим.
           emptyDir: {}
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2

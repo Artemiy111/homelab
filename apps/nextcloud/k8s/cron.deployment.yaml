@@ -8,6 +8,10 @@ spec:
   selector:
     matchLabels:
       app: nextcloud-cron
+  # RWO-том html общий с app: оба пода пишут в один каталог.
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
   template:
     metadata:
       labels:
@@ -95,7 +99,3 @@ spec:
         - name: html
           persistentVolumeClaim:
             claimName: nextcloud-html
-  # RWO-том html общий с app: оба пода пишут в один каталог.
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2

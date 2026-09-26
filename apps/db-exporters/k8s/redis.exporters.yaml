@@ -9,6 +9,7 @@ spec:
   selector:
     matchLabels:
       app: dawarich-redis-exporter
+  revisionHistoryLimit: 2
   template:
     metadata:
       labels:
@@ -54,7 +55,6 @@ spec:
             runAsGroup: 59000
             seccompProfile:
               type: RuntimeDefault
-  revisionHistoryLimit: 2
 ---
 apiVersion: v1
 kind: Service
@@ -81,6 +81,7 @@ spec:
   selector:
     matchLabels:
       app: element-redis-exporter
+  revisionHistoryLimit: 2
   template:
     metadata:
       labels:
@@ -126,7 +127,6 @@ spec:
             runAsGroup: 59000
             seccompProfile:
               type: RuntimeDefault
-  revisionHistoryLimit: 2
 ---
 apiVersion: v1
 kind: Service
@@ -153,6 +153,7 @@ spec:
   selector:
     matchLabels:
       app: glitchtip-valkey-exporter
+  revisionHistoryLimit: 2
   template:
     metadata:
       labels:
@@ -198,7 +199,6 @@ spec:
             runAsGroup: 59000
             seccompProfile:
               type: RuntimeDefault
-  revisionHistoryLimit: 2
 ---
 apiVersion: v1
 kind: Service
@@ -225,6 +225,7 @@ spec:
   selector:
     matchLabels:
       app: immich-valkey-exporter
+  revisionHistoryLimit: 2
   template:
     metadata:
       labels:
@@ -270,7 +271,6 @@ spec:
             runAsGroup: 59000
             seccompProfile:
               type: RuntimeDefault
-  revisionHistoryLimit: 2
 ---
 apiVersion: v1
 kind: Service
@@ -297,6 +297,7 @@ spec:
   selector:
     matchLabels:
       app: infisical-redis-exporter
+  revisionHistoryLimit: 2
   template:
     metadata:
       labels:
@@ -342,7 +343,6 @@ spec:
             runAsGroup: 59000
             seccompProfile:
               type: RuntimeDefault
-  revisionHistoryLimit: 2
 ---
 apiVersion: v1
 kind: Service
@@ -369,6 +369,7 @@ spec:
   selector:
     matchLabels:
       app: nextcloud-redis-exporter
+  revisionHistoryLimit: 2
   template:
     metadata:
       labels:
@@ -414,7 +415,6 @@ spec:
             runAsGroup: 59000
             seccompProfile:
               type: RuntimeDefault
-  revisionHistoryLimit: 2
 ---
 apiVersion: v1
 kind: Service
@@ -441,6 +441,7 @@ spec:
   selector:
     matchLabels:
       app: paperless-broker-exporter
+  revisionHistoryLimit: 2
   template:
     metadata:
       labels:
@@ -486,7 +487,6 @@ spec:
             runAsGroup: 59000
             seccompProfile:
               type: RuntimeDefault
-  revisionHistoryLimit: 2
 ---
 apiVersion: v1
 kind: Service
@@ -513,6 +513,7 @@ spec:
   selector:
     matchLabels:
       app: seafile-redis-exporter
+  revisionHistoryLimit: 2
   template:
     metadata:
       labels:
@@ -558,7 +559,6 @@ spec:
             runAsGroup: 59000
             seccompProfile:
               type: RuntimeDefault
-  revisionHistoryLimit: 2
 ---
 apiVersion: v1
 kind: Service
@@ -585,6 +585,7 @@ spec:
   selector:
     matchLabels:
       app: sure-redis-exporter
+  revisionHistoryLimit: 2
   template:
     metadata:
       labels:
@@ -630,7 +631,6 @@ spec:
             runAsGroup: 59000
             seccompProfile:
               type: RuntimeDefault
-  revisionHistoryLimit: 2
 ---
 apiVersion: v1
 kind: Service

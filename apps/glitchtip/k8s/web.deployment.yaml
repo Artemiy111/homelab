@@ -8,6 +8,7 @@ spec:
   selector:
     matchLabels:
       app: glitchtip
+  revisionHistoryLimit: 2
   template:
     metadata:
       labels:
@@ -146,4 +147,3 @@ spec:
             runAsGroup: 5000
             seccompProfile:
               type: RuntimeDefault
-  revisionHistoryLimit: 2

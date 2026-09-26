@@ -8,6 +8,7 @@ spec:
   selector:
     matchLabels:
       app: element-web
+  revisionHistoryLimit: 2
   template:
     metadata:
       labels:
@@ -73,4 +74,3 @@ spec:
         - name: config
           configMap:
             name: element-web-config
-  revisionHistoryLimit: 2

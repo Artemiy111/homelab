@@ -8,6 +8,10 @@ spec:
   selector:
     matchLabels:
       app: verdaccio
+  # RWO-том: два пода одновременно его не смонтируют.
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
   template:
     metadata:
       labels:
@@ -77,7 +81,3 @@ spec:
         # fsGroup даёт групповую запись в том Longhorn под uid/gid 10001
         # (uid пользователя verdaccio в образе).
         fsGroup: 10001
-  # RWO-том: два пода одновременно его не смонтируют.
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2

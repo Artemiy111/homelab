@@ -8,6 +8,10 @@ spec:
   selector:
     matchLabels:
       app: glitchtip-valkey
+  # RWO-том брокера: два пода при rolling update пишут в один каталог.
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
   template:
     metadata:
       labels:
@@ -56,7 +60,3 @@ spec:
       # пользователем 999 с группой 1000, том должен принадлежать группе 1000.
       securityContext:
         fsGroup: 1000
-  # RWO-том брокера: два пода при rolling update пишут в один каталог.
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2

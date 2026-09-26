@@ -10,6 +10,9 @@ spec:
   selector:
     matchLabels:
       app: element-livekit
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
   template:
     metadata:
       labels:
@@ -108,6 +111,3 @@ spec:
           hostPath:
             path: /storage/apps/element/livekit/config.yaml
             type: File
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2

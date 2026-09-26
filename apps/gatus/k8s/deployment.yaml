@@ -8,6 +8,7 @@ spec:
   selector:
     matchLabels:
       app: gatus
+  revisionHistoryLimit: 2
   template:
     metadata:
       labels:
@@ -72,4 +73,3 @@ spec:
         runAsUser: 1000
         runAsGroup: 1000
         fsGroup: 1000
-  revisionHistoryLimit: 2

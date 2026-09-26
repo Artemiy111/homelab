@@ -8,6 +8,9 @@ spec:
   selector:
     matchLabels:
       app: vmagent
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
   template:
     metadata:
       labels:
@@ -121,6 +124,3 @@ spec:
         - name: scrape-config
           configMap:
             name: vmagent-scrape
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2

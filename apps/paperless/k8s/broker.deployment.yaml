@@ -8,6 +8,9 @@ spec:
   selector:
     matchLabels:
       app: paperless-broker
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
   template:
     metadata:
       labels:
@@ -58,6 +61,3 @@ spec:
         - name: data
           emptyDir:
             sizeLimit: 64Mi
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2

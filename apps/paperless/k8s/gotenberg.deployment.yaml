@@ -8,6 +8,9 @@ spec:
   selector:
     matchLabels:
       app: paperless-gotenberg
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
   template:
     metadata:
       labels:
@@ -46,6 +49,3 @@ spec:
             allowPrivilegeEscalation: false
             seccompProfile:
               type: RuntimeDefault
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2
