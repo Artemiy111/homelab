@@ -2,9 +2,9 @@
 # разрешения. Метрики Vault скрейпит vmagent из monitoring. Egress не
 # ограничивается.
 #
-# Первое правило (from: podSelector {}) пропускает весь трафик от любых подов
-# внутри кластера — им нужен доступ к Service vault:8200. Второе оставлено для
-# traefik, третье ограничивает скрейпинг метрик портом.
+# ВНИМАНИЕ на первый peer: podSelector без namespaceSelector в списке from
+# выбирает поды ТОЛЬКО своего неймспейса, а не все кластерные. Поэтому
+# входящий трафик извне перечислен явно, по неймспейсам.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -25,8 +25,16 @@ spec:
   policyTypes:
     - Ingress
   ingress:
+    # Контроллер VSO живёт в своём неймспейсе и ходит в Vault за секретами.
+    # Без этого правила — connection timeout, а не 403: podSelector из соседнего
+    # неймспейса под правило не подпадает.
     - from:
-        - podSelector: {}
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: vault-secrets-operator
+      ports:
+        - port: 8200
+          protocol: TCP
     - from:
         - namespaceSelector:
             matchLabels:
