@@ -32,7 +32,7 @@ resource "vault_policy" "terraform" {
   EOT
 }
 
-resource "vault_policy" "uptime-kuma" {
+resource "vault_policy" "uptime_kuma" {
   name = "app/uptime-kuma"
 
   policy = <<-EOT
@@ -41,7 +41,7 @@ resource "vault_policy" "uptime-kuma" {
   EOT
 }
 
-resource "vault_policy" "vso-reader" {
+resource "vault_policy" "vso_reader" {
   name = "vso-reader"
 
   policy = <<-EOT
