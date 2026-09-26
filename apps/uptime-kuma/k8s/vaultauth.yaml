@@ -1,0 +1,54 @@
+# Доступ Vault Secrets Operator к секретам uptime-kuma.
+#
+# Всё живёт в namespace uptime-kuma, а не в vault: destination Secret
+# создаётся в своём неймспейсе, и serviceAccount в VaultAuth обязан лежать
+# в неймспейсе потребляющего секрета.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: vso-uptime-kuma
+  namespace: uptime-kuma
+---
+# Vault проверяет предъявленный ServiceAccount-токен через TokenReview.
+# Без system:auth-delegator на этом SA аутентификация не пройдёт.
+#
+# Имя ClusterRoleBinding уникально на весь кластер, поэтому оно с префиксом
+# сервиса, а не generic: одноимённый объект в другом неймспейсе конфликтовал
+# бы за кластерный ресурс.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: vso-uptime-kuma-delegator
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:auth-delegator
+subjects:
+  - kind: ServiceAccount
+    name: vso-uptime-kuma
+    namespace: uptime-kuma
+---
+# Аутентификация оператора в Vault методом kubernetes.
+#
+# Роль vso-uptime-kuma и её policy создаются в Vault вручную — декларативно они
+# не появляются. Соответствующая политика:
+#
+#   path "kv/data/uptime-kuma/*"     { capabilities = ["read"] }
+#   path "kv/metadata/uptime-kuma/*" { capabilities = ["read", "list"] }
+#
+# audiences обязателен: на Vault 1.21+ роль без audience не проходит
+# аутентификацию. Значение должно совпадать с audience в самой роли.
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultAuth
+metadata:
+  name: vso-uptime-kuma
+  namespace: uptime-kuma
+spec:
+  vaultConnectionRef: vault
+  method: kubernetes
+  mount: kubernetes
+  kubernetes:
+    role: vso-uptime-kuma
+    serviceAccount: vso-uptime-kuma
+    audiences:
+      - vault

@@ -54,11 +54,34 @@ spec:
                   valueFrom:
                     fieldRef:
                       fieldPath: status.hostIP
+                # Секреты из Vault (Secret uptime-kuma-vault, приложение
+                # apps/uptime-kuma/k8s/vaultstaticsecret.yaml). Раньше они
+                # приходили через envFrom от всего Secret.
+                #
+                # Явные ссылки по ключу, а не envFrom, по двум причинам.
+                # Первая: VSO добавляет в свой Secret служебный ключ _raw, и
+                # при envFrom он попал бы в окружение как переменная, имя
+                # которой не проходит валидацию C_IDENTIFIER. Второй,
+                # практическая: подстановка перечислением неявна — непонятно,
+                # откуда взялось имя каждой переменной.
+                #
+                # Имена ключей намеренно совпадают с именами переменных,
+                # поэтому список ниже и есть полный перечень секретов.
+                - name: UPTIME_KUMA_USERNAME
+                  valueFrom:
+                    secretKeyRef:
+                      name: uptime-kuma-vault
+                      key: UPTIME_KUMA_USERNAME
+                - name: UPTIME_KUMA_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: uptime-kuma-vault
+                      key: UPTIME_KUMA_PASSWORD
               envFrom:
+                # Только ConfigMap: homelab-config даёт DOMAIN/TZ/локали.
+                # Секретов здесь больше нет.
                 - configMapRef:
                     name: homelab-config
-                - secretRef:
-                    name: uptime-kuma-sync
               securityContext:
                 runAsUser: 1000
                 runAsGroup: 1000

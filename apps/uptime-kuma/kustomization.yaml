@@ -3,7 +3,13 @@ kind: Kustomization
 namespace: uptime-kuma
 resources:
   - k8s/namespace.yaml
+  # SealedSecret остаётся как путь отката. Он создаёт Secret
+  # uptime-kuma-sync, который больше не читает cronjob (см. k8s/cronjob.yaml),
+  # но держит зашифрованные значения под рукой. Секреты в кластер идут из
+  # Vault через два следующих файла.
   - k8s/sealedsecret.yaml
+  - k8s/vaultauth.yaml
+  - k8s/vaultstaticsecret.yaml
   - k8s/service.yaml
   - k8s/deployment.yaml
   - k8s/data.pvc.yaml
