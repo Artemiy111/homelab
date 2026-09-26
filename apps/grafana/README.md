@@ -27,6 +27,12 @@ VictoriaMetrics как datasource.
   расшифровываемом реестре `apps/grafana/secrets.enc.env` (SOPS поверх age;
   приватный ключ — только на сервере). SealedSecret необратим, поэтому исходные
   значения достаются из этого файла.
+- `NTFY_TOPIC` для метрических алертов — в отдельном Secret'е
+  `grafana-alerting` (`k8s/sealedsecret-alerting.yaml`). Отдельный Secret, а не
+  ключ в `grafana`: SealedSecret write-only, добавить ключ к существующему можно
+  только перезапечатав его целиком, то есть зная открытый `GRAFANA_ADMIN_PASSWORD`,
+  а он нигде не хранится в расшифровываемом виде. Значение `NTFY_TOPIC` то же,
+  что в `apps/gatus/secrets.enc.env`, — это один канал уведомлений на homelab.
 
 ## Провижининг
 
@@ -38,6 +44,12 @@ Datasource VictoriaMetrics описан декларативно в `config/data
 источник правды — git, правки в UI не сохраняются. Оба файла и сами дашборды
 монтируются в под через `configMapGenerator` (см. `kustomization.yaml`), поэтому
 правка конфига сама запускает rollout.
+
+Провижининг алертинга — `config/alerting/` (contact points, дерево политик,
+правила), монтируется в `/etc/grafana/provisioning/alerting` тем же
+`configMapGenerator`. Отдельный ConfigMap `grafana-alerting` нужен ещё и
+потому, что Grafana перечитывает провижининг **только на старте**: без хэша в
+имени правка правила применилась бы в ConfigMap, но не в Grafana.
 
 JSON-файлы хранятся в читаемом виде (`indent=2`), суммарно 337946 Б. Это больше
 лимита аннотации `kubectl.kubernetes.io/last-applied-configuration` (262144 Б),
@@ -112,6 +124,107 @@ kubectl logs deploy/grafana -n monitoring --tail=200 | grep provisioning.dashboa
 ```
 
 Ожидается `finished to provision dashboards` без записей `level=error`.
+
+## Алёрты
+
+Движок — **Grafana Unified Alerting** с правилами в
+`config/alerting/victoria-metrics.yaml`. Это осознанный промежуточный выбор:
+vmalert + Alertmanager дали бы независимость evaluation от процесса Grafana,
+`keep_firing_for` и переносимые PromQL-правила, но стоили бы двух новых
+Deployment, PVC под `nflog`/silences и правки `platform/monitoring/
+networkpolicy.yaml`. Пока в кластере один узел и меняются в основном правила,
+это не окупается. Возврат к vmalert — отдельная задача, когда появится
+требование, которое Grafana не закрывает.
+
+Правила **в коллекции не редактируются**: они помечены Provisioned, и правка в
+UI перезаписывается при следующем провижининге. Дерево политик у Grafana —
+один ресурс, файл `notification-policies.yaml` перезаписывает его целиком
+вместе с политиками, созданными в UI.
+
+### Канал доставки
+
+Один канал — **ntfy** (`https://ntfy.sh/$NTFY_TOPIC`), через `webhook`-contact
+point: встроенной интеграции ntfy в Grafana нет, а webhook отправляет в топик
+JSON-конверт алерта, и ntfy показывает его как есть. Тема приходит из Secret'а
+`grafana-alerting` (`NTFY_TOPIC`) и совпадает с темой Gatus, поэтому проверки
+доступности и метрические алерты приходят в один поток.
+
+Telegram сознательно не подключён: из кластера **не доходит**
+`api.telegram.org` (проверено с пода в `monitoring` — соединение не
+устанавливается). Gatus ходит в Telegram через прокси 3x-ui на порту 8440
+(`apps/gatus/k8s/deployment.yaml`), который Grafana не разделяет. Чтобы
+добавить Telegram, нужно сначала доказать, что alerting-нотификаторы Grafana
+уважают `[proxy] https_proxy` — иначе contact point будет уходить в никуда
+молча. Перед добавлением любого contact point с `secure_settings` (например
+`bottoken` у telegram) нужно задать `GF_SECURITY_SECRET_KEY`: Grafana
+зашифровывает такие значения ключом `security.secret_key`, и если в БД уже
+есть зашифрованные значения, смена ключа ломает их безвозвратно. Сейчас
+зашифрованных значений в БД нет, поэтому ключ можно задать в любой момент
+без потерь.
+
+### Правила и пороги
+
+Пороги подобраны под PVC `victoriametrics-vmdata` = 8Gi и темп роста данных
+≈200 МБ/сутки (замерено 2026-09-26: `deriv(vm_data_size_bytes{type=
+"storage/big"}[7d])`). На момент настройки свободно 4.16 ГБ, `min_over_time
+(vm_free_disk_space_bytes[7d])` = 98 МБ — то есть за неделю до этого диск
+реально доходил до 94 МиБ свободных.
+
+| uid | severity | Условие | `for` | Смысл |
+|---|---|---|---|---|
+| `vm-free-disk-space-low` | warning | `vm_free_disk_space_bytes < 1.5e9` | 15m | ~13 суток запаса при текущем темпе |
+| `vm-storage-filling-fast` | warning | `predict_linear(vm_free_disk_space_bytes[1d], 3*86400) < 0` | 30m | заполнится меньше чем за 3 суток |
+| `vm-storage-read-only` | critical | `vm_storage_is_read_only == 1` | 1m | TSDB не принимает запись |
+| `vm-pending-rows-backlog` | warning | `max(vm_pending_rows) > 1e6` | 30m | очередь не сбрасывается на диск |
+| `scrape-target-down` | warning | `count by (job) (up == 0) > 0` | 10m | таргет отвечает, но метрики не читаются |
+
+Условие алерта — сам запрос: для Prometheus-совместимого datasource Grafana
+считает правило сработавшим, если выражение вернуло хотя бы одну серию. Пустой
+вектор — это «условие не выполнено», поэтому у всех правил `noDataState: OK`.
+
+Намеренно пять правил, а не полный набор: каждое лишнее правило растит шанс,
+что его начнут игнорировать, а алерт-фатиг обесценивает систему целиком.
+Порядок расширения: сначала то, что молча ломает метрики, потом остальное.
+
+### Известные дыры
+
+- **`vm-storage-filling-fast` слепнет на 1 сутки после рестарта или
+  расширения PVC.** Свободное место прыгает вверх, наклон линейной регрессии
+  становится нулевым, прогноз уходит в плюс. В это окно работает только
+  абсолютный порог `vm-free-disk-space-low` — поэтому оба правила нужны.
+- **`scrape-target-down` не ловит недоступный таргет.** Если vmagent упал, его
+  метрики станут stale и исчезнут из TSDB, а `up == 0` не сработает — читать
+  алерт будет некому. Этот случай закрывают HTTP-проверки Gatus
+  (`victoriametrics`, `vmagent`, `grafana` в `apps/gatus/config/config.yaml`):
+  Gatus не зависит от VictoriaMetrics и переживает её падение.
+- **Grafana — точка отказа самого алертинга.** Пока evaluation живёт в процессе
+  Grafana, её рестарт = пауза в оценке правил. При `replicas: 1` и дефолтном
+  RollingUpdate старый под доходит до `Ready` раньше, чем новый вытесняется, так
+  что разрыва в оценке на практике нет.
+
+### Проверка
+
+Правила загружены и вычисляются:
+
+```sh
+kubectl logs deploy/grafana -n monitoring --tail=200 | grep -i provisioning.alert
+```
+
+Состояние правил и последняя оценка — в UI: `Alerting → Alert rules →
+VictoriaMetrics`. Ожидается `Normal`/`OK` у всех пяти.
+
+Проверка доставки без правки правил — временно поставить одному правилу
+`for: 0s` и условие, которое заведомо истинно, затем вернуть как было.
+Быстрее и без риска оставить заведомо ложное правило-«canary» в
+`config/alerting/`, но оно не должно попасть в main.
+
+Перечитать провижининг без рестарта (полезно, чтобы не ждать rollout):
+
+```sh
+kubectl exec deploy/grafana -n monitoring -- \
+  curl -fsS -XPOST http://127.0.0.1:3000/api/v1/provisioning/alerting/reload \
+    -H "Authorization: Bearer $GRAFANA_TOKEN"
+```
 
 ## Развёртывание в Kubernetes
 

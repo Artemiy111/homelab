@@ -1,0 +1,24 @@
+apiVersion: 1
+
+# Ntfy — единственный канал метрических алертов. Встроенной интеграции ntfy в
+# Grafana нет (тогда webhook отправляет в топик ntfy JSON-конверт алерта), но
+# есть два практических довода против Telegram: из кластера не доходит
+# `api.telegram.org` (Gatus ходит в него через прокси 3x-ui на порту 8440,
+# который Grafana не разделяет), а `ntfy.sh` доступен напрямую.
+#
+# Если переменная NTFY_TOPIC не подставилась, URL станет `https://ntfy.sh/`
+# и публикация вернёт ошибку — канал деградирует заметно, а не молча.
+#
+# Тема ntfy приходит из Secret'а `grafana-alerting` (см. k8s/sealedsecret-
+# alerting.yaml); она же используется Gatus, поэтому уведомления о проверках и
+# о метриках приходят в один канал.
+contactPoints:
+  - orgId: 1
+    name: ntfy
+    receivers:
+      - uid: ntfy-homelab
+        type: webhook
+        disableResolveMessage: false
+        settings:
+          url: https://ntfy.sh/$NTFY_TOPIC
+          httpMethod: POST

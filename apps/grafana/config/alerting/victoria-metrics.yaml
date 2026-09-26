@@ -1,0 +1,194 @@
+apiVersion: 1
+
+# Правила метрического алертинга. Движок — Grafana Unified Alerting, источник
+# данных — локальный VictoriaMetrics (uid зафиксирован в
+# config/datasources.yaml, поэтому его нельзя переименовать без правки здесь).
+#
+# Условие алерта — сам запрос: для Prometheus-совместимого datasource Grafana
+# считает алерт сработавшим, если выражение вернуло хотя бы одну серию, и
+# возвращает OK, когда вектор пуст. Поэтому у всех правил noDataState: OK —
+# «нет данных» здесь означает «условие не выполнено», а не «не знаю».
+#
+# Набор намеренно маленький (5 правил). Каждое добавленное правило увеличивает
+# шанс, что его начнут игнорировать, а алерт-фатиг обесценивает всю систему:
+# сначала покрываем то, что молча ломает метрики, потом расширяем.
+groups:
+  - orgId: 1
+    name: victoria-metrics
+    folder: VictoriaMetrics
+    interval: 1m
+    rules:
+      # Пороги диска подобраны под PVC `victoriametrics-vmdata` = 8Gi и темп
+      # роста данных около 200 МБ/сутки (замерено 2026-09-26, deriv по
+      # vm_data_size_bytes за 7 суток). При 1.5e9 свободного места остаётся
+      # примерно 13 суток запаса — с запасом на выходные.
+      - uid: vm-free-disk-space-low
+        title: VictoriaMetrics low free disk space
+        condition: A
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: victoriametrics
+            model:
+              editorMode: code
+              expr: 'vm_free_disk_space_bytes{job="victoriametrics", path="/data"} < 1.5e9'
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: A
+        noDataState: OK
+        execErrState: Error
+        for: 15m
+        isPaused: false
+        labels:
+          severity: warning
+        annotations:
+          summary: "Мало свободного места на /data у VictoriaMetrics"
+          description: >-
+            На PVC victoriametrics-vmdata (8Gi) осталось меньше 1.5 ГБ.
+            При текущем темпе роста (~200 МБ/сутки) этого хватит примерно на
+            неделю. Действия: расширить PVC либо сократить retentionPeriod
+            (сейчас 180d) и/или уменьшить число scrape-таргетов.
+          runbook: "apps/victoria-metrics/README.md, раздел «Алерты»"
+
+      # Дополняет правило выше, а не заменяет его: абсолютный порог не видит
+      # ускорение роста, а прогноз не видит ничего, если в окне линейной
+      # регрессии был рестарт или расширение PVC (свободное место прыгнуло
+      # вверх, наклон стал нулевым). Пока в окне 1d был прыжок, работает
+      # только абсолютный порог.
+      - uid: vm-storage-filling-fast
+        title: VictoriaMetrics storage fills within 3 days
+        condition: A
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: victoriametrics
+            model:
+              editorMode: code
+              expr: 'predict_linear(vm_free_disk_space_bytes{job="victoriametrics", path="/data"}[1d], 3 * 86400) < 0'
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: A
+        noDataState: OK
+        execErrState: Error
+        for: 30m
+        isPaused: false
+        labels:
+          severity: warning
+        annotations:
+          summary: "VictoriaMetrics заполнится меньше чем за 3 суток"
+          description: >-
+            Линейная экстраполяция vm_free_disk_space_bytes за сутки даёт
+            обнуление меньше чем через 3 суток. Это раннее предупреждение об
+            ускорении роста, срабатывает до абсолютного порога.
+          runbook: "apps/victoria-metrics/README.md, раздел «Алерты»"
+
+      # Симптом инцидента 2026-09-25: TSDB перешла в read-only, /health продолжал
+      # отвечать OK, vmagent получал 503 на remote write семь часов.
+      - uid: vm-storage-read-only
+        title: VictoriaMetrics storage is read-only
+        condition: A
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: victoriametrics
+            model:
+              editorMode: code
+              expr: 'vm_storage_is_read_only{job="victoriametrics", path="/data"} == 1'
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: A
+        noDataState: OK
+        execErrState: Error
+        for: 1m
+        isPaused: false
+        labels:
+          severity: critical
+        annotations:
+          summary: "Хранилище VictoriaMetrics в read-only, метрики не принимаются"
+          description: >-
+            TSDB на /data не принимает запись. vmagent получает 503 на remote
+            write, новые метрики теряются; уже записанные данные целы. Срочно
+            освободить или расширить PVC — после перезапуска пода накопленные
+            в vmagent данные могут частично потеряться.
+          runbook: "docs/incidents/0003-victoriametrics-pvc-read-only.md"
+
+      # vm_pending_rows — размер буфера, который TSDB не может сбросить на диск.
+      # В норме 5-50 тыс. строк (замерено 2026-09-26: 48027 для type=storage).
+      # Рост означает, что сброс не проходит: та же причина, что и read-only,
+      # но на более ранней стадии.
+      - uid: vm-pending-rows-backlog
+        title: VictoriaMetrics pending rows backlog
+        condition: A
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: victoriametrics
+            model:
+              editorMode: code
+              expr: 'max(vm_pending_rows{job="victoriametrics"}) > 1e6'
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: A
+        noDataState: OK
+        execErrState: Error
+        for: 30m
+        isPaused: false
+        labels:
+          severity: warning
+        annotations:
+          summary: "VictoriaMetrics не сбрасывает pending rows на диск"
+          description: >-
+            Очередь несохранённых строк держится выше 1 млн (норма 5-50 тыс.)
+            дольше 30 минут. Обычно это предшествует переходу TSDB в
+            read-only: сначала замедляется сброс, потом он падает.
+          runbook: "docs/incidents/0003-victoriametrics-pvc-read-only.md"
+
+      # Единственное правило про целостность самого контура метрик. Покрывает
+      # «таргет отвечает, но метрики с него не читаются» (401/403 на /metrics,
+      # битый токен, сломанный exporter).
+      #
+      # Чего оно не покрывает: недоступный ВООБЩЕ таргет. Если vmagent упал, его
+      # метрики станут stale и исчезнут из TSDB, а `up == 0` не сработает —
+      # некому прочитать и сам алерт. Этот случай закрывают HTTP-проверки Gatus
+      # (`victoriametrics`, `vmagent`, `grafana` в config.yaml): Gatus не
+      # зависит от VictoriaMetrics, поэтому перекрывает эту дыру.
+      - uid: scrape-target-down
+        title: Scrape target down
+        condition: A
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: victoriametrics
+            model:
+              editorMode: code
+              expr: 'count by (job) (up == 0) > 0'
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: A
+        noDataState: OK
+        execErrState: Error
+        for: 10m
+        isPaused: false
+        labels:
+          severity: warning
+        annotations:
+          summary: "Скрейп-таргет vmagent не отдаёт метрики"
+          description: >-
+            В значении job перечислены таргеты с up == 0 дольше 10 минут.
+            Проверить `/metrics` таргета и его токен из Secret'а vmagent.
+          runbook: "apps/victoria-metrics/README.md, раздел «Верификация»"

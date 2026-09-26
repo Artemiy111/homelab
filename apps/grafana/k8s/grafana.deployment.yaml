@@ -49,6 +49,15 @@ spec:
             # Эквивалент [feature_toggles] enable=... в grafana.ini.
             - name: GF_FEATURE_TOGGLES_ENABLE
               value: grafanaAdvisor
+            # Тема ntfy для метрических алертов. Провижининг подставляет
+            # $NTFY_TOPIC в URL contact point'а, см.
+            # config/alerting/contact-points.yaml; значение лежит в Secret'е
+            # grafana-alerting.
+            - name: NTFY_TOPIC
+              valueFrom:
+                secretKeyRef:
+                  name: grafana-alerting
+                  key: NTFY_TOPIC
             - name: GF_SERVER_ROOT_URL
               value: "https://grafana.$(DOMAIN)"
             # Данные (пользователи, дашборды, аннотации) — в общем кластере CNPG
@@ -116,6 +125,9 @@ spec:
             - name: dashboards-provisioning
               mountPath: /etc/grafana/provisioning/dashboards
               readOnly: true
+            - name: alerting
+              mountPath: /etc/grafana/provisioning/alerting
+              readOnly: true
             - name: dashboards
               mountPath: /var/lib/grafana/dashboards
               readOnly: true
@@ -130,6 +142,9 @@ spec:
         - name: dashboards-provisioning
           configMap:
             name: grafana-dashboards-provisioning
+        - name: alerting
+          configMap:
+            name: grafana-alerting
         - name: dashboards
           configMap:
             name: grafana-dashboards

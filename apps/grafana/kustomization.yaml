@@ -5,6 +5,7 @@ resources:
   - k8s/grafana.deployment.yaml
   - k8s/grafana.service.yaml
   - k8s/sealedsecret.yaml
+  - k8s/sealedsecret-alerting.yaml
 configMapGenerator:
   # Провижининг datasources и dashboards + сами дашборды собираются из файлов
   # configMapGenerator'ом: kustomize добавляет хэш содержимого к имени и
@@ -16,6 +17,15 @@ configMapGenerator:
   - name: grafana-dashboards-provisioning
     files:
       - config/dashboards.yaml
+  # Провижининг алертинга: contact points, дерево политик и правила. Grafana
+  # перечитывает provisioning только на старте, поэтому хэш в имени ConfigMap
+  # здесь работает как триггер rollout — иначе правка правила молча не
+  # применилась бы.
+  - name: grafana-alerting
+    files:
+      - config/alerting/contact-points.yaml
+      - config/alerting/notification-policies.yaml
+      - config/alerting/victoria-metrics.yaml
   - name: grafana-dashboards
     files:
       # Суммарный размер ConfigMap — 337946 Б, он больше лимита аннотации
