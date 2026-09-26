@@ -80,22 +80,13 @@ UI также доступен на `https://vault.example.com` (TLS терми�
 ```sh
 vault secrets enable -path=kv kv-v2
 vault kv put kv/poc/probe answer=42
-
-# Политика роли vso-reader из комментария в apps/vault/k8s/vaultauth.yaml
-vault policy write vso-reader - <<'HCL'
-path "kv/data/poc/*"     { capabilities = ["read"] }
-path "kv/metadata/poc/*" { capabilities = ["read", "list"] }
-HCL
-
-# audience обязателен на Vault 1.21+; role_name совпадает с
-# spec.kubernetes.role в VaultAuth
-vault write auth/kubernetes/role/vso-reader \
-  bound_service_account_names=vso-vault-auth \
-  bound_service_account_namespaces=vault \
-  audience=vault \
-  policies=vso-reader \
-  ttl=1h
 ```
+
+Политика `vso-reader` и роль `auth/kubernetes/role/vso-reader` управляются
+terraform (`terraform/vault/policies.tf` и `terraform/vault/roles.tf`), вручную
+их не создавать: повторное создание даст дрейф, который покажет `plan`, а
+`apply` отменит. `audience` обязателен на Vault 1.21+, `role_name` роли совпадает
+с `spec.kubernetes.role` в `VaultAuth`.
 
 Пока значение в Vault не заведено, `VaultStaticSecret` не в статусе `synced` —
 это ожидаемо, а не ошибка.
