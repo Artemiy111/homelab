@@ -1,8 +1,12 @@
 ---
-status: accepted
+status: superseded
 ---
 
 # Конфигурация OpenTofu ограничена возможностями Terraform
+
+> Superseded by `docs/adr/0008-terraform-tool-and-run-location.md`: инструментом
+> стал сам `terraform`, поэтому требование «только то, что понимает terraform»
+> выполняется тождественно. Решение сохранено как история выбора инструмента.
 
 Инструмент на хосте — OpenTofu (пакет `opentofu` из Fedora, #316). Конфигурация
 пишется только в том подмножестве HCL, которое понимает Terraform: расширения

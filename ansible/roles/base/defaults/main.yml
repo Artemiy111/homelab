@@ -33,7 +33,6 @@ base_packages:
   - helm
   - k9s
   - ansible
-  - opentofu           # IaC; в Fedora, а Terraform под BSL и без пакета
 
   # --- Виртуализация ---
   - virt-manager
