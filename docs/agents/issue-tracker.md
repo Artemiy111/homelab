@@ -71,7 +71,9 @@ format.
 But PRs are the only way into `main` (the branch is protected), so PR operations
 matter day to day:
 
-- **Create**: `fj pr create --base main --head <branch> --autofill` (or `-t`/`--body`).
+- **Create**: `fj pr create --base main --head <branch> "<title>" --body "<Refs #N>"`.
+  Заголовок — позиционный аргумент, флагов `--title`/`-t` нет; `--autofill`
+  берёт заголовок и тело из коммитов. Флаги сверены с `forgejo-cli` 0.6.0.
 - **Status**: `fj pr status <n>` (add `--wait` to block until checks finish).
 - **View**: `fj pr view <n>`; diff with `fj pr view <n> diff`, files with `fj pr view <n> files`.
 - **Merge**: `fj pr merge <n> --method squash --delete -m ""` (empty `-m` avoids the `Reviewed-on:` body).

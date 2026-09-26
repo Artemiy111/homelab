@@ -54,7 +54,7 @@ feat(x): add y                  # + тело ниже — тело запрещ�
 
    ```sh
    fj pr create --base main --head <branch> \
-     --title "docs(agents): ..." --body "Refs #12"
+     "docs(agents): ..." --body "Refs #12"
    ```
 
 5. `fj pr merge <n> --method squash --delete -m ""`. Темой коммита станет
