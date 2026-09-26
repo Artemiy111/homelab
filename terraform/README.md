@@ -41,10 +41,30 @@ terraform plan
 ```
 
 `init` тянет провайдер из реестра HashiCorp, поэтому нужен доступ в интернет.
-Адрес Vault приходит из `VAULT_ADDR` в окружении, а не из кода: реальный домен
-нельзя коммитить, он живёт в untracked `platform/homelab/values.private.yaml`.
-Блок `provider "vault"` поэтому не объявлен — пока в модуле нет ресурсов, он и
-не потребовался бы.
+
+Провайдер настраивается окружением, а не кодом, поэтому блок `provider "vault"`
+пустой:
+
+- `address` читается из `VAULT_ADDR` — реальный домен коммитить нельзя, он
+  живёт в untracked `platform/homelab/values.private.yaml`;
+- `token` читается из `~/.vault-token`, куда его кладёт `vault login`, — токен в
+  git не попадает;
+- `skip_tls_verify` не задаётся: за Vault настоящий сертификат Let's Encrypt.
+
+Первый запуск требует ручных шагов:
+
+```sh
+brew install vault
+export VAULT_ADDR="https://vault.<домен>"
+vault login
+```
+
+У токена должен быть `update` на `auth/token/create`: по умолчанию провайдер
+выпускает себе дочерний токен с коротким TTL. Отключать это через
+`skip_child_token` HashiCorp прямо не рекомендует.
+
+Имя токена можно задать через `VAULT_TOKEN_NAME` — в журнале аудита Vault будет
+видно, каким запуском сделано изменение.
 
 ## Что коммитится
 
