@@ -44,7 +44,13 @@ metadata:
   name: vso-uptime-kuma
   namespace: uptime-kuma
 spec:
-  vaultConnectionRef: vault
+  # VaultConnection лежит в неймспейсе vault, а этот VaultAuth — в
+  # uptime-kuma. Без префикса пространства VSO ищет VaultConnection в
+  # неймспейсе самого VaultAuth и не находит его:
+  # `VaultConnection.secrets.hashicorp.com "vault" not found`.
+  # Префикс `vault/` — единственный способ сослаться на объект из другого
+  # неймспейса, дублировать VaultConnection по 48 неймспейсам не нужно.
+  vaultConnectionRef: vault/vault
   method: kubernetes
   mount: kubernetes
   kubernetes:
