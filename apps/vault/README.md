@@ -82,11 +82,16 @@ vault secrets enable -path=kv kv-v2
 vault kv put kv/poc/probe answer=42
 ```
 
-Политика `vso-reader` и роль `auth/kubernetes/role/vso-reader` управляются
-terraform (`terraform/vault/policies.tf` и `terraform/vault/roles.tf`), вручную
-их не создавать: повторное создание даст дрейф, который покажет `plan`, а
-`apply` отменит. `audience` обязателен на Vault 1.21+, `role_name` роли совпадает
-с `spec.kubernetes.role` в `VaultAuth`.
+Политики, роли и конфигурация метода `kubernetes` управляются terraform
+(`terraform/vault/`), вручную их не создавать: повторное создание даст дрейф,
+который покажет `plan`, а `apply` отменит. `audience` обязателен на Vault 1.21+,
+`role_name` роли совпадает с `spec.kubernetes.role` в `VaultAuth`.
+
+| Файл | Что описывает |
+| --- | --- |
+| `policies.tf` | политики `terraform`, `uptime-kuma`, `vso-reader` |
+| `roles.tf` | роли `vso-reader`, `vso-uptime-kuma` в методе `kubernetes` |
+| `k8s.tf` | сам метод `kubernetes`: как Vault проверяет сервис-аккаунт |
 
 Пока значение в Vault не заведено, `VaultStaticSecret` не в статусе `synced` —
 это ожидаемо, а не ошибка.

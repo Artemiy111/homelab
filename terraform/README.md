@@ -16,6 +16,9 @@ terraform/
 ├── README.md
 └── vault/
     ├── main.tf
+    ├── policies.tf
+    ├── roles.tf
+    ├── k8s.tf
     └── .terraform.lock.hcl
 ```
 
@@ -59,9 +62,11 @@ export VAULT_ADDR="https://vault.<домен>"
 vault login
 ```
 
-У токена должен быть `update` на `auth/token/create`: по умолчанию провайдер
-выпускает себе дочерний токен с коротким TTL. Отключать это через
-`skip_child_token` HashiCorp прямо не рекомендует.
+Токен — рабочий, с политикой `terraform` и дефолтной `default` (она даёт
+`renew-self` и `revoke-self`, то есть ротация не требует root). У него должен
+быть `update` на `auth/token/create`: по умолчанию провайдер выпускает себе
+дочерний токен с коротким TTL. Отключать это через `skip_child_token` HashiCorp
+прямо не рекомендует.
 
 Имя токена можно задать через `VAULT_TOKEN_NAME` — в журнале аудита Vault будет
 видно, каким запуском сделано изменение.
@@ -74,13 +79,26 @@ vault login
 | `.terraform.lock.hcl` | да — пиннит версии и хеши провайдеров |
 | `.terraform/`, `*.tfstate`, `*.tfplan` | нет, см. `.gitignore` |
 
-## Чего здесь пока нет
+## Управляемые ресурсы
 
-Ресурсов. Конфигурация Vault введена руками и уже существует в работающем
-Vault, поэтому первым действием будет `terraform import`, а не `create`:
-создание ресурса, который уже есть, приведёт к тому, что он будет уничтожен и
-создан заново. Порядок внедрения — `docs/adr/0006-vault-secret-path-layout.md`,
-шаг 2.
+Всё взято под управление через `terraform import`, а не создание: конфигурация
+Vault существовала вручную, и `create` уничтожил бы её и создал заново. Порядок
+внедрения — `docs/adr/0006-vault-secret-path-layout.md`, шаг 2.
+
+| Файл | Ресурсы |
+| --- | --- |
+| `policies.tf` | политики `terraform`, `uptime-kuma`, `vso-reader` |
+| `roles.tf` | роли `vso-reader`, `vso-uptime-kuma` в методе `kubernetes` |
+| `k8s.tf` | метод `kubernetes`: адрес API и режим проверки JWT |
+
+Секретов в state нет: политики и роли несут только правила доступа, а в
+`auth/kubernetes/config` не заданы `token_reviewer_jwt` и `kubernetes_ca_cert` —
+Vault берёт локальный CA и собственный токен пода, потому что работает в том же
+кластере. Если `token_reviewer_jwt` когда-нибудь зададут, он попадёт в state
+открытым текстом, и тогда потребуется write-only вариант `token_reviewer_jwt_wo`.
+
+Каждый ресурс в state обязан иметь блок `resource` в конфигурации: иначе
+следующий `apply` предложит его удалить, а `destroy` в Vault необратим.
 
 Требования к переносимости конфигурации (никаких возможностей, которых нет в
 `terraform`) сняты сменой инструмента; блок `encryption` не используется.
