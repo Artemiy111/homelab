@@ -89,5 +89,7 @@ backlog слит.
 
 - [x] Расширить PVC `victoriametrics-vmdata` с 4Gi до 8Gi на месте, сохранив
       UID и данные, и проверить восстановление remote write (#277).
-- [ ] Добавить алерты на долю свободного места, `vm_storage_is_read_only` и
-      устойчивый рост `vm_pending_rows` (#279).
+- [x] Добавить алерты на долю свободного места, `vm_storage_is_read_only` и
+      устойчивый рост `vm_pending_rows` (#279). Реализовано в Grafana Unified
+      Alerting, 5 правил, доставка в ntfy, пороги и runbook —
+      `apps/grafana/README.md` и `apps/victoria-metrics/README.md`.
