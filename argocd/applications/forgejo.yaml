@@ -31,86 +31,58 @@ metadata:
   namespace: argocd
 spec:
   project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: forgejo
   source:
     repoURL: https://codeberg.org/forgejo-contrib/forgejo-helm.git
-    path: .
     targetRevision: v16.0.1
+    path: .
     helm:
       releaseName: forgejo
       valuesObject:
+        service:
+          http:
+            # Стандартный порт 80 (см. issue #269). Чарт тянет и containerPort
+            # за service.http.port, поэтому контейнер тоже слушает 80
+            # (rootless-образу позволяет net.ipv4.ip_unprivileged_port_start).
+            port: 80
+          ssh:
+            type: ClusterIP
+            port: 2222
         image:
+          digest: sha256:23ccc146e6dc2cd1f5c5435909baae64db873201717f1726490dae649283e6cd
           registry: data.forgejo.org
           repository: forgejo/forgejo
-          tag: 16-rootless
-          digest: sha256:23ccc146e6dc2cd1f5c5435909baae64db873201717f1726490dae649283e6cd
           rootless: true
+          tag: 16-rootless
+        resources:
+          limits:
+            cpu: "1"
+            memory: 768Mi
+          requests:
+            cpu: 20m
+            memory: 256Mi
+        containerSecurityContext:
+          capabilities:
+            drop: ["ALL"]
+          allowPrivilegeEscalation: false
+          seccompProfile:
+            type: RuntimeDefault
+        extraContainerVolumeMounts:
+          - name: merge-message-templates
+            readOnly: true
+            mountPath: /data/gitea/default_merge_message
+        # Серверный шаблон merge-сообщения (ConfigMap лежит рядом, в
+        # apps/forgejo/k8s/merge-message.configmap.yaml): задаёт пустое тело
+        # вместо `Reviewed-on: <url>` (#25). Forgejo читает
+        # {CustomPath}/default_merge_message при старте, поэтому после правки
+        # нужен рестарт пода.
+        extraVolumes:
+          - name: merge-message-templates
+            configMap:
+              name: forgejo-merge-message
         gitea:
-          admin:
-            # Служебный админ forgejo-admin (почта admin@example.com), не
-            # личный аккаунт: роль в сервисе и человек — разные сущности.
-            # Логин не может быть `admin` — Forgejo резервирует это имя
-            # («name is reserved»). Пароль — в SealedSecret'е
-            # apps/forgejo/k8s/admin.sealedsecret.yaml.
-            # keepUpdated перетирал бы пароль при каждом рестарте пода, поэтому
-            # initialOnlyNoReset: выставляем один раз, дальше правит человек.
-            existingSecret: forgejo-admin
-            passwordMode: initialOnlyNoReset
-            email: admin@example.com
-          config:
-            server:
-              # Наружу SSH отдаётся на 2222 (service.ssh.port ниже), внутри
-              # rootless-образ слушает тот же порт.
-              SSH_PORT: 2222
-              SSH_LISTEN_PORT: 2222
-              LFS_START_SERVER: true
-              # PROTOCOL — про листенер самого Forgejo, а не про внешний адрес:
-              # с `https` он пытается поднять TLS на :3000 и падает
-              # («Failed to load https cert file»). TLS терминирует Traefik,
-              # поэтому здесь http, а внешний адрес задаёт ROOT_URL.
-              PROTOCOL: http
-              ROOT_URL: https://forgejo.example.com
-              # Без явного DOMAIN чарт берёт его из дефолтного ingress.hosts
-              # (git.example.com), а от DOMAIN наследуется SSH_DOMAIN — Forgejo
-              # отдавал бы git.example.com в ssh_url репозиториев.
-              # Здесь плейсхолдеры: реальные DOMAIN/ROOT_URL/SSH_DOMAIN и
-              # service.ssh.externalIPs приезжают из untracked
-              # argocd/applications/forgejo.private.yaml (см. argocd/README.md);
-              # применять этот файл без него нельзя.
-              DOMAIN: forgejo.example.com
-              SSH_DOMAIN: forgejo.example.com
-            database:
-              DB_TYPE: postgres
-              HOST: shared-rw.databases.svc.cluster.local
-              NAME: forgejo
-              USER: forgejo
-            security:
-              # Обратный прокси — Traefik в кластере (pod CIDR k0s).
-              REVERSE_PROXY_TRUSTED_PROXIES: 10.244.0.0/16
-            service:
-              DISABLE_REGISTRATION: true
-              ENABLE_UPDATE_CHECKER: false
-              DEFAULT_USER_VISIBILITY: private
-            repository:
-              DEFAULT_PRIVATE: private
-            openid:
-              ENABLE_OPENID_SIGNIN: false
-              ENABLE_OPENID_SIGNUP: false
-            actions:
-              ENABLED: true
-              # Экшены тянем с локального инстанса (org `actions`), а не с
-              # data.forgejo.org: тот периодически недоступен, и job падает на
-              # загрузке экшена до старта шагов. Настройка instance-wide, поэтому
-              # в org `actions` зазеркален весь набор. Детали и обновление —
-              # apps/forgejo/README.md.
-              DEFAULT_ACTIONS_URL: http://forgejo-http
-            cron:
-              ENABLED: true
-              RUN_AT_START: true
-            cron.git_gc_repos:
-              ENABLE: true
-              SCHEDULE: "@every 24h"
-          metrics:
-            enabled: true
           additionalConfigFromEnvs:
             - name: FORGEJO__database__PASSWD
               valueFrom:
@@ -132,34 +104,72 @@ spec:
                 configMapKeyRef:
                   name: homelab-config
                   key: TZ
-        persistence:
-          enabled: true
-          # Имя PVC задаётся здесь; менять после установки нельзя — это новый том.
-          claimName: forgejo-data
-          storageClass: longhorn-retain
-          size: 5Gi
-        # Серверный шаблон merge-сообщения (ConfigMap лежит рядом, в
-        # apps/forgejo/k8s/merge-message.configmap.yaml): задаёт пустое тело
-        # вместо `Reviewed-on: <url>` (#25). Forgejo читает
-        # {CustomPath}/default_merge_message при старте, поэтому после правки
-        # нужен рестарт пода.
-        extraVolumes:
-          - name: merge-message-templates
-            configMap:
-              name: forgejo-merge-message
-        extraContainerVolumeMounts:
-          - name: merge-message-templates
-            mountPath: /data/gitea/default_merge_message
-            readOnly: true
-        service:
-          http:
-            # Стандартный порт 80 (см. issue #269). Чарт тянет и containerPort
-            # за service.http.port, поэтому контейнер тоже слушает 80
-            # (rootless-образу позволяет net.ipv4.ip_unprivileged_port_start).
-            port: 80
-          ssh:
-            type: ClusterIP
-            port: 2222
+          admin:
+            email: admin@example.com
+            # Служебный админ forgejo-admin (почта admin@example.com), не
+            # личный аккаунт: роль в сервисе и человек — разные сущности.
+            # Логин не может быть `admin` — Forgejo резервирует это имя
+            # («name is reserved»). Пароль — в SealedSecret'е
+            # apps/forgejo/k8s/admin.sealedsecret.yaml.
+            # keepUpdated перетирал бы пароль при каждом рестарте пода, поэтому
+            # initialOnlyNoReset: выставляем один раз, дальше правит человек.
+            existingSecret: forgejo-admin
+            passwordMode: initialOnlyNoReset
+          config:
+            service:
+              DEFAULT_USER_VISIBILITY: private
+              DISABLE_REGISTRATION: true
+              ENABLE_UPDATE_CHECKER: false
+            actions:
+              # Экшены тянем с локального инстанса (org `actions`), а не с
+              # data.forgejo.org: тот периодически недоступен, и job падает на
+              # загрузке экшена до старта шагов. Настройка instance-wide, поэтому
+              # в org `actions` зазеркален весь набор. Детали и обновление —
+              # apps/forgejo/README.md.
+              DEFAULT_ACTIONS_URL: http://forgejo-http
+              ENABLED: true
+            cron:
+              ENABLED: true
+              RUN_AT_START: true
+            cron.git_gc_repos:
+              ENABLE: true
+              SCHEDULE: "@every 24h"
+            database:
+              DB_TYPE: postgres
+              HOST: shared-rw.databases.svc.cluster.local
+              NAME: forgejo
+              USER: forgejo
+            openid:
+              ENABLE_OPENID_SIGNIN: false
+              ENABLE_OPENID_SIGNUP: false
+            repository:
+              DEFAULT_PRIVATE: private
+            security:
+              # Обратный прокси — Traefik в кластере (pod CIDR k0s).
+              REVERSE_PROXY_TRUSTED_PROXIES: 10.244.0.0/16
+            server:
+              # Без явного DOMAIN чарт берёт его из дефолтного ingress.hosts
+              # (git.example.com), а от DOMAIN наследуется SSH_DOMAIN — Forgejo
+              # отдавал бы git.example.com в ssh_url репозиториев.
+              # Здесь плейсхолдеры: реальные DOMAIN/ROOT_URL/SSH_DOMAIN и
+              # service.ssh.externalIPs приезжают из untracked
+              # argocd/applications/forgejo.private.yaml (см. argocd/README.md);
+              # применять этот файл без него нельзя.
+              DOMAIN: forgejo.example.com
+              LFS_START_SERVER: true
+              # PROTOCOL — про листенер самого Forgejo, а не про внешний адрес:
+              # с `https` он пытается поднять TLS на :3000 и падает
+              # («Failed to load https cert file»). TLS терминирует Traefik,
+              # поэтому здесь http, а внешний адрес задаёт ROOT_URL.
+              PROTOCOL: http
+              ROOT_URL: https://forgejo.example.com
+              SSH_DOMAIN: forgejo.example.com
+              SSH_LISTEN_PORT: 2222
+              # Наружу SSH отдаётся на 2222 (service.ssh.port ниже), внутри
+              # rootless-образ слушает тот же порт.
+              SSH_PORT: 2222
+          metrics:
+            enabled: true
         # Ingress — свой файл (apps/forgejo/route.yaml), как у
         # остальных сервисов. Встроенный выключен: он собирал ROOT_URL из
         # наличия ingress.tls, а Argo считал объект нездоровым, потому что
@@ -167,26 +177,16 @@ spec:
         # заданы явно и не зависят от чарта.
         ingress:
           enabled: false
-        resources:
-          requests:
-            cpu: 20m
-            memory: 256Mi
-          limits:
-            cpu: "1"
-            memory: 768Mi
-        containerSecurityContext:
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop: ["ALL"]
-          seccompProfile:
-            type: RuntimeDefault
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: forgejo
+        persistence:
+          # Имя PVC задаётся здесь; менять после установки нельзя — это новый том.
+          claimName: forgejo-data
+          enabled: true
+          size: 5Gi
+          storageClass: longhorn-retain
   syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
     syncOptions:
       - ServerSideApply=true
       - CreateNamespace=true
-    automated:
-      selfHeal: true
-      prune: true

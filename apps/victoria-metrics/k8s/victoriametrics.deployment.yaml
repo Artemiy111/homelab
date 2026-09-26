@@ -4,10 +4,6 @@ metadata:
   name: victoriametrics
   namespace: monitoring
 spec:
-  # RWO-том vmdata: два пода при rolling update пишут в один каталог.
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
@@ -18,10 +14,6 @@ spec:
         app: victoriametrics
     spec:
       enableServiceLinks: false
-      # fsGroup даёт групповую запись в том Longhorn, иначе root-owned каталог
-      # тома недоступен пользователю 1000.
-      securityContext:
-        fsGroup: 1000
       containers:
         - name: victoriametrics
           image: "victoriametrics/victoria-metrics:v1.150.0@sha256:54467c7764a3e6579199af1914bb779f01ce32265cd552eb5ae0d4f8a2b80a97"
@@ -38,6 +30,30 @@ spec:
                 configMapKeyRef:
                   name: homelab-config
                   key: TZ
+          resources:
+            limits:
+              cpu: "2"
+              memory: 2Gi
+            requests:
+              cpu: 100m
+              memory: 256Mi
+          volumeMounts:
+            - name: vmdata
+              mountPath: /data
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            timeoutSeconds: 5
+            periodSeconds: 30
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            timeoutSeconds: 5
+            periodSeconds: 30
+            failureThreshold: 3
           startupProbe:
             httpGet:
               path: /health
@@ -45,40 +61,24 @@ spec:
             initialDelaySeconds: 10
             periodSeconds: 5
             failureThreshold: 30
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: http
-            periodSeconds: 30
-            timeoutSeconds: 5
-            failureThreshold: 3
-          readinessProbe:
-            httpGet:
-              path: /health
-              port: http
-            periodSeconds: 30
-            timeoutSeconds: 5
-            failureThreshold: 3
           securityContext:
-            runAsUser: 1000
-            runAsGroup: 1000
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
             capabilities:
               drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
             seccompProfile:
               type: RuntimeDefault
-          resources:
-            requests:
-              cpu: 100m
-              memory: 256Mi
-            limits:
-              cpu: "2"
-              memory: 2Gi
-          volumeMounts:
-            - name: vmdata
-              mountPath: /data
       volumes:
         - name: vmdata
           persistentVolumeClaim:
             claimName: victoriametrics-vmdata
+      # fsGroup даёт групповую запись в том Longhorn, иначе root-owned каталог
+      # тома недоступен пользователю 1000.
+      securityContext:
+        fsGroup: 1000
+  # RWO-том vmdata: два пода при rolling update пишут в один каталог.
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2

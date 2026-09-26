@@ -9,10 +9,10 @@ spec:
     app: oauth2-proxy
   ports:
     - name: http
+      protocol: TCP
       port: 4180
       targetPort: http
-      protocol: TCP
     - name: metrics
+      protocol: TCP
       port: 9100
       targetPort: metrics
-      protocol: TCP

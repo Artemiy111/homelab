@@ -34,15 +34,15 @@ spec:
             matchLabels:
               kubernetes.io/metadata.name: traefik
     - from:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: monitoring
-          podSelector:
+        - podSelector:
             matchLabels:
               app: vmagent
+          namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
       ports:
-        - port: 5380
-          protocol: TCP
+        - protocol: TCP
+          port: 5380
     - from:
         - ipBlock:
             cidr: 192.0.2.10/16
@@ -53,7 +53,7 @@ spec:
         - ipBlock:
             cidr: 10.244.0.0/16
       ports:
-        - port: 53
-          protocol: UDP
-        - port: 53
-          protocol: TCP
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53

@@ -9,6 +9,6 @@ spec:
     app: talk-hpb
   ports:
     - name: signaling
+      protocol: TCP
       port: 80
       targetPort: signaling
-      protocol: TCP

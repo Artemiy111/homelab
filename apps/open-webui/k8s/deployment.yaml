@@ -4,7 +4,6 @@ metadata:
   name: open-webui
   namespace: open-webui
 spec:
-  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
@@ -61,6 +60,30 @@ spec:
               value: "false"
             - name: ENABLE_OPENAI_API
               value: "false"
+          resources:
+            limits:
+              cpu: "4"
+              memory: 4Gi
+            requests:
+              cpu: 100m
+              memory: 512Mi
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            timeoutSeconds: 10
+            periodSeconds: 30
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            timeoutSeconds: 10
+            periodSeconds: 30
+            failureThreshold: 3
           startupProbe:
             httpGet:
               path: /health
@@ -68,41 +91,18 @@ spec:
             initialDelaySeconds: 15
             periodSeconds: 10
             failureThreshold: 30
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: http
-            periodSeconds: 30
-            timeoutSeconds: 10
-            failureThreshold: 3
-          readinessProbe:
-            httpGet:
-              path: /health
-              port: http
-            periodSeconds: 30
-            timeoutSeconds: 10
-            failureThreshold: 3
           securityContext:
-            runAsUser: 1000
-            runAsGroup: 1000
-            runAsNonRoot: true
-            readOnlyRootFilesystem: true
-            allowPrivilegeEscalation: false
             capabilities:
               drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
             seccompProfile:
               type: RuntimeDefault
-          resources:
-            requests:
-              cpu: 100m
-              memory: 512Mi
-            limits:
-              cpu: "4"
-              memory: 4Gi
-          volumeMounts:
-            - name: tmp
-              mountPath: /tmp
       volumes:
         - name: tmp
           emptyDir:
             sizeLimit: 1Gi
+  revisionHistoryLimit: 2

@@ -13,9 +13,8 @@ spec:
       # Статичный вход вместо autodiscover: filestream-инпуты не-reloadable, и
       # autodiscover при перезапуске контейнера падает на дублировании ID.
       - type: filestream
+        file_identity.fingerprint: {}
         id: kubernetes-container-logs
-        paths:
-          - /var/log/containers/*.log
         parsers:
           - container: {}
           # Стектрейсы: клеим ТОЛЬКО строки-продолжения (с отступом или с
@@ -23,15 +22,16 @@ spec:
           # («новая строка = дата») ломает логи вида time=..., netdata и т.п.
           - multiline:
               type: pattern
-              pattern: '^([[:space:]]|at |Caused by:|goroutine |panic:|Traceback )'
-              negate: false
               match: after
               max_lines: 500
+              negate: false
+              pattern: '^([[:space:]]|at |Caused by:|goroutine |panic:|Traceback )'
+        paths:
+          - /var/log/containers/*.log
         prospector:
           scanner:
             fingerprint.enabled: true
             symlinks: true
-        file_identity.fingerprint: {}
     processors:
       # k8s-метаданные (namespace/pod/labels) по пути лог-файла; нужен ClusterRole.
       - add_kubernetes_metadata:
@@ -46,9 +46,9 @@ spec:
     # Своя ILM-политика (retention) и replicas 0 для однонодового кластера.
     setup.ilm:
       enabled: true
-      policy_name: filebeat
-      policy_file: /usr/share/filebeat/ilm/ilm-policy.json
       overwrite: true
+      policy_file: /usr/share/filebeat/ilm/ilm-policy.json
+      policy_name: filebeat
     setup.template:
       overwrite: true
       settings:
@@ -57,36 +57,36 @@ spec:
   daemonSet:
     podTemplate:
       spec:
-        serviceAccountName: filebeat
-        automountServiceAccountToken: true
         terminationGracePeriodSeconds: 30
         dnsPolicy: ClusterFirstWithHostNet
+        serviceAccountName: filebeat
+        automountServiceAccountToken: true
         # hostNetwork — ради host-метаданных (add_host_metadata) в k8s-логах.
         hostNetwork: true
         containers:
           - name: filebeat
-            securityContext:
-              # Логи на хосте принадлежат root; читать их иначе нельзя.
-              runAsUser: 0
+            env:
+              - name: NODE_NAME
+                valueFrom:
+                  fieldRef:
+                    fieldPath: spec.nodeName
             resources:
+              limits:
+                memory: 512Mi
               requests:
                 cpu: 100m
                 memory: 128Mi
-              limits:
-                memory: 512Mi
             volumeMounts:
               - name: varlogcontainers
                 mountPath: /var/log/containers
               - name: varlogpods
                 mountPath: /var/log/pods
               - name: ilm-policy
-                mountPath: /usr/share/filebeat/ilm
                 readOnly: true
-            env:
-              - name: NODE_NAME
-                valueFrom:
-                  fieldRef:
-                    fieldPath: spec.nodeName
+                mountPath: /usr/share/filebeat/ilm
+            securityContext:
+              # Логи на хосте принадлежат root; читать их иначе нельзя.
+              runAsUser: 0
         volumes:
           - name: varlogcontainers
             hostPath:

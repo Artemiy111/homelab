@@ -29,5 +29,5 @@ spec:
             matchLabels:
               kubernetes.io/metadata.name: forgejo
       ports:
-        - port: 5000
-          protocol: TCP
+        - protocol: TCP
+          port: 5000

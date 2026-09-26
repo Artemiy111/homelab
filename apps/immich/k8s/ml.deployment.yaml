@@ -4,9 +4,6 @@ metadata:
   name: immich-machine-learning
   namespace: immich
 spec:
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
@@ -24,43 +21,46 @@ spec:
           ports:
             - name: http
               containerPort: 3003
+          resources:
+            limits:
+              cpu: "4"
+              memory: 6Gi
+            requests:
+              cpu: 200m
+              # Фактическое потребление ~240 МиБ. 1Gi был шаблонным дефолтом и
+              # впустую держал бюджет memory requests узла.
+              memory: 320Mi
+          volumeMounts:
+            - name: model-cache
+              mountPath: /cache
+          livenessProbe:
+            tcpSocket:
+              port: http
+            timeoutSeconds: 10
+            periodSeconds: 30
+            failureThreshold: 3
+          readinessProbe:
+            tcpSocket:
+              port: http
+            timeoutSeconds: 10
+            periodSeconds: 30
+            failureThreshold: 3
           startupProbe:
             tcpSocket:
               port: http
             initialDelaySeconds: 15
             periodSeconds: 10
             failureThreshold: 30
-          livenessProbe:
-            tcpSocket:
-              port: http
-            periodSeconds: 30
-            timeoutSeconds: 10
-            failureThreshold: 3
-          readinessProbe:
-            tcpSocket:
-              port: http
-            periodSeconds: 30
-            timeoutSeconds: 10
-            failureThreshold: 3
           securityContext:
-            allowPrivilegeEscalation: false
             capabilities:
-              drop: ["ALL"]
               add: ["CHOWN", "DAC_OVERRIDE", "FOWNER", "SETGID", "SETUID"]
+              drop: ["ALL"]
+            allowPrivilegeEscalation: false
             seccompProfile:
               type: RuntimeDefault
-          resources:
-            requests:
-              cpu: 200m
-              # Фактическое потребление ~240 МиБ. 1Gi был шаблонным дефолтом и
-              # впустую держал бюджет memory requests узла.
-              memory: 320Mi
-            limits:
-              cpu: "4"
-              memory: 6Gi
-          volumeMounts:
-            - name: model-cache
-              mountPath: /cache
       volumes:
         - name: model-cache
           emptyDir: {}
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2

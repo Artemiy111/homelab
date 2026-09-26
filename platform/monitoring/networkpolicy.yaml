@@ -35,23 +35,23 @@ spec:
             matchLabels:
               kubernetes.io/metadata.name: uptime-kuma
     - from:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: default
-          podSelector:
+        - podSelector:
             matchLabels:
               app: kube-state-metrics
+          namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: default
       ports:
-        - port: 8080
-          protocol: TCP
+        - protocol: TCP
+          port: 8080
     # Radar (traffic.prometheusUrl) читает метрики ворклоадов из VictoriaMetrics.
     - from:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: radar
-          podSelector:
+        - podSelector:
             matchLabels:
               app: victoriametrics
+          namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: radar
       ports:
-        - port: 8428
-          protocol: TCP
+        - protocol: TCP
+          port: 8428

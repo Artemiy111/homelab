@@ -4,10 +4,6 @@ metadata:
   name: authentik
   namespace: authentik
 spec:
-  # RWO-том /data: два пода при rolling update пишут в один каталог.
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
@@ -18,30 +14,26 @@ spec:
         app: authentik
     spec:
       enableServiceLinks: false
-      # fsGroup даёт групповую запись в том Longhorn, иначе root-owned каталог
-      # тома недоступен пользователю 1000.
-      securityContext:
-        fsGroup: 1000
       initContainers:
         - name: wait-for-db
           image: "postgres:18-alpine@sha256:d3e1620b530c944afa6e887d22eb899824da68e19c52024bf98f5220c88a65b2"
           command: ["/bin/sh", "-c", "until pg_isready -h shared-rw.databases.svc.cluster.local -U authentik -d authentik; do echo waiting for shared-rw; sleep 2; done"]
-          securityContext:
-            runAsUser: 70
-            runAsGroup: 70
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: ["ALL"]
-            seccompProfile:
-              type: RuntimeDefault
           resources:
-            requests:
-              cpu: 10m
-              memory: 32Mi
             limits:
               cpu: 100m
               memory: 64Mi
+            requests:
+              cpu: 10m
+              memory: 32Mi
+          securityContext:
+            capabilities:
+              drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            runAsGroup: 70
+            runAsNonRoot: true
+            runAsUser: 70
+            seccompProfile:
+              type: RuntimeDefault
       containers:
         - name: authentik
           image: "ghcr.io/goauthentik/server:2026.5.6@sha256:ed120caf710ccf82ef0026f0bc74e51615bc95ebff228a7a2d6fc60c441c3868"
@@ -80,6 +72,30 @@ spec:
               value: "true"
             - name: AUTHENTIK_WEB__WORKERS
               value: "1"
+          resources:
+            limits:
+              cpu: "1"
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 256Mi
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          livenessProbe:
+            httpGet:
+              path: /-/health/live/
+              port: http
+            timeoutSeconds: 10
+            periodSeconds: 30
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /-/health/ready/
+              port: http
+            timeoutSeconds: 10
+            periodSeconds: 30
+            failureThreshold: 3
           startupProbe:
             httpGet:
               path: /-/health/ready/
@@ -87,40 +103,24 @@ spec:
             initialDelaySeconds: 30
             periodSeconds: 10
             failureThreshold: 60
-          livenessProbe:
-            httpGet:
-              path: /-/health/live/
-              port: http
-            periodSeconds: 30
-            timeoutSeconds: 10
-            failureThreshold: 3
-          readinessProbe:
-            httpGet:
-              path: /-/health/ready/
-              port: http
-            periodSeconds: 30
-            timeoutSeconds: 10
-            failureThreshold: 3
           securityContext:
-            runAsUser: 1000
-            runAsGroup: 1000
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
             capabilities:
               drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
             seccompProfile:
               type: RuntimeDefault
-          resources:
-            requests:
-              cpu: 100m
-              memory: 256Mi
-            limits:
-              cpu: "1"
-              memory: 512Mi
-          volumeMounts:
-            - name: data
-              mountPath: /data
       volumes:
         - name: data
           persistentVolumeClaim:
             claimName: authentik-data
+      # fsGroup даёт групповую запись в том Longhorn, иначе root-owned каталог
+      # тома недоступен пользователю 1000.
+      securityContext:
+        fsGroup: 1000
+  # RWO-том /data: два пода при rolling update пишут в один каталог.
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2

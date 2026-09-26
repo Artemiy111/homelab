@@ -4,13 +4,9 @@ metadata:
   name: netdata
   namespace: monitoring
   annotations:
-    ignore-check.kube-linter.io/privilege-escalation-container: "apps.plugin — setuid-binary, без escalation не собирает метрики процессов (#161)"
     ignore-check.kube-linter.io/docker-sock: "netdata читает docker.sock read-only для метрик контейнеров (#161)"
+    ignore-check.kube-linter.io/privilege-escalation-container: "apps.plugin — setuid-binary, без escalation не собирает метрики процессов (#161)"
 spec:
-  # RWO-том состояния: два пода при rolling update пишут в один каталог.
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
@@ -36,44 +32,13 @@ spec:
                 configMapKeyRef:
                   name: homelab-config
                   key: TZ
-          startupProbe:
-            httpGet:
-              path: /api/v1/info
-              port: http
-            initialDelaySeconds: 20
-            periodSeconds: 10
-            failureThreshold: 30
-          livenessProbe:
-            httpGet:
-              path: /api/v1/info
-              port: http
-            periodSeconds: 60
-            timeoutSeconds: 10
-            failureThreshold: 3
-          readinessProbe:
-            httpGet:
-              path: /api/v1/info
-              port: http
-            periodSeconds: 30
-            timeoutSeconds: 10
-            failureThreshold: 3
-          securityContext:
-            runAsUser: 0
-            runAsGroup: 0
-            # apps.plugin — setuid-binary из образа: no-new-privileges ломает
-            # сбор метрик процессов, поэтому escalation разрешён.
-            allowPrivilegeEscalation: true
-            capabilities:
-              add: ["SYS_PTRACE", "DAC_READ_SEARCH"]
-            seccompProfile:
-              type: RuntimeDefault
           resources:
-            requests:
-              cpu: 200m
-              memory: 256Mi
             limits:
               cpu: "2"
               memory: 1Gi
+            requests:
+              cpu: 200m
+              memory: 256Mi
           volumeMounts:
             - name: config
               mountPath: /etc/netdata
@@ -82,41 +47,72 @@ spec:
             - name: cache
               mountPath: /var/cache/netdata
             - name: docker-sd
+              readOnly: true
               mountPath: /etc/netdata/go.d/sd/docker.conf
-              readOnly: true
             - name: health-alarm-notify
+              readOnly: true
               mountPath: /etc/netdata/health_alarm_notify.conf
-              readOnly: true
             - name: host-root
-              mountPath: /host/root
               readOnly: true
+              mountPath: /host/root
               mountPropagation: HostToContainer
             - name: host-passwd
+              readOnly: true
               mountPath: /host/etc/passwd
-              readOnly: true
             - name: host-group
+              readOnly: true
               mountPath: /host/etc/group
-              readOnly: true
             - name: localtime
+              readOnly: true
               mountPath: /etc/localtime
-              readOnly: true
             - name: host-os-release
+              readOnly: true
               mountPath: /host/etc/os-release
-              readOnly: true
             - name: host-proc
-              mountPath: /host/proc
               readOnly: true
+              mountPath: /host/proc
               mountPropagation: HostToContainer
             - name: host-sys
-              mountPath: /host/sys
               readOnly: true
+              mountPath: /host/sys
               mountPropagation: HostToContainer
             - name: host-var-log
+              readOnly: true
               mountPath: /host/var/log
-              readOnly: true
             - name: docker-sock
-              mountPath: /var/run/docker.sock
               readOnly: true
+              mountPath: /var/run/docker.sock
+          livenessProbe:
+            httpGet:
+              path: /api/v1/info
+              port: http
+            timeoutSeconds: 10
+            periodSeconds: 60
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /api/v1/info
+              port: http
+            timeoutSeconds: 10
+            periodSeconds: 30
+            failureThreshold: 3
+          startupProbe:
+            httpGet:
+              path: /api/v1/info
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            failureThreshold: 30
+          securityContext:
+            capabilities:
+              add: ["SYS_PTRACE", "DAC_READ_SEARCH"]
+            # apps.plugin — setuid-binary из образа: no-new-privileges ломает
+            # сбор метрик процессов, поэтому escalation разрешён.
+            allowPrivilegeEscalation: true
+            runAsUser: 0
+            runAsGroup: 0
+            seccompProfile:
+              type: RuntimeDefault
       volumes:
         - name: config
           hostPath:
@@ -171,3 +167,7 @@ spec:
           hostPath:
             path: /var/run/docker.sock
             type: Socket
+  # RWO-том состояния: два пода при rolling update пишут в один каталог.
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2

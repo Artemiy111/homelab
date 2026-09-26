@@ -13,26 +13,26 @@ metadata:
   namespace: argocd
 spec:
   project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: longhorn-system
   source:
     repoURL: https://charts.longhorn.io
-    chart: longhorn
     targetRevision: 1.12.1
+    chart: longhorn
     helm:
       releaseName: longhorn
       valuesObject:
         # k0s держит kubelet в /var/lib/k0s/kubelet, а не в /var/lib/kubelet:
         # драйвер монтирует staging-каталоги оттуда.
         csi:
-          kubeletRootDir: /var/lib/k0s/kubelet
           # Однозный кластер: дефолтные 3 реплики контроллеров просто повиснут
           # в Pending. При второй ноде можно вернуть 3.
           attacherReplicaCount: 1
+          kubeletRootDir: /var/lib/k0s/kubelet
           provisionerReplicaCount: 1
           resizerReplicaCount: 1
           snapshotterReplicaCount: 1
-        persistence:
-          # Классы хранилища задаём файлами, а не чартом.
-          createStorageClass: false
         defaultSettings:
           defaultDataPath: /storage/apps/k8s/longhorn
           # Данные лежат на корневой ФС: свободно ~16% (78 из 475 ГБ). При
@@ -43,27 +43,27 @@ spec:
           storageReservedPercentageForDefaultDisk: 5
           # UI не должен стучаться в longhorn-upgrade-responder.
           upgradeChecker: false
+        longhornManager:
+          resources:
+            limits:
+              cpu: "1"
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+        longhornUI:
+          # Чарт не умеет задавать resources для UI — только replicas.
+          replicas: 1
+        persistence:
+          # Классы хранилища задаём файлами, а не чартом.
+          createStorageClass: false
         # GitOps: pre-upgrade Job создаёт ресурсы мимо Argo и приложение
         # навсегда остаётся OutOfSync.
         preUpgradeChecker:
           jobEnabled: false
-        longhornUI:
-          # Чарт не умеет задавать resources для UI — только replicas.
-          replicas: 1
-        longhornManager:
-          resources:
-            requests:
-              cpu: 100m
-              memory: 128Mi
-            limits:
-              cpu: "1"
-              memory: 512Mi
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: longhorn-system
   syncPolicy:
+    automated:
+      selfHeal: true
     syncOptions:
       - CreateNamespace=true
       - Prune=false
-    automated:
-      selfHeal: true

@@ -10,6 +10,6 @@ spec:
   ports:
     # Админка/API за Traefik (dns.<домен>).
     - name: http
+      protocol: TCP
       port: 80
       targetPort: http
-      protocol: TCP

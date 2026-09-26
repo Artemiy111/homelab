@@ -17,38 +17,38 @@ metadata:
   namespace: argocd
 spec:
   project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: radar
   source:
     repoURL: https://skyhook-io.github.io/helm-charts
-    chart: radar
     targetRevision: 1.14.1
+    chart: radar
     helm:
       releaseName: radar
       valuesObject:
-        # Однозный кластер: лимиты умереннее дефолтных (2 CPU / 1Gi), чтобы
-        # информеры большого кластера не вытесняли соседей, но с запасом на
-        # всплески при churn.
-        resources:
-          requests:
-            cpu: 100m
-            memory: 128Mi
-          limits:
-            cpu: "1"
-            memory: 512Mi
-        traffic:
-          # Автодискавери Prometheus ищет well-known имена/лейблы и не знаком с
-          # сервисом victoriametrics; задаём адрес явно (порт 80 сервиса).
-          # Доступ из namespace radar в monitoring открыт NetworkPolicy.
-          prometheusUrl: http://victoriametrics.monitoring.svc.cluster.local
         service:
           # Чарт использует service.port и как порт контейнера (--port), и как
           # порт Service; перевод сервиса на стандартный 80 меняет оба (см.
           # issue #269). Порт нигде больше не зашит (NetworkPolicy без портов).
           port: 80
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: radar
+        # Однозный кластер: лимиты умереннее дефолтных (2 CPU / 1Gi), чтобы
+        # информеры большого кластера не вытесняли соседей, но с запасом на
+        # всплески при churn.
+        resources:
+          limits:
+            cpu: "1"
+            memory: 512Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+        traffic:
+          # Автодискавери Prometheus ищет well-known имена/лейблы и не знаком с
+          # сервисом victoriametrics; задаём адрес явно (порт 80 сервиса).
+          # Доступ из namespace radar в monitoring открыт NetworkPolicy.
+          prometheusUrl: http://victoriametrics.monitoring.svc.cluster.local
   syncPolicy:
-    syncOptions:
-      - CreateNamespace=true
     automated:
       selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

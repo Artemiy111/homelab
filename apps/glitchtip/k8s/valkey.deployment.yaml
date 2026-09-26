@@ -4,10 +4,6 @@ metadata:
   name: glitchtip-valkey
   namespace: glitchtip
 spec:
-  # RWO-том брокера: два пода при rolling update пишут в один каталог.
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
@@ -17,46 +13,50 @@ spec:
       labels:
         app: glitchtip-valkey
     spec:
-      # fsGroup даёт групповую запись в том Longhorn: контейнер работает под
-      # пользователем 999 с группой 1000, том должен принадлежать группе 1000.
-      securityContext:
-        fsGroup: 1000
       containers:
         - name: valkey
           image: "valkey/valkey:9-alpine@sha256:ee91f7a174ac4d6a6b0685b3a60e321f0a9dbbb691f9b0e285be2ba1d1be8328"
+          resources:
+            limits:
+              cpu: 100m
+              memory: 64Mi
+            requests:
+              cpu: 5m
+              memory: 16Mi
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          livenessProbe:
+            exec:
+              command: ["valkey-cli", "ping"]
+            timeoutSeconds: 5
+            periodSeconds: 30
+            failureThreshold: 3
           readinessProbe:
             exec:
               command: ["valkey-cli", "ping"]
             initialDelaySeconds: 5
+            timeoutSeconds: 5
             periodSeconds: 10
-            timeoutSeconds: 5
-            failureThreshold: 3
-          livenessProbe:
-            exec:
-              command: ["valkey-cli", "ping"]
-            periodSeconds: 30
-            timeoutSeconds: 5
             failureThreshold: 3
           securityContext:
-            runAsUser: 999
-            runAsGroup: 1000
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
             capabilities:
               drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 999
+            runAsGroup: 1000
             seccompProfile:
               type: RuntimeDefault
-          resources:
-            requests:
-              cpu: 5m
-              memory: 16Mi
-            limits:
-              cpu: 100m
-              memory: 64Mi
-          volumeMounts:
-            - name: data
-              mountPath: /data
       volumes:
         - name: data
           persistentVolumeClaim:
             claimName: glitchtip-valkey
+      # fsGroup даёт групповую запись в том Longhorn: контейнер работает под
+      # пользователем 999 с группой 1000, том должен принадлежать группе 1000.
+      securityContext:
+        fsGroup: 1000
+  # RWO-том брокера: два пода при rolling update пишут в один каталог.
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2

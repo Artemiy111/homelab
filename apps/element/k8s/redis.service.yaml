@@ -9,6 +9,6 @@ spec:
     app: element-redis
   ports:
     - name: redis
+      protocol: TCP
       port: 6379
       targetPort: redis
-      protocol: TCP

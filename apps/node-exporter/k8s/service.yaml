@@ -9,6 +9,6 @@ spec:
     app: node-exporter
   ports:
     - name: metrics
+      protocol: TCP
       port: 9100
       targetPort: metrics
-      protocol: TCP

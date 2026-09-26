@@ -11,6 +11,9 @@ metadata:
   namespace: argocd
 spec:
   project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kube-system
   sources:
     - repoURL: https://github.com/kubernetes-csi/external-snapshotter.git
       targetRevision: v8.6.0
@@ -23,12 +26,9 @@ spec:
           # В апстримном манифесте тега v8.6.0 образ всё ещё v8.5.0 —
           # выравниваем с sidecar Longhorn, как советует его документация.
           - registry.k8s.io/sig-storage/snapshot-controller:v8.6.0
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: kube-system
   syncPolicy:
+    automated:
+      selfHeal: true
     syncOptions:
       - Prune=false
       - ServerSideApply=true
-    automated:
-      selfHeal: true

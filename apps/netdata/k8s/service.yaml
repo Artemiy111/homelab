@@ -9,11 +9,11 @@ spec:
     app: netdata
   ports:
     - name: http
+      protocol: TCP
       port: 80
       targetPort: http
-      protocol: TCP
     # Порт приложения: vmagent скрейпит /api/v1/allmetrics.
     - name: scrape
+      protocol: TCP
       port: 19999
       targetPort: http
-      protocol: TCP

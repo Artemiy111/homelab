@@ -27,16 +27,25 @@ metadata:
   namespace: immich
 spec:
   instances: 1
+  resources:
+    limits:
+      cpu: "2"
+      memory: 2Gi
+    requests:
+      cpu: 200m
+      memory: 256Mi
+  imageName: ghcr.io/cloudnative-pg/postgresql:18.4-standard-trixie
+  managed:
+    roles:
+      # Имя роли не postgres: его оператор резервирует за собой. Поэтому в
+      # Immich DB_USERNAME тоже меняется на immich, а не только хост.
+      - name: immich
+        ensure: present
+        login: true
+        passwordSecret:
+          name: immich-db-auth
   # Одноинстансный кластер: PDB заблокировал бы drain ноды (switchover'а нет).
   enablePDB: false
-  imageName: ghcr.io/cloudnative-pg/postgresql:18.4-standard-trixie
-
-  # Локаль окружения: без неё setlocale падает в POSIX/C и psql в поде
-  # разваливает многобайтовый ввод. Локаль баз задана в bootstrap.initdb.
-  env:
-    - name: LANG
-      value: C.utf8
-
   storage:
     storageClass: longhorn-retain
     # 2Gi: данные источника 287 МБ плюс пересоздание двух vchord-индексов при
@@ -45,15 +54,6 @@ spec:
     # под операции, переписывающие индексы, запас нужен сверх «данные + пол».
     # Дальше растёт вместе с библиотекой (эмбеддинги); сжать нельзя.
     size: 2Gi
-
-  resources:
-    requests:
-      cpu: 200m
-      memory: 256Mi
-    limits:
-      cpu: "2"
-      memory: 2Gi
-
   postgresql:
     # Стендбаев нет, а дефолт CNPG wal_keep_size=512MB — это запас WAL под них:
     # такой потолок заставлял бы том переживать всплеск WAL в полгигабайта.
@@ -73,24 +73,18 @@ spec:
           - /usr/lib/postgresql/18/lib
         extension_control_path:
           - /usr/share/postgresql/18/
-
   bootstrap:
     initdb:
+      dataChecksums: true
       # Служебные app/app со случайным паролем: ни один сервис не выделяем.
       # Реальные роли — в managed.roles, базы — объектами Database.
       encoding: UTF8
-      localeProvider: icu
       icuLocale: und
       # ctype ICU не заменяет: он всегда из libc.
       localeCType: C.utf8
-      dataChecksums: true
-
-  managed:
-    roles:
-      # Имя роли не postgres: его оператор резервирует за собой. Поэтому в
-      # Immich DB_USERNAME тоже меняется на immich, а не только хост.
-      - name: immich
-        ensure: present
-        login: true
-        passwordSecret:
-          name: immich-db-auth
+      localeProvider: icu
+  # Локаль окружения: без неё setlocale падает в POSIX/C и psql в поде
+  # разваливает многобайтовый ввод. Локаль баз задана в bootstrap.initdb.
+  env:
+    - name: LANG
+      value: C.utf8

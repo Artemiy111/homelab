@@ -4,10 +4,6 @@ metadata:
   name: beszel
   namespace: beszel
 spec:
-  # SQLite на RWO-томе: два пода при rolling update пишут в одну БД.
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
@@ -18,10 +14,6 @@ spec:
         app: beszel
     spec:
       enableServiceLinks: false
-      # fsGroup даёт групповую запись в том Longhorn, иначе root-owned каталог
-      # тома недоступен пользователю 1000.
-      securityContext:
-        fsGroup: 1000
       containers:
         - name: beszel
           image: "henrygd/beszel:0.18.7@sha256:a849ad80814b6a1a3be665304dcace5d4854b3bed7bde4dd1227e8ce1b82d477"
@@ -43,6 +35,32 @@ spec:
               value: "https://beszel.$(DOMAIN)"
             - name: DISABLE_PASSWORD_AUTH
               value: "true"
+          resources:
+            limits:
+              cpu: "1"
+              memory: 512Mi
+            requests:
+              cpu: 50m
+              memory: 64Mi
+          volumeMounts:
+            - name: data
+              mountPath: /beszel_data
+            - name: socket
+              mountPath: /beszel_socket
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            timeoutSeconds: 5
+            periodSeconds: 30
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            timeoutSeconds: 5
+            periodSeconds: 30
+            failureThreshold: 3
           startupProbe:
             httpGet:
               path: /api/health
@@ -50,41 +68,15 @@ spec:
             initialDelaySeconds: 10
             periodSeconds: 5
             failureThreshold: 30
-          livenessProbe:
-            httpGet:
-              path: /api/health
-              port: http
-            periodSeconds: 30
-            timeoutSeconds: 5
-            failureThreshold: 3
-          readinessProbe:
-            httpGet:
-              path: /api/health
-              port: http
-            periodSeconds: 30
-            timeoutSeconds: 5
-            failureThreshold: 3
           securityContext:
-            runAsUser: 1000
-            runAsGroup: 1000
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
             capabilities:
               drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
             seccompProfile:
               type: RuntimeDefault
-          resources:
-            requests:
-              cpu: 50m
-              memory: 64Mi
-            limits:
-              cpu: "1"
-              memory: 512Mi
-          volumeMounts:
-            - name: data
-              mountPath: /beszel_data
-            - name: socket
-              mountPath: /beszel_socket
       volumes:
         - name: data
           persistentVolumeClaim:
@@ -93,3 +85,11 @@ spec:
           hostPath:
             path: /storage/apps/beszel/socket
             type: Directory
+      # fsGroup даёт групповую запись в том Longhorn, иначе root-owned каталог
+      # тома недоступен пользователю 1000.
+      securityContext:
+        fsGroup: 1000
+  # SQLite на RWO-томе: два пода при rolling update пишут в одну БД.
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2

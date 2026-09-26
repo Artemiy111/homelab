@@ -4,10 +4,6 @@ metadata:
   name: jitsi-jicofo
   namespace: jitsi
 spec:
-  # RWO-тома: два пода при rolling update пишут в одни каталоги.
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
@@ -18,33 +14,30 @@ spec:
         app: jitsi-jicofo
     spec:
       enableServiceLinks: false
-      # fsGroup даёт групповую запись в тома Longhorn для пользователя 1000.
-      securityContext:
-        fsGroup: 1000
       # s6-overlay требует, чтобы /run принадлежал пользователю контейнера;
       # пустой emptyDir создаётся root-овым, поэтому чиним владельца до старта.
       initContainers:
         - name: fix-run-perms
           image: "redis:8.10-alpine@sha256:978f0e01593e65eed801f2402944efcd936d43b5027e4908a7897baf88ed6241"
           command: ["sh", "-c", "chown 1000:1000 /run && chmod 0750 /run"]
-          securityContext:
-            runAsUser: 0
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: ["ALL"]
-              add: ["CHOWN", "FOWNER"]
-            seccompProfile:
-              type: RuntimeDefault
           resources:
-            requests:
-              cpu: 10m
-              memory: 16Mi
             limits:
               cpu: 100m
               memory: 32Mi
+            requests:
+              cpu: 10m
+              memory: 16Mi
           volumeMounts:
             - name: run
               mountPath: /run
+          securityContext:
+            capabilities:
+              add: ["CHOWN", "FOWNER"]
+              drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            runAsUser: 0
+            seccompProfile:
+              type: RuntimeDefault
       containers:
         - name: jicofo
           image: "ghcr.io/jitsi/jicofo:stable-11146-1@sha256:a5da296923010dcc2daf6a02e6a183181906cb969a088ae90b97516bdeb9737f"
@@ -93,23 +86,13 @@ spec:
               value: recorder.meet.jitsi
             - name: XMPP_SERVER
               value: prosody
-          securityContext:
-            runAsUser: 1000
-            runAsGroup: 1000
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: true
-            capabilities:
-              drop: ["ALL"]
-            seccompProfile:
-              type: RuntimeDefault
           resources:
-            requests:
-              cpu: 50m
-              memory: 128Mi
             limits:
               cpu: "1"
               memory: 512Mi
+            requests:
+              cpu: 50m
+              memory: 128Mi
           volumeMounts:
             - name: config
               mountPath: /config
@@ -117,6 +100,16 @@ spec:
               mountPath: /run
             - name: tmp
               mountPath: /tmp
+          securityContext:
+            capabilities:
+              drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            seccompProfile:
+              type: RuntimeDefault
       volumes:
         - name: config
           persistentVolumeClaim:
@@ -127,3 +120,10 @@ spec:
         - name: tmp
           emptyDir:
             sizeLimit: 16Mi
+      # fsGroup даёт групповую запись в тома Longhorn для пользователя 1000.
+      securityContext:
+        fsGroup: 1000
+  # RWO-тома: два пода при rolling update пишут в одни каталоги.
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2

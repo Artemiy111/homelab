@@ -4,10 +4,6 @@ metadata:
   name: dawarich
   namespace: dawarich
 spec:
-  # RWO-тома storage/watched общие с sidekiq: оба пода пишут в один каталог.
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
@@ -21,41 +17,41 @@ spec:
         - name: wait-for-db
           image: "postgis/postgis:17-3.5-alpine@sha256:61cb994f576480f5736974e5c9aff965d039d965301bcaec9c7ea72f94b61908"
           command: ["/bin/sh", "-c", "until pg_isready -h dawarich-db-rw.dawarich.svc.cluster.local -p 5432 -U dawarich; do echo waiting for dawarich-db; sleep 2; done"]
-          securityContext:
-            runAsUser: 70
-            runAsGroup: 70
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: ["ALL"]
-            seccompProfile:
-              type: RuntimeDefault
           resources:
-            requests:
-              cpu: 10m
-              memory: 32Mi
             limits:
               cpu: 100m
               memory: 64Mi
+            requests:
+              cpu: 10m
+              memory: 32Mi
+          securityContext:
+            capabilities:
+              drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            runAsGroup: 70
+            runAsNonRoot: true
+            runAsUser: 70
+            seccompProfile:
+              type: RuntimeDefault
         - name: wait-for-redis
           image: "redis:7.4-alpine@sha256:e7723ff73d963f5cc6d9c4643ea3d989527a402a319239054e9472a7fb9219a2"
           command: ["/bin/sh", "-c", "until redis-cli -h dawarich-redis ping | grep -q PONG; do echo waiting for dawarich-redis; sleep 2; done"]
-          securityContext:
-            runAsUser: 999
-            runAsGroup: 999
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: ["ALL"]
-            seccompProfile:
-              type: RuntimeDefault
           resources:
-            requests:
-              cpu: 10m
-              memory: 32Mi
             limits:
               cpu: 100m
               memory: 64Mi
+            requests:
+              cpu: 10m
+              memory: 32Mi
+          securityContext:
+            capabilities:
+              drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            runAsGroup: 999
+            runAsNonRoot: true
+            runAsUser: 999
+            seccompProfile:
+              type: RuntimeDefault
       containers:
         - name: dawarich
           image: "freikin/dawarich:1.14.5@sha256:23b4e3190bcf8dcdaaa3a17868977b760370a84a325229183d6f8f81cba3495a"
@@ -123,6 +119,40 @@ spec:
               value: "true"
             - name: WEB_CONCURRENCY
               value: "1"
+          resources:
+            limits:
+              cpu: 500m
+              memory: 4Gi
+            requests:
+              cpu: 100m
+              memory: 512Mi
+          volumeMounts:
+            - name: public
+              mountPath: /var/app/public
+            - name: watched
+              mountPath: /var/app/tmp/imports/watched
+            - name: storage
+              mountPath: /var/app/storage
+          livenessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: http
+              httpHeaders:
+                - name: X-Forwarded-Proto
+                  value: https
+            timeoutSeconds: 10
+            periodSeconds: 30
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: http
+              httpHeaders:
+                - name: X-Forwarded-Proto
+                  value: https
+            timeoutSeconds: 10
+            periodSeconds: 30
+            failureThreshold: 3
           startupProbe:
             httpGet:
               path: /api/v1/health
@@ -133,50 +163,16 @@ spec:
             initialDelaySeconds: 20
             periodSeconds: 10
             failureThreshold: 60
-          livenessProbe:
-            httpGet:
-              path: /api/v1/health
-              port: http
-              httpHeaders:
-                - name: X-Forwarded-Proto
-                  value: https
-            periodSeconds: 30
-            timeoutSeconds: 10
-            failureThreshold: 3
-          readinessProbe:
-            httpGet:
-              path: /api/v1/health
-              port: http
-              httpHeaders:
-                - name: X-Forwarded-Proto
-                  value: https
-            periodSeconds: 30
-            timeoutSeconds: 10
-            failureThreshold: 3
           securityContext:
-            allowPrivilegeEscalation: false
             # Образ стартует как root и работает с hostPath, принадлежащими
             # uid 1000; без DAC_OVERRIDE root не может удалять чужие файлы
             # (rm public/assets: Permission denied).
             capabilities:
-              drop: ["ALL"]
               add: ["SETUID", "SETGID", "CHOWN", "DAC_OVERRIDE"]
+              drop: ["ALL"]
+            allowPrivilegeEscalation: false
             seccompProfile:
               type: RuntimeDefault
-          resources:
-            requests:
-              cpu: 100m
-              memory: 512Mi
-            limits:
-              cpu: 500m
-              memory: 4Gi
-          volumeMounts:
-            - name: public
-              mountPath: /var/app/public
-            - name: watched
-              mountPath: /var/app/tmp/imports/watched
-            - name: storage
-              mountPath: /var/app/storage
       volumes:
         - name: public
           emptyDir: {}
@@ -186,3 +182,7 @@ spec:
         - name: storage
           persistentVolumeClaim:
             claimName: dawarich-storage
+  # RWO-тома storage/watched общие с sidekiq: оба пода пишут в один каталог.
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2

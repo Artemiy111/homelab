@@ -4,10 +4,6 @@ metadata:
   name: mail
   namespace: mailserver
 spec:
-  # RWO-том данных: два пода при rolling update пишут в один каталог.
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
@@ -18,10 +14,6 @@ spec:
         app: mail
     spec:
       enableServiceLinks: false
-      # fsGroup даёт групповую запись в том Longhorn, иначе root-owned каталог
-      # тома недоступен пользователю 1000.
-      securityContext:
-        fsGroup: 1000
       containers:
         - name: mail
           image: "ghcr.io/bulwarkmail/webmail:1.8@sha256:97d9d96adfb7c1d221b71b90b8380b98e2e5623f64ba62b090e45911f4ee0b3b"
@@ -50,6 +42,30 @@ spec:
               value: "true"
             - name: BULWARK_TELEMETRY
               value: "off"
+          resources:
+            limits:
+              cpu: "1"
+              memory: 512Mi
+            requests:
+              cpu: 50m
+              memory: 128Mi
+          volumeMounts:
+            - name: data
+              mountPath: /app/data
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            timeoutSeconds: 5
+            periodSeconds: 30
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            timeoutSeconds: 5
+            periodSeconds: 30
+            failureThreshold: 3
           startupProbe:
             httpGet:
               path: /api/health
@@ -57,40 +73,24 @@ spec:
             initialDelaySeconds: 10
             periodSeconds: 5
             failureThreshold: 30
-          livenessProbe:
-            httpGet:
-              path: /api/health
-              port: http
-            periodSeconds: 30
-            timeoutSeconds: 5
-            failureThreshold: 3
-          readinessProbe:
-            httpGet:
-              path: /api/health
-              port: http
-            periodSeconds: 30
-            timeoutSeconds: 5
-            failureThreshold: 3
           securityContext:
-            runAsUser: 1000
-            runAsGroup: 1000
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
             capabilities:
               drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
             seccompProfile:
               type: RuntimeDefault
-          resources:
-            requests:
-              cpu: 50m
-              memory: 128Mi
-            limits:
-              cpu: "1"
-              memory: 512Mi
-          volumeMounts:
-            - name: data
-              mountPath: /app/data
       volumes:
         - name: data
           persistentVolumeClaim:
             claimName: mailserver-mail
+      # fsGroup даёт групповую запись в том Longhorn, иначе root-owned каталог
+      # тома недоступен пользователю 1000.
+      securityContext:
+        fsGroup: 1000
+  # RWO-том данных: два пода при rolling update пишут в один каталог.
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2

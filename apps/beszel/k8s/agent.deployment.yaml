@@ -4,12 +4,9 @@ metadata:
   name: beszel-agent
   namespace: beszel
   annotations:
-    ignore-check.kube-linter.io/host-network: "агент слушает unix-сокет, общий с hub, и собирает метрики хоста — нужен hostNetwork (#161)"
     ignore-check.kube-linter.io/docker-sock: "агент читает docker.sock read-only для метрик контейнеров (#161)"
+    ignore-check.kube-linter.io/host-network: "агент слушает unix-сокет, общий с hub, и собирает метрики хоста — нужен hostNetwork (#161)"
 spec:
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
@@ -19,10 +16,10 @@ spec:
       labels:
         app: beszel-agent
     spec:
+      dnsPolicy: ClusterFirstWithHostNet
       # Агент собирает метрики хоста и Docker-контейнеров и слушает unix-сокет,
       # общий с hub: hostNetwork + /var/run/docker.sock.
       hostNetwork: true
-      dnsPolicy: ClusterFirstWithHostNet
       enableServiceLinks: false
       containers:
         - name: beszel-agent
@@ -56,47 +53,47 @@ spec:
               value: "$(BESZEL_AGENT_KEY)"
             - name: TOKEN
               value: "$(BESZEL_AGENT_TOKEN)"
-          startupProbe:
-            exec:
-              command: ["/agent", "health"]
-            initialDelaySeconds: 10
-            periodSeconds: 5
-            failureThreshold: 30
-          livenessProbe:
-            exec:
-              command: ["/agent", "health"]
-            periodSeconds: 120
-            timeoutSeconds: 5
-            failureThreshold: 3
-          readinessProbe:
-            exec:
-              command: ["/agent", "health"]
-            periodSeconds: 120
-            timeoutSeconds: 5
-            failureThreshold: 3
-          securityContext:
-            runAsUser: 0
-            runAsGroup: 0
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: ["ALL"]
-            seccompProfile:
-              type: RuntimeDefault
           resources:
-            requests:
-              cpu: 50m
-              memory: 64Mi
             limits:
               cpu: "1"
               memory: 512Mi
+            requests:
+              cpu: 50m
+              memory: 64Mi
           volumeMounts:
             - name: agent
               mountPath: /var/lib/beszel-agent
             - name: socket
               mountPath: /beszel_socket
             - name: docker-sock
-              mountPath: /var/run/docker.sock
               readOnly: true
+              mountPath: /var/run/docker.sock
+          livenessProbe:
+            exec:
+              command: ["/agent", "health"]
+            timeoutSeconds: 5
+            periodSeconds: 120
+            failureThreshold: 3
+          readinessProbe:
+            exec:
+              command: ["/agent", "health"]
+            timeoutSeconds: 5
+            periodSeconds: 120
+            failureThreshold: 3
+          startupProbe:
+            exec:
+              command: ["/agent", "health"]
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 30
+          securityContext:
+            capabilities:
+              drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            runAsUser: 0
+            runAsGroup: 0
+            seccompProfile:
+              type: RuntimeDefault
       volumes:
         - name: agent
           persistentVolumeClaim:
@@ -109,3 +106,6 @@ spec:
           hostPath:
             path: /var/run/docker.sock
             type: Socket
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2

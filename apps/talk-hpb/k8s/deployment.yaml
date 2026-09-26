@@ -6,9 +6,6 @@ metadata:
   annotations:
     ignore-check.kube-linter.io/host-network: "TURN/STUN 3478 и relay 20000-20499 публикуются на LAN-адресе узла (#161)"
 spec:
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
@@ -18,9 +15,9 @@ spec:
       labels:
         app: talk-hpb
     spec:
+      dnsPolicy: ClusterFirstWithHostNet
       # TURN/STUN 3478 и relay 20000-20499 публикуются напрямую на LAN-адресе узла
       hostNetwork: true
-      dnsPolicy: ClusterFirstWithHostNet
       enableServiceLinks: false
       containers:
         - name: talk-hpb
@@ -35,18 +32,14 @@ spec:
             - /bin/sh
             - -c
             - >-
-              sed -i 's|^  whitelist_peers:|  whitelist_peers:\n  - "$(TALK_RELAY_NETWORK)"|' /conf/eturnal.yml
-              && awk -v ip="$(HOST_IP)" -v mn="$(TALK_RELAY_MIN_PORT)" -v mx="$(TALK_RELAY_MAX_PORT)" '{print} /^  secret:/{print "  relay_ipv4_addr: \"" ip "\""; print "  relay_min_port: " mn; print "  relay_max_port: " mx}' /conf/eturnal.yml > /conf/eturnal.yml.tmp
-              && mv /conf/eturnal.yml.tmp /conf/eturnal.yml
-              && sed -i 's|turn_server = "[^"]*"|turn_server = "127.0.0.1"|' /conf/janus.jcfg
-              && exec supervisord -c /supervisord.conf
+              sed -i 's|^  whitelist_peers:|  whitelist_peers:\n  - "$(TALK_RELAY_NETWORK)"|' /conf/eturnal.yml && awk -v ip="$(HOST_IP)" -v mn="$(TALK_RELAY_MIN_PORT)" -v mx="$(TALK_RELAY_MAX_PORT)" '{print} /^  secret:/{print "  relay_ipv4_addr: \"" ip "\""; print "  relay_min_port: " mn; print "  relay_max_port: " mx}' /conf/eturnal.yml > /conf/eturnal.yml.tmp && mv /conf/eturnal.yml.tmp /conf/eturnal.yml && sed -i 's|turn_server = "[^"]*"|turn_server = "127.0.0.1"|' /conf/janus.jcfg && exec supervisord -c /supervisord.conf
           ports:
             - name: turn-tcp
-              containerPort: 3478
               protocol: TCP
-            - name: turn-udp
               containerPort: 3478
+            - name: turn-udp
               protocol: UDP
+              containerPort: 3478
             - name: signaling
               containerPort: 8081
           env:
@@ -99,23 +92,13 @@ spec:
               value: "15728640"
             - name: TALK_MAX_SCREEN_BITRATE
               value: "26214400"
-          securityContext:
-            runAsUser: 1000
-            runAsGroup: 1000
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: true
-            capabilities:
-              drop: ["ALL"]
-            seccompProfile:
-              type: RuntimeDefault
           resources:
-            requests:
-              cpu: 200m
-              memory: 192Mi
             limits:
               cpu: "2"
               memory: 2Gi
+            requests:
+              cpu: 200m
+              memory: 192Mi
           volumeMounts:
             - name: conf
               mountPath: /conf
@@ -127,6 +110,16 @@ spec:
               mountPath: /var/run/supervisord
             - name: tmp
               mountPath: /tmp
+          securityContext:
+            capabilities:
+              drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            seccompProfile:
+              type: RuntimeDefault
       volumes:
         - name: conf
           emptyDir: {}
@@ -138,3 +131,6 @@ spec:
           emptyDir: {}
         - name: tmp
           emptyDir: {}
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2

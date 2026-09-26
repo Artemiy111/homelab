@@ -9,6 +9,6 @@ spec:
     app: home-assistant
   ports:
     - name: http
+      protocol: TCP
       port: 80
       targetPort: http
-      protocol: TCP

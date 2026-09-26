@@ -4,10 +4,6 @@ metadata:
   name: ats
   namespace: ats
 spec:
-  # RWO-том: два пода одновременно его не смонтируют.
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
@@ -17,12 +13,6 @@ spec:
       labels:
         app: ats
     spec:
-      # traffic_server всегда сбрасывает привилегии на proxy.config.admin.user_id
-      # (в образе это `nobody`, uid/gid 65534, запись read-only) и уже от него
-      # пишет cache.db. PVC Longhorn принадлежит root, поэтому даём тому
-      # групповую запись для gid nobody через fsGroup.
-      securityContext:
-        fsGroup: 65534
       enableServiceLinks: false
       containers:
         - name: ats
@@ -30,23 +20,33 @@ spec:
           # Секрет PURGE подставляется в remap.config на старте (см. run.sh).
           # Шелл нужен для подстановки; exec внутри run.sh сохраняет PID 1.
           command: ["/bin/sh", "/run/ats-src/run.sh"]
+          ports:
+            - name: http
+              containerPort: 8080
           env:
             - name: ATS_PURGE_TOKEN
               valueFrom:
                 secretKeyRef:
                   name: ats
                   key: ATS_PURGE_TOKEN
-          ports:
-            - name: http
-              containerPort: 8080
-          # Порт занят всё время работы процесса; traffic_server сам ловит
-          # конфигурационные ошибки на старте и не открывает сокет, поэтому
-          # TCP-проб достаточно.
-          startupProbe:
-            tcpSocket:
-              port: http
-            periodSeconds: 5
-            failureThreshold: 30
+          resources:
+            limits:
+              cpu: "2"
+              memory: 1Gi
+            requests:
+              cpu: 100m
+              memory: 256Mi
+          volumeMounts:
+            # ConfigMap со всеми конфигами монтируется в staging-каталог, а
+            # run.sh копирует их в /opt/etc/trafficserver (там их читает ATS) и
+            # подставляет секрет PURGE. Монтировать файлы напрямую в
+            # /opt/etc/trafficserver нельзя: они стали бы read-only и
+            # подстановка секрета не применилась бы.
+            - name: config
+              readOnly: true
+              mountPath: /run/ats-src
+            - name: cache
+              mountPath: /var/cache/trafficserver
           livenessProbe:
             tcpSocket:
               port: http
@@ -55,24 +55,14 @@ spec:
             tcpSocket:
               port: http
             periodSeconds: 30
-          resources:
-            requests:
-              cpu: 100m
-              memory: 256Mi
-            limits:
-              cpu: "2"
-              memory: 1Gi
-          volumeMounts:
-            # ConfigMap со всеми конфигами монтируется в staging-каталог, а
-            # run.sh копирует их в /opt/etc/trafficserver (там их читает ATS) и
-            # подставляет секрет PURGE. Монтировать файлы напрямую в
-            # /opt/etc/trafficserver нельзя: они стали бы read-only и
-            # подстановка секрета не применилась бы.
-            - name: config
-              mountPath: /run/ats-src
-              readOnly: true
-            - name: cache
-              mountPath: /var/cache/trafficserver
+          # Порт занят всё время работы процесса; traffic_server сам ловит
+          # конфигурационные ошибки на старте и не открывает сокет, поэтому
+          # TCP-проб достаточно.
+          startupProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 5
+            failureThreshold: 30
       volumes:
         - name: config
           configMap:
@@ -80,3 +70,13 @@ spec:
         - name: cache
           persistentVolumeClaim:
             claimName: ats-cache
+      # traffic_server всегда сбрасывает привилегии на proxy.config.admin.user_id
+      # (в образе это `nobody`, uid/gid 65534, запись read-only) и уже от него
+      # пишет cache.db. PVC Longhorn принадлежит root, поэтому даём тому
+      # групповую запись для gid nobody через fsGroup.
+      securityContext:
+        fsGroup: 65534
+  # RWO-том: два пода одновременно его не смонтируют.
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2

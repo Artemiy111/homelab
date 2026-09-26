@@ -5,7 +5,6 @@ metadata:
   name: dawarich-redis-exporter
   namespace: dawarich
 spec:
-  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
@@ -25,36 +24,37 @@ spec:
           env:
             - name: REDIS_ADDR
               value: "redis://dawarich-redis:6379"
+          resources:
+            limits:
+              cpu: 100m
+              memory: 64Mi
+            requests:
+              cpu: 10m
+              memory: 32Mi
           livenessProbe:
             httpGet:
               path: /metrics
               port: metrics
-            periodSeconds: 30
             timeoutSeconds: 5
+            periodSeconds: 30
             failureThreshold: 3
           readinessProbe:
             httpGet:
               path: /metrics
               port: metrics
-            periodSeconds: 30
             timeoutSeconds: 5
+            periodSeconds: 30
             failureThreshold: 3
           securityContext:
-            runAsUser: 59000
-            runAsGroup: 59000
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
             capabilities:
               drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 59000
+            runAsGroup: 59000
             seccompProfile:
               type: RuntimeDefault
-          resources:
-            requests:
-              cpu: 10m
-              memory: 32Mi
-            limits:
-              cpu: 100m
-              memory: 64Mi
+  revisionHistoryLimit: 2
 ---
 apiVersion: v1
 kind: Service
@@ -67,9 +67,9 @@ spec:
     app: dawarich-redis-exporter
   ports:
     - name: metrics
+      protocol: TCP
       port: 9121
       targetPort: metrics
-      protocol: TCP
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -77,7 +77,6 @@ metadata:
   name: element-redis-exporter
   namespace: element
 spec:
-  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
@@ -97,36 +96,37 @@ spec:
           env:
             - name: REDIS_ADDR
               value: "redis://element-redis.element.svc.cluster.local:6379"
+          resources:
+            limits:
+              cpu: 100m
+              memory: 64Mi
+            requests:
+              cpu: 10m
+              memory: 32Mi
           livenessProbe:
             httpGet:
               path: /metrics
               port: metrics
-            periodSeconds: 30
             timeoutSeconds: 5
+            periodSeconds: 30
             failureThreshold: 3
           readinessProbe:
             httpGet:
               path: /metrics
               port: metrics
-            periodSeconds: 30
             timeoutSeconds: 5
+            periodSeconds: 30
             failureThreshold: 3
           securityContext:
-            runAsUser: 59000
-            runAsGroup: 59000
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
             capabilities:
               drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 59000
+            runAsGroup: 59000
             seccompProfile:
               type: RuntimeDefault
-          resources:
-            requests:
-              cpu: 10m
-              memory: 32Mi
-            limits:
-              cpu: 100m
-              memory: 64Mi
+  revisionHistoryLimit: 2
 ---
 apiVersion: v1
 kind: Service
@@ -139,9 +139,9 @@ spec:
     app: element-redis-exporter
   ports:
     - name: metrics
+      protocol: TCP
       port: 9121
       targetPort: metrics
-      protocol: TCP
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -149,7 +149,6 @@ metadata:
   name: glitchtip-valkey-exporter
   namespace: glitchtip
 spec:
-  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
@@ -169,36 +168,37 @@ spec:
           env:
             - name: REDIS_ADDR
               value: "redis://glitchtip-valkey.glitchtip.svc.cluster.local:6379"
+          resources:
+            limits:
+              cpu: 100m
+              memory: 64Mi
+            requests:
+              cpu: 10m
+              memory: 32Mi
           livenessProbe:
             httpGet:
               path: /metrics
               port: metrics
-            periodSeconds: 30
             timeoutSeconds: 5
+            periodSeconds: 30
             failureThreshold: 3
           readinessProbe:
             httpGet:
               path: /metrics
               port: metrics
-            periodSeconds: 30
             timeoutSeconds: 5
+            periodSeconds: 30
             failureThreshold: 3
           securityContext:
-            runAsUser: 59000
-            runAsGroup: 59000
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
             capabilities:
               drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 59000
+            runAsGroup: 59000
             seccompProfile:
               type: RuntimeDefault
-          resources:
-            requests:
-              cpu: 10m
-              memory: 32Mi
-            limits:
-              cpu: 100m
-              memory: 64Mi
+  revisionHistoryLimit: 2
 ---
 apiVersion: v1
 kind: Service
@@ -211,9 +211,9 @@ spec:
     app: glitchtip-valkey-exporter
   ports:
     - name: metrics
+      protocol: TCP
       port: 9121
       targetPort: metrics
-      protocol: TCP
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -221,7 +221,6 @@ metadata:
   name: immich-valkey-exporter
   namespace: immich
 spec:
-  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
@@ -241,36 +240,37 @@ spec:
           env:
             - name: REDIS_ADDR
               value: "redis://immich-valkey:6379"
+          resources:
+            limits:
+              cpu: 100m
+              memory: 64Mi
+            requests:
+              cpu: 10m
+              memory: 32Mi
           livenessProbe:
             httpGet:
               path: /metrics
               port: metrics
-            periodSeconds: 30
             timeoutSeconds: 5
+            periodSeconds: 30
             failureThreshold: 3
           readinessProbe:
             httpGet:
               path: /metrics
               port: metrics
-            periodSeconds: 30
             timeoutSeconds: 5
+            periodSeconds: 30
             failureThreshold: 3
           securityContext:
-            runAsUser: 59000
-            runAsGroup: 59000
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
             capabilities:
               drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 59000
+            runAsGroup: 59000
             seccompProfile:
               type: RuntimeDefault
-          resources:
-            requests:
-              cpu: 10m
-              memory: 32Mi
-            limits:
-              cpu: 100m
-              memory: 64Mi
+  revisionHistoryLimit: 2
 ---
 apiVersion: v1
 kind: Service
@@ -283,9 +283,9 @@ spec:
     app: immich-valkey-exporter
   ports:
     - name: metrics
+      protocol: TCP
       port: 9121
       targetPort: metrics
-      protocol: TCP
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -293,7 +293,6 @@ metadata:
   name: infisical-redis-exporter
   namespace: infisical
 spec:
-  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
@@ -313,36 +312,37 @@ spec:
           env:
             - name: REDIS_ADDR
               value: "redis://infisical-redis.infisical.svc.cluster.local:6379"
+          resources:
+            limits:
+              cpu: 100m
+              memory: 64Mi
+            requests:
+              cpu: 10m
+              memory: 32Mi
           livenessProbe:
             httpGet:
               path: /metrics
               port: metrics
-            periodSeconds: 30
             timeoutSeconds: 5
+            periodSeconds: 30
             failureThreshold: 3
           readinessProbe:
             httpGet:
               path: /metrics
               port: metrics
-            periodSeconds: 30
             timeoutSeconds: 5
+            periodSeconds: 30
             failureThreshold: 3
           securityContext:
-            runAsUser: 59000
-            runAsGroup: 59000
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
             capabilities:
               drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 59000
+            runAsGroup: 59000
             seccompProfile:
               type: RuntimeDefault
-          resources:
-            requests:
-              cpu: 10m
-              memory: 32Mi
-            limits:
-              cpu: 100m
-              memory: 64Mi
+  revisionHistoryLimit: 2
 ---
 apiVersion: v1
 kind: Service
@@ -355,9 +355,9 @@ spec:
     app: infisical-redis-exporter
   ports:
     - name: metrics
+      protocol: TCP
       port: 9121
       targetPort: metrics
-      protocol: TCP
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -365,7 +365,6 @@ metadata:
   name: nextcloud-redis-exporter
   namespace: nextcloud
 spec:
-  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
@@ -385,36 +384,37 @@ spec:
           env:
             - name: REDIS_ADDR
               value: "redis://nextcloud-redis.nextcloud.svc.cluster.local:6379"
+          resources:
+            limits:
+              cpu: 100m
+              memory: 64Mi
+            requests:
+              cpu: 10m
+              memory: 32Mi
           livenessProbe:
             httpGet:
               path: /metrics
               port: metrics
-            periodSeconds: 30
             timeoutSeconds: 5
+            periodSeconds: 30
             failureThreshold: 3
           readinessProbe:
             httpGet:
               path: /metrics
               port: metrics
-            periodSeconds: 30
             timeoutSeconds: 5
+            periodSeconds: 30
             failureThreshold: 3
           securityContext:
-            runAsUser: 59000
-            runAsGroup: 59000
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
             capabilities:
               drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 59000
+            runAsGroup: 59000
             seccompProfile:
               type: RuntimeDefault
-          resources:
-            requests:
-              cpu: 10m
-              memory: 32Mi
-            limits:
-              cpu: 100m
-              memory: 64Mi
+  revisionHistoryLimit: 2
 ---
 apiVersion: v1
 kind: Service
@@ -427,9 +427,9 @@ spec:
     app: nextcloud-redis-exporter
   ports:
     - name: metrics
+      protocol: TCP
       port: 9121
       targetPort: metrics
-      protocol: TCP
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -437,7 +437,6 @@ metadata:
   name: paperless-broker-exporter
   namespace: paperless
 spec:
-  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
@@ -457,36 +456,37 @@ spec:
           env:
             - name: REDIS_ADDR
               value: "redis://paperless-broker:6379"
+          resources:
+            limits:
+              cpu: 100m
+              memory: 64Mi
+            requests:
+              cpu: 10m
+              memory: 32Mi
           livenessProbe:
             httpGet:
               path: /metrics
               port: metrics
-            periodSeconds: 30
             timeoutSeconds: 5
+            periodSeconds: 30
             failureThreshold: 3
           readinessProbe:
             httpGet:
               path: /metrics
               port: metrics
-            periodSeconds: 30
             timeoutSeconds: 5
+            periodSeconds: 30
             failureThreshold: 3
           securityContext:
-            runAsUser: 59000
-            runAsGroup: 59000
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
             capabilities:
               drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 59000
+            runAsGroup: 59000
             seccompProfile:
               type: RuntimeDefault
-          resources:
-            requests:
-              cpu: 10m
-              memory: 32Mi
-            limits:
-              cpu: 100m
-              memory: 64Mi
+  revisionHistoryLimit: 2
 ---
 apiVersion: v1
 kind: Service
@@ -499,9 +499,9 @@ spec:
     app: paperless-broker-exporter
   ports:
     - name: metrics
+      protocol: TCP
       port: 9121
       targetPort: metrics
-      protocol: TCP
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -509,7 +509,6 @@ metadata:
   name: seafile-redis-exporter
   namespace: seafile
 spec:
-  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
@@ -529,36 +528,37 @@ spec:
           env:
             - name: REDIS_ADDR
               value: "redis://seafile-redis.seafile.svc.cluster.local:6379"
+          resources:
+            limits:
+              cpu: 100m
+              memory: 64Mi
+            requests:
+              cpu: 10m
+              memory: 32Mi
           livenessProbe:
             httpGet:
               path: /metrics
               port: metrics
-            periodSeconds: 30
             timeoutSeconds: 5
+            periodSeconds: 30
             failureThreshold: 3
           readinessProbe:
             httpGet:
               path: /metrics
               port: metrics
-            periodSeconds: 30
             timeoutSeconds: 5
+            periodSeconds: 30
             failureThreshold: 3
           securityContext:
-            runAsUser: 59000
-            runAsGroup: 59000
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
             capabilities:
               drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 59000
+            runAsGroup: 59000
             seccompProfile:
               type: RuntimeDefault
-          resources:
-            requests:
-              cpu: 10m
-              memory: 32Mi
-            limits:
-              cpu: 100m
-              memory: 64Mi
+  revisionHistoryLimit: 2
 ---
 apiVersion: v1
 kind: Service
@@ -571,9 +571,9 @@ spec:
     app: seafile-redis-exporter
   ports:
     - name: metrics
+      protocol: TCP
       port: 9121
       targetPort: metrics
-      protocol: TCP
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -581,7 +581,6 @@ metadata:
   name: sure-redis-exporter
   namespace: sure
 spec:
-  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
@@ -601,36 +600,37 @@ spec:
           env:
             - name: REDIS_ADDR
               value: "redis://sure-redis.sure.svc.cluster.local:6379"
+          resources:
+            limits:
+              cpu: 100m
+              memory: 64Mi
+            requests:
+              cpu: 10m
+              memory: 32Mi
           livenessProbe:
             httpGet:
               path: /metrics
               port: metrics
-            periodSeconds: 30
             timeoutSeconds: 5
+            periodSeconds: 30
             failureThreshold: 3
           readinessProbe:
             httpGet:
               path: /metrics
               port: metrics
-            periodSeconds: 30
             timeoutSeconds: 5
+            periodSeconds: 30
             failureThreshold: 3
           securityContext:
-            runAsUser: 59000
-            runAsGroup: 59000
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
             capabilities:
               drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 59000
+            runAsGroup: 59000
             seccompProfile:
               type: RuntimeDefault
-          resources:
-            requests:
-              cpu: 10m
-              memory: 32Mi
-            limits:
-              cpu: 100m
-              memory: 64Mi
+  revisionHistoryLimit: 2
 ---
 apiVersion: v1
 kind: Service
@@ -643,6 +643,6 @@ spec:
     app: sure-redis-exporter
   ports:
     - name: metrics
+      protocol: TCP
       port: 9121
       targetPort: metrics
-      protocol: TCP

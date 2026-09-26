@@ -32,5 +32,5 @@ spec:
             matchLabels:
               kubernetes.io/metadata.name: traefik
       ports:
-        - port: 4873
-          protocol: TCP
+        - protocol: TCP
+          port: 4873

@@ -29,12 +29,12 @@ spec:
             matchLabels:
               kubernetes.io/metadata.name: traefik
     - from:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: monitoring
-          podSelector:
+        - podSelector:
             matchLabels:
               app: gatus
+          namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
     - from:
         - namespaceSelector:
             matchLabels:

@@ -9,6 +9,6 @@ spec:
     app: zitadel-login
   ports:
     - name: http
+      protocol: TCP
       port: 80
       targetPort: http
-      protocol: TCP

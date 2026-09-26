@@ -4,9 +4,6 @@ metadata:
   name: immich-valkey
   namespace: immich
 spec:
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
@@ -22,12 +19,13 @@ spec:
           ports:
             - name: redis
               containerPort: 6379
-          startupProbe:
-            exec:
-              command: ["valkey-cli", "ping"]
-            initialDelaySeconds: 5
-            periodSeconds: 5
-            failureThreshold: 30
+          resources:
+            limits:
+              cpu: 500m
+              memory: 256Mi
+            requests:
+              cpu: 10m
+              memory: 64Mi
           livenessProbe:
             exec:
               command: ["valkey-cli", "ping"]
@@ -36,19 +34,21 @@ spec:
             exec:
               command: ["valkey-cli", "ping"]
             periodSeconds: 10
+          startupProbe:
+            exec:
+              command: ["valkey-cli", "ping"]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 30
           securityContext:
-            runAsUser: 999
-            runAsGroup: 999
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
             capabilities:
               drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 999
+            runAsGroup: 999
             seccompProfile:
               type: RuntimeDefault
-          resources:
-            requests:
-              cpu: 10m
-              memory: 64Mi
-            limits:
-              cpu: 500m
-              memory: 256Mi
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2

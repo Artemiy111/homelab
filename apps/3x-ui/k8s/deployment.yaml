@@ -4,10 +4,6 @@ metadata:
   name: 3x-ui
   namespace: 3x-ui
 spec:
-  # RWO-том: два пода при rolling update пишут в одну БД.
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
@@ -46,19 +42,19 @@ spec:
                 secretKeyRef:
                   name: 3x-ui
                   key: XUI_WEB_BASE_PATH
-          securityContext:
-            runAsUser: 0
-            runAsGroup: 0
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: ["ALL"]
-              # root без DAC_OVERRIDE не пишет в 0700-каталоги artlab.
-              add: ["DAC_OVERRIDE", "CHOWN", "FOWNER"]
-            seccompProfile:
-              type: RuntimeDefault
           volumeMounts:
             - name: db
               mountPath: /etc/x-ui
+          securityContext:
+            capabilities:
+              # root без DAC_OVERRIDE не пишет в 0700-каталоги artlab.
+              add: ["DAC_OVERRIDE", "CHOWN", "FOWNER"]
+              drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            runAsGroup: 0
+            runAsUser: 0
+            seccompProfile:
+              type: RuntimeDefault
       containers:
         - name: 3x-ui
           image: "ghcr.io/mhsanaei/3x-ui:v3.6.0@sha256:652ef431a2d351cfcc7b5dc91798de5c1dd50da8c1b44f9e3afee1c60817035e"
@@ -66,11 +62,11 @@ spec:
             - name: panel
               containerPort: 2053
             - name: inbound-tcp
-              containerPort: 8443
               protocol: TCP
-            - name: inbound-udp
               containerPort: 8443
+            - name: inbound-udp
               protocol: UDP
+              containerPort: 8443
             - name: egress
               containerPort: 8440
           env:
@@ -95,48 +91,52 @@ spec:
               value: "true"
             - name: XUI_SKIP_HSTS
               value: "true"
+          resources:
+            limits:
+              cpu: "1"
+              memory: 1Gi
+            requests:
+              cpu: 100m
+              memory: 192Mi
+          volumeMounts:
+            - name: db
+              mountPath: /etc/x-ui
+            - name: log
+              mountPath: /var/log/x-ui
+          livenessProbe:
+            tcpSocket:
+              port: panel
+            timeoutSeconds: 5
+            periodSeconds: 30
+            failureThreshold: 3
+          readinessProbe:
+            tcpSocket:
+              port: panel
+            timeoutSeconds: 5
+            periodSeconds: 30
+            failureThreshold: 3
           startupProbe:
             tcpSocket:
               port: panel
             initialDelaySeconds: 15
             periodSeconds: 5
             failureThreshold: 30
-          livenessProbe:
-            tcpSocket:
-              port: panel
-            periodSeconds: 30
-            timeoutSeconds: 5
-            failureThreshold: 3
-          readinessProbe:
-            tcpSocket:
-              port: panel
-            periodSeconds: 30
-            timeoutSeconds: 5
-            failureThreshold: 3
           securityContext:
+            capabilities:
+              add: ["NET_ADMIN", "NET_RAW", "DAC_OVERRIDE", "CHOWN", "FOWNER"]
+              drop: ["ALL"]
+            allowPrivilegeEscalation: false
             runAsUser: 0
             runAsGroup: 0
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: ["ALL"]
-              add: ["NET_ADMIN", "NET_RAW", "DAC_OVERRIDE", "CHOWN", "FOWNER"]
             seccompProfile:
               type: RuntimeDefault
-          resources:
-            requests:
-              cpu: 100m
-              memory: 192Mi
-            limits:
-              cpu: "1"
-              memory: 1Gi
-          volumeMounts:
-            - name: db
-              mountPath: /etc/x-ui
-            - name: log
-              mountPath: /var/log/x-ui
       volumes:
         - name: db
           persistentVolumeClaim:
             claimName: 3x-ui-db
         - name: log
           emptyDir: {}
+  # RWO-том: два пода при rolling update пишут в одну БД.
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2

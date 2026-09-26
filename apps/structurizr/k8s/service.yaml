@@ -10,6 +10,6 @@ spec:
   ports:
     # Gatus ходит на http://structurizr/ (порт 80).
     - name: http
+      protocol: TCP
       port: 80
       targetPort: http
-      protocol: TCP

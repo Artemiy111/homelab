@@ -9,14 +9,14 @@ spec:
     app: otel-collector
   ports:
     - name: otlp-grpc
+      protocol: TCP
       port: 4317
       targetPort: otlp-grpc
-      protocol: TCP
     - name: otlp-http
+      protocol: TCP
       port: 4318
       targetPort: otlp-http
-      protocol: TCP
     - name: prometheus
+      protocol: TCP
       port: 8889
       targetPort: prometheus
-      protocol: TCP

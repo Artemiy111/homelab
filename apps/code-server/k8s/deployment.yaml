@@ -4,10 +4,6 @@ metadata:
   name: code-server
   namespace: code-server
 spec:
-  # hostPath-каталоги нельзя монтировать в два пода одновременно.
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
@@ -20,10 +16,6 @@ spec:
       containers:
         - name: code-server
           image: "codercom/code-server:4.132.0@sha256:b88ed46a6ace76a0294a17a24f39aa88032ed0a3692c3d8ab5433b47ab57ccbf"
-          ports:
-            - name: http
-              containerPort: 8080
-          workingDir: /home/coder/project
           # Штатный entrypoint образа делает fixuid/sudo/usermod, что
           # несовместимо с runAsNonRoot и no-new-privileges в k8s. Запускаем
           # code-server напрямую: конфиг и расширения берутся из hostPath /home/coder.
@@ -34,15 +26,25 @@ spec:
             - --bind-addr
             - 0.0.0.0:8080
             - .
+          workingDir: /home/coder/project
+          ports:
+            - name: http
+              containerPort: 8080
           env:
             - name: HOME
               value: /home/coder
-          startupProbe:
-            httpGet:
-              path: /healthz
-              port: http
-            initialDelaySeconds: 10
-            periodSeconds: 5
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 10m
+              memory: 128Mi
+          volumeMounts:
+            - name: home
+              mountPath: /home/coder
+            - name: workspace
+              mountPath: /home/coder/project
           livenessProbe:
             httpGet:
               path: /healthz
@@ -53,27 +55,21 @@ spec:
               path: /healthz
               port: http
             periodSeconds: 30
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 5
           securityContext:
-            runAsUser: 1000
-            runAsGroup: 1000
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
             capabilities:
               drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
             seccompProfile:
               type: RuntimeDefault
-          resources:
-            requests:
-              cpu: 10m
-              memory: 128Mi
-            limits:
-              cpu: 500m
-              memory: 512Mi
-          volumeMounts:
-            - name: home
-              mountPath: /home/coder
-            - name: workspace
-              mountPath: /home/coder/project
       volumes:
         - name: home
           hostPath:
@@ -83,3 +79,7 @@ spec:
           hostPath:
             path: /storage/apps/code-server/workspace
             type: Directory
+  # hostPath-каталоги нельзя монтировать в два пода одновременно.
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2

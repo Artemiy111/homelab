@@ -4,10 +4,6 @@ metadata:
   name: navidrome
   namespace: navidrome
 spec:
-  # RWO-том: два пода при rolling update пишут в одну БД.
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
@@ -17,10 +13,6 @@ spec:
       labels:
         app: navidrome
     spec:
-      # fsGroup даёт групповую запись в том Longhorn, иначе root-owned каталог
-      # тома недоступен пользователю 1000.
-      securityContext:
-        fsGroup: 1000
       containers:
         - name: navidrome
           image: "deluan/navidrome:0.63.1@sha256:7c43af9f651654e97278be871705aae85a4ee0fa4b310337989699a8ada9b3ed"
@@ -48,12 +40,19 @@ spec:
               value: "true"
             - name: ND_PROMETHEUS_METRICSPATH
               value: "/metrics_$(NAVIDROME_METRICS_PATH)"
-          startupProbe:
-            httpGet:
-              path: /ping
-              port: http
-            initialDelaySeconds: 10
-            periodSeconds: 5
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 10m
+              memory: 64Mi
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: music
+              readOnly: true
+              mountPath: /music
           livenessProbe:
             httpGet:
               path: /ping
@@ -64,28 +63,21 @@ spec:
               path: /ping
               port: http
             periodSeconds: 30
+          startupProbe:
+            httpGet:
+              path: /ping
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 5
           securityContext:
-            runAsUser: 1000
-            runAsGroup: 1000
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
             capabilities:
               drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
             seccompProfile:
               type: RuntimeDefault
-          resources:
-            requests:
-              cpu: 10m
-              memory: 64Mi
-            limits:
-              cpu: 500m
-              memory: 512Mi
-          volumeMounts:
-            - name: data
-              mountPath: /data
-            - name: music
-              mountPath: /music
-              readOnly: true
       volumes:
         - name: data
           persistentVolumeClaim:
@@ -94,3 +86,11 @@ spec:
           hostPath:
             path: /storage/media/music
             type: Directory
+      # fsGroup даёт групповую запись в том Longhorn, иначе root-owned каталог
+      # тома недоступен пользователю 1000.
+      securityContext:
+        fsGroup: 1000
+  # RWO-том: два пода при rolling update пишут в одну БД.
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2

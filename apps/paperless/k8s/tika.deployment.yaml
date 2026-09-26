@@ -4,9 +4,6 @@ metadata:
   name: paperless-tika
   namespace: paperless
 spec:
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
@@ -22,24 +19,27 @@ spec:
           ports:
             - name: http
               containerPort: 9998
-          readinessProbe:
-            tcpSocket:
-              port: http
-            periodSeconds: 15
+          resources:
+            limits:
+              cpu: "1"
+              memory: 1Gi
+            requests:
+              cpu: 50m
+              memory: 256Mi
           livenessProbe:
             tcpSocket:
               port: http
             periodSeconds: 30
+          readinessProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 15
           securityContext:
-            allowPrivilegeEscalation: false
             capabilities:
               drop: ["ALL"]
+            allowPrivilegeEscalation: false
             seccompProfile:
               type: RuntimeDefault
-          resources:
-            requests:
-              cpu: 50m
-              memory: 256Mi
-            limits:
-              cpu: "1"
-              memory: 1Gi
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2

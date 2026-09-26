@@ -26,5 +26,5 @@ configMapGenerator:
       # эту аннотацию, и JSON можно хранить в читаемом виде.
       - config/dashboards/cloudnative-pg.json
       - config/dashboards/postgresql-database.json
-      - config/dashboards/traefik.json
       - config/dashboards/traefik-official.json
+      - config/dashboards/traefik.json

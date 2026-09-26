@@ -36,22 +36,22 @@ spec:
             matchLabels:
               kubernetes.io/metadata.name: monitoring
       ports:
-        - port: 8440
-          protocol: TCP
-        - port: 2053
-          protocol: TCP
+        - protocol: TCP
+          port: 8440
+        - protocol: TCP
+          port: 2053
     - from:
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: uptime-kuma
       ports:
-        - port: 2053
-          protocol: TCP
+        - protocol: TCP
+          port: 2053
     - from:
         - ipBlock:
             cidr: 0.0.0.0/0
       ports:
-        - port: 8443
-          protocol: TCP
-        - port: 8443
-          protocol: UDP
+        - protocol: TCP
+          port: 8443
+        - protocol: UDP
+          port: 8443

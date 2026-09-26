@@ -13,9 +13,9 @@ metadata:
   name: forgejo-runner-dind
   namespace: forgejo
 spec:
+  storageClassName: local-path
   accessModes:
     - ReadWriteOnce
-  storageClassName: local-path
   resources:
     requests:
       storage: 10Gi

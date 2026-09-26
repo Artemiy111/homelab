@@ -6,10 +6,6 @@ metadata:
   annotations:
     ignore-check.kube-linter.io/privilege-escalation-container: "stalwart биндит 25/587/993 через file-capability cap_net_bind_service, для этого нужен no_new_privs=false (#161)"
 spec:
-  # RWO-тома: два пода при rolling update пишут в один каталог.
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
@@ -20,14 +16,6 @@ spec:
         app: mailserver
     spec:
       enableServiceLinks: false
-      # Docker по умолчанию ставит ip_unprivileged_port_start=0, поэтому
-      # контейнер под uid 1000 биндит 25/587/993. В k8s повторяем это в поде.
-      securityContext:
-        sysctls:
-          - name: net.ipv4.ip_unprivileged_port_start
-            value: "0"
-        # fsGroup даёт групповую запись в тома Longhorn для пользователя 1000.
-        fsGroup: 1000
       containers:
         - name: mailserver
           image: "stalwartlabs/stalwart:v0.16@sha256:a8108e19bd927e172d4d8c128907b8dfc93fd180ae8ee07dccdd42cb97eb9dfa"
@@ -69,48 +57,48 @@ spec:
               value: "mail.$(DOMAIN)"
             - name: STALWART_PUBLIC_URL
               value: "https://mailserver.$(DOMAIN)"
+          resources:
+            limits:
+              cpu: "2"
+              memory: 2Gi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+          volumeMounts:
+            - name: etc
+              mountPath: /etc/stalwart
+            - name: data
+              mountPath: /var/lib/stalwart
+          livenessProbe:
+            tcpSocket:
+              port: http
+            timeoutSeconds: 5
+            periodSeconds: 30
+            failureThreshold: 3
+          readinessProbe:
+            tcpSocket:
+              port: http
+            timeoutSeconds: 5
+            periodSeconds: 15
+            failureThreshold: 3
           startupProbe:
             tcpSocket:
               port: http
             initialDelaySeconds: 10
             periodSeconds: 5
             failureThreshold: 60
-          livenessProbe:
-            tcpSocket:
-              port: http
-            periodSeconds: 30
-            timeoutSeconds: 5
-            failureThreshold: 3
-          readinessProbe:
-            tcpSocket:
-              port: http
-            periodSeconds: 15
-            timeoutSeconds: 5
-            failureThreshold: 3
           securityContext:
-            runAsUser: 1000
-            runAsGroup: 1000
-            runAsNonRoot: true
+            capabilities:
+              add: ["NET_BIND_SERVICE"]
+              drop: ["ALL"]
             # У бинарника stalwart file-capability cap_net_bind_service: без
             # no_new_privs он запускается и биндит привилегированные порты.
             allowPrivilegeEscalation: true
-            capabilities:
-              drop: ["ALL"]
-              add: ["NET_BIND_SERVICE"]
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
             seccompProfile:
               type: RuntimeDefault
-          resources:
-            requests:
-              cpu: 100m
-              memory: 128Mi
-            limits:
-              cpu: "2"
-              memory: 2Gi
-          volumeMounts:
-            - name: etc
-              mountPath: /etc/stalwart
-            - name: data
-              mountPath: /var/lib/stalwart
       volumes:
         - name: etc
           persistentVolumeClaim:
@@ -118,3 +106,15 @@ spec:
         - name: data
           persistentVolumeClaim:
             claimName: mailserver-data
+      # Docker по умолчанию ставит ip_unprivileged_port_start=0, поэтому
+      # контейнер под uid 1000 биндит 25/587/993. В k8s повторяем это в поде.
+      securityContext:
+        # fsGroup даёт групповую запись в тома Longhorn для пользователя 1000.
+        fsGroup: 1000
+        sysctls:
+          - name: net.ipv4.ip_unprivileged_port_start
+            value: "0"
+  # RWO-тома: два пода при rolling update пишут в один каталог.
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2

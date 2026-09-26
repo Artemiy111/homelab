@@ -28,51 +28,51 @@ metadata:
   namespace: argocd
 spec:
   project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: mariadb-system
   source:
     repoURL: https://mariadb-operator.github.io/mariadb-operator
-    chart: mariadb-operator
     targetRevision: 26.10.0
+    chart: mariadb-operator
     helm:
       releaseName: mariadb-operator
       valuesObject:
-        crds:
-          enabled: true
         # Дефолт у чарта: resources: {} у всех трёх компонентов (operator,
         # webhook, certController). Для однонодного кластера это плохо: без
         # requests планировщик не знает, что размещает, а без limits
         # разъехавшийся оператор способен вытеснить сами базы.
         resources:
-          requests:
-            cpu: 50m
-            memory: 128Mi
           limits:
             cpu: "1"
             memory: 512Mi
-        webhook:
-          resources:
-            requests:
-              cpu: 10m
-              memory: 64Mi
-            limits:
-              cpu: 100m
-              memory: 128Mi
+          requests:
+            cpu: 50m
+            memory: 128Mi
         certController:
           resources:
-            requests:
-              cpu: 10m
-              memory: 64Mi
             limits:
               cpu: 100m
               memory: 128Mi
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: mariadb-system
+            requests:
+              cpu: 10m
+              memory: 64Mi
+        crds:
+          enabled: true
+        webhook:
+          resources:
+            limits:
+              cpu: 100m
+              memory: 128Mi
+            requests:
+              cpu: 10m
+              memory: 64Mi
   syncPolicy:
+    automated:
+      selfHeal: true
     syncOptions:
       # CRD оператора не лезут в last-applied-configuration при client-side
       # apply. Как у cloudnative-pg и snapshot-controller.
       - ServerSideApply=true
       - Prune=false
       - CreateNamespace=true
-    automated:
-      selfHeal: true

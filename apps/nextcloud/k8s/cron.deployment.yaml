@@ -4,10 +4,6 @@ metadata:
   name: nextcloud-cron
   namespace: nextcloud
 spec:
-  # RWO-том html общий с app: оба пода пишут в один каталог.
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
@@ -78,24 +74,28 @@ spec:
               value: 512M
             - name: PHP_UPLOAD_LIMIT
               value: 16G
-          securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: ["ALL"]
-              add: ["CHOWN", "DAC_OVERRIDE", "FOWNER", "SETGID", "SETUID"]
-            seccompProfile:
-              type: RuntimeDefault
           resources:
-            requests:
-              cpu: 10m
-              memory: 64Mi
             limits:
               cpu: 500m
               memory: 512Mi
+            requests:
+              cpu: 10m
+              memory: 64Mi
           volumeMounts:
             - name: html
               mountPath: /var/www/html
+          securityContext:
+            capabilities:
+              add: ["CHOWN", "DAC_OVERRIDE", "FOWNER", "SETGID", "SETUID"]
+              drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            seccompProfile:
+              type: RuntimeDefault
       volumes:
         - name: html
           persistentVolumeClaim:
             claimName: nextcloud-html
+  # RWO-том html общий с app: оба пода пишут в один каталог.
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2

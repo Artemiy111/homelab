@@ -21,18 +21,25 @@ metadata:
   namespace: dawarich
 spec:
   instances: 1
-  # Одноинстансный кластер: PDB заблокировал бы drain ноды (switchover'а нет).
-  enablePDB: false
+  resources:
+    limits:
+      cpu: "1"
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 128Mi
   # minimal достаточно: коллация ICU, а не локали из образа. Важно именно для
   # IVE: расширение монтируется в контейнер поверх минимального образа.
   imageName: ghcr.io/cloudnative-pg/postgresql:18.4-minimal-trixie
-
-  # Локаль окружения: без неё setlocale падает в POSIX/C и psql в поде
-  # разваливает многобайтовый ввод. Локаль баз задана в bootstrap.initdb.
-  env:
-    - name: LANG
-      value: C.utf8
-
+  managed:
+    roles:
+      - name: dawarich
+        ensure: present
+        login: true
+        passwordSecret:
+          name: dawarich-db-auth
+  # Одноинстансный кластер: PDB заблокировал бы drain ноды (switchover'а нет).
+  enablePDB: false
   storage:
     storageClass: longhorn-retain
     # 512Mi не хватило: на 46k точек миграции Dawarich (удаление устаревших
@@ -41,15 +48,6 @@ spec:
     # «no free disk space for WALs». 3Gi — данные 59 МБ плюс запас на
     # пересчёт истории и рост. Расширяется на ходу, сжать обратно нельзя.
     size: 3Gi
-
-  resources:
-    requests:
-      cpu: 100m
-      memory: 128Mi
-    limits:
-      cpu: "1"
-      memory: 1Gi
-
   postgresql:
     # Стендбаев нет, а дефолт CNPG wal_keep_size=512MB — это запас WAL под них:
     # такой потолок заставлял бы том переживать всплеск WAL в полгигабайта.
@@ -63,22 +61,18 @@ spec:
         # Обязательно для postgis: без system в пути библиотека не найдётся.
         ld_library_path:
           - system
-
   bootstrap:
     initdb:
+      dataChecksums: true
       # Служебные app/app со случайным паролем: ни одно приложение не выделяем.
       # Реальные роли — в managed.roles, базы — объектами Database.
       encoding: UTF8
-      localeProvider: icu
       icuLocale: und
       # ctype ICU не заменяет: он всегда из libc.
       localeCType: C.utf8
-      dataChecksums: true
-
-  managed:
-    roles:
-      - name: dawarich
-        ensure: present
-        login: true
-        passwordSecret:
-          name: dawarich-db-auth
+      localeProvider: icu
+  # Локаль окружения: без неё setlocale падает в POSIX/C и psql в поде
+  # разваливает многобайтовый ввод. Локаль баз задана в bootstrap.initdb.
+  env:
+    - name: LANG
+      value: C.utf8

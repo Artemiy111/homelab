@@ -4,10 +4,6 @@ metadata:
   name: stirlingpdf
   namespace: pdf
 spec:
-  # RWO-тома настроек: два пода при rolling update пишут в одни каталоги.
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
@@ -17,16 +13,12 @@ spec:
       labels:
         app: stirlingpdf
     spec:
-      # fsGroup даёт групповую запись в тома Longhorn для процессов под uid 1000.
-      securityContext:
-        fsGroup: 1000
       containers:
         - name: stirlingpdf
           image: "docker.stirlingpdf.com/stirlingtools/stirling-pdf:2.14.3@sha256:3b3670fce70b396ec56ba380a3cc7858e0abf83fe13f31c88f7737847763a396"
-          imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 8080
-              name: http
+            - name: http
+              containerPort: 8080
           envFrom:
             - configMapRef:
                 name: homelab-config
@@ -65,41 +57,13 @@ spec:
               value: "false"
             - name: JAVA_CUSTOM_OPTS
               value: "-Xmx640m"
-          startupProbe:
-            exec:
-              command: ["/bin/sh", "-c", "curl -fsS http://127.0.0.1:8080/api/v1/info/status | grep -q '\"status\":\"UP\"'"]
-            initialDelaySeconds: 10
-            periodSeconds: 10
-            timeoutSeconds: 10
-            failureThreshold: 30
-          livenessProbe:
-            exec:
-              command: ["/bin/sh", "-c", "curl -fsS http://127.0.0.1:8080/api/v1/info/status | grep -q '\"status\":\"UP\"'"]
-            periodSeconds: 30
-            timeoutSeconds: 10
-            failureThreshold: 3
-          readinessProbe:
-            exec:
-              command: ["/bin/sh", "-c", "curl -fsS http://127.0.0.1:8080/api/v1/info/status | grep -q '\"status\":\"UP\"'"]
-            periodSeconds: 30
-            timeoutSeconds: 10
-            failureThreshold: 3
-          # Образ стартует как root и через setpriv понижает права до uid 1000,
-          # поэтому runAsUser/runAsNonRoot не задаются
-          securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: ["ALL"]
-              add: ["SETUID", "SETGID", "CHOWN", "DAC_OVERRIDE"]
-            seccompProfile:
-              type: RuntimeDefault
           resources:
-            requests:
-              cpu: 10m
-              memory: 896Mi
             limits:
               cpu: 500m
               memory: 1280Mi
+            requests:
+              cpu: 10m
+              memory: 896Mi
           volumeMounts:
             - name: tessdata
               mountPath: /usr/share/tessdata
@@ -111,6 +75,35 @@ spec:
               mountPath: /pipeline
             - name: custom-files
               mountPath: /customFiles
+          livenessProbe:
+            exec:
+              command: ["/bin/sh", "-c", "curl -fsS http://127.0.0.1:8080/api/v1/info/status | grep -q '\"status\":\"UP\"'"]
+            timeoutSeconds: 10
+            periodSeconds: 30
+            failureThreshold: 3
+          readinessProbe:
+            exec:
+              command: ["/bin/sh", "-c", "curl -fsS http://127.0.0.1:8080/api/v1/info/status | grep -q '\"status\":\"UP\"'"]
+            timeoutSeconds: 10
+            periodSeconds: 30
+            failureThreshold: 3
+          startupProbe:
+            exec:
+              command: ["/bin/sh", "-c", "curl -fsS http://127.0.0.1:8080/api/v1/info/status | grep -q '\"status\":\"UP\"'"]
+            initialDelaySeconds: 10
+            timeoutSeconds: 10
+            periodSeconds: 10
+            failureThreshold: 30
+          imagePullPolicy: IfNotPresent
+          # Образ стартует как root и через setpriv понижает права до uid 1000,
+          # поэтому runAsUser/runAsNonRoot не задаются
+          securityContext:
+            capabilities:
+              add: ["SETUID", "SETGID", "CHOWN", "DAC_OVERRIDE"]
+              drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            seccompProfile:
+              type: RuntimeDefault
       volumes:
         - name: tessdata
           emptyDir: {}
@@ -125,3 +118,10 @@ spec:
         - name: custom-files
           persistentVolumeClaim:
             claimName: pdf-custom-files
+      # fsGroup даёт групповую запись в тома Longhorn для процессов под uid 1000.
+      securityContext:
+        fsGroup: 1000
+  # RWO-тома настроек: два пода при rolling update пишут в одни каталоги.
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2

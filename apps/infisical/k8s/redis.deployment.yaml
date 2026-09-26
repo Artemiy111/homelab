@@ -4,9 +4,6 @@ metadata:
   name: infisical-redis
   namespace: infisical
 spec:
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
@@ -22,12 +19,16 @@ spec:
           ports:
             - name: redis
               containerPort: 6379
-          startupProbe:
-            exec:
-              command: ["redis-cli", "ping"]
-            initialDelaySeconds: 5
-            periodSeconds: 5
-            failureThreshold: 30
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 10m
+              memory: 64Mi
+          volumeMounts:
+            - name: data
+              mountPath: /data
           livenessProbe:
             exec:
               command: ["redis-cli", "ping"]
@@ -36,26 +37,25 @@ spec:
             exec:
               command: ["redis-cli", "ping"]
             periodSeconds: 10
+          startupProbe:
+            exec:
+              command: ["redis-cli", "ping"]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 30
           securityContext:
-            runAsUser: 999
-            runAsGroup: 999
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
             capabilities:
               drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 999
+            runAsGroup: 999
             seccompProfile:
               type: RuntimeDefault
-          resources:
-            requests:
-              cpu: 10m
-              memory: 64Mi
-            limits:
-              cpu: 500m
-              memory: 512Mi
-          volumeMounts:
-            - name: data
-              mountPath: /data
       volumes:
         - name: data
           # Кэш Redis — эфемерный, данные не персистим.
           emptyDir: {}
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2

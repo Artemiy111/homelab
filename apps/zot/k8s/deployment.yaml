@@ -4,10 +4,6 @@ metadata:
   name: zot
   namespace: zot
 spec:
-  # RWO-том: два пода одновременно его не смонтируют.
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
@@ -17,9 +13,6 @@ spec:
       labels:
         app: zot
     spec:
-      securityContext:
-        # fsGroup даёт групповую запись в том Longhorn под uid/gid 1000.
-        fsGroup: 1000
       containers:
         - name: zot
           image: "ghcr.io/project-zot/zot:v2.1.21@sha256:6b69512c00dceaad05b1144e6079aac6aa7309d7fd200f9947ecb1de09cf48c8"
@@ -29,12 +22,20 @@ spec:
           ports:
             - name: http
               containerPort: 5000
-          # /v2/ и /metrics при anonymous-only политике отдают 403, поэтому
-          # проба — по TCP, а не HTTP.
-          startupProbe:
-            tcpSocket:
-              port: http
-            periodSeconds: 5
+          resources:
+            limits:
+              cpu: "1"
+              memory: 1Gi
+            requests:
+              cpu: 50m
+              memory: 128Mi
+          volumeMounts:
+            - name: config
+              readOnly: true
+              mountPath: /etc/zot/config.json
+              subPath: config.json
+            - name: data
+              mountPath: /var/lib/zot
           livenessProbe:
             tcpSocket:
               port: http
@@ -43,29 +44,21 @@ spec:
             tcpSocket:
               port: http
             periodSeconds: 30
+          # /v2/ и /metrics при anonymous-only политике отдают 403, поэтому
+          # проба — по TCP, а не HTTP.
+          startupProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 5
           securityContext:
-            runAsUser: 1000
-            runAsGroup: 1000
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
             capabilities:
               drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
             seccompProfile:
               type: RuntimeDefault
-          resources:
-            requests:
-              cpu: 50m
-              memory: 128Mi
-            limits:
-              cpu: "1"
-              memory: 1Gi
-          volumeMounts:
-            - name: config
-              mountPath: /etc/zot/config.json
-              subPath: config.json
-              readOnly: true
-            - name: data
-              mountPath: /var/lib/zot
       volumes:
         - name: config
           configMap:
@@ -73,3 +66,10 @@ spec:
         - name: data
           persistentVolumeClaim:
             claimName: zot-data
+      securityContext:
+        # fsGroup даёт групповую запись в том Longhorn под uid/gid 1000.
+        fsGroup: 1000
+  # RWO-том: два пода одновременно его не смонтируют.
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2

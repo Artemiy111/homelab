@@ -1,8 +1,8 @@
+---
 # Базы кластера shared.
 #
 # databaseReclaimPolicy: retain задан явно: удаление CR не должно уносить базу.
 # Это дефолт оператора, но policy про данные лучше видеть в манифесте.
----
 apiVersion: postgresql.cnpg.io/v1
 kind: Database
 metadata:
@@ -105,6 +105,8 @@ spec:
   name: synapse
   owner: synapse
   encoding: UTF8
+  localeCType: "C"
+  localeCollate: "C"
   # Synapse (PostgresEngine.check_database) требует, чтобы и datcollate, и
   # datctype были ровно `C` — от любой другой локали (включая C.UTF-8) падает
   # IncorrectDatabaseSetup. Поэтому только у этой базы collate/ctype заданы как
@@ -115,8 +117,6 @@ spec:
   # база переносится пустой, поэтому CR при необходимости пересоздаётся
   # без потерь.
   template: template0
-  localeCollate: "C"
-  localeCType: "C"
   databaseReclaimPolicy: retain
 ---
 # authentik — тестовый стенд. База объявлена, пока стенд жив; при снятии

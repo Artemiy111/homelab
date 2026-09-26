@@ -10,11 +10,11 @@ spec:
   ports:
     # Порт 80 сохранён для Gatus (http://victoriametrics/health).
     - name: http
+      protocol: TCP
       port: 80
       targetPort: http
-      protocol: TCP
     # Порт приложения: grafana datasource и vmagent remote write.
     - name: vm
+      protocol: TCP
       port: 8428
       targetPort: http
-      protocol: TCP

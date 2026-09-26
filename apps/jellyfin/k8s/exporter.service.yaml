@@ -9,6 +9,6 @@ spec:
     app: jellyfin-exporter
   ports:
     - name: metrics
+      protocol: TCP
       port: 9594
       targetPort: metrics
-      protocol: TCP

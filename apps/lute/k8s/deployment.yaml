@@ -4,7 +4,6 @@ metadata:
   name: lute
   namespace: lute
 spec:
-  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
@@ -18,23 +17,28 @@ spec:
       containers:
         - name: lute
           image: "jzohrab/lute3:3.10.3@sha256:ca0c26b8160a6e68d15af9a0e8de3ee2443ca1587e1cf5091cece5907b0a05d4"
+          ports:
+            - name: http
+              containerPort: 5001
           resources:
-            requests:
-              cpu: 1m
-              memory: 256Mi
             limits:
               cpu: 50m
               memory: 512Mi
-          ports:
-            - containerPort: 5001
-              name: http
+            requests:
+              cpu: 1m
+              memory: 256Mi
+          volumeMounts:
+            - name: data
+              mountPath: /lute_data
+            - name: backup
+              mountPath: /lute_backup
           livenessProbe:
             httpGet:
               path: /
               port: http
-            periodSeconds: 30
-            timeoutSeconds: 10
             initialDelaySeconds: 30
+            timeoutSeconds: 10
+            periodSeconds: 30
             failureThreshold: 5
           readinessProbe:
             httpGet:
@@ -44,13 +48,8 @@ spec:
             failureThreshold: 3
           securityContext:
             capabilities:
-              drop: ["ALL"]
               add: ["DAC_OVERRIDE"]
-          volumeMounts:
-            - name: data
-              mountPath: /lute_data
-            - name: backup
-              mountPath: /lute_backup
+              drop: ["ALL"]
       volumes:
         - name: data
           persistentVolumeClaim:
@@ -58,3 +57,4 @@ spec:
         - name: backup
           persistentVolumeClaim:
             claimName: lute-backup
+  revisionHistoryLimit: 2

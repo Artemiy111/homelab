@@ -4,7 +4,6 @@ metadata:
   name: grafana
   namespace: monitoring
 spec:
-  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
@@ -15,9 +14,6 @@ spec:
         app: grafana
     spec:
       enableServiceLinks: false
-      # fsGroup даёт групповую запись в emptyDir, смонтированный в /var/lib/grafana.
-      securityContext:
-        fsGroup: 1000
       containers:
         - name: grafana
           image: "grafana/grafana:13.2.0@sha256:3fd54ae1214669f8355f065ec9f6445d5279a3d77095ab048ca045685272429b"
@@ -70,6 +66,39 @@ spec:
                 secretKeyRef:
                   name: grafana-db
                   key: GRAFANA_DB_PASSWORD
+          resources:
+            limits:
+              cpu: "1"
+              memory: 1Gi
+            requests:
+              cpu: 100m
+              memory: 256Mi
+          volumeMounts:
+            - name: lib
+              mountPath: /var/lib/grafana
+            - name: datasources
+              readOnly: true
+              mountPath: /etc/grafana/provisioning/datasources
+            - name: dashboards-provisioning
+              readOnly: true
+              mountPath: /etc/grafana/provisioning/dashboards
+            - name: dashboards
+              readOnly: true
+              mountPath: /var/lib/grafana/dashboards
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            timeoutSeconds: 10
+            periodSeconds: 60
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            timeoutSeconds: 10
+            periodSeconds: 30
+            failureThreshold: 3
           startupProbe:
             httpGet:
               path: /api/health
@@ -77,48 +106,15 @@ spec:
             initialDelaySeconds: 20
             periodSeconds: 10
             failureThreshold: 30
-          livenessProbe:
-            httpGet:
-              path: /api/health
-              port: http
-            periodSeconds: 60
-            timeoutSeconds: 10
-            failureThreshold: 3
-          readinessProbe:
-            httpGet:
-              path: /api/health
-              port: http
-            periodSeconds: 30
-            timeoutSeconds: 10
-            failureThreshold: 3
           securityContext:
-            runAsUser: 1000
-            runAsGroup: 1000
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
             capabilities:
               drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
             seccompProfile:
               type: RuntimeDefault
-          resources:
-            requests:
-              cpu: 100m
-              memory: 256Mi
-            limits:
-              cpu: "1"
-              memory: 1Gi
-          volumeMounts:
-            - name: lib
-              mountPath: /var/lib/grafana
-            - name: datasources
-              mountPath: /etc/grafana/provisioning/datasources
-              readOnly: true
-            - name: dashboards-provisioning
-              mountPath: /etc/grafana/provisioning/dashboards
-              readOnly: true
-            - name: dashboards
-              mountPath: /var/lib/grafana/dashboards
-              readOnly: true
       volumes:
         # /var/lib/grafana остаётся writable-скретчем (кэш плагинов, индекс
         # поиска): данные теперь в Postgres, поэтому том не нужен.
@@ -133,3 +129,7 @@ spec:
         - name: dashboards
           configMap:
             name: grafana-dashboards
+      # fsGroup даёт групповую запись в emptyDir, смонтированный в /var/lib/grafana.
+      securityContext:
+        fsGroup: 1000
+  revisionHistoryLimit: 2

@@ -34,15 +34,15 @@ spec:
             matchLabels:
               kubernetes.io/metadata.name: cnpg-system
     - from:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: monitoring
-          podSelector:
+        - podSelector:
             matchLabels:
               app: vmagent
+          namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
       ports:
-        - port: 9187
-          protocol: TCP
+        - protocol: TCP
+          port: 9187
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -95,25 +95,27 @@ spec:
         # monitoring — общий namespace, поэтому доступ к базе дан только подам
         # gatus и grafana, а не всем подам namespace'а (в отличие от paperless/
         # forgejo/infisical/glitchtip/postgres/authentik/sure/nextcloud).
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: monitoring
-          podSelector:
+        - podSelector:
             matchLabels:
               app: gatus
-        - namespaceSelector:
+          namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: monitoring
-          podSelector:
+        - podSelector:
             matchLabels:
               app: grafana
+          namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
       ports:
-        - port: 5432
-          protocol: TCP
----
+        - protocol: TCP
+          port: 5432
+
 # Выделенные кластеры (zitadel, immich, dawarich) живут в namespace сервисов,
 # и политики для них — в apps/<сервис>/k8s/networkpolicy.yaml. Здесь их нет:
 # одинаковое имя объекта в одном namespace означало бы перезапись, и побеждал
 # бы применённый последним (так cnpg-system остался без доступа и апгрейд
 # zitadel-db повис на недоступном instance manager). Владелец namespace
 # держит и его политики.
+---
+

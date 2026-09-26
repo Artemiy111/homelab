@@ -19,19 +19,19 @@ spec:
           containers:
             - name: elasticsearch
               resources:
+                limits:
+                  memory: 2Gi
                 # memory requests == limits → QoS Guaranteed, эвикция последней.
                 # ECK берёт heap как 50% от лимита памяти (здесь 1Gi).
                 requests:
                   cpu: 500m
-                  memory: 2Gi
-                limits:
                   memory: 2Gi
       volumeClaimTemplates:
         - metadata:
             name: elasticsearch-data
           spec:
             accessModes: ["ReadWriteOnce"]
-            storageClassName: local-path
             resources:
               requests:
                 storage: 20Gi
+            storageClassName: local-path

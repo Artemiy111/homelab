@@ -5,10 +5,13 @@ metadata:
   namespace: argocd
 spec:
   project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: headlamp
   source:
     repoURL: https://kubernetes-sigs.github.io/headlamp/
-    chart: headlamp
     targetRevision: 0.45.0
+    chart: headlamp
     helm:
       releaseName: headlamp
       valuesObject:
@@ -47,9 +50,12 @@ spec:
               annotations:
                 kubernetes.io/service-account.name: headlamp-admin
             type: kubernetes.io/service-account-token
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: headlamp
+  syncPolicy:
+    automated:
+      selfHeal: true
+    syncOptions:
+      - ServerSideApply=true
+      - CreateNamespace=true
   # Контроллер service-account сам дописывает в token-Secret поля data и
   # аннотацию uid. Без этого Argo сравнивал бы их с пустым desired и висел
   # в OutOfSync.
@@ -61,9 +67,3 @@ spec:
       jsonPointers:
         - /data
         - /metadata/annotations/kubernetes.io~1service-account.uid
-  syncPolicy:
-    syncOptions:
-      - ServerSideApply=true
-      - CreateNamespace=true
-    automated:
-      selfHeal: true

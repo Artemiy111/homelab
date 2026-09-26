@@ -9,6 +9,6 @@ spec:
     app: docker-socket-proxy
   ports:
     - name: docker-api
+      protocol: TCP
       port: 2375
       targetPort: docker-api
-      protocol: TCP

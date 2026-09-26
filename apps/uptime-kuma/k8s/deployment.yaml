@@ -4,10 +4,6 @@ metadata:
   name: uptime-kuma
   namespace: uptime-kuma
 spec:
-  # SQLite на RWO-томе: два пода при rolling update пишут в одну БД.
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
@@ -17,25 +13,25 @@ spec:
       labels:
         app: uptime-kuma
     spec:
-      # fsGroup даёт групповую запись в том Longhorn, иначе root-owned каталог
-      # тома недоступен пользователю 1000.
-      securityContext:
-        fsGroup: 1000
       containers:
         - name: uptime-kuma
           image: "louislam/uptime-kuma:2@sha256:3e24e96c89efff0e3a4b0698cbdd36c15ad3022371db57166e5588853002ee5c"
           ports:
-            - containerPort: 3001
-              name: http
+            - name: http
+              containerPort: 3001
           env:
             - name: NODE_OPTIONS
               value: "--max-old-space-size=512"
-          startupProbe:
-            httpGet:
-              path: /
-              port: http
-            initialDelaySeconds: 15
-            periodSeconds: 5
+          resources:
+            limits:
+              cpu: 150m
+              memory: 448Mi
+            requests:
+              cpu: 10m
+              memory: 128Mi
+          volumeMounts:
+            - name: data
+              mountPath: /app/data
           livenessProbe:
             httpGet:
               path: /
@@ -45,26 +41,30 @@ spec:
             httpGet:
               path: /
               port: http
+          startupProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 5
           securityContext:
-            runAsUser: 1000
-            runAsGroup: 1000
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
             capabilities:
               drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
             seccompProfile:
               type: RuntimeDefault
-          resources:
-            requests:
-              cpu: 10m
-              memory: 128Mi
-            limits:
-              cpu: 150m
-              memory: 448Mi
-          volumeMounts:
-            - name: data
-              mountPath: /app/data
       volumes:
         - name: data
           persistentVolumeClaim:
             claimName: uptime-kuma-data
+      # fsGroup даёт групповую запись в том Longhorn, иначе root-owned каталог
+      # тома недоступен пользователю 1000.
+      securityContext:
+        fsGroup: 1000
+  # SQLite на RWO-томе: два пода при rolling update пишут в одну БД.
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2

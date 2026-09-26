@@ -4,10 +4,6 @@ metadata:
   name: technitium
   namespace: technitium
 spec:
-  # RWO-тома: два пода при rolling update пишут в одни каталоги.
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
@@ -26,11 +22,11 @@ spec:
           image: "technitium/dns-server:15.4.0@sha256:df7d90ef0f7b6fff6916d291a7022cd902290cc31c3141d4158b6c375a641b41"
           ports:
             - name: dns-udp
-              containerPort: 53
               protocol: UDP
-            - name: dns-tcp
               containerPort: 53
+            - name: dns-tcp
               protocol: TCP
+              containerPort: 53
             - name: http
               containerPort: 5380
           env:
@@ -51,47 +47,47 @@ spec:
                 configMapKeyRef:
                   name: homelab-config
                   key: TZ
+          resources:
+            limits:
+              cpu: "1"
+              memory: 1Gi
+            requests:
+              cpu: 100m
+              memory: 256Mi
+          volumeMounts:
+            - name: etc
+              mountPath: /etc/dns
+            - name: data
+              mountPath: /var/lib/dns
+          livenessProbe:
+            exec:
+              command: ["dig", "+short", "+norecurse", "@127.0.0.1", "technitium"]
+            timeoutSeconds: 5
+            periodSeconds: 30
+            failureThreshold: 3
+          readinessProbe:
+            exec:
+              command: ["dig", "+short", "+norecurse", "@127.0.0.1", "technitium"]
+            timeoutSeconds: 5
+            periodSeconds: 15
+            failureThreshold: 3
           startupProbe:
             exec:
               command: ["dig", "+short", "+norecurse", "@127.0.0.1", "technitium"]
             initialDelaySeconds: 10
             periodSeconds: 5
             failureThreshold: 30
-          livenessProbe:
-            exec:
-              command: ["dig", "+short", "+norecurse", "@127.0.0.1", "technitium"]
-            periodSeconds: 30
-            timeoutSeconds: 5
-            failureThreshold: 3
-          readinessProbe:
-            exec:
-              command: ["dig", "+short", "+norecurse", "@127.0.0.1", "technitium"]
-            periodSeconds: 15
-            timeoutSeconds: 5
-            failureThreshold: 3
           securityContext:
-            runAsUser: 0
-            runAsGroup: 0
-            allowPrivilegeEscalation: false
             capabilities:
-              drop: ["ALL"]
               # NET_BIND_SERVICE — порт 53 <1024 под root с drop ALL.
               # DAC_OVERRIDE/CHOWN/FOWNER — запись в 0750-каталоги artlab.
               add: ["NET_BIND_SERVICE", "DAC_OVERRIDE", "CHOWN", "FOWNER"]
+              drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            runAsUser: 0
+            runAsGroup: 0
             seccompProfile:
               type: RuntimeDefault
-          resources:
-            requests:
-              cpu: 100m
-              memory: 256Mi
-            limits:
-              cpu: "1"
-              memory: 1Gi
-          volumeMounts:
-            - name: etc
-              mountPath: /etc/dns
-            - name: data
-              mountPath: /var/lib/dns
       volumes:
         - name: etc
           persistentVolumeClaim:
@@ -99,3 +95,7 @@ spec:
         - name: data
           persistentVolumeClaim:
             claimName: technitium-data
+  # RWO-тома: два пода при rolling update пишут в одни каталоги.
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2

@@ -9,6 +9,6 @@ spec:
     app: uptime-kuma
   ports:
     - name: web
+      protocol: TCP
       port: 80
       targetPort: 3001
-      protocol: TCP

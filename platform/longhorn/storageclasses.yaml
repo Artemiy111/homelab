@@ -18,14 +18,14 @@ kind: StorageClass
 metadata:
   name: longhorn
 provisioner: driver.longhorn.io
+parameters:
+  dataLocality: disabled
+  fsType: ext4
+  numberOfReplicas: "1"
+  staleReplicaTimeout: "30"
 reclaimPolicy: Delete
 allowVolumeExpansion: true
 volumeBindingMode: Immediate
-parameters:
-  numberOfReplicas: "1"
-  staleReplicaTimeout: "30"
-  fsType: ext4
-  dataLocality: disabled
 ---
 # То же самое, но том переживает удаление PVC: PV уходит в Released, данные
 # остаются, вернуть их можно, сняв claimRef и создав PVC заново (см. README).
@@ -35,11 +35,11 @@ kind: StorageClass
 metadata:
   name: longhorn-retain
 provisioner: driver.longhorn.io
+parameters:
+  dataLocality: disabled
+  fsType: ext4
+  numberOfReplicas: "1"
+  staleReplicaTimeout: "30"
 reclaimPolicy: Retain
 allowVolumeExpansion: true
 volumeBindingMode: Immediate
-parameters:
-  numberOfReplicas: "1"
-  staleReplicaTimeout: "30"
-  fsType: ext4
-  dataLocality: disabled

@@ -11,9 +11,6 @@ metadata:
   name: gitlab
   namespace: gitlab
 spec:
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
@@ -23,13 +20,13 @@ spec:
       labels:
         app: gitlab
     spec:
-      # hostname в образе влияет на генерируемые внутренние адреса и письма.
-      hostname: gitlab
-      enableServiceLinks: false
       # Omnibus ядру нужен root: он chown'ит тома и раскладывает процессы по
       # uid'ам (git, gitlab-psql, redis, ...). Поэтому ограничивающий
       # securityContext, как у других сервисов, здесь не ставим — сломается.
       terminationGracePeriodSeconds: 120
+      # hostname в образе влияет на генерируемые внутренние адреса и письма.
+      hostname: gitlab
+      enableServiceLinks: false
       containers:
         - name: gitlab
           # Тег и digest — один конкретный релиз; digest пинится, потому что
@@ -56,37 +53,13 @@ spec:
                 configMapKeyRef:
                   name: gitlab-omnibus
                   key: omnibus.rb
-          # Первый запуск прогоняет initdb, миграции и возможно долгий reconfigure,
-          # поэтому окно старта щедрое: 60s + 120 * 10s ≈ 21 минута до рестарта.
-          startupProbe:
-            httpGet:
-              path: /-/readiness
-              port: http
-            initialDelaySeconds: 60
-            periodSeconds: 10
-            timeoutSeconds: 5
-            failureThreshold: 120
-          readinessProbe:
-            httpGet:
-              path: /-/readiness
-              port: http
-            periodSeconds: 30
-            timeoutSeconds: 5
-            failureThreshold: 6
-          livenessProbe:
-            httpGet:
-              path: /-/health
-              port: http
-            periodSeconds: 60
-            timeoutSeconds: 10
-            failureThreshold: 5
           resources:
-            requests:
-              cpu: 500m
-              memory: 2Gi
             limits:
               cpu: "4"
               memory: 5Gi
+            requests:
+              cpu: 500m
+              memory: 2Gi
           volumeMounts:
             - name: data
               mountPath: /var/opt/gitlab
@@ -96,6 +69,30 @@ spec:
               mountPath: /var/log/gitlab
             - name: shm
               mountPath: /dev/shm
+          livenessProbe:
+            httpGet:
+              path: /-/health
+              port: http
+            timeoutSeconds: 10
+            periodSeconds: 60
+            failureThreshold: 5
+          readinessProbe:
+            httpGet:
+              path: /-/readiness
+              port: http
+            timeoutSeconds: 5
+            periodSeconds: 30
+            failureThreshold: 6
+          # Первый запуск прогоняет initdb, миграции и возможно долгий reconfigure,
+          # поэтому окно старта щедрое: 60s + 120 * 10s ≈ 21 минута до рестарта.
+          startupProbe:
+            httpGet:
+              path: /-/readiness
+              port: http
+            initialDelaySeconds: 60
+            timeoutSeconds: 5
+            periodSeconds: 10
+            failureThreshold: 120
       volumes:
         - name: data
           persistentVolumeClaim:
@@ -110,3 +107,6 @@ spec:
           emptyDir:
             medium: Memory
             sizeLimit: 256Mi
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2

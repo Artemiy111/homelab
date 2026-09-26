@@ -9,6 +9,6 @@ spec:
     app: glitchtip
   ports:
     - name: http
+      protocol: TCP
       port: 80
       targetPort: 8000
-      protocol: TCP

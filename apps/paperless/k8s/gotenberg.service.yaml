@@ -9,6 +9,6 @@ spec:
     app: paperless-gotenberg
   ports:
     - name: http
+      protocol: TCP
       port: 3000
       targetPort: http
-      protocol: TCP

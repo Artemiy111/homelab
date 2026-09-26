@@ -9,6 +9,6 @@ spec:
     app: matrix-rtc-auth
   ports:
     - name: http
+      protocol: TCP
       port: 80
       targetPort: http
-      protocol: TCP

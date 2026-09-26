@@ -4,10 +4,6 @@ metadata:
   name: element-synapse
   namespace: element
 spec:
-  # RWO-том /data: два пода при rolling update пишут в один каталог.
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
@@ -20,49 +16,45 @@ spec:
       # Synapse читает POSTGRES_-переменные и SYNAPSE_-настройки; лишние
       # <SVC>_PORT из service-links не нужны.
       enableServiceLinks: false
-      # fsGroup соответствует uid пользователя synapse в образе (991): том
-      # Longhorn должен быть доступен на запись этому пользователю.
-      securityContext:
-        fsGroup: 991
       initContainers:
         - name: wait-for-db
           image: "postgres:18-alpine@sha256:d3e1620b530c944afa6e887d22eb899824da68e19c52024bf98f5220c88a65b2"
           command: ["/bin/sh", "-c", "until pg_isready -h shared-rw.databases.svc.cluster.local -p 5432 -U synapse -d synapse; do echo waiting for shared-rw; sleep 3; done"]
-          securityContext:
-            runAsUser: 70
-            runAsGroup: 70
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: ["ALL"]
-            seccompProfile:
-              type: RuntimeDefault
           resources:
-            requests:
-              cpu: 10m
-              memory: 32Mi
             limits:
               cpu: 100m
               memory: 64Mi
+            requests:
+              cpu: 10m
+              memory: 32Mi
+          securityContext:
+            capabilities:
+              drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            runAsGroup: 70
+            runAsNonRoot: true
+            runAsUser: 70
+            seccompProfile:
+              type: RuntimeDefault
         - name: wait-for-redis
           image: "redis:8.10-alpine@sha256:978f0e01593e65eed801f2402944efcd936d43b5027e4908a7897baf88ed6241"
           command: ["/bin/sh", "-c", "until redis-cli -h element-redis ping | grep -q PONG; do echo waiting for element-redis; sleep 2; done"]
-          securityContext:
-            runAsUser: 999
-            runAsGroup: 999
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: ["ALL"]
-            seccompProfile:
-              type: RuntimeDefault
           resources:
-            requests:
-              cpu: 10m
-              memory: 32Mi
             limits:
               cpu: 100m
               memory: 64Mi
+            requests:
+              cpu: 10m
+              memory: 32Mi
+          securityContext:
+            capabilities:
+              drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            runAsGroup: 999
+            runAsNonRoot: true
+            runAsUser: 999
+            seccompProfile:
+              type: RuntimeDefault
       containers:
         - name: synapse
           image: "matrixdotorg/synapse:v1.159.0@sha256:edf259d2b575b669a3e81024918ab8d5cfb7d2fba5a53c9e09695f1abc5645cb"
@@ -103,6 +95,34 @@ spec:
                 secretKeyRef:
                   name: element-db-auth
                   key: password
+          resources:
+            limits:
+              cpu: "2"
+              memory: 2Gi
+            requests:
+              cpu: 200m
+              # Фактическое потребление ~110 МиБ; request — бронь, а не лимит.
+              memory: 256Mi
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: homeserver-config
+              readOnly: true
+              mountPath: /data/homeserver.yaml
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            timeoutSeconds: 10
+            periodSeconds: 30
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            timeoutSeconds: 10
+            periodSeconds: 30
+            failureThreshold: 3
           startupProbe:
             httpGet:
               path: /health
@@ -110,41 +130,13 @@ spec:
             initialDelaySeconds: 30
             periodSeconds: 10
             failureThreshold: 30
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: http
-            periodSeconds: 30
-            timeoutSeconds: 10
-            failureThreshold: 3
-          readinessProbe:
-            httpGet:
-              path: /health
-              port: http
-            periodSeconds: 30
-            timeoutSeconds: 10
-            failureThreshold: 3
           securityContext:
-            allowPrivilegeEscalation: false
             capabilities:
-              drop: ["ALL"]
               add: ["CHOWN", "DAC_OVERRIDE", "FOWNER", "SETGID", "SETUID"]
+              drop: ["ALL"]
+            allowPrivilegeEscalation: false
             seccompProfile:
               type: RuntimeDefault
-          resources:
-            requests:
-              cpu: 200m
-              # Фактическое потребление ~110 МиБ; request — бронь, а не лимит.
-              memory: 256Mi
-            limits:
-              cpu: "2"
-              memory: 2Gi
-          volumeMounts:
-            - name: data
-              mountPath: /data
-            - name: homeserver-config
-              mountPath: /data/homeserver.yaml
-              readOnly: true
       volumes:
         - name: data
           persistentVolumeClaim:
@@ -153,3 +145,11 @@ spec:
           hostPath:
             path: /storage/apps/element/synapse/config/homeserver.yaml
             type: File
+      # fsGroup соответствует uid пользователя synapse в образе (991): том
+      # Longhorn должен быть доступен на запись этому пользователю.
+      securityContext:
+        fsGroup: 991
+  # RWO-том /data: два пода при rolling update пишут в один каталог.
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2

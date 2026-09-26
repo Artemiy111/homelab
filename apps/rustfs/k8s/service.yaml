@@ -9,10 +9,10 @@ spec:
     app: rustfs
   ports:
     - name: s3
+      protocol: TCP
       port: 80
       targetPort: s3
-      protocol: TCP
     - name: console
+      protocol: TCP
       port: 9001
       targetPort: console
-      protocol: TCP

@@ -11,6 +11,6 @@ spec:
     app: 3x-ui
   ports:
     - name: panel
+      protocol: TCP
       port: 2053
       targetPort: panel
-      protocol: TCP

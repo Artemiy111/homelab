@@ -9,6 +9,6 @@ spec:
     app: nextcloud-exporter
   ports:
     - name: metrics
+      protocol: TCP
       port: 9205
       targetPort: metrics
-      protocol: TCP

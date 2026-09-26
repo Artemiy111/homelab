@@ -4,11 +4,6 @@ metadata:
   name: immich-server
   namespace: immich
 spec:
-  strategy:
-    # RWO-том library нельзя монтировать двум подам сразу: rolling update поднял
-    # бы новый под до остановки старого.
-    type: Recreate
-  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
@@ -25,41 +20,41 @@ spec:
         - name: wait-for-db
           image: "ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0@sha256:bcf63357191b76a916ae5eb93464d65c07511da41e3bf7a8416db519b40b1c23"
           command: ["/bin/sh", "-c", "until pg_isready -h immich-db-rw.immich.svc.cluster.local -p 5432 -U immich -d immich; do echo waiting for immich-db; sleep 2; done"]
-          securityContext:
-            runAsUser: 999
-            runAsGroup: 999
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: ["ALL"]
-            seccompProfile:
-              type: RuntimeDefault
           resources:
-            requests:
-              cpu: 10m
-              memory: 32Mi
             limits:
               cpu: 100m
               memory: 64Mi
+            requests:
+              cpu: 10m
+              memory: 32Mi
+          securityContext:
+            capabilities:
+              drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            runAsGroup: 999
+            runAsNonRoot: true
+            runAsUser: 999
+            seccompProfile:
+              type: RuntimeDefault
         - name: wait-for-valkey
           image: "valkey/valkey:9@sha256:8e8d64b405ce18f41b8e5ee20aa4687a8ed0022d1298f2ce31cdcf3a76e09411"
           command: ["/bin/sh", "-c", "until valkey-cli -h immich-valkey ping | grep -q PONG; do echo waiting for immich-valkey; sleep 2; done"]
-          securityContext:
-            runAsUser: 999
-            runAsGroup: 999
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: ["ALL"]
-            seccompProfile:
-              type: RuntimeDefault
           resources:
-            requests:
-              cpu: 10m
-              memory: 32Mi
             limits:
               cpu: 100m
               memory: 64Mi
+            requests:
+              cpu: 10m
+              memory: 32Mi
+          securityContext:
+            capabilities:
+              drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            runAsGroup: 999
+            runAsNonRoot: true
+            runAsUser: 999
+            seccompProfile:
+              type: RuntimeDefault
       containers:
         - name: immich-server
           image: "ghcr.io/immich-app/immich-server:v3@sha256:b434cb9287eea1471c9974845914d4dd328c9c2d652e446ed4930f99944f0ceb"
@@ -87,6 +82,39 @@ spec:
               value: immich
             - name: IMMICH_TELEMETRY_INCLUDE
               value: all
+          resources:
+            limits:
+              cpu: "2"
+              memory: 2Gi
+            requests:
+              cpu: 200m
+              memory: 512Mi
+          volumeMounts:
+            - name: library
+              mountPath: /data
+            - name: media-user
+              readOnly: true
+              mountPath: /mnt/Artemiy/Library
+            - name: media-family
+              readOnly: true
+              mountPath: /mnt/Family/Library
+            - name: localtime
+              readOnly: true
+              mountPath: /etc/localtime
+          livenessProbe:
+            httpGet:
+              path: /api/server/ping
+              port: http
+            timeoutSeconds: 10
+            periodSeconds: 30
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /api/server/ping
+              port: http
+            timeoutSeconds: 10
+            periodSeconds: 30
+            failureThreshold: 3
           startupProbe:
             httpGet:
               path: /api/server/ping
@@ -94,46 +122,13 @@ spec:
             initialDelaySeconds: 20
             periodSeconds: 10
             failureThreshold: 36
-          livenessProbe:
-            httpGet:
-              path: /api/server/ping
-              port: http
-            periodSeconds: 30
-            timeoutSeconds: 10
-            failureThreshold: 3
-          readinessProbe:
-            httpGet:
-              path: /api/server/ping
-              port: http
-            periodSeconds: 30
-            timeoutSeconds: 10
-            failureThreshold: 3
           securityContext:
-            allowPrivilegeEscalation: false
             capabilities:
-              drop: ["ALL"]
               add: ["CHOWN", "DAC_OVERRIDE", "FOWNER", "SETGID", "SETUID"]
+              drop: ["ALL"]
+            allowPrivilegeEscalation: false
             seccompProfile:
               type: RuntimeDefault
-          resources:
-            requests:
-              cpu: 200m
-              memory: 512Mi
-            limits:
-              cpu: "2"
-              memory: 2Gi
-          volumeMounts:
-            - name: library
-              mountPath: /data
-            - name: media-user
-              mountPath: /mnt/Artemiy/Library
-              readOnly: true
-            - name: media-family
-              mountPath: /mnt/Family/Library
-              readOnly: true
-            - name: localtime
-              mountPath: /etc/localtime
-              readOnly: true
       volumes:
         - name: library
           persistentVolumeClaim:
@@ -150,3 +145,8 @@ spec:
           hostPath:
             path: /etc/localtime
             type: File
+  strategy:
+    # RWO-том library нельзя монтировать двум подам сразу: rolling update поднял
+    # бы новый под до остановки старого.
+    type: Recreate
+  revisionHistoryLimit: 2

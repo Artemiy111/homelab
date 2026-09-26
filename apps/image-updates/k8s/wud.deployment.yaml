@@ -4,9 +4,6 @@ metadata:
   name: wud
   namespace: monitoring
 spec:
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
@@ -40,6 +37,30 @@ spec:
               value: "false"
             - name: WUD_SERVER_FEATURE_DELETE
               value: "false"
+          resources:
+            limits:
+              cpu: "1"
+              memory: 512Mi
+            requests:
+              cpu: 50m
+              memory: 128Mi
+          volumeMounts:
+            - name: store
+              mountPath: /store
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            timeoutSeconds: 5
+            periodSeconds: 120
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            timeoutSeconds: 5
+            periodSeconds: 60
+            failureThreshold: 3
           startupProbe:
             httpGet:
               path: /health
@@ -47,39 +68,18 @@ spec:
             initialDelaySeconds: 10
             periodSeconds: 5
             failureThreshold: 30
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: http
-            periodSeconds: 120
-            timeoutSeconds: 5
-            failureThreshold: 3
-          readinessProbe:
-            httpGet:
-              path: /health
-              port: http
-            periodSeconds: 60
-            timeoutSeconds: 5
-            failureThreshold: 3
           securityContext:
-            runAsUser: 0
-            runAsGroup: 0
-            allowPrivilegeEscalation: false
             capabilities:
               drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            runAsUser: 0
+            runAsGroup: 0
             seccompProfile:
               type: RuntimeDefault
-          resources:
-            requests:
-              cpu: 50m
-              memory: 128Mi
-            limits:
-              cpu: "1"
-              memory: 512Mi
-          volumeMounts:
-            - name: store
-              mountPath: /store
       volumes:
         - name: store
           persistentVolumeClaim:
             claimName: wud-store
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2

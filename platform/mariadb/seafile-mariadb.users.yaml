@@ -19,8 +19,8 @@ spec:
   passwordSecretKeyRef:
     name: seafile
     key: SEAFILE_MYSQL_DB_PASSWORD
-  host: "%"
   maxUserConnections: 0
+  host: "%"
 ---
 apiVersion: k8s.mariadb.com/v1alpha1
 kind: Grant
@@ -30,11 +30,11 @@ metadata:
 spec:
   mariaDbRef:
     name: seafile-mariadb
+  username: seafile
   privileges:
     - "ALL PRIVILEGES"
   database: ccnet_db
   table: "*"
-  username: seafile
   host: "%"
 ---
 apiVersion: k8s.mariadb.com/v1alpha1
@@ -45,11 +45,11 @@ metadata:
 spec:
   mariaDbRef:
     name: seafile-mariadb
+  username: seafile
   privileges:
     - "ALL PRIVILEGES"
   database: seafile_db
   table: "*"
-  username: seafile
   host: "%"
 ---
 apiVersion: k8s.mariadb.com/v1alpha1
@@ -60,9 +60,9 @@ metadata:
 spec:
   mariaDbRef:
     name: seafile-mariadb
+  username: seafile
   privileges:
     - "ALL PRIVILEGES"
   database: seahub_db
   table: "*"
-  username: seafile
   host: "%"

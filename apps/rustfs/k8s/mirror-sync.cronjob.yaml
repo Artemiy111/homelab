@@ -48,16 +48,16 @@ spec:
                       name: rustfs
                       key: RUSTFS_SECRET_KEY
               resources:
-                requests:
-                  cpu: 50m
-                  memory: 128Mi
                 limits:
                   cpu: "1"
                   memory: 512Mi
+                requests:
+                  cpu: 50m
+                  memory: 128Mi
               volumeMounts:
                 - name: scripts
-                  mountPath: /scripts
                   readOnly: true
+                  mountPath: /scripts
           volumes:
             - name: scripts
               configMap:

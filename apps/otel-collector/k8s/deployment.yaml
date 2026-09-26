@@ -4,7 +4,6 @@ metadata:
   name: otel-collector
   namespace: monitoring
 spec:
-  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
@@ -29,6 +28,32 @@ spec:
               containerPort: 8889
             - name: health
               containerPort: 13133
+          resources:
+            limits:
+              cpu: "1"
+              memory: 512Mi
+            requests:
+              cpu: 50m
+              memory: 128Mi
+          volumeMounts:
+            - name: config
+              readOnly: true
+              mountPath: /etc/otelcol-contrib/config.yaml
+              subPath: config.yaml
+          livenessProbe:
+            httpGet:
+              path: /
+              port: health
+            timeoutSeconds: 5
+            periodSeconds: 30
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: health
+            timeoutSeconds: 5
+            periodSeconds: 30
+            failureThreshold: 3
           startupProbe:
             httpGet:
               path: /
@@ -36,42 +61,17 @@ spec:
             initialDelaySeconds: 5
             periodSeconds: 5
             failureThreshold: 30
-          livenessProbe:
-            httpGet:
-              path: /
-              port: health
-            periodSeconds: 30
-            timeoutSeconds: 5
-            failureThreshold: 3
-          readinessProbe:
-            httpGet:
-              path: /
-              port: health
-            periodSeconds: 30
-            timeoutSeconds: 5
-            failureThreshold: 3
           securityContext:
-            runAsUser: 10001
-            runAsGroup: 10001
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
             capabilities:
               drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
             seccompProfile:
               type: RuntimeDefault
-          resources:
-            requests:
-              cpu: 50m
-              memory: 128Mi
-            limits:
-              cpu: "1"
-              memory: 512Mi
-          volumeMounts:
-            - name: config
-              mountPath: /etc/otelcol-contrib/config.yaml
-              subPath: config.yaml
-              readOnly: true
       volumes:
         - name: config
           configMap:
             name: otel-collector
+  revisionHistoryLimit: 2

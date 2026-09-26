@@ -22,7 +22,6 @@ spec:
   name: dawarich
   owner: dawarich
   encoding: UTF8
-  databaseReclaimPolicy: retain
   extensions:
     - name: postgis
       ensure: present
@@ -30,3 +29,4 @@ spec:
       ensure: present
     - name: fuzzystrmatch
       ensure: present
+  databaseReclaimPolicy: retain

@@ -22,7 +22,6 @@ spec:
   name: immich
   owner: immich
   encoding: UTF8
-  databaseReclaimPolicy: retain
   extensions:
     - name: vector
       ensure: present
@@ -38,3 +37,4 @@ spec:
       ensure: present
     - name: uuid-ossp
       ensure: present
+  databaseReclaimPolicy: retain

@@ -4,9 +4,6 @@ metadata:
   name: zitadel-login
   namespace: zitadel
 spec:
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
@@ -44,44 +41,44 @@ spec:
               value: "https://id.$(DOMAIN)"
             - name: CUSTOM_REQUEST_HEADERS
               value: "Host:id.$(DOMAIN),X-Forwarded-Proto:https"
+          resources:
+            limits:
+              cpu: "1"
+              memory: 256Mi
+            requests:
+              cpu: 50m
+              memory: 128Mi
+          volumeMounts:
+            - name: login-service-key
+              readOnly: true
+              mountPath: /login-service-key
+          livenessProbe:
+            exec:
+              command: ["/bin/sh", "-c", "node /app/healthcheck.mjs http://localhost:3000/ui/v2/login/healthy"]
+            timeoutSeconds: 30
+            periodSeconds: 30
+            failureThreshold: 3
+          readinessProbe:
+            exec:
+              command: ["/bin/sh", "-c", "node /app/healthcheck.mjs http://localhost:3000/ui/v2/login/healthy"]
+            timeoutSeconds: 30
+            periodSeconds: 15
+            failureThreshold: 3
           startupProbe:
             exec:
               command: ["/bin/sh", "-c", "node /app/healthcheck.mjs http://localhost:3000/ui/v2/login/healthy"]
             initialDelaySeconds: 15
             periodSeconds: 5
             failureThreshold: 30
-          livenessProbe:
-            exec:
-              command: ["/bin/sh", "-c", "node /app/healthcheck.mjs http://localhost:3000/ui/v2/login/healthy"]
-            periodSeconds: 30
-            timeoutSeconds: 30
-            failureThreshold: 3
-          readinessProbe:
-            exec:
-              command: ["/bin/sh", "-c", "node /app/healthcheck.mjs http://localhost:3000/ui/v2/login/healthy"]
-            periodSeconds: 15
-            timeoutSeconds: 30
-            failureThreshold: 3
           securityContext:
+            capabilities:
+              add: ["CHOWN", "DAC_OVERRIDE", "FOWNER", "SETGID", "SETUID"]
+              drop: ["ALL"]
+            allowPrivilegeEscalation: false
             runAsUser: 0
             runAsGroup: 0
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: ["ALL"]
-              add: ["CHOWN", "DAC_OVERRIDE", "FOWNER", "SETGID", "SETUID"]
             seccompProfile:
               type: RuntimeDefault
-          resources:
-            requests:
-              cpu: 50m
-              memory: 128Mi
-            limits:
-              cpu: "1"
-              memory: 256Mi
-          volumeMounts:
-            - name: login-service-key
-              mountPath: /login-service-key
-              readOnly: true
       volumes:
         - name: login-service-key
           secret:
@@ -89,3 +86,6 @@ spec:
             items:
               - key: tls.key
                 path: tls.key
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2

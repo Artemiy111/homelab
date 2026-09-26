@@ -4,7 +4,6 @@ metadata:
   name: glitchtip
   namespace: glitchtip
 spec:
-  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
@@ -20,6 +19,11 @@ spec:
         # (web и worker) перед стартом приложения.
         - name: migrate
           image: "glitchtip/glitchtip:6@sha256:a3d8eb1b36c1e1603d55ab32711ea3dd8115874742a781a57391a62a16e0dff6"
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              ./manage.py migrate &&
+              ./manage.py shell -c "import os; from allauth.socialaccount.models import SocialApp; cid = os.environ.get('GLITCHTIP_CLIENT_ID') or ''; sec = os.environ.get('GLITCHTIP_CLIENT_SECRET') or ''; print('OIDC: client id/secret not set, skipping') if not (cid and sec) else SocialApp.objects.update_or_create(provider='openid_connect', provider_id='zitadel', defaults=dict(name='Zitadel', client_id=cid, secret=sec, settings={'server_url': 'https://id.' + os.environ['DOMAIN'] + '/.well-known/openid-configuration'}))"
           env:
             - name: DOMAIN
               valueFrom:
@@ -47,33 +51,28 @@ spec:
                 secretKeyRef:
                   name: glitchtip
                   key: GLITCHTIP_CLIENT_SECRET
-          command: ["/bin/sh", "-c"]
-          args:
-            - |
-              ./manage.py migrate &&
-              ./manage.py shell -c "import os; from allauth.socialaccount.models import SocialApp; cid = os.environ.get('GLITCHTIP_CLIENT_ID') or ''; sec = os.environ.get('GLITCHTIP_CLIENT_SECRET') or ''; print('OIDC: client id/secret not set, skipping') if not (cid and sec) else SocialApp.objects.update_or_create(provider='openid_connect', provider_id='zitadel', defaults=dict(name='Zitadel', client_id=cid, secret=sec, settings={'server_url': 'https://id.' + os.environ['DOMAIN'] + '/.well-known/openid-configuration'}))"
-          securityContext:
-            runAsUser: 5000
-            runAsGroup: 5000
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: ["ALL"]
-            seccompProfile:
-              type: RuntimeDefault
           resources:
-            requests:
-              cpu: 10m
-              memory: 128Mi
             limits:
               cpu: 250m
               memory: 512Mi
+            requests:
+              cpu: 10m
+              memory: 128Mi
+          securityContext:
+            capabilities:
+              drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            runAsGroup: 5000
+            runAsNonRoot: true
+            runAsUser: 5000
+            seccompProfile:
+              type: RuntimeDefault
       containers:
         - name: glitchtip
           image: "glitchtip/glitchtip:6@sha256:a3d8eb1b36c1e1603d55ab32711ea3dd8115874742a781a57391a62a16e0dff6"
           ports:
-            - containerPort: 8000
-              name: http
+            - name: http
+              containerPort: 8000
           envFrom:
             - configMapRef:
                 name: homelab-config
@@ -113,37 +112,38 @@ spec:
               value: "true"
             - name: SOCIAL_AUTH_BLOCK_PRIVATE_IPS
               value: "false"
+          resources:
+            limits:
+              cpu: 500m
+              memory: 768Mi
+            requests:
+              cpu: 10m
+              memory: 128Mi
+          livenessProbe:
+            exec:
+              command: ["python", "/code/healthcheck.py"]
+            timeoutSeconds: 10
+            periodSeconds: 30
+            failureThreshold: 3
+          readinessProbe:
+            exec:
+              command: ["python", "/code/healthcheck.py"]
+            timeoutSeconds: 10
+            periodSeconds: 30
+            failureThreshold: 3
           startupProbe:
             exec:
               command: ["python", "/code/healthcheck.py"]
             initialDelaySeconds: 15
             periodSeconds: 5
             failureThreshold: 24
-          livenessProbe:
-            exec:
-              command: ["python", "/code/healthcheck.py"]
-            periodSeconds: 30
-            timeoutSeconds: 10
-            failureThreshold: 3
-          readinessProbe:
-            exec:
-              command: ["python", "/code/healthcheck.py"]
-            periodSeconds: 30
-            timeoutSeconds: 10
-            failureThreshold: 3
           securityContext:
-            runAsUser: 5000
-            runAsGroup: 5000
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
             capabilities:
               drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 5000
+            runAsGroup: 5000
             seccompProfile:
               type: RuntimeDefault
-          resources:
-            requests:
-              cpu: 10m
-              memory: 128Mi
-            limits:
-              cpu: 500m
-              memory: 768Mi
+  revisionHistoryLimit: 2

@@ -6,9 +6,6 @@ metadata:
   annotations:
     ignore-check.kube-linter.io/host-network: "UDP-медиадиапазон 50000-50499 публикуется напрямую на узле (#161)"
 spec:
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
@@ -18,30 +15,30 @@ spec:
       labels:
         app: element-livekit
     spec:
+      dnsPolicy: ClusterFirstWithHostNet
       # UDP-медиадиапазон 50000-50499 публикуется напрямую на узле:
       hostNetwork: true
-      dnsPolicy: ClusterFirstWithHostNet
       enableServiceLinks: false
       initContainers:
         - name: wait-for-redis
           image: "redis:8.10-alpine@sha256:978f0e01593e65eed801f2402944efcd936d43b5027e4908a7897baf88ed6241"
           command: ["/bin/sh", "-c", "until redis-cli -h element-redis ping | grep -q PONG; do echo waiting for element-redis; sleep 2; done"]
-          securityContext:
-            runAsUser: 999
-            runAsGroup: 999
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: ["ALL"]
-            seccompProfile:
-              type: RuntimeDefault
           resources:
-            requests:
-              cpu: 10m
-              memory: 32Mi
             limits:
               cpu: 100m
               memory: 64Mi
+            requests:
+              cpu: 10m
+              memory: 32Mi
+          securityContext:
+            capabilities:
+              drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            runAsGroup: 999
+            runAsNonRoot: true
+            runAsUser: 999
+            seccompProfile:
+              type: RuntimeDefault
       containers:
         - name: livekit
           image: "livekit/livekit-server:v1.13.5@sha256:3497163e15c48fef6e7830c78716f9e9d5edc28abf7aa90b61c86e93bbc306b1"
@@ -68,6 +65,31 @@ spec:
                 configMapKeyRef:
                   name: homelab-config
                   key: TZ
+          resources:
+            limits:
+              cpu: "1"
+              memory: 1Gi
+            requests:
+              cpu: 100m
+              memory: 256Mi
+          volumeMounts:
+            - name: config
+              readOnly: true
+              mountPath: /etc/livekit/config.yaml
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            timeoutSeconds: 10
+            periodSeconds: 30
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            timeoutSeconds: 10
+            periodSeconds: 30
+            failureThreshold: 3
           startupProbe:
             httpGet:
               path: /
@@ -75,39 +97,17 @@ spec:
             initialDelaySeconds: 10
             periodSeconds: 5
             failureThreshold: 30
-          livenessProbe:
-            httpGet:
-              path: /
-              port: http
-            periodSeconds: 30
-            timeoutSeconds: 10
-            failureThreshold: 3
-          readinessProbe:
-            httpGet:
-              path: /
-              port: http
-            periodSeconds: 30
-            timeoutSeconds: 10
-            failureThreshold: 3
           securityContext:
-            allowPrivilegeEscalation: false
             capabilities:
               drop: ["ALL"]
+            allowPrivilegeEscalation: false
             seccompProfile:
               type: RuntimeDefault
-          resources:
-            requests:
-              cpu: 100m
-              memory: 256Mi
-            limits:
-              cpu: "1"
-              memory: 1Gi
-          volumeMounts:
-            - name: config
-              mountPath: /etc/livekit/config.yaml
-              readOnly: true
       volumes:
         - name: config
           hostPath:
             path: /storage/apps/element/livekit/config.yaml
             type: File
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2

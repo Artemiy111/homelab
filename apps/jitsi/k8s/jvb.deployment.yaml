@@ -6,10 +6,6 @@ metadata:
   annotations:
     ignore-check.kube-linter.io/host-network: "медиамост публикует UDP 10000 на LAN-адресе узла; hostPort в Calico не работает (#161)"
 spec:
-  # RWO-тома: два пода при rolling update пишут в одни каталоги.
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
@@ -19,45 +15,42 @@ spec:
       labels:
         app: jitsi-jvb
     spec:
+      dnsPolicy: ClusterFirstWithHostNet
       # hostPort в Calico здесь не работает — медиамост публикует
       # UDP-порт 10000 напрямую на LAN-адресе узла через hostNetwork.
       hostNetwork: true
-      dnsPolicy: ClusterFirstWithHostNet
       enableServiceLinks: false
-      # fsGroup даёт групповую запись в тома Longhorn для пользователя 1000.
-      securityContext:
-        fsGroup: 1000
       # s6-overlay требует, чтобы /run принадлежал пользователю контейнера;
       # пустой emptyDir создаётся root-овым, поэтому чиним владельца до старта.
       initContainers:
         - name: fix-run-perms
           image: "redis:8.10-alpine@sha256:978f0e01593e65eed801f2402944efcd936d43b5027e4908a7897baf88ed6241"
           command: ["sh", "-c", "chown 1000:1000 /run && chmod 0750 /run"]
-          securityContext:
-            runAsUser: 0
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: ["ALL"]
-              add: ["CHOWN", "FOWNER"]
-            seccompProfile:
-              type: RuntimeDefault
           resources:
-            requests:
-              cpu: 10m
-              memory: 16Mi
             limits:
               cpu: 100m
               memory: 32Mi
+            requests:
+              cpu: 10m
+              memory: 16Mi
           volumeMounts:
             - name: run
               mountPath: /run
+          securityContext:
+            capabilities:
+              add: ["CHOWN", "FOWNER"]
+              drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            runAsUser: 0
+            seccompProfile:
+              type: RuntimeDefault
       containers:
         - name: jvb
           image: "ghcr.io/jitsi/jvb:stable-11146-1@sha256:6a7cec66c6a2fdd8ffd3a90101a0f8e3297aff29494f258caf1bcfbd418a17f3"
           ports:
             - name: media
-              containerPort: 10000
               protocol: UDP
+              containerPort: 10000
             - name: colibri
               containerPort: 8080
           env:
@@ -102,41 +95,13 @@ spec:
               value: internal-muc.meet.jitsi
             - name: XMPP_SERVER
               value: prosody
-          startupProbe:
-            tcpSocket:
-              port: colibri
-            initialDelaySeconds: 15
-            periodSeconds: 5
-            failureThreshold: 60
-          livenessProbe:
-            tcpSocket:
-              port: colibri
-            periodSeconds: 30
-            timeoutSeconds: 10
-            failureThreshold: 3
-          readinessProbe:
-            tcpSocket:
-              port: colibri
-            periodSeconds: 30
-            timeoutSeconds: 10
-            failureThreshold: 3
-          securityContext:
-            runAsUser: 1000
-            runAsGroup: 1000
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: true
-            capabilities:
-              drop: ["ALL"]
-            seccompProfile:
-              type: RuntimeDefault
           resources:
-            requests:
-              cpu: 100m
-              memory: 256Mi
             limits:
               cpu: "2"
               memory: 1Gi
+            requests:
+              cpu: 100m
+              memory: 256Mi
           volumeMounts:
             - name: config
               mountPath: /config
@@ -144,6 +109,34 @@ spec:
               mountPath: /run
             - name: tmp
               mountPath: /tmp
+          livenessProbe:
+            tcpSocket:
+              port: colibri
+            timeoutSeconds: 10
+            periodSeconds: 30
+            failureThreshold: 3
+          readinessProbe:
+            tcpSocket:
+              port: colibri
+            timeoutSeconds: 10
+            periodSeconds: 30
+            failureThreshold: 3
+          startupProbe:
+            tcpSocket:
+              port: colibri
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            failureThreshold: 60
+          securityContext:
+            capabilities:
+              drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            seccompProfile:
+              type: RuntimeDefault
       volumes:
         - name: config
           persistentVolumeClaim:
@@ -154,3 +147,10 @@ spec:
         - name: tmp
           emptyDir:
             sizeLimit: 16Mi
+      # fsGroup даёт групповую запись в тома Longhorn для пользователя 1000.
+      securityContext:
+        fsGroup: 1000
+  # RWO-тома: два пода при rolling update пишут в одни каталоги.
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2

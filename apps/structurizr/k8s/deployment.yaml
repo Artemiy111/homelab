@@ -4,10 +4,6 @@ metadata:
   name: structurizr
   namespace: structurizr
 spec:
-  # RWO-том: два пода при rolling update пишут в один workspace.
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
@@ -18,16 +14,11 @@ spec:
         app: structurizr
     spec:
       enableServiceLinks: false
-      # fsGroup даёт групповую запись в том Longhorn, иначе root-owned каталог
-      # тома недоступен пользователю 1000.
-      securityContext:
-        fsGroup: 1000
       containers:
         - name: structurizr
           # Образ собирается из исходников (apps/structurizr/Dockerfile) и
           # загружается в containerd k0s локально; в Git его нет.
           image: "localhost/structurizr:2026.06.28"
-          imagePullPolicy: IfNotPresent
           ports:
             - name: http
               containerPort: 8080
@@ -39,6 +30,34 @@ spec:
                 configMapKeyRef:
                   name: homelab-config
                   key: TZ
+          resources:
+            limits:
+              cpu: "2"
+              memory: 2Gi
+            requests:
+              cpu: 100m
+              memory: 384Mi
+          volumeMounts:
+            - name: data
+              mountPath: /usr/local/structurizr
+            - name: properties
+              readOnly: true
+              mountPath: /usr/local/structurizr/structurizr.properties
+              subPath: structurizr.properties
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            timeoutSeconds: 10
+            periodSeconds: 30
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            timeoutSeconds: 10
+            periodSeconds: 15
+            failureThreshold: 3
           startupProbe:
             httpGet:
               path: /
@@ -46,43 +65,16 @@ spec:
             initialDelaySeconds: 20
             periodSeconds: 10
             failureThreshold: 30
-          livenessProbe:
-            httpGet:
-              path: /
-              port: http
-            periodSeconds: 30
-            timeoutSeconds: 10
-            failureThreshold: 3
-          readinessProbe:
-            httpGet:
-              path: /
-              port: http
-            periodSeconds: 15
-            timeoutSeconds: 10
-            failureThreshold: 3
+          imagePullPolicy: IfNotPresent
           securityContext:
-            runAsUser: 1000
-            runAsGroup: 1000
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
             capabilities:
               drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
             seccompProfile:
               type: RuntimeDefault
-          resources:
-            requests:
-              cpu: 100m
-              memory: 384Mi
-            limits:
-              cpu: "2"
-              memory: 2Gi
-          volumeMounts:
-            - name: data
-              mountPath: /usr/local/structurizr
-            - name: properties
-              mountPath: /usr/local/structurizr/structurizr.properties
-              subPath: structurizr.properties
-              readOnly: true
       volumes:
         - name: data
           persistentVolumeClaim:
@@ -90,3 +82,11 @@ spec:
         - name: properties
           configMap:
             name: structurizr-properties
+      # fsGroup даёт групповую запись в том Longhorn, иначе root-owned каталог
+      # тома недоступен пользователю 1000.
+      securityContext:
+        fsGroup: 1000
+  # RWO-том: два пода при rolling update пишут в один workspace.
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2

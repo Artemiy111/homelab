@@ -4,9 +4,9 @@ metadata:
   name: uptime-kuma-sync
   namespace: uptime-kuma
 spec:
-  suspend: true
   schedule: "0 0 1 1 *"
   concurrencyPolicy: Forbid
+  suspend: true
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 1
   jobTemplate:
@@ -18,29 +18,31 @@ spec:
             app: uptime-kuma-sync
         spec:
           restartPolicy: Never
-          securityContext:
-            runAsNonRoot: true
-            fsGroup: 1000
           initContainers:
             - name: install-deps
               image: "oven/bun:1"
-              workingDir: /opt/deps
               command: ["bun", "add", "socket.io-client@4"]
-              securityContext:
-                runAsUser: 1000
-                runAsGroup: 1000
-                allowPrivilegeEscalation: false
-                capabilities:
-                  drop: ["ALL"]
-                seccompProfile:
-                  type: RuntimeDefault
+              workingDir: /opt/deps
               volumeMounts:
                 - name: deps
                   mountPath: /opt/deps
+              securityContext:
+                capabilities:
+                  drop: ["ALL"]
+                allowPrivilegeEscalation: false
+                runAsGroup: 1000
+                runAsUser: 1000
+                seccompProfile:
+                  type: RuntimeDefault
           containers:
             - name: sync
               image: "oven/bun:1"
               command: ["bun", "run", "/app/sync-monitors.ts"]
+              envFrom:
+                - configMapRef:
+                    name: homelab-config
+                - secretRef:
+                    name: uptime-kuma-sync
               env:
                 - name: HOME
                   value: /tmp
@@ -54,28 +56,26 @@ spec:
                   valueFrom:
                     fieldRef:
                       fieldPath: status.hostIP
-              envFrom:
-                - configMapRef:
-                    name: homelab-config
-                - secretRef:
-                    name: uptime-kuma-sync
-              securityContext:
-                runAsUser: 1000
-                runAsGroup: 1000
-                allowPrivilegeEscalation: false
-                capabilities:
-                  drop: ["ALL"]
-                seccompProfile:
-                  type: RuntimeDefault
               volumeMounts:
                 - name: config
-                  mountPath: /app
                   readOnly: true
+                  mountPath: /app
                 - name: deps
                   mountPath: /opt/deps
+              securityContext:
+                capabilities:
+                  drop: ["ALL"]
+                allowPrivilegeEscalation: false
+                runAsGroup: 1000
+                runAsUser: 1000
+                seccompProfile:
+                  type: RuntimeDefault
           volumes:
             - name: config
               configMap:
                 name: uptime-kuma-sync-files
             - name: deps
               emptyDir: {}
+          securityContext:
+            fsGroup: 1000
+            runAsNonRoot: true

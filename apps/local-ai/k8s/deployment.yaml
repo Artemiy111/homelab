@@ -4,10 +4,6 @@ metadata:
   name: local-ai
   namespace: local-ai
 spec:
-  # RWO-тома: два пода при rolling update пишут в одни каталоги.
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
@@ -18,9 +14,6 @@ spec:
         app: local-ai
     spec:
       terminationGracePeriodSeconds: 120
-      # fsGroup даёт групповую запись в тома Longhorn для пользователя 1000.
-      securityContext:
-        fsGroup: 1000
       containers:
         - name: local-ai
           image: "localai/localai:v4.8.0@sha256:78befe43707579dbe1b1d3f17d9788aa41ec493da30a6b6aabdf39e5efd23b7c"
@@ -46,46 +39,15 @@ spec:
               value: "true"
             - name: LOCALAI_DISABLE_USAGE_STATS
               value: "true"
-          startupProbe:
-            httpGet:
-              path: /readyz
-              port: http
-            initialDelaySeconds: 15
-            periodSeconds: 10
-            failureThreshold: 60
-          livenessProbe:
-            httpGet:
-              path: /readyz
-              port: http
-            periodSeconds: 60
-            timeoutSeconds: 10
-            failureThreshold: 3
-          readinessProbe:
-            httpGet:
-              path: /readyz
-              port: http
-            periodSeconds: 60
-            timeoutSeconds: 10
-            failureThreshold: 3
-          securityContext:
-            runAsUser: 1000
-            runAsGroup: 1000
-            runAsNonRoot: true
-            readOnlyRootFilesystem: true
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: ["ALL"]
-            seccompProfile:
-              type: RuntimeDefault
           resources:
+            limits:
+              cpu: "4"
+              memory: 20Gi
             requests:
               cpu: 100m
               # Суточный пик 243 МиБ по cAdvisor в VM: движок всё же запускался.
               # Пятиминутный сэмпл это пропустил.
               memory: 256Mi
-            limits:
-              cpu: "4"
-              memory: 20Gi
           volumeMounts:
             - name: models
               mountPath: /models
@@ -97,6 +59,37 @@ spec:
               mountPath: /data
             - name: tmp
               mountPath: /tmp
+          livenessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            timeoutSeconds: 10
+            periodSeconds: 60
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            timeoutSeconds: 10
+            periodSeconds: 60
+            failureThreshold: 3
+          startupProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            failureThreshold: 60
+          securityContext:
+            capabilities:
+              drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            seccompProfile:
+              type: RuntimeDefault
       volumes:
         - name: models
           hostPath:
@@ -114,3 +107,10 @@ spec:
         - name: tmp
           emptyDir:
             sizeLimit: 4Gi
+      # fsGroup даёт групповую запись в тома Longhorn для пользователя 1000.
+      securityContext:
+        fsGroup: 1000
+  # RWO-тома: два пода при rolling update пишут в одни каталоги.
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2

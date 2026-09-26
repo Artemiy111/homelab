@@ -5,34 +5,46 @@ metadata:
   namespace: argocd
 spec:
   project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: traefik
   source:
     repoURL: https://traefik.github.io/charts
-    chart: traefik
     targetRevision: 41.4.0
+    chart: traefik
     helm:
       releaseName: traefik
       skipCrds: true
       valuesObject:
-        providers:
-          kubernetesCRD:
-            allowCrossNamespace: true
         service:
           spec:
             type: ClusterIP
         ports:
           web:
+            protocol: TCP
             port: 8000
             expose:
               default: true
-            protocol: TCP
           websecure:
+            protocol: TCP
             port: 8443
+            expose:
+              default: true
             http:
               tls:
                 enabled: true
-            expose:
-              default: true
-            protocol: TCP
+        additionalArguments:
+          - --ping
+        ingressClass:
+          name: traefik
+          enabled: true
+          isDefaultClass: true
+        ingressRoute:
+          healthcheck:
+            enabled: true
+            entryPoints:
+              - websecure
+            tls: {}
         metrics:
           prometheus:
             service:
@@ -45,24 +57,12 @@ spec:
             # а запас по диску vmdata после инцидента 0003 не расширялся —
             # решение принято осознанно, отслеживать расход в #284.
             addRoutersLabels: true
-        additionalArguments:
-          - --ping
-        ingressRoute:
-          healthcheck:
-            enabled: true
-            entryPoints:
-              - websecure
-            tls: {}
-        ingressClass:
-          enabled: true
-          isDefaultClass: true
-          name: traefik
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: traefik
+        providers:
+          kubernetesCRD:
+            allowCrossNamespace: true
   syncPolicy:
+    automated:
+      selfHeal: true
     syncOptions:
       - ServerSideApply=true
       - CreateNamespace=true
-    automated:
-      selfHeal: true

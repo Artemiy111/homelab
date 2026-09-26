@@ -9,11 +9,11 @@ spec:
     app: element-livekit
   ports:
     - name: http
+      protocol: TCP
       port: 80
       targetPort: http
-      protocol: TCP
     # Prometheus-метрики (скрейпит vmagent).
     - name: metrics
+      protocol: TCP
       port: 6789
       targetPort: metrics
-      protocol: TCP

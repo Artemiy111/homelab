@@ -12,9 +12,9 @@ metadata:
   name: gitlab-data
   namespace: gitlab
 spec:
+  storageClassName: local-path
   accessModes:
     - ReadWriteOnce
-  storageClassName: local-path
   resources:
     requests:
       storage: 10Gi
@@ -25,9 +25,9 @@ metadata:
   name: gitlab-config
   namespace: gitlab
 spec:
+  storageClassName: local-path
   accessModes:
     - ReadWriteOnce
-  storageClassName: local-path
   resources:
     requests:
       storage: 1Gi

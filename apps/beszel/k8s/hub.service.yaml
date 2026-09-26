@@ -9,6 +9,6 @@ spec:
     app: beszel
   ports:
     - name: http
+      protocol: TCP
       port: 80
       targetPort: http
-      protocol: TCP

@@ -8,13 +8,27 @@ metadata:
   namespace: argocd
 spec:
   project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: local-path-storage
   source:
     repoURL: https://github.com/rancher/local-path-provisioner.git
-    path: deploy/chart/local-path-provisioner
     targetRevision: v0.0.37
+    path: deploy/chart/local-path-provisioner
     helm:
       releaseName: local-path-provisioner
       valuesObject:
+        resources:
+          limits:
+            cpu: "1"
+            memory: 256Mi
+          requests:
+            cpu: 50m
+            memory: 64Mi
+        nodePathMap:
+          - node: DEFAULT_PATH_FOR_NON_LISTED_NODES
+            paths:
+              - /storage/apps/k8s/local-path
         storageClass:
           # Дефолтный класс: PVC без явного storageClassName тоже биндится.
           defaultClass: true
@@ -22,23 +36,9 @@ spec:
           # сносит данные вместе с PVC. Retain оставляет PV в Released: каталог
           # на диске цел, вернуть его можно, пересоздав PVC с тем же именем.
           reclaimPolicy: Retain
-        nodePathMap:
-          - node: DEFAULT_PATH_FOR_NON_LISTED_NODES
-            paths:
-              - /storage/apps/k8s/local-path
-        resources:
-          requests:
-            cpu: 50m
-            memory: 64Mi
-          limits:
-            cpu: "1"
-            memory: 256Mi
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: local-path-storage
   syncPolicy:
-    syncOptions:
-      - CreateNamespace=true
     automated:
       prune: true
       selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

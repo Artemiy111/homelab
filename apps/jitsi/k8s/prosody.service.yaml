@@ -9,18 +9,18 @@ spec:
     app: jitsi-prosody
   ports:
     - name: http
+      protocol: TCP
       port: 5280
       targetPort: http
-      protocol: TCP
     - name: xmpp-client
+      protocol: TCP
       port: 5222
       targetPort: xmpp-client
-      protocol: TCP
     - name: xmpp-federation
+      protocol: TCP
       port: 5269
       targetPort: xmpp-federation
-      protocol: TCP
     - name: xmpp-component
+      protocol: TCP
       port: 5347
       targetPort: xmpp-component
-      protocol: TCP

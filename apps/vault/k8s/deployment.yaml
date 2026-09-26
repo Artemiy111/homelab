@@ -4,10 +4,6 @@ metadata:
   name: vault
   namespace: vault
 spec:
-  # RWO-том данных: два пода при rolling update пишут в один каталог.
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
@@ -20,9 +16,6 @@ spec:
       # vault.hcl использует cluster_addr=http://vault:8201; имя пода даёт
       # соответствующую запись в /etc/hosts.
       hostname: vault
-      # fsGroup даёт групповую запись в том Longhorn (контейнер 100:1000).
-      securityContext:
-        fsGroup: 1000
       containers:
         - name: vault
           image: "hashicorp/vault:2.0.3@sha256:a296a888b118615dc01d5f1a6846e6d4a7277946caaed5b447008fff5fe06b54"
@@ -40,6 +33,29 @@ spec:
               value: "http://127.0.0.1:8200"
             - name: VAULT_API_ADDR
               value: "https://vault.$(DOMAIN)"
+          resources:
+            limits:
+              cpu: 500m
+              memory: 256Mi
+            requests:
+              cpu: 10m
+              memory: 64Mi
+          volumeMounts:
+            - name: data
+              mountPath: /vault/data
+            - name: config
+              readOnly: true
+              mountPath: /vault/config
+          livenessProbe:
+            exec:
+              command: ["/bin/sh", "-c", "vault status >/dev/null 2>&1; s=$?; [ \"$s\" -eq 0 ] || [ \"$s\" -eq 2 ]"]
+            timeoutSeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            exec:
+              command: ["/bin/sh", "-c", "vault status >/dev/null 2>&1; s=$?; [ \"$s\" -eq 0 ] || [ \"$s\" -eq 2 ]"]
+            timeoutSeconds: 10
+            periodSeconds: 30
           startupProbe:
             exec:
               # vault status: 0 — unsealed, 2 — sealed (тоже норма).
@@ -47,38 +63,15 @@ spec:
             initialDelaySeconds: 10
             periodSeconds: 5
             failureThreshold: 24
-          livenessProbe:
-            exec:
-              command: ["/bin/sh", "-c", "vault status >/dev/null 2>&1; s=$?; [ \"$s\" -eq 0 ] || [ \"$s\" -eq 2 ]"]
-            periodSeconds: 30
-            timeoutSeconds: 10
-          readinessProbe:
-            exec:
-              command: ["/bin/sh", "-c", "vault status >/dev/null 2>&1; s=$?; [ \"$s\" -eq 0 ] || [ \"$s\" -eq 2 ]"]
-            periodSeconds: 30
-            timeoutSeconds: 10
           securityContext:
-            runAsUser: 100
-            runAsGroup: 1000
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
             capabilities:
               drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 100
+            runAsGroup: 1000
             seccompProfile:
               type: RuntimeDefault
-          resources:
-            requests:
-              cpu: 10m
-              memory: 64Mi
-            limits:
-              cpu: 500m
-              memory: 256Mi
-          volumeMounts:
-            - name: data
-              mountPath: /vault/data
-            - name: config
-              mountPath: /vault/config
-              readOnly: true
       volumes:
         - name: data
           persistentVolumeClaim:
@@ -87,3 +80,10 @@ spec:
           hostPath:
             path: /home/artlab/projects/homelab/apps/vault/config
             type: Directory
+      # fsGroup даёт групповую запись в том Longhorn (контейнер 100:1000).
+      securityContext:
+        fsGroup: 1000
+  # RWO-том данных: два пода при rolling update пишут в один каталог.
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2

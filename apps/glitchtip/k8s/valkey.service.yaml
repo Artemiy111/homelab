@@ -9,6 +9,6 @@ spec:
     app: glitchtip-valkey
   ports:
     - name: valkey
+      protocol: TCP
       port: 6379
       targetPort: 6379
-      protocol: TCP

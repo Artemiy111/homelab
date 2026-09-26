@@ -6,9 +6,6 @@ metadata:
   annotations:
     ignore-check.kube-linter.io/host-network: "TURN публикует relay 21000-21499 на LAN-адресе узла; без hostNetwork недоступно (#161)"
 spec:
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
@@ -18,9 +15,9 @@ spec:
       labels:
         app: element-turn
     spec:
+      dnsPolicy: ClusterFirstWithHostNet
       # TURN слушает 3479 и relay 21000-21499 на LAN-адресе узла
       hostNetwork: true
-      dnsPolicy: ClusterFirstWithHostNet
       enableServiceLinks: false
       containers:
         - name: turn
@@ -31,23 +28,26 @@ spec:
                 configMapKeyRef:
                   name: homelab-config
                   key: TZ
+          resources:
+            limits:
+              cpu: "1"
+              memory: 256Mi
+            requests:
+              cpu: 50m
+              memory: 64Mi
+          volumeMounts:
+            - name: config
+              readOnly: true
+              mountPath: /etc/turnserver.conf
           securityContext:
             allowPrivilegeEscalation: false
             seccompProfile:
               type: RuntimeDefault
-          resources:
-            requests:
-              cpu: 50m
-              memory: 64Mi
-            limits:
-              cpu: "1"
-              memory: 256Mi
-          volumeMounts:
-            - name: config
-              mountPath: /etc/turnserver.conf
-              readOnly: true
       volumes:
         - name: config
           hostPath:
             path: /storage/apps/element/turn/turnserver.conf
             type: File
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2

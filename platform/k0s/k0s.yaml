@@ -5,27 +5,23 @@ metadata:
 spec:
   api:
     port: 6443
-
+  storage:
+    type: etcd
   network:
     provider: calico
     podCIDR: 10.244.0.0/16
     serviceCIDR: 10.96.0.0/12
+    kubeProxy:
+      mode: iptables
+      disabled: false
     calico:
       mode: vxlan
       overlay: Always
       wireguard: false
-    kubeProxy:
-      disabled: false
-      mode: iptables
-
-  storage:
-    type: etcd
-
   # Kubelet по умолчанию держит 110 подов на ноду; homelab в этот лимит упирается.
   workerProfiles:
     - name: default
       values:
         maxPods: 200
-
   telemetry:
     enabled: false

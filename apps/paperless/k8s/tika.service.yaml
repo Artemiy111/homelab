@@ -9,6 +9,6 @@ spec:
     app: paperless-tika
   ports:
     - name: http
+      protocol: TCP
       port: 9998
       targetPort: http
-      protocol: TCP

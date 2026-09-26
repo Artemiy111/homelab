@@ -9,6 +9,6 @@ spec:
     app: jitsi-jvb
   ports:
     - name: colibri
+      protocol: TCP
       port: 8080
       targetPort: colibri
-      protocol: TCP

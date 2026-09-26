@@ -29,22 +29,22 @@ spec:
             matchLabels:
               kubernetes.io/metadata.name: traefik
     - from:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: monitoring
-          podSelector:
+        - podSelector:
             matchLabels:
               app: vmagent
+          namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
       ports:
-        - port: 8080
-          protocol: TCP
+        - protocol: TCP
+          port: 8080
     - from:
         - ipBlock:
             cidr: 0.0.0.0/0
       ports:
-        - port: 25
-          protocol: TCP
-        - port: 587
-          protocol: TCP
-        - port: 993
-          protocol: TCP
+        - protocol: TCP
+          port: 25
+        - protocol: TCP
+          port: 587
+        - protocol: TCP
+          port: 993

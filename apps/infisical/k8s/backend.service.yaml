@@ -9,10 +9,10 @@ spec:
     app: infisical
   ports:
     - name: http
+      protocol: TCP
       port: 80
       targetPort: http
-      protocol: TCP
     - name: metrics
+      protocol: TCP
       port: 9464
       targetPort: metrics
-      protocol: TCP

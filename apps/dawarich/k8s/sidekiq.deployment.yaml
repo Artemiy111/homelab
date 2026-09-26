@@ -4,10 +4,6 @@ metadata:
   name: dawarich-sidekiq
   namespace: dawarich
 spec:
-  # RWO-тома storage/watched общие с app: оба пода пишут в один каталог.
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
@@ -21,58 +17,58 @@ spec:
         - name: wait-for-db
           image: "postgis/postgis:17-3.5-alpine@sha256:61cb994f576480f5736974e5c9aff965d039d965301bcaec9c7ea72f94b61908"
           command: ["/bin/sh", "-c", "until pg_isready -h dawarich-db-rw.dawarich.svc.cluster.local -p 5432 -U dawarich; do echo waiting for dawarich-db; sleep 2; done"]
-          securityContext:
-            runAsUser: 70
-            runAsGroup: 70
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: ["ALL"]
-            seccompProfile:
-              type: RuntimeDefault
           resources:
-            requests:
-              cpu: 10m
-              memory: 32Mi
             limits:
               cpu: 100m
               memory: 64Mi
+            requests:
+              cpu: 10m
+              memory: 32Mi
+          securityContext:
+            capabilities:
+              drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            runAsGroup: 70
+            runAsNonRoot: true
+            runAsUser: 70
+            seccompProfile:
+              type: RuntimeDefault
         - name: wait-for-redis
           image: "redis:7.4-alpine@sha256:e7723ff73d963f5cc6d9c4643ea3d989527a402a319239054e9472a7fb9219a2"
           command: ["/bin/sh", "-c", "until redis-cli -h dawarich-redis ping | grep -q PONG; do echo waiting for dawarich-redis; sleep 2; done"]
-          securityContext:
-            runAsUser: 999
-            runAsGroup: 999
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: ["ALL"]
-            seccompProfile:
-              type: RuntimeDefault
           resources:
-            requests:
-              cpu: 10m
-              memory: 32Mi
             limits:
               cpu: 100m
               memory: 64Mi
+            requests:
+              cpu: 10m
+              memory: 32Mi
+          securityContext:
+            capabilities:
+              drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            runAsGroup: 999
+            runAsNonRoot: true
+            runAsUser: 999
+            seccompProfile:
+              type: RuntimeDefault
         - name: wait-for-app
           image: "freikin/dawarich:1.14.5@sha256:23b4e3190bcf8dcdaaa3a17868977b760370a84a325229183d6f8f81cba3495a"
           command: ["/bin/sh", "-c", "until wget -q --spider --header='X-Forwarded-Proto: https' http://dawarich:3000/api/v1/health; do echo waiting for dawarich; sleep 3; done"]
-          securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: ["ALL"]
-              add: ["SETUID", "SETGID", "CHOWN", "DAC_OVERRIDE"]
-            seccompProfile:
-              type: RuntimeDefault
           resources:
-            requests:
-              cpu: 10m
-              memory: 32Mi
             limits:
               cpu: 100m
               memory: 64Mi
+            requests:
+              cpu: 10m
+              memory: 32Mi
+          securityContext:
+            capabilities:
+              add: ["SETUID", "SETGID", "CHOWN", "DAC_OVERRIDE"]
+              drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            seccompProfile:
+              type: RuntimeDefault
       containers:
         - name: sidekiq
           image: "freikin/dawarich:1.14.5@sha256:23b4e3190bcf8dcdaaa3a17868977b760370a84a325229183d6f8f81cba3495a"
@@ -137,26 +133,13 @@ spec:
               value: "true"
             - name: BACKGROUND_PROCESSING_CONCURRENCY
               value: "3"
-          livenessProbe:
-            exec:
-              command: ["/bin/sh", "-c", "pgrep -f sidekiq"]
-            periodSeconds: 30
-            timeoutSeconds: 10
-            failureThreshold: 3
-          securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: ["ALL"]
-              add: ["SETUID", "SETGID", "CHOWN", "DAC_OVERRIDE"]
-            seccompProfile:
-              type: RuntimeDefault
           resources:
-            requests:
-              cpu: 100m
-              memory: 512Mi
             limits:
               cpu: "1"
               memory: 2Gi
+            requests:
+              cpu: 100m
+              memory: 512Mi
           volumeMounts:
             - name: public
               mountPath: /var/app/public
@@ -164,6 +147,19 @@ spec:
               mountPath: /var/app/tmp/imports/watched
             - name: storage
               mountPath: /var/app/storage
+          livenessProbe:
+            exec:
+              command: ["/bin/sh", "-c", "pgrep -f sidekiq"]
+            timeoutSeconds: 10
+            periodSeconds: 30
+            failureThreshold: 3
+          securityContext:
+            capabilities:
+              add: ["SETUID", "SETGID", "CHOWN", "DAC_OVERRIDE"]
+              drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            seccompProfile:
+              type: RuntimeDefault
       volumes:
         - name: public
           emptyDir: {}
@@ -173,3 +169,7 @@ spec:
         - name: storage
           persistentVolumeClaim:
             claimName: dawarich-storage
+  # RWO-тома storage/watched общие с app: оба пода пишут в один каталог.
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2

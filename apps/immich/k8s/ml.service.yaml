@@ -9,6 +9,6 @@ spec:
     app: immich-machine-learning
   ports:
     - name: http
+      protocol: TCP
       port: 3003
       targetPort: http
-      protocol: TCP

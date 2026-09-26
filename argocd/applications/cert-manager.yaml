@@ -29,45 +29,53 @@ metadata:
   namespace: argocd
 spec:
   project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: cert-manager
   source:
     repoURL: https://charts.jetstack.io
-    chart: cert-manager
     targetRevision: v1.21.2
+    chart: cert-manager
     helm:
       releaseName: cert-manager
       valuesObject:
-        crds:
-          enabled: true
         # Дефолт у чарта: resources: {} у controller, webhook и cainjector.
         # Для одноузлового кластера это плохо: без requests планировщик не
         # знает, что размещает, а без limits разъехавшийся контроллер способен
         # вытеснить рабочие поды.
         resources:
-          requests:
-            cpu: 50m
-            memory: 64Mi
           limits:
             cpu: "1"
             memory: 256Mi
-        webhook:
-          resources:
-            requests:
-              cpu: 10m
-              memory: 32Mi
-            limits:
-              cpu: 100m
-              memory: 128Mi
+          requests:
+            cpu: 50m
+            memory: 64Mi
         cainjector:
           resources:
-            requests:
-              cpu: 10m
-              memory: 64Mi
             limits:
               cpu: 100m
               memory: 256Mi
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: cert-manager
+            requests:
+              cpu: 10m
+              memory: 64Mi
+        crds:
+          enabled: true
+        webhook:
+          resources:
+            limits:
+              cpu: 100m
+              memory: 128Mi
+            requests:
+              cpu: 10m
+              memory: 32Mi
+  syncPolicy:
+    automated:
+      selfHeal: true
+    syncOptions:
+      - ServerSideApply=true
+      - Prune=false
+      - CreateNamespace=true
+      - RespectIgnoreDifferences=true
   ignoreDifferences:
     - group: ""
       kind: Secret
@@ -75,11 +83,3 @@ spec:
       namespace: cert-manager
       jsonPointers:
         - /data
-  syncPolicy:
-    syncOptions:
-      - ServerSideApply=true
-      - Prune=false
-      - CreateNamespace=true
-      - RespectIgnoreDifferences=true
-    automated:
-      selfHeal: true

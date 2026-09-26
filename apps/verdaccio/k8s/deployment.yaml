@@ -4,10 +4,6 @@ metadata:
   name: verdaccio
   namespace: verdaccio
 spec:
-  # RWO-том: два пода одновременно его не смонтируют.
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
@@ -21,26 +17,30 @@ spec:
       # VERDACCIO_PORT=tcp://<ClusterIP>:80, и Verdaccio собирает из него
       # невалидный адрес прослушивания.
       enableServiceLinks: false
-      securityContext:
-        # fsGroup даёт групповую запись в том Longhorn под uid/gid 10001
-        # (uid пользователя verdaccio в образе).
-        fsGroup: 10001
       containers:
         - name: verdaccio
           image: "verdaccio/verdaccio:6.10.4@sha256:b569df40d7184f5f99082b4f805dbf648de876903a9a44c21446c0f5d0bbd41b"
+          ports:
+            - name: http
+              containerPort: 4873
           env:
             # Образ по умолчанию слушает [::]; в кластере надёжнее IPv4-any.
             - name: VERDACCIO_ADDRESS
               value: 0.0.0.0
-          ports:
-            - name: http
-              containerPort: 4873
-          startupProbe:
-            httpGet:
-              path: /-/ping
-              port: http
-            periodSeconds: 5
-            failureThreshold: 30
+          resources:
+            limits:
+              cpu: "1"
+              memory: 512Mi
+            requests:
+              cpu: 50m
+              memory: 128Mi
+          volumeMounts:
+            - name: config
+              readOnly: true
+              mountPath: /verdaccio/conf/config.yaml
+              subPath: config.yaml
+            - name: data
+              mountPath: /verdaccio/storage
           livenessProbe:
             httpGet:
               path: /-/ping
@@ -51,29 +51,21 @@ spec:
               path: /-/ping
               port: http
             periodSeconds: 30
+          startupProbe:
+            httpGet:
+              path: /-/ping
+              port: http
+            periodSeconds: 5
+            failureThreshold: 30
           securityContext:
-            runAsUser: 10001
-            runAsGroup: 10001
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
             capabilities:
               drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
             seccompProfile:
               type: RuntimeDefault
-          resources:
-            requests:
-              cpu: 50m
-              memory: 128Mi
-            limits:
-              cpu: "1"
-              memory: 512Mi
-          volumeMounts:
-            - name: config
-              mountPath: /verdaccio/conf/config.yaml
-              subPath: config.yaml
-              readOnly: true
-            - name: data
-              mountPath: /verdaccio/storage
       volumes:
         - name: config
           configMap:
@@ -81,3 +73,11 @@ spec:
         - name: data
           persistentVolumeClaim:
             claimName: verdaccio-data
+      securityContext:
+        # fsGroup даёт групповую запись в том Longhorn под uid/gid 10001
+        # (uid пользователя verdaccio в образе).
+        fsGroup: 10001
+  # RWO-том: два пода одновременно его не смонтируют.
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2

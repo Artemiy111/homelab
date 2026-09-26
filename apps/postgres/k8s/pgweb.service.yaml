@@ -9,6 +9,6 @@ spec:
     app: postgres-pgweb
   ports:
     - name: http
+      protocol: TCP
       port: 80
       targetPort: http
-      protocol: TCP

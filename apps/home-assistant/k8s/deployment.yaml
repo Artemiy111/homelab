@@ -6,10 +6,6 @@ metadata:
   annotations:
     ignore-check.kube-linter.io/host-network: "mDNS/SSDP/DHCP discovery устройств требует hostNetwork (#161)"
 spec:
-  # RWO-том конфига: два пода при rolling update пишут в один каталог.
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
@@ -19,9 +15,9 @@ spec:
       labels:
         app: home-assistant
     spec:
+      dnsPolicy: ClusterFirstWithHostNet
       # hostNetwork нужен для локального обнаружения устройств (mDNS, SSDP, DHCP).
       hostNetwork: true
-      dnsPolicy: ClusterFirstWithHostNet
       enableServiceLinks: false
       containers:
         - name: home-assistant
@@ -45,6 +41,37 @@ spec:
                 secretKeyRef:
                   name: home-assistant
                   key: OIDC_CLIENT_SECRET
+          resources:
+            limits:
+              cpu: "2"
+              memory: 2Gi
+            requests:
+              cpu: 200m
+              memory: 512Mi
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: configuration
+              readOnly: true
+              mountPath: /config/configuration.yaml
+              subPath: configuration.yaml
+            - name: localtime
+              readOnly: true
+              mountPath: /etc/localtime
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            timeoutSeconds: 10
+            periodSeconds: 30
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            timeoutSeconds: 10
+            periodSeconds: 30
+            failureThreshold: 3
           startupProbe:
             httpGet:
               path: /
@@ -52,49 +79,18 @@ spec:
             initialDelaySeconds: 30
             periodSeconds: 10
             failureThreshold: 30
-          livenessProbe:
-            httpGet:
-              path: /
-              port: http
-            periodSeconds: 30
-            timeoutSeconds: 10
-            failureThreshold: 3
-          readinessProbe:
-            httpGet:
-              path: /
-              port: http
-            periodSeconds: 30
-            timeoutSeconds: 10
-            failureThreshold: 3
           securityContext:
-            runAsUser: 0
-            runAsGroup: 0
-            # no-new-privileges из compose = allowPrivilegeEscalation: false.
-            allowPrivilegeEscalation: false
             capabilities:
-              drop: ["ALL"]
               # NET_RAW — пассивный DHCP discovery/ICMP; DAC_OVERRIDE — запись
               # в artlab-owned маунты /config без подгона владельцев под root.
               add: ["NET_RAW", "DAC_OVERRIDE"]
+              drop: ["ALL"]
+            # no-new-privileges из compose = allowPrivilegeEscalation: false.
+            allowPrivilegeEscalation: false
+            runAsUser: 0
+            runAsGroup: 0
             seccompProfile:
               type: RuntimeDefault
-          resources:
-            requests:
-              cpu: 200m
-              memory: 512Mi
-            limits:
-              cpu: "2"
-              memory: 2Gi
-          volumeMounts:
-            - name: config
-              mountPath: /config
-            - name: configuration
-              mountPath: /config/configuration.yaml
-              subPath: configuration.yaml
-              readOnly: true
-            - name: localtime
-              mountPath: /etc/localtime
-              readOnly: true
       volumes:
         - name: config
           persistentVolumeClaim:
@@ -106,3 +102,7 @@ spec:
           hostPath:
             path: /etc/localtime
             type: File
+  # RWO-том конфига: два пода при rolling update пишут в один каталог.
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2

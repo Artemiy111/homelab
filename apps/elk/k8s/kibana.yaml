@@ -18,8 +18,8 @@ spec:
             - name: NODE_OPTIONS
               value: "--max-old-space-size=1024"
           resources:
+            limits:
+              memory: 1536Mi
             requests:
               cpu: 200m
               memory: 1Gi
-            limits:
-              memory: 1536Mi

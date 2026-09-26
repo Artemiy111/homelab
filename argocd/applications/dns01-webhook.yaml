@@ -21,25 +21,25 @@ metadata:
   namespace: argocd
 spec:
   project: default
-  source:
-    repoURL: forgejo.example.com/artemiy/charts
-    chart: cert-manager-webhook-dns01
-    targetRevision: 0.1.1
-    helm:
-      releaseName: dns01-webhook
-      valuesObject:
-        groupName: acme.homelab.local
-        image:
-          repository: forgejo.example.com/artemiy/cert-manager-webhook-dns01
-          tag: 0.1.1
-        provider:
-          existingSecret: dns01-webhook-token
   destination:
     server: https://kubernetes.default.svc
     namespace: cert-manager
+  source:
+    repoURL: forgejo.example.com/artemiy/charts
+    targetRevision: 0.1.1
+    chart: cert-manager-webhook-dns01
+    helm:
+      releaseName: dns01-webhook
+      valuesObject:
+        image:
+          repository: forgejo.example.com/artemiy/cert-manager-webhook-dns01
+          tag: 0.1.1
+        groupName: acme.homelab.local
+        provider:
+          existingSecret: dns01-webhook-token
   syncPolicy:
+    automated:
+      selfHeal: true
     syncOptions:
       - ServerSideApply=true
       - CreateNamespace=true
-    automated:
-      selfHeal: true

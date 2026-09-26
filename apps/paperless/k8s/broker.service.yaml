@@ -9,6 +9,6 @@ spec:
     app: paperless-broker
   ports:
     - name: valkey
+      protocol: TCP
       port: 6379
       targetPort: valkey
-      protocol: TCP

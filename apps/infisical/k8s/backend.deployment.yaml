@@ -4,9 +4,6 @@ metadata:
   name: infisical
   namespace: infisical
 spec:
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
@@ -20,22 +17,22 @@ spec:
         - name: wait-for-redis
           image: "redis:7-alpine@sha256:e7723ff73d963f5cc6d9c4643ea3d989527a402a319239054e9472a7fb9219a2"
           command: ["/bin/sh", "-c", "until redis-cli -h infisical-redis ping | grep -q PONG; do echo waiting for infisical-redis; sleep 2; done"]
-          securityContext:
-            runAsUser: 999
-            runAsGroup: 999
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: ["ALL"]
-            seccompProfile:
-              type: RuntimeDefault
           resources:
-            requests:
-              cpu: 10m
-              memory: 32Mi
             limits:
               cpu: 100m
               memory: 64Mi
+            requests:
+              cpu: 10m
+              memory: 32Mi
+          securityContext:
+            capabilities:
+              drop: ["ALL"]
+            allowPrivilegeEscalation: false
+            runAsGroup: 999
+            runAsNonRoot: true
+            runAsUser: 999
+            seccompProfile:
+              type: RuntimeDefault
       containers:
         - name: infisical
           image: "infisical/infisical:v0.162.20@sha256:634d2f934eecf5b455500b6c04e99bd75a687706df7b046697fdad849587a6df"
@@ -86,6 +83,27 @@ spec:
               value: "true"
             - name: OTEL_EXPORT_TYPE
               value: prometheus
+          resources:
+            limits:
+              cpu: "1"
+              memory: 1Gi
+            requests:
+              cpu: 100m
+              memory: 512Mi
+          livenessProbe:
+            httpGet:
+              path: /api/status
+              port: http
+            timeoutSeconds: 10
+            periodSeconds: 30
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /api/status
+              port: http
+            timeoutSeconds: 10
+            periodSeconds: 30
+            failureThreshold: 3
           startupProbe:
             httpGet:
               path: /api/status
@@ -93,30 +111,12 @@ spec:
             initialDelaySeconds: 20
             periodSeconds: 10
             failureThreshold: 36
-          livenessProbe:
-            httpGet:
-              path: /api/status
-              port: http
-            periodSeconds: 30
-            timeoutSeconds: 10
-            failureThreshold: 3
-          readinessProbe:
-            httpGet:
-              path: /api/status
-              port: http
-            periodSeconds: 30
-            timeoutSeconds: 10
-            failureThreshold: 3
           securityContext:
-            allowPrivilegeEscalation: false
             capabilities:
               drop: ["ALL"]
+            allowPrivilegeEscalation: false
             seccompProfile:
               type: RuntimeDefault
-          resources:
-            requests:
-              cpu: 100m
-              memory: 512Mi
-            limits:
-              cpu: "1"
-              memory: 1Gi
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2

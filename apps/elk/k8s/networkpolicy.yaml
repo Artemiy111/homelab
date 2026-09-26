@@ -39,5 +39,5 @@ spec:
         - ipBlock:
             cidr: 192.0.2.10/16
       ports:
-        - port: 9200
-          protocol: TCP
+        - protocol: TCP
+          port: 9200
