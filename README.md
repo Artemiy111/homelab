@@ -115,6 +115,9 @@ production-практикам DevOps.
 - `platform/traefik/` — конфиг самого Traefik: `values.yaml`, `tlsstore.yaml`,
   общие middleware (`oauth2-proxy.middleware.yaml`) и маршрут дашборда.
 - `ansible/` — пакеты и подготовка хоста.
+- `terraform/<модуль>/` — конфигурация ресурсов вне кластера; один каталог на
+  root-модуль, у каждого свой state. Пока пусто, первый модуль — `vault/`
+  (`docs/adr/0008-terraform-tool-and-run-location.md`).
 - `.forgejo/workflows/` — CI на Forgejo Actions: `commitlint`, `gitleaks`,
   `ansible-lint`, `kubeconform` (валидация манифестов по схемам Kubernetes),
   `actionlint` (валидация самих workflow), `kube-linter` (проверки безопасности
