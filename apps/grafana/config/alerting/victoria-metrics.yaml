@@ -4,10 +4,21 @@ apiVersion: 1
 # данных — локальный VictoriaMetrics (uid зафиксирован в
 # config/datasources.yaml, поэтому его нельзя переименовать без правки здесь).
 #
-# Условие алерта — сам запрос: для Prometheus-совместимого datasource Grafana
-# считает алерт сработавшим, если выражение вернуло хотя бы одну серию, и
-# возвращает OK, когда вектор пуст. Поэтому у всех правил noDataState: OK —
-# «нет данных» здесь означает «условие не выполнено», а не «не знаю».
+# Форма правила неочевиден, и обе его части обязательны (проверено на стенде,
+# см. #296):
+#
+# 1. В model запроса (refId A) нужен ВЛОЖЕННЫЙ объект datasource с type и uid.
+#    Одного datasourceUid на уровне запроса планировщику мало: он ищет
+#    datasource по полям model, не находит и падает при каждой оценке с
+#    "the result-set has errors that can be retried: [plugin.notRegistered]
+#    plugin not registered". Правило при этом молча не вычисляется.
+# 2. condition обязан указывать на ВЫРАЖЕНИЕ (refId C), а не на сам запрос.
+#    Цепочка A (запрос) -> B (reduce, reducer: last) -> C (threshold, gt 0)
+#    разворачивает «вернулась серия» в решение «Alerting»: порог 0 отделяет
+#    сработавшее от не сработавшего, потому что сами выражения уже фильтруют.
+#
+# noDataState: OK у всех правил: пустой вектор здесь означает «условие не
+# выполнено», а не «не знаю».
 #
 # Набор намеренно маленький (5 правил). Каждое добавленное правило увеличивает
 # шанс, что его начнут игнорировать, а алерт-фатиг обесценивает всю систему:
@@ -18,13 +29,9 @@ groups:
     folder: VictoriaMetrics
     interval: 1m
     rules:
-      # Пороги диска подобраны под PVC `victoriametrics-vmdata` = 8Gi и темп
-      # роста данных около 200 МБ/сутки (замерено 2026-09-26, deriv по
-      # vm_data_size_bytes за 7 суток). При 1.5e9 свободного места остаётся
-      # примерно 13 суток запаса — с запасом на выходные.
       - uid: vm-free-disk-space-low
         title: VictoriaMetrics low free disk space
-        condition: A
+        condition: C
         data:
           - refId: A
             relativeTimeRange:
@@ -32,12 +39,71 @@ groups:
               to: 0
             datasourceUid: victoriametrics
             model:
+              datasource:
+                type: prometheus
+                uid: victoriametrics
               editorMode: code
               expr: 'vm_free_disk_space_bytes{job="victoriametrics", path="/data"} < 1.5e9'
               instant: true
               intervalMs: 1000
               maxDataPoints: 43200
               refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: []
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              reducer: last
+              refId: B
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: C
+              type: threshold
         noDataState: OK
         execErrState: Error
         for: 15m
@@ -47,20 +113,11 @@ groups:
         annotations:
           summary: "Мало свободного места на /data у VictoriaMetrics"
           description: >-
-            На PVC victoriametrics-vmdata (8Gi) осталось меньше 1.5 ГБ.
-            При текущем темпе роста (~200 МБ/сутки) этого хватит примерно на
-            неделю. Действия: расширить PVC либо сократить retentionPeriod
-            (сейчас 180d) и/или уменьшить число scrape-таргетов.
+            На PVC victoriametrics-vmdata (8Gi) осталось меньше 1.5 ГБ. При текущем темпе роста (~200 МБ/сутки) этого хватит примерно на неделю. Действия: расширить PVC либо сократить retentionPeriod (сейчас 180d) и/или уменьшить число scrape-таргетов.
           runbook: "apps/victoria-metrics/README.md, раздел «Алерты»"
-
-      # Дополняет правило выше, а не заменяет его: абсолютный порог не видит
-      # ускорение роста, а прогноз не видит ничего, если в окне линейной
-      # регрессии был рестарт или расширение PVC (свободное место прыгнуло
-      # вверх, наклон стал нулевым). Пока в окне 1d был прыжок, работает
-      # только абсолютный порог.
       - uid: vm-storage-filling-fast
         title: VictoriaMetrics storage fills within 3 days
-        condition: A
+        condition: C
         data:
           - refId: A
             relativeTimeRange:
@@ -68,12 +125,71 @@ groups:
               to: 0
             datasourceUid: victoriametrics
             model:
+              datasource:
+                type: prometheus
+                uid: victoriametrics
               editorMode: code
               expr: 'predict_linear(vm_free_disk_space_bytes{job="victoriametrics", path="/data"}[1d], 3 * 86400) < 0'
               instant: true
               intervalMs: 1000
               maxDataPoints: 43200
               refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: []
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              reducer: last
+              refId: B
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: C
+              type: threshold
         noDataState: OK
         execErrState: Error
         for: 30m
@@ -83,16 +199,11 @@ groups:
         annotations:
           summary: "VictoriaMetrics заполнится меньше чем за 3 суток"
           description: >-
-            Линейная экстраполяция vm_free_disk_space_bytes за сутки даёт
-            обнуление меньше чем через 3 суток. Это раннее предупреждение об
-            ускорении роста, срабатывает до абсолютного порога.
+            Линейная экстраполяция vm_free_disk_space_bytes за сутки даёт обнуление меньше чем через 3 суток. Это раннее предупреждение об ускорении роста, срабатывает до абсолютного порога.
           runbook: "apps/victoria-metrics/README.md, раздел «Алерты»"
-
-      # Симптом инцидента 2026-09-25: TSDB перешла в read-only, /health продолжал
-      # отвечать OK, vmagent получал 503 на remote write семь часов.
       - uid: vm-storage-read-only
         title: VictoriaMetrics storage is read-only
-        condition: A
+        condition: C
         data:
           - refId: A
             relativeTimeRange:
@@ -100,12 +211,71 @@ groups:
               to: 0
             datasourceUid: victoriametrics
             model:
+              datasource:
+                type: prometheus
+                uid: victoriametrics
               editorMode: code
               expr: 'vm_storage_is_read_only{job="victoriametrics", path="/data"} == 1'
               instant: true
               intervalMs: 1000
               maxDataPoints: 43200
               refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: []
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              reducer: last
+              refId: B
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: C
+              type: threshold
         noDataState: OK
         execErrState: Error
         for: 1m
@@ -115,19 +285,11 @@ groups:
         annotations:
           summary: "Хранилище VictoriaMetrics в read-only, метрики не принимаются"
           description: >-
-            TSDB на /data не принимает запись. vmagent получает 503 на remote
-            write, новые метрики теряются; уже записанные данные целы. Срочно
-            освободить или расширить PVC — после перезапуска пода накопленные
-            в vmagent данные могут частично потеряться.
+            TSDB на /data не принимает запись. vmagent получает 503 на remote write, новые метрики теряются; уже записанные данные целы. Срочно освободить или расширить PVC: после перезапуска пода накопленные в vmagent данные могут частично потеряться.
           runbook: "docs/incidents/0003-victoriametrics-pvc-read-only.md"
-
-      # vm_pending_rows — размер буфера, который TSDB не может сбросить на диск.
-      # В норме 5-50 тыс. строк (замерено 2026-09-26: 48027 для type=storage).
-      # Рост означает, что сброс не проходит: та же причина, что и read-only,
-      # но на более ранней стадии.
       - uid: vm-pending-rows-backlog
         title: VictoriaMetrics pending rows backlog
-        condition: A
+        condition: C
         data:
           - refId: A
             relativeTimeRange:
@@ -135,12 +297,71 @@ groups:
               to: 0
             datasourceUid: victoriametrics
             model:
+              datasource:
+                type: prometheus
+                uid: victoriametrics
               editorMode: code
               expr: 'max(vm_pending_rows{job="victoriametrics"}) > 1e6'
               instant: true
               intervalMs: 1000
               maxDataPoints: 43200
               refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: []
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              reducer: last
+              refId: B
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: C
+              type: threshold
         noDataState: OK
         execErrState: Error
         for: 30m
@@ -150,23 +371,11 @@ groups:
         annotations:
           summary: "VictoriaMetrics не сбрасывает pending rows на диск"
           description: >-
-            Очередь несохранённых строк держится выше 1 млн (норма 5-50 тыс.)
-            дольше 30 минут. Обычно это предшествует переходу TSDB в
-            read-only: сначала замедляется сброс, потом он падает.
+            Очередь несохранённых строк держится выше 1 млн (норма 5-50 тыс.) дольше 30 минут. Обычно это предшествует переходу TSDB в read-only: сначала замедляется сброс, потом он падает.
           runbook: "docs/incidents/0003-victoriametrics-pvc-read-only.md"
-
-      # Единственное правило про целостность самого контура метрик. Покрывает
-      # «таргет отвечает, но метрики с него не читаются» (401/403 на /metrics,
-      # битый токен, сломанный exporter).
-      #
-      # Чего оно не покрывает: недоступный ВООБЩЕ таргет. Если vmagent упал, его
-      # метрики станут stale и исчезнут из TSDB, а `up == 0` не сработает —
-      # некому прочитать и сам алерт. Этот случай закрывают HTTP-проверки Gatus
-      # (`victoriametrics`, `vmagent`, `grafana` в config.yaml): Gatus не
-      # зависит от VictoriaMetrics, поэтому перекрывает эту дыру.
       - uid: scrape-target-down
         title: Scrape target down
-        condition: A
+        condition: C
         data:
           - refId: A
             relativeTimeRange:
@@ -174,12 +383,71 @@ groups:
               to: 0
             datasourceUid: victoriametrics
             model:
+              datasource:
+                type: prometheus
+                uid: victoriametrics
               editorMode: code
               expr: 'count by (job) (up == 0) > 0'
               instant: true
               intervalMs: 1000
               maxDataPoints: 43200
               refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: []
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              reducer: last
+              refId: B
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: C
+              type: threshold
         noDataState: OK
         execErrState: Error
         for: 10m
@@ -189,6 +457,5 @@ groups:
         annotations:
           summary: "Скрейп-таргет vmagent не отдаёт метрики"
           description: >-
-            В значении job перечислены таргеты с up == 0 дольше 10 минут.
-            Проверить `/metrics` таргета и его токен из Secret'а vmagent.
-          runbook: "apps/victoria-metrics/README.md, раздел «Верификация»"
+            В значении job перечислены таргеты с up == 0 дольше 10 минут. Проверить /metrics таргета и его токен из Secret'а vmagent.
+          runbook: "apps/victoria-metrics/README.md, раздел «Проверка»"
