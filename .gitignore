@@ -22,3 +22,15 @@ __pycache__/
 
 # Кэш ansible-lint (автоустановка collections, fact cache).
 ansible/.ansible/
+
+# Terraform/OpenTofu: state, кэш провайдеров и планы не коммитятся. В state
+# лежат значения, которые провайдеры прочитали из внешних систем (токены,
+# endpoint'ы), а в бинарном плане `tofu show` печатает их открытым текстом.
+# .terraform.lock.hcl, наоборот, нужен в git: он пинит версии и хеши
+# провайдеров, без него init каждый раз резолвит их заново.
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+crash-*.log
