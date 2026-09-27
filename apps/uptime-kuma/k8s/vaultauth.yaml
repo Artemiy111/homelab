@@ -9,27 +9,19 @@ metadata:
   name: vso-uptime-kuma
   namespace: uptime-kuma
 ---
-# Vault проверяет предъявленный ServiceAccount-токен через TokenReview.
-# Без system:auth-delegator на этом SA аутентификация не пройдёт.
+# ClusterRoleBinding на system:auth-delegator здесь НЕ нужен, хотя это
+# стандартный рецепт из документации VSO. Проверено на стенде: с удалённым
+# биндингом и после перезапуска контроллера (сбросил кэш токенов в памяти)
+# VaultStaticSecret отчитался `Secret synced`, то есть VSO успешно залогинился
+# и прочитал значение.
 #
-# Имя ClusterRoleBinding уникально на весь кластер, поэтому оно с префиксом
-# сервиса, а не generic: одноимённый объект в другом неймспейсе конфликтовал
-# бы за кластерный ресурс.
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: vso-uptime-kuma-delegator
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: system:auth-delegator
-subjects:
-  - kind: ServiceAccount
-    name: vso-uptime-kuma
-    namespace: uptime-kuma
----
-# Роль и политика — в terraform/vault (roles.tf, policies.tf).
-# https://developer.hashicorp.com/vault/docs/auth/kubernetes
+# Причина: auth-delegator нужен тому, кто ВЫЗЫВАЕТ TokenReview, а вызывает его
+# Vault-сервер, и у него это право есть отдельно — `server.authDelegator` в
+# argocd/applications/vault.yaml вешает его на ServiceAccount самого Vault.
+# ServiceAccount, чей токен предъявляют, в этом праве не участвует.
+#
+# Роль по потребителю: uptime-kuma. Роль в Vault переживает смену оператора,
+# поэтому без префикса vso-, в отличие от k8s-объектов ниже.
 apiVersion: secrets.hashicorp.com/v1beta1
 kind: VaultAuth
 metadata:

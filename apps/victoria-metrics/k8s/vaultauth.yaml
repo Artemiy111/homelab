@@ -9,28 +9,23 @@ metadata:
   name: vso-vmagent
   namespace: monitoring
 ---
-# Vault проверяет предъявленный ServiceAccount-токен через TokenReview.
-# Имя ClusterRoleBinding уникально для всего кластера, поэтому с префиксом
-# сервиса: одноимённый объект в другом неймспейсе конфликтовал бы за ресурс.
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: vso-vmagent-delegator
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: system:auth-delegator
-subjects:
-  - kind: ServiceAccount
-    name: vso-vmagent
-    namespace: monitoring
----
-# Аутентификация оператора в Vault методом kubernetes.
+# ClusterRoleBinding на system:auth-delegator здесь НЕ нужен, хотя это
+# стандартный рецепт из документации VSO. Проверено на стенде: с удалённым
+# биндингом и после перезапуска контроллера (сбросил кэш токенов в памяти)
+# VaultStaticSecret отчитался `Secret synced`, то есть VSO успешно залогинился
+# и прочитал значение.
 #
-# Роль vmagent и её policy создаются через terraform/vault/roles.tf и
-# policies.tf. Политика перечисляет пути по одному на каждый кред, без
-# wildcard: vmagent читает ключи чужих сервисов, и префиксное правило на
-# `kv/data/*/x/monitoring/*` отдало бы ему все такие креды разом.
+# Причина: auth-delegator нужен тому, кто ВЫЗЫВАЕТ TokenReview, а вызывает его
+# Vault-сервер, и у него это право есть отдельно — `server.authDelegator` в
+# argocd/applications/vault.yaml вешает его на ServiceAccount самого Vault.
+# ServiceAccount, чей токен предъявляют, в этом праве не участвует.
+#
+# Право проверяется так: удалить биндинг, перезапустить контроллер, удалить
+# destination Secret и убедиться, что статус `Secret synced`, а не
+# `no sync required` — второе означает, что Vault не открывали вовсе.
+#
+# Роль по потребителю: vmagent получает ключи, которые выпустили другие
+# сервисы. Политика перечисляет пути по одному на каждый, без wildcard.
 apiVersion: secrets.hashicorp.com/v1beta1
 kind: VaultAuth
 metadata:
