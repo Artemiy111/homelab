@@ -29,7 +29,7 @@ spec:
             - name: MYSQLD_EXPORTER_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: seafile
+                  name: seafile-mariadb
                   key: INIT_SEAFILE_MYSQL_ROOT_PASSWORD
           livenessProbe:
             httpGet:

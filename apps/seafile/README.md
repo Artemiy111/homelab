@@ -45,7 +45,8 @@ MariaDB seafile-mariadb  ←  mariadb-operator
 - Приложение ходит по env `SEAFILE_MYSQL_DB_HOST=seafile-mariadb` под
   пользователем `seafile`, который имеет `ALL PRIVILEGES` **только на три БД**.
 - root знает только оператор (через `rootPasswordSecretKeyRef` на
-  `seafile/INIT_SEAFILE_MYSQL_ROOT_PASSWORD`). Приложению root на рантайме не
+  `seafile-mariadb/INIT_SEAFILE_MYSQL_ROOT_PASSWORD`, путь `kv/seafile/mariadb`).
+  Приложению root на рантайме не
   нужен: Seafile пропускает bootstrap, если `/shared/seafile` уже инициализирован
   (в логах `Skip running setup-seafile-mysql.py because there is existing
   seafile-data folder`).

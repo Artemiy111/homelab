@@ -77,10 +77,11 @@ kv/<сервис>/@<потребитель>/<секрет>      # кред, вы
 
 Три случая из репозитория, и они не сводятся к одному правилу.
 
-`sure` — девять ключей, и это девять разных сущностей: БД, подпись сессий,
-SMTP, свой OIDC-клиент и четыре ключа сторонних сервисов. Один путь означал бы
-девять точек отзыва в одном объекте: чтобы отозвать доступ к OpenAI, пришлось
-бы переписать весь секрет вместе с паролем почты. Значит — семь путей.
+`sure` — семь ключей, и это семь разных сущностей: БД, подпись сессий, SMTP,
+свой OIDC-клиент и четыре ключа сторонних сервисов. Один путь означал бы семь
+точек отзыва в одном объекте. На деле осталось два: почта, аналитика и внешние
+AI-ключи в homelab не настроены и удалены, а `SECRET_KEY_BASE` с
+`OIDC_CLIENT_SECRET` ротируются вместе при переустановке приложения.
 
 `home-assistant` — три ключа, и это одна вещь: токен и пара
 `OIDC_CLIENT_ID`/`OIDC_CLIENT_SECRET` от Zitadel выданы вместе, отзываются
@@ -88,38 +89,36 @@ SMTP, свой OIDC-клиент и четыре ключа сторонних �
 
 `seafile` и `element` — ключи вроде `LIVEKIT_API_KEY`/`LIVEKIT_API_SECRET`
 или `ONLYOFFICE_JWT_SECRET` эти приложения не «используют», а **выдали**
-другому сервису. Это случай правила 3 — отдельный кред отдельному принципалу,
-поэтому они живут под `@`. Их собственный `JWT_PRIVATE_KEY` остаётся без
-сегмента, потому что читает владелец.
+другому сервису — но только если этот сервис **вне** стека приложения.
+`livekit` и `coturn` в element живут в том же неймспейсе и из тех же
+манифестов: отозвать ключ LiveKit, не сломав element, нельзя, независимой
+отзываемости нет, значит нет и отдельного пути. То же с
+`ONLYOFFICE_JWT_SECRET` у seafile.
 
 ```
 kv/sure/db                                  username, password
-kv/sure/session                             SECRET_KEY_BASE
-kv/sure/smtp                                SMTP_PASSWORD
-kv/sure/oidc                                OIDC_CLIENT_SECRET
-kv/sure/@langfuse/langfuse-secret-key      LANGFUSE_SECRET_KEY
-kv/sure/@openai/openai-access-token        OPENAI_ACCESS_TOKEN
-kv/sure/@posthog/posthog-key               POSTHOG_KEY
-kv/sure/@twelvedata/twelvedata-api-key     TWELVE_DATA_API_KEY
+kv/sure/secrets                             SECRET_KEY_BASE,
+                                            OIDC_CLIENT_SECRET
 
 kv/home-assistant/oidc                      HOME_ASSISTANT_TOKEN,
                                             OIDC_CLIENT_ID,
                                             OIDC_CLIENT_SECRET
 
-kv/element/db                               POSTGRES_PASSWORD
-kv/element/jwt                              JWT_PRIVATE_KEY
-kv/element/registration                      SYNAPSE_REGISTRATION_SHARED_SECRET
-kv/element/@livekit/livekit-credentials     LIVEKIT_API_KEY, LIVEKIT_API_SECRET
-kv/element/@turn/turn-credentials           TURN_PASSWORD, TURN_SECRET
+kv/element/db                               username, password
+kv/element/secrets                          SYNAPSE_REGISTRATION_SHARED_SECRET,
+                                            LIVEKIT_API_KEY, LIVEKIT_API_SECRET,
+                                            TURN_PASSWORD, TURN_SECRET
+
+kv/dawarich/@monitoring/dawarich-metrics-password  DAWARICH_METRICS_PASSWORD
+kv/ntfy/topic                               NTFY_TOPIC (читают gatus и grafana)
 ```
 
-Ключи, сгенерированные **внешней** системой (`POSTHOG_KEY`, `OPENAI_ACCESS_TOKEN`),
-тоже уходят под `@<владелец ключа>/`: с точки зрения нашего Vault значение
-выдано наружу, а не лежит у нас. `@posthog/` читается как «sure отдал этот
-доступ клиенту PostHog», что верно.
+Ключ, выданный **стороннему** потребителю, уходит под `@<потребитель>/`, даже
+если этот потребитель читает семь чужих кредов: `@monitoring` у vmagent,
+`@telegram` у gatus.
 
-Следствие: число путей на приложение влияет на его политику — у `sure` семь
-строк вместо одной. Это та же цена отказа от wildcard.
+Следствие: число путей на приложение влияет на его политику — семь строк на
+vmagent вместо одной. Это та же цена отказа от wildcard.
 
 ## Политики: явные пути, без wildcard
 

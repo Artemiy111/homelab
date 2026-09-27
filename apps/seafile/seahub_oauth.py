@@ -2,14 +2,14 @@
 #
 # Файл примонтирован в контейнер seafile (см. seafile.deployment.yaml) и подключается
 # из seahub_settings.py строкой exec(open(...)). Значения берутся из
-# окружения контейнера — их источник — secrets.enc.env сервиса.
+# окружения контейнера — их источник — путь kv/seafile/oidc в Vault.
 #
 # Seafile CE не поддерживает OIDC напрямую, поэтому используется generic
 # OAuth2: Zitadel отдаёт профиль через эндпоинт userinfo. Формат настроек —
 # отдельные OAUTH_* переменные, как в официальной доке Seafile 13.
 #
 # Seahub читает настройки один раз при старте воркера: после изменения этого
-# файла или переменных ZITADEL_OAUTH_* перезапустите под:
+# файла или переменных OAUTH_CLIENT_* перезапустите под:
 # `kubectl -n seafile rollout restart deploy/seafile`.
 
 import os
@@ -30,8 +30,8 @@ OAUTH_ACTIVATE_USER_AFTER_CREATION = False
 
 # id.example.com — внешний домен Zitadel (ZITADEL_EXTERNALDOMAIN).
 OAUTH_PROVIDER_DOMAIN = "zitadel"
-OAUTH_CLIENT_ID = os.environ["ZITADEL_OAUTH_CLIENT_ID"]
-OAUTH_CLIENT_SECRET = os.environ["ZITADEL_OAUTH_CLIENT_SECRET"]
+OAUTH_CLIENT_ID = os.environ["OAUTH_CLIENT_ID"]
+OAUTH_CLIENT_SECRET = os.environ["OAUTH_CLIENT_SECRET"]
 OAUTH_REDIRECT_URL = "https://seafile.%s/oauth/callback/" % os.environ["DOMAIN"]
 
 OAUTH_AUTHORIZATION_URL = "https://id.%s/oauth/v2/authorize" % os.environ["DOMAIN"]

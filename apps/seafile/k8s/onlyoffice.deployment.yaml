@@ -32,7 +32,7 @@ spec:
             - name: JWT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: seafile
+                  name: seafile-secrets
                   key: ONLYOFFICE_JWT_SECRET
             - name: JWT_HEADER
               value: Authorization

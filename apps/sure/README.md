@@ -10,10 +10,15 @@ HTTP, `worker` (Sidekiq) — фоновые задачи; оба пишут вл
 
 База — PostgreSQL в общем кластере CNPG `shared` (namespace `databases`,
 эндпоинт `shared-rw.databases.svc.cluster.local:5432`). Роль `sure`, база `sure`
-и NetworkPolicy объявлены в `platform/cnpg/`. Пароль берётся из запечатанного
-`sure-db-auth`: копия в `databases` — для роли, копия в `sure` — для пода
-(Secret читается только из своего namespace, а потребитель ходит
-cross-namespace). На источнике база называлась `sure_production`, а работа шла
+и NetworkPolicy объявлены в `platform/cnpg/`. Пароль лежит в пути `kv/sure/db`
+и подаётся в два Secret'а: `sure/sure-db-auth` (читает под) и
+`databases/sure-db-auth` (читает CNPG, ещё SealedSecret — перенос в фазе 2).
+Secret читается только из своего namespace, а потребитель ходит
+cross-namespace.
+
+Почта, аналитика и внешние AI-ключи (`LANGFUSE_SECRET_KEY`, `POSTHOG_KEY`,
+`SMTP_PASSWORD`, `TWELVE_DATA_API_KEY`, `OPENAI_ACCESS_TOKEN`) не настроены и
+удалены: LLM ходит в локальный `local-ai` без ключа. На источнике база называлась `sure_production`, а работа шла
 под зарезервированной в CNPG ролью `postgres` — при переносе переименованы.
 Данные перенесены логическим дампом (`pg_dump`/`pg_restore`), старый Deployment
 `sure-db` снят.

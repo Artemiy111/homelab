@@ -58,14 +58,24 @@ LiveKit рекламирует LAN-адрес сервера (`<node1-ip>`), а 
 
 ## Обслуживание
 
-Секреты сервиса хранятся в зашифрованном `apps/element/secrets.enc.env`.
+Секреты приходят из Vault пятью путями (`k8s/vaultstaticsecret.yaml`): `db`,
+`registration`, `@fcm/fcm-server-key`, `@livekit/livekit-credentials`,
+`@turn/turn-credentials`. Исходные значения — в зашифрованном
+`apps/element/secrets.enc.env`.
+
+Креды TURN и LiveKit дублируются в конфигах на узле
+(`/storage/apps/element/turn/turnserver.conf`, `livekit/config.yaml`): их читает
+coturn и livekit, а не Kubernetes. При ротации в Vault эти файлы надо править
+руками.
 Конфигурации генерируются в персистентном каталоге данных сервиса, там же
 сохраняется timezone `Asia/Yekaterinburg`.
 
 База Synapse (`synapse`) живёт в общем кластере CNPG `shared`
 (`shared-rw.databases.svc.cluster.local`): роль `synapse` и база объявлены в
-`platform/cnpg/` (пароль пары Secret'ов `databases/element-db-auth` и
-`element/element-db-auth`). Строка подключения задана в
+`platform/cnpg/`. Пароль лежит в пути `kv/element/db` и подаётся в два
+Secret'а: `element/element-db-auth` (читает synapse) и
+`databases/element-db-auth` (читает CNPG) — второй ещё SealedSecret, перенос в
+фазе 2. Строка подключения задана в
 `homeserver.yaml` в конфиге сервиса.
 
 Push-уведомления Sygnal не настроены: для них необходимы реальные FCM

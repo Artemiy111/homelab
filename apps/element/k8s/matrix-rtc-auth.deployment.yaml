@@ -39,12 +39,12 @@ spec:
             - name: LIVEKIT_KEY
               valueFrom:
                 secretKeyRef:
-                  name: element
+                  name: element-secrets
                   key: LIVEKIT_API_KEY
             - name: LIVEKIT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: element
+                  name: element-secrets
                   key: LIVEKIT_API_SECRET
             - name: LIVEKIT_FULL_ACCESS_HOMESERVERS
               value: "$(DOMAIN)"

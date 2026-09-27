@@ -20,18 +20,13 @@ resource "vault_policy" "element" {
   name = "app/element"
 
   policy = <<-EOT
-    path "kv/data/element/db"                                { capabilities = ["read"] }
-    path "kv/metadata/element/db"                            { capabilities = ["read", "list"] }
-    path "kv/data/element/registration"                      { capabilities = ["read"] }
-    path "kv/metadata/element/registration"                  { capabilities = ["read", "list"] }
-    path "kv/data/element/@fcm/fcm-server-key"               { capabilities = ["read"] }
-    path "kv/metadata/element/@fcm/fcm-server-key"           { capabilities = ["read", "list"] }
-    path "kv/data/element/@livekit/livekit-credentials"      { capabilities = ["read"] }
-    path "kv/metadata/element/@livekit/livekit-credentials"  { capabilities = ["read", "list"] }
-    path "kv/data/element/@turn/turn-credentials"            { capabilities = ["read"] }
-    path "kv/metadata/element/@turn/turn-credentials"        { capabilities = ["read", "list"] }
+    path "kv/data/element/db"          { capabilities = ["read"] }
+    path "kv/metadata/element/db"      { capabilities = ["read", "list"] }
+    path "kv/data/element/secrets"     { capabilities = ["read"] }
+    path "kv/metadata/element/secrets" { capabilities = ["read", "list"] }
   EOT
 }
+
 
 resource "vault_policy" "forgejo" {
   name = "app/forgejo"
@@ -102,18 +97,17 @@ resource "vault_policy" "seafile" {
   name = "app/seafile"
 
   policy = <<-EOT
-    path "kv/data/seafile/db"                                     { capabilities = ["read"] }
-    path "kv/metadata/seafile/db"                                 { capabilities = ["read", "list"] }
-    path "kv/data/seafile/mariadb"                                { capabilities = ["read"] }
-    path "kv/metadata/seafile/mariadb"                            { capabilities = ["read", "list"] }
-    path "kv/data/seafile/secrets"                                { capabilities = ["read"] }
-    path "kv/metadata/seafile/secrets"                            { capabilities = ["read", "list"] }
-    path "kv/data/seafile/oidc"                                   { capabilities = ["read"] }
-    path "kv/metadata/seafile/oidc"                               { capabilities = ["read", "list"] }
-    path "kv/data/seafile/@onlyoffice/onlyoffice-jwt-secret"      { capabilities = ["read"] }
-    path "kv/metadata/seafile/@onlyoffice/onlyoffice-jwt-secret"  { capabilities = ["read", "list"] }
+    path "kv/data/seafile/db"          { capabilities = ["read"] }
+    path "kv/metadata/seafile/db"      { capabilities = ["read", "list"] }
+    path "kv/data/seafile/mariadb"     { capabilities = ["read"] }
+    path "kv/metadata/seafile/mariadb" { capabilities = ["read", "list"] }
+    path "kv/data/seafile/secrets"     { capabilities = ["read"] }
+    path "kv/metadata/seafile/secrets" { capabilities = ["read", "list"] }
+    path "kv/data/seafile/oidc"        { capabilities = ["read"] }
+    path "kv/metadata/seafile/oidc"    { capabilities = ["read", "list"] }
   EOT
 }
+
 
 resource "vault_policy" "sure" {
   name = "app/sure"

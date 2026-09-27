@@ -87,28 +87,28 @@ spec:
             - name: SEAFILE_MYSQL_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: seafile
+                  name: seafile-db
                   key: SEAFILE_MYSQL_DB_PASSWORD
             - name: JWT_PRIVATE_KEY
               valueFrom:
                 secretKeyRef:
-                  name: seafile
+                  name: seafile-secrets
                   key: JWT_PRIVATE_KEY
             - name: ONLYOFFICE_JWT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: seafile
+                  name: seafile-secrets
                   key: ONLYOFFICE_JWT_SECRET
-            - name: ZITADEL_OAUTH_CLIENT_ID
+            - name: OAUTH_CLIENT_ID
               valueFrom:
                 secretKeyRef:
-                  name: seafile
-                  key: ZITADEL_OAUTH_CLIENT_ID
-            - name: ZITADEL_OAUTH_CLIENT_SECRET
+                  name: seafile-oidc
+                  key: OAUTH_CLIENT_ID
+            - name: OAUTH_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: seafile
-                  key: ZITADEL_OAUTH_CLIENT_SECRET
+                  name: seafile-oidc
+                  key: OAUTH_CLIENT_SECRET
             - name: SEAFILE_SERVER_HOSTNAME
               value: "seafile.$(DOMAIN)"
             - name: SEAFILE_SERVER_PROTOCOL

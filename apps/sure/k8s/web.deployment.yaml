@@ -84,13 +84,8 @@ spec:
             - name: SECRET_KEY_BASE
               valueFrom:
                 secretKeyRef:
-                  name: sure
+                  name: sure-secrets
                   key: SECRET_KEY_BASE
-            - name: OPENAI_ACCESS_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: sure
-                  key: OPENAI_ACCESS_TOKEN
             - name: SELF_HOSTED
               value: "true"
             - name: RAILS_FORCE_SSL
