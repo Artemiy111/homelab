@@ -32,11 +32,3 @@ resource "vault_policy" "terraform" {
   EOT
 }
 
-resource "vault_policy" "poc_reader" {
-  name = "poc-reader"
-
-  policy = <<-EOT
-    path "kv/data/poc/*"     { capabilities = ["read"] }
-    path "kv/metadata/poc/*" { capabilities = ["read", "list"] }
-  EOT
-}

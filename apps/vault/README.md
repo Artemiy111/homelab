@@ -22,7 +22,6 @@ kubectl get namespace vault-secrets-operator
 # 2. CR оператора
 kubectl apply -f apps/vault/k8s/vaultauthglobal.yaml
 kubectl apply -f apps/vault/k8s/vaultauth.yaml
-kubectl apply -f apps/vault/k8s/poc-vaultstaticsecret.yaml
 kubectl apply -f apps/vault/k8s/networkpolicy.yaml
 kubectl apply -f apps/vault/k8s/networkpolicy-vso.yaml
 ```
@@ -57,19 +56,16 @@ export VAULT_ADDR='http://127.0.0.1:8200'
 
 UI также доступен на `https://vault.example.com` (TLS терминирует Traefik).
 
-## Первый секрет и роль для VSO
-
-Дальше — только для PoC из `apps/vault/k8s/poc-vaultstaticsecret.yaml`:
+## Включение хранилища
 
 ```sh
 vault secrets enable -path=kv kv-v2
-vault kv put kv/poc/probe answer=42
 ```
 
 Политики, роли и конфигурация метода `kubernetes` управляются terraform.
 
-Пока значение в Vault не заведено, `VaultStaticSecret` не в статусе `synced` —
-это ожидаемо, а не ошибка.
+Пока значение в Vault не заведено, соответствующий `VaultStaticSecret` не в
+статусе `synced` — это ожидаемо, а не ошибка.
 
 ## Вход
 

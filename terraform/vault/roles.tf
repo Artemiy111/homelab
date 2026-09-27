@@ -78,14 +78,3 @@ resource "vault_kubernetes_auth_backend_role" "db" {
   token_ttl                        = 3600
 }
 
-# PoC-роль из apps/vault/k8s/poc-vaultstaticsecret.yaml. Не приложение и не
-# политика app/*, поэтому живёт отдельно.
-resource "vault_kubernetes_auth_backend_role" "poc_reader" {
-  backend                          = "kubernetes"
-  role_name                        = "poc-reader"
-  audience                         = "vault"
-  bound_service_account_names      = ["vso-poc-reader"]
-  bound_service_account_namespaces = ["vault"]
-  token_policies                   = ["poc-reader"]
-  token_ttl                        = 3600
-}

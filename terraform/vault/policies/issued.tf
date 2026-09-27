@@ -107,14 +107,6 @@ resource "vault_policy" "app_sure" {
     path "kv/metadata/sure/db"                              { capabilities = ["read", "list"] }
     path "kv/data/sure/secrets"                             { capabilities = ["read"] }
     path "kv/metadata/sure/secrets"                         { capabilities = ["read", "list"] }
-    path "kv/data/sure/@langfuse/langfuse-secret-key"       { capabilities = ["read"] }
-    path "kv/metadata/sure/@langfuse/langfuse-secret-key"   { capabilities = ["read", "list"] }
-    path "kv/data/sure/@openai/openai-access-token"         { capabilities = ["read"] }
-    path "kv/metadata/sure/@openai/openai-access-token"     { capabilities = ["read", "list"] }
-    path "kv/data/sure/@posthog/posthog-key"                { capabilities = ["read"] }
-    path "kv/metadata/sure/@posthog/posthog-key"            { capabilities = ["read", "list"] }
-    path "kv/data/sure/@twelvedata/twelvedata-api-key"      { capabilities = ["read"] }
-    path "kv/metadata/sure/@twelvedata/twelvedata-api-key"  { capabilities = ["read", "list"] }
   EOT
 }
 
