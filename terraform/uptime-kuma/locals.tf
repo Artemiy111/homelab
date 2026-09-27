@@ -129,27 +129,31 @@ locals {
     "victoria-metrics" = {
       name                  = "VictoriaMetrics"
       group                 = "monitoring"
-      kind                  = "http"
+      kind                  = "json"
       description           = "TSDB VictoriaMetrics в кластере; наружу не публикуется, /health отдаёт 200 и тело OK."
+      json_path             = "$trim($)"
+      json_path_operator    = "=="
+      expected_value        = "OK"
       url                   = "http://victoriametrics.monitoring.svc.cluster.local/health"
-      keyword               = "OK"
       accepted_status_codes = ["200"]
     }
 
     "vmagent" = {
       name                  = "vmagent"
       group                 = "monitoring"
-      kind                  = "http"
+      kind                  = "json"
       description           = "Сборщик метрик vmagent в кластере; наружу не публикуется, /health отдаёт 200 и тело OK."
+      json_path             = "$trim($)"
+      json_path_operator    = "=="
+      expected_value        = "OK"
       url                   = "http://vmagent.monitoring.svc.cluster.local/health"
-      keyword               = "OK"
       accepted_status_codes = ["200"]
     }
 
     "grafana" = {
       name                  = "Grafana"
       group                 = "monitoring"
-      kind                  = "http"
+      kind                  = "json"
       description           = "Health API Grafana в кластере; публичный маршрут закрыт forward auth. Поле database отражает состояние подключения к TSDB."
       url                   = "http://grafana.monitoring.svc.cluster.local/api/health"
       json_path             = "$.database"
@@ -170,10 +174,10 @@ locals {
     "wud" = {
       name                  = "WUD"
       group                 = "monitoring"
-      kind                  = "http"
+      kind                  = "keyword"
       description           = "Health endpoint WUD в кластере; публичный маршрут закрыт forward auth. Тело содержит uptime, то есть агент жив."
-      url                   = "http://wud.monitoring.svc.cluster.local/health"
       keyword               = "uptime"
+      url                   = "http://wud.monitoring.svc.cluster.local/health"
       accepted_status_codes = ["200"]
     }
 
@@ -198,7 +202,7 @@ locals {
     "nextcloud" = {
       name                  = "Nextcloud"
       group                 = "applications"
-      kind                  = "http"
+      kind                  = "json"
       description           = "Публичный status endpoint Nextcloud через локальный DNS, TLS и Traefik. Проверяется только признак установки: у json-query монитора Kuma одно условие, а проверок в Gatus три."
       url                   = "https://nextcloud.${var.domain}/status.php"
       json_path             = "$.installed"
@@ -210,7 +214,7 @@ locals {
     "forgejo" = {
       name                  = "Forgejo"
       group                 = "applications"
-      kind                  = "http"
+      kind                  = "json"
       description           = "Публичный health endpoint Forgejo через локальный DNS, TLS и Traefik; также проверяет подключение к PostgreSQL."
       url                   = "https://forgejo.${var.domain}/api/healthz"
       json_path             = "$.status"
@@ -258,7 +262,7 @@ locals {
     "immich" = {
       name                  = "Immich"
       group                 = "applications"
-      kind                  = "http"
+      kind                  = "json"
       description           = "Публичный ping endpoint Immich через локальный DNS, TLS и Traefik."
       url                   = "https://immich.${var.domain}/api/server/ping"
       json_path             = "$.res"
@@ -270,7 +274,7 @@ locals {
     "dawarich" = {
       name                  = "Dawarich"
       group                 = "applications"
-      kind                  = "http"
+      kind                  = "json"
       description           = "Публичный health endpoint Dawarich через локальный DNS, TLS и Traefik."
       url                   = "https://dawarich.${var.domain}/api/v1/health"
       json_path             = "$.status"
@@ -282,27 +286,31 @@ locals {
     "jellyfin" = {
       name                  = "Jellyfin"
       group                 = "applications"
-      kind                  = "http"
+      kind                  = "json"
       description           = "Публичный health endpoint Jellyfin через локальный DNS, TLS и Traefik."
+      json_path             = "$trim($)"
+      json_path_operator    = "=="
+      expected_value        = "Healthy"
       url                   = "https://jellyfin.${var.domain}/health"
-      keyword               = "Healthy"
       accepted_status_codes = ["200"]
     }
 
     "navidrome" = {
       name                  = "Navidrome"
       group                 = "applications"
-      kind                  = "http"
+      kind                  = "json"
       description           = "Публичный ping endpoint Navidrome через локальный DNS, TLS и Traefik; тело ответа — точка."
+      json_path             = "$trim($)"
+      json_path_operator    = "=="
+      expected_value        = "."
       url                   = "https://music.${var.domain}/ping"
-      keyword               = "."
       accepted_status_codes = ["200"]
     }
 
     "stirling-pdf" = {
       name                  = "Stirling PDF"
       group                 = "applications"
-      kind                  = "http"
+      kind                  = "json"
       description           = "Публичный status endpoint Stirling PDF через локальный DNS, TLS и Traefik."
       url                   = "https://pdf.${var.domain}/api/v1/info/status"
       json_path             = "$.status"
@@ -377,17 +385,17 @@ locals {
     "seafile" = {
       name                  = "Seafile"
       group                 = "applications"
-      kind                  = "http"
+      kind                  = "keyword"
       description           = "Анонимный ping endpoint Seafile через локальный DNS, TLS и Traefik."
-      url                   = "https://seafile.${var.domain}/api2/ping/"
       keyword               = "pong"
+      url                   = "https://seafile.${var.domain}/api2/ping/"
       accepted_status_codes = ["200"]
     }
 
     "onlyoffice" = {
       name                  = "OnlyOffice"
       group                 = "applications"
-      kind                  = "http"
+      kind                  = "json"
       description           = "Healthcheck OnlyOffice Document Server через локальный DNS, TLS и Traefik; тело ответа — JSON true."
       url                   = "https://onlyoffice.${var.domain}/healthcheck"
       json_path             = "$"
@@ -408,7 +416,7 @@ locals {
     "infisical" = {
       name                  = "Infisical"
       group                 = "applications"
-      kind                  = "http"
+      kind                  = "json"
       description           = "Status endpoint Infisical через локальный DNS, TLS и Traefik; также отражает доступность Redis и Postgres."
       url                   = "https://infisical.${var.domain}/api/status"
       json_path             = "$.message"
@@ -420,10 +428,12 @@ locals {
     "zitadel" = {
       name                  = "Zitadel"
       group                 = "applications"
-      kind                  = "http"
+      kind                  = "json"
       description           = "Health endpoint Zitadel через локальный DNS, TLS и Traefik; тело ответа — ok."
+      json_path             = "$trim($)"
+      json_path_operator    = "=="
+      expected_value        = "ok"
       url                   = "https://id.${var.domain}/debug/healthz"
-      keyword               = "ok"
       accepted_status_codes = ["200"]
     }
 
@@ -439,20 +449,20 @@ locals {
     "synapse" = {
       name                  = "Synapse"
       group                 = "applications"
-      kind                  = "http"
+      kind                  = "keyword"
       description           = "Client-Server API Synapse (/_matrix) через локальный DNS, TLS и Traefik."
-      url                   = "https://element.${var.domain}/_matrix/client/versions"
       keyword               = "versions"
+      url                   = "https://element.${var.domain}/_matrix/client/versions"
       accepted_status_codes = ["200"]
     }
 
     "talk-signaling" = {
       name                  = "Talk signaling"
       group                 = "applications"
-      kind                  = "http"
+      kind                  = "keyword"
       description           = "Nextcloud Talk high-performance backend (eturnal) через локальный DNS, TLS и Traefik."
-      url                   = "https://talk-signaling.${var.domain}/standalone-signaling/api/v1/welcome"
       keyword               = "Welcome"
+      url                   = "https://talk-signaling.${var.domain}/standalone-signaling/api/v1/welcome"
       accepted_status_codes = ["200"]
     }
 
