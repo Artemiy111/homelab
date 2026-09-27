@@ -75,7 +75,7 @@ resource "vault_policy" "db_nextcloud" {
 }
 
 resource "vault_policy" "db_open_webui" {
-  name = "db/open_webui"
+  name = "db/open-webui"
 
   policy = <<-EOT
     path "kv/data/open-webui/db"     { capabilities = ["read"] }
