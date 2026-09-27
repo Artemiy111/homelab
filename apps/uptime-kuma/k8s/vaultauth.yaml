@@ -36,13 +36,18 @@ metadata:
   name: vso-uptime-kuma
   namespace: uptime-kuma
 spec:
-  # VaultConnection лежит в неймспейсе vault, а этот VaultAuth — в
-  # uptime-kuma. Без префикса пространства VSO ищет VaultConnection в
-  # неймспейсе самого VaultAuth и не находит его:
-  # `VaultConnection.secrets.hashicorp.com "vault" not found`.
-  # Префикс `vault/` — единственный способ сослаться на объект из другого
-  # неймспейса, дублировать VaultConnection по 48 неймспейсам не нужно.
-  vaultConnectionRef: vault/vault
+  # vaultConnectionRef не указан: подключение берётся из VaultConnection/default,
+  # который создаёт чарт оператора (argocd/applications/vault-secrets-operator.yaml,
+  # defaultVaultConnection). Раньше здесь стояло `vault/vault` — ссылка с
+  # префиксом пространства, без неё VSO ищет VaultConnection в своём неймспейсе
+  # и возвращает `VaultConnection "vault" not found`.
+  #
+  # Общие headers/params и разрешённые неймспейсы — из VaultAuthGlobal.
+  # Роль остаётся здесь своей, потому что vaultAuthGlobalRef отвечает только за
+  # headers и params, а доступ определяется ролью в Vault.
+  vaultAuthGlobalRef:
+    name: vso-global
+    namespace: vault-secrets-operator
   method: kubernetes
   mount: kubernetes
   kubernetes:

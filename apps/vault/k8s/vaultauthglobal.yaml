@@ -1,0 +1,35 @@
+# Общая настройка аутентификации VSO в Vault на все сервисы.
+#
+# Лежит в неймспейсе оператора, а не в `vault`: так его находит и поиск
+# дефолтного VaultAuthGlobal, и явная ссылка vaultAuthGlobalRef из сервисных
+# VaultAuth.
+#
+# Что это НЕ делает: не превращает все сервисы в одну учётку. Роль в Vault
+# остаётся per-service (vso-reader, vso-uptime-kuma), и именно она определяет
+# границы доступа. vaultAuthGlobalRef отвечает только за headers и params,
+# поэтому per-service роль в VaultAuth сохраняется.
+#
+# allowedNamespaces — единственная точка, где перечислены потребители. Без него
+# (unset) global доступен только своему неймспейсу и неймспейсу ссылающейся
+# сущности, то есть никому из сервисов.
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultAuthGlobal
+metadata:
+  name: vso-global
+  namespace: vault-secrets-operator
+spec:
+  # Только те неймспейсы, где есть потребители секретов. Неймспейсы без
+  # VaultAuthGlobal-ссылки сюда попадать не будут: список — не фильтр, а
+  # разрешение; всё, чего в нём нет, получит отказ.
+  allowedNamespaces:
+    - vault
+    - uptime-kuma
+  # Блок kubernetes ниже — значения по умолчанию для сервисных VaultAuth.
+  # Роль и serviceAccount здесь не задаются осознанно: роль у каждого сервиса
+  # своя, иначе одна политика на 48 сервисов, что равносильно wildcard-доступу
+  # ко всем секретам.
+  defaultAuthMethod: kubernetes
+  # Явно, а не «как в Vault»: mount переименуется вместе с настройкой auth-метода
+  # и не должен молча уезжать за ним.
+  defaultMount: kubernetes
+  defaultVaultNamespace: ""
