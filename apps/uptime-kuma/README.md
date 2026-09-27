@@ -24,8 +24,18 @@ Node-процесс Kuma со временем раздувается до ги�
 держится в памяти для websocket-клиентов, а V8 не возвращает освобождённую
 память операционной системе. Поэтому задано
 `NODE_OPTIONS=--max-old-space-size=512`: heap ограничен, RSS держится
-примерно в два раза меньше прежнего. Если контейнер начнёт перезапускаться по
+примерно в два раза меньше прежней. Если контейнер начнёт перезапускаться по
 OOM, значение можно поднять.
+
+## Хранилище
+
+PVC у сервиса нет: мониторы, история и настройки лежат во внешней MariaDB
+(`platform/mariadb`), а `/app/data` — `emptyDir` с лимитом 32 MiБ. Постоянным
+там остаётся только то, что Kuma пересоздаёт сама: `db-config.json` пишется из
+`UPTIME_KUMA_DB_*` при каждом старте, `screenshots/` — на каждой проверке.
+Не переживает пересоздание пода `upload/`: загруженные через UI файлы (например,
+картинка status page) исчезают. Если такие загрузки понадобятся, вернуть PVC —
+но без `backup target` он даёт ложное чувство сохранности.
 
 ## База данных
 
@@ -79,28 +89,27 @@ Kuma 2.x не использует SQLite: переменные `UPTIME_KUMA_DB_
      vso.secrets.hashicorp.com/force-sync="$(date +%s)" --overwrite
    ```
 
-3. Переключить Kuma: остановить под, удалить старый том вместе с данными
-   встроенной MariaDB и применить kustomization — PVC пересоздастся пустым,
-   а Deployment получит `UPTIME_KUMA_DB_*`:
+3. Переключить Kuma: применить kustomization — Deployment получит
+   `UPTIME_KUMA_DB_*`, а `/app/data` станет `emptyDir`:
 
    ```sh
    kubectl -n uptime-kuma scale deploy/uptime-kuma --replicas=0
-   kubectl -n uptime-kuma delete pvc uptime-kuma-data
-   # Longhorn-том после удаления PVC остаётся сиротой: убрать и его.
-   kubectl -n longhorn-system delete volume <том из шага ниже>
    kubectl apply -k apps/uptime-kuma/
    kubectl -n uptime-kuma get pods -w
    ```
 
-   Проверить, что Kuma поднялся на внешней базе:
+   Проверить, что Kuma поднялась на внешней базе:
 
    ```sh
    kubectl -n uptime-kuma logs deploy/uptime-kuma | grep -i "Database Type"
    ```
 
    В логе должно быть `Database Type: mariadb`. Если осталось `sqlite` или
-   `embedded-mariadb` — секреты не синхронизировались, и Kuma упала бы на
-   отсутствии пароля, либо вернулась к встроенной БД.
+   `embedded-mariadb` — секреты не синхронизировались.
+
+   Старый PVC `uptime-kuma-data` и его Longhorn-том удаляются руками: манифеста
+   больше нет, а `kubectl apply` удалённые объекты не трогает. Ищи их по
+   `kubectl -n uptime-kuma get pvc` и `kubectl -n longhorn-system get volumes.longhorn.io`.
 
 4. Создать мониторы:
 

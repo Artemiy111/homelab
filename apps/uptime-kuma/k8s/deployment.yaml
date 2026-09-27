@@ -5,6 +5,8 @@ metadata:
   namespace: uptime-kuma
 spec:
   # SQLite на RWO-томе: два пода при rolling update пишут в одну БД.
+  # Recreate, а не RollingUpdate: два пода одновременно означали бы две копии
+  # мониторов, пишущих heartbeat'ы в одну базу и дублирующих алерты.
   strategy:
     type: Recreate
   revisionHistoryLimit: 2
@@ -91,6 +93,12 @@ spec:
             - name: data
               mountPath: /app/data
       volumes:
+        # Мониторы, история и настройки лежат во внешней MariaDB
+        # (platform/mariadb), поэтому PVC больше не нужен. В /app/data остаются
+        # db-config.json, upload/, screenshots/ и error.log: первый Kuma
+        # переписывает из переменных окружения при каждом старте, скриншоты
+        # пересоздаются проверками, а загрузки из UI переживут только до
+        # пересоздания пода. sizeLimit ограничивает те самые загрузки.
         - name: data
-          persistentVolumeClaim:
-            claimName: uptime-kuma-data
+          emptyDir:
+            sizeLimit: 32Mi
