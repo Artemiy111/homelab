@@ -58,7 +58,9 @@ spec:
               memory: 64Mi
         - name: wait-for-app
           image: "freikin/dawarich:1.14.5@sha256:23b4e3190bcf8dcdaaa3a17868977b760370a84a325229183d6f8f81cba3495a"
-          command: ["/bin/sh", "-c", "until wget -q --spider --header='X-Forwarded-Proto: https' http://dawarich:3000/api/v1/health; do echo waiting for dawarich; sleep 3; done"]
+          # Порт 80, а не 3000: 3000 — containerPort пода, у Service `dawarich`
+          # его нет. С 3000 этот init висел вечно, пока pod не пересоздавали.
+          command: ["/bin/sh", "-c", "until wget -q --spider -T 8 --header='X-Forwarded-Proto: https' http://dawarich/api/v1/health; do echo waiting for dawarich; sleep 3; done"]
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
