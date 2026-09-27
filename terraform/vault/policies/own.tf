@@ -68,8 +68,8 @@ resource "vault_policy" "app_navidrome" {
   name = "app/navidrome"
 
   policy = <<-EOT
-    path "kv/data/navidrome/metrics-path"      { capabilities = ["read"] }
-    path "kv/metadata/navidrome/metrics-path"  { capabilities = ["read", "list"] }
+    path "kv/data/navidrome/@monitoring/navidrome-metrics-path"     { capabilities = ["read"] }
+    path "kv/metadata/navidrome/@monitoring/navidrome-metrics-path" { capabilities = ["read", "list"] }
   EOT
 }
 

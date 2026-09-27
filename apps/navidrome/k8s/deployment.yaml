@@ -31,11 +31,11 @@ spec:
             - configMapRef:
                 name: homelab-config
           env:
-            - name: NAVIDROME_METRICS_PATH
+            - name: NAVIDROME_SECRET_METRICS_PATH
               valueFrom:
                 secretKeyRef:
                   name: navidrome-metrics-path
-                  key: NAVIDROME_METRICS_PATH
+                  key: NAVIDROME_SECRET_METRICS_PATH
             - name: ND_DATAFOLDER
               value: /data
             - name: ND_MUSICFOLDER
@@ -47,7 +47,7 @@ spec:
             - name: ND_PROMETHEUS_ENABLED
               value: "true"
             - name: ND_PROMETHEUS_METRICSPATH
-              value: "/metrics_$(NAVIDROME_METRICS_PATH)"
+              value: "/metrics_$(NAVIDROME_SECRET_METRICS_PATH)"
           startupProbe:
             httpGet:
               path: /ping
