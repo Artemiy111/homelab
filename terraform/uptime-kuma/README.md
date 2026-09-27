@@ -22,17 +22,27 @@ terraform apply
 новом терминале нужно только реквизиты: это переменные окружения, и
 `~/.vault-token` живёт 24 часа, так что `vault login` всё равно приходится
 делать заново. Реквизиты лежат в Vault по пути `kv/uptime-kuma/sync` (ключи
-`UPTIME_KUMA_USERNAME` и `UPTIME_KUMA_PASSWORD`). Без попадания в историю
-оболочки:
+`UPTIME_KUMA_USERNAME` и `UPTIME_KUMA_PASSWORD`).
+
+Имена переменных окружения у провайдера другие, без подчёркивания после
+`UPTIME`: `UPTIMEKUMA_USERNAME` и `UPTIMEKUMA_PASSWORD`. Имена с подчёркиванием
+принадлежат одноимённому ключу в Vault, из которого их читает CronJob в
+кластере. Без попадания в историю оболочки:
 
 ```sh macOS
-export UPTIME_KUMA_USERNAME=…
-read -rsp "Kuma password: " UPTIME_KUMA_PASSWORD UPTIME_KUMA_PASSWORD && echo
-export UPTIME_KUMA_PASSWORD
+export UPTIMEKUMA_USERNAME=…
+read -rsp "Kuma password: " UPTIMEKUMA_PASSWORD UPTIMEKUMA_PASSWORD && echo
+export UPTIMEKUMA_PASSWORD
 ```
 
-В state они не попадают: аргументы блока `provider` Terraform не сохраняет.
-`UPTIME_KUMA_ENDPOINT` задавать не нужно, endpoint собран из `var.domain`.
+С пустыми реквизитами провайдер не сообщает об этом: клиент пропускает логин и
+ждёт списки мониторов, которых без логина не будет. Ошибка выглядит как
+недоступность Kuma или непроброс websocket через обратный прокси — отсюда
+диагностика вводит в заблуждение.
+
+В state реквизиты не попадают: аргументы блока `provider` Terraform не
+сохраняет. `UPTIMEKUMA_ENDPOINT` задавать не нужно, endpoint собран из
+`var.domain`.
 
 ## Значения
 
