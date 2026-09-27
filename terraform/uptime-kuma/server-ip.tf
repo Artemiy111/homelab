@@ -3,7 +3,7 @@ data "external" "server_ip" {
 
   program = [
     "sh", "-c",
-    "ip=$(dig +short A dns.${var.domain} | head -1); [ -n \"$ip\" ] || { echo 'A-запись dns.${var.domain} не найдена' >&2; exit 1; }; echo \"$ip\"",
+    "ip=$(dig +short A dns.${var.domain} | head -1); [ -n \"$ip\" ] || { echo 'A-запись dns.${var.domain} не найдена' >&2; exit 1; }; printf '{\"ip\":\"%s\"}\n' \"$ip\"",
   ]
 }
 
