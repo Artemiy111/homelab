@@ -53,22 +53,9 @@ metadata:
   name: vso-reader
   namespace: vault
 spec:
-  # vaultConnectionRef не указан: подключение берётся из VaultConnection/default,
-  # который создаёт чарт оператора (argocd/applications/vault-secrets-operator.yaml,
-  # defaultVaultConnection). Объект VaultConnection/vault ниже оставлен как
-  # явная точка входа для обращений вручную и для PoC.
-  #
-  # Роль остаётся здесь своей: vaultAuthGlobalRef отвечает только за headers и
-  # params, а доступ определяется ролью в Vault.
   vaultAuthGlobalRef:
     name: vso-global
     namespace: vault-secrets-operator
-  method: kubernetes
-  # mount продублирован, хотя в VaultAuthGlobal есть defaultMount: значение
-  # отдаётся из глобального только при отсутствии здесь, а полагаться на это
-  # при работающем PoC незачем. Явное поле читается без обращения к двум
-  # объектам.
-  mount: kubernetes
   kubernetes:
     role: vso-reader
     serviceAccount: vso-vault-auth

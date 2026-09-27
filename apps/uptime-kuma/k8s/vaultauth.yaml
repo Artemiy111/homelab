@@ -48,8 +48,6 @@ spec:
   vaultAuthGlobalRef:
     name: vso-global
     namespace: vault-secrets-operator
-  method: kubernetes
-  mount: kubernetes
   kubernetes:
     role: vso-uptime-kuma
     serviceAccount: vso-uptime-kuma
