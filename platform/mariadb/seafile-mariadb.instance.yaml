@@ -11,8 +11,10 @@
 # Образ закреплён на 10.11 (тот же, что в старом поде): дефолт оператора —
 # MariaDB 12.3, а мажорный прыжок при миграции не нужен и не проверялся Seafile.
 #
-# root-пароль берём из существующего Secret seafile — не плодим секреты и
-# сохраняем тот же root-пароль, что у старой базы.
+# root-пароль — из Secret seafile-root (путь kv/seafile/root, синхронизируется
+# VSO). Поле spec.rootPasswordSecretKeyRef у CR неизменяемо, поэтому при смене
+# имени Secret CR приходится пересоздавать; PVC на longhorn-retain при этом
+# сохраняется.
 apiVersion: k8s.mariadb.com/v1alpha1
 kind: MariaDB
 metadata:
