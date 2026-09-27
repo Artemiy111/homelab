@@ -298,19 +298,23 @@ async function main(): Promise<void> {
       });
     });
 
-    const initialListWaiter = createMonitorListWaiter(socket);
-    let login: any;
-    try {
-      login = await emitWithAck(socket, "login", { username, password });
-    } catch (error) {
-      initialListWaiter.cancel();
-      throw error;
-    }
+    // Список мониторов здесь не запрашивается: synchronize() начинается с
+    // getMonitorList(socket), то есть с emitWithAck("getMonitorList").
+    //
+    // Раньше стоял createMonitorListWaiter и await его промиса. Это был
+    // ожиданием push-события monitorList, которого Uptime Kuma после логина не
+    // присылает — это обычный request/response. Работало только случайно:
+    // Uptime Kuma шлёт monitorList всем аутентифицированным сокетам при
+    // изменении списка, а мониторы в кластере постоянно переключаются
+    // (Mailserver 404, Xray connection failed), так что событие иногда
+    // успевало прийти в 15-секундное окно. Спокойные интервалы давали
+    // «Uptime Kuma не прислала список мониторов». К логину это отношения не
+    // имело: приложение писало Successful logged in user admin, падал следующий
+    // шаг.
+    const login = await emitWithAck(socket, "login", { username, password });
     if (login.tokenRequired) {
-      initialListWaiter.cancel();
       fail("Синхронизация пока не поддерживает учётную запись с двухфакторной аутентификацией.");
     }
-    await initialListWaiter.promise;
 
     await synchronize(socket, monitors);
   } finally {
