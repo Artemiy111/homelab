@@ -1,7 +1,7 @@
 # Политики приложений, у которых нет ни базового пароля БД, ни выданных
 # кредов: все секреты принадлежат самому приложению (правило 1 ADR 0006).
 
-resource "vault_policy" "3x_ui" {
+resource "vault_policy" "app_3x_ui" {
   name = "app/3x-ui"
 
   policy = <<-EOT
@@ -10,7 +10,7 @@ resource "vault_policy" "3x_ui" {
   EOT
 }
 
-resource "vault_policy" "ats" {
+resource "vault_policy" "app_ats" {
   name = "app/ats"
 
   policy = <<-EOT
@@ -19,7 +19,7 @@ resource "vault_policy" "ats" {
   EOT
 }
 
-resource "vault_policy" "beszel" {
+resource "vault_policy" "app_beszel" {
   name = "app/beszel"
 
   policy = <<-EOT
@@ -28,7 +28,7 @@ resource "vault_policy" "beszel" {
   EOT
 }
 
-resource "vault_policy" "home_assistant" {
+resource "vault_policy" "app_home_assistant" {
   name = "app/home-assistant"
 
   policy = <<-EOT
@@ -37,7 +37,7 @@ resource "vault_policy" "home_assistant" {
   EOT
 }
 
-resource "vault_policy" "jellyfin" {
+resource "vault_policy" "app_jellyfin" {
   name = "app/jellyfin"
 
   policy = <<-EOT
@@ -46,7 +46,7 @@ resource "vault_policy" "jellyfin" {
   EOT
 }
 
-resource "vault_policy" "jitsi" {
+resource "vault_policy" "app_jitsi" {
   name = "app/jitsi"
 
   policy = <<-EOT
@@ -55,7 +55,7 @@ resource "vault_policy" "jitsi" {
   EOT
 }
 
-resource "vault_policy" "local_ai" {
+resource "vault_policy" "app_local_ai" {
   name = "app/local-ai"
 
   policy = <<-EOT
@@ -64,7 +64,7 @@ resource "vault_policy" "local_ai" {
   EOT
 }
 
-resource "vault_policy" "navidrome" {
+resource "vault_policy" "app_navidrome" {
   name = "app/navidrome"
 
   policy = <<-EOT
@@ -73,7 +73,7 @@ resource "vault_policy" "navidrome" {
   EOT
 }
 
-resource "vault_policy" "oauth2_proxy" {
+resource "vault_policy" "app_oauth2_proxy" {
   name = "app/oauth2-proxy"
 
   policy = <<-EOT
@@ -84,7 +84,7 @@ resource "vault_policy" "oauth2_proxy" {
   EOT
 }
 
-resource "vault_policy" "pdf" {
+resource "vault_policy" "app_pdf" {
   name = "app/pdf"
 
   policy = <<-EOT
@@ -93,7 +93,7 @@ resource "vault_policy" "pdf" {
   EOT
 }
 
-resource "vault_policy" "rustfs" {
+resource "vault_policy" "app_rustfs" {
   name = "app/rustfs"
 
   policy = <<-EOT
@@ -102,7 +102,7 @@ resource "vault_policy" "rustfs" {
   EOT
 }
 
-resource "vault_policy" "talk_hpb" {
+resource "vault_policy" "app_talk_hpb" {
   name = "app/talk-hpb"
 
   policy = <<-EOT
@@ -111,7 +111,7 @@ resource "vault_policy" "talk_hpb" {
   EOT
 }
 
-resource "vault_policy" "uptime_kuma" {
+resource "vault_policy" "app_uptime_kuma" {
   name = "app/uptime-kuma"
 
   policy = <<-EOT

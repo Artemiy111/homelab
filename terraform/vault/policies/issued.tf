@@ -3,7 +3,7 @@
 # приложения (правило 3 ADR 0006). Строки на чужое выданное значение —
 # например, `kv/ntfy/topic` — пишутся здесь явно, wildcard не используется.
 
-resource "vault_policy" "dawarich" {
+resource "vault_policy" "app_dawarich" {
   name = "app/dawarich"
 
   policy = <<-EOT
@@ -16,7 +16,7 @@ resource "vault_policy" "dawarich" {
   EOT
 }
 
-resource "vault_policy" "element" {
+resource "vault_policy" "app_element" {
   name = "app/element"
 
   policy = <<-EOT
@@ -28,7 +28,8 @@ resource "vault_policy" "element" {
 }
 
 
-resource "vault_policy" "forgejo" {
+
+resource "vault_policy" "app_forgejo" {
   name = "app/forgejo"
 
   policy = <<-EOT
@@ -43,7 +44,7 @@ resource "vault_policy" "forgejo" {
   EOT
 }
 
-resource "vault_policy" "gatus" {
+resource "vault_policy" "app_gatus" {
   name = "app/gatus"
 
   policy = <<-EOT
@@ -56,7 +57,7 @@ resource "vault_policy" "gatus" {
   EOT
 }
 
-resource "vault_policy" "grafana" {
+resource "vault_policy" "app_grafana" {
   name = "app/grafana"
 
   policy = <<-EOT
@@ -69,7 +70,7 @@ resource "vault_policy" "grafana" {
   EOT
 }
 
-resource "vault_policy" "mailserver" {
+resource "vault_policy" "app_mailserver" {
   name = "app/mailserver"
 
   policy = <<-EOT
@@ -80,7 +81,7 @@ resource "vault_policy" "mailserver" {
   EOT
 }
 
-resource "vault_policy" "nextcloud" {
+resource "vault_policy" "app_nextcloud" {
   name = "app/nextcloud"
 
   policy = <<-EOT
@@ -93,14 +94,14 @@ resource "vault_policy" "nextcloud" {
   EOT
 }
 
-resource "vault_policy" "seafile" {
+resource "vault_policy" "app_seafile" {
   name = "app/seafile"
 
   policy = <<-EOT
     path "kv/data/seafile/db"          { capabilities = ["read"] }
     path "kv/metadata/seafile/db"      { capabilities = ["read", "list"] }
-    path "kv/data/seafile/mariadb"     { capabilities = ["read"] }
-    path "kv/metadata/seafile/mariadb" { capabilities = ["read", "list"] }
+    path "kv/data/seafile/root"        { capabilities = ["read"] }
+    path "kv/metadata/seafile/root"    { capabilities = ["read", "list"] }
     path "kv/data/seafile/secrets"     { capabilities = ["read"] }
     path "kv/metadata/seafile/secrets" { capabilities = ["read", "list"] }
     path "kv/data/seafile/oidc"        { capabilities = ["read"] }
@@ -109,7 +110,8 @@ resource "vault_policy" "seafile" {
 }
 
 
-resource "vault_policy" "sure" {
+
+resource "vault_policy" "app_sure" {
   name = "app/sure"
 
   policy = <<-EOT
@@ -128,7 +130,7 @@ resource "vault_policy" "sure" {
   EOT
 }
 
-resource "vault_policy" "technitium" {
+resource "vault_policy" "app_technitium" {
   name = "app/technitium"
 
   policy = <<-EOT
@@ -139,7 +141,7 @@ resource "vault_policy" "technitium" {
   EOT
 }
 
-resource "vault_policy" "vmagent" {
+resource "vault_policy" "app_vmagent" {
   name = "app/vmagent"
 
   policy = <<-EOT

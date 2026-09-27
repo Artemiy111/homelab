@@ -17,7 +17,7 @@ spec:
     name: seafile-mariadb
   name: seafile
   passwordSecretKeyRef:
-    name: seafile
+    name: seafile-db
     key: SEAFILE_MYSQL_DB_PASSWORD
   host: "%"
   maxUserConnections: 0

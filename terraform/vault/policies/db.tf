@@ -2,7 +2,7 @@
 # путь `db`, потому что то же значение читает CNPG из своего неймспейса
 # (правило 2 ADR 0006), и его ротация не должна затрагивать остальное.
 
-resource "vault_policy" "authentik" {
+resource "vault_policy" "app_authentik" {
   name = "app/authentik"
 
   policy = <<-EOT
@@ -13,7 +13,7 @@ resource "vault_policy" "authentik" {
   EOT
 }
 
-resource "vault_policy" "glitchtip" {
+resource "vault_policy" "app_glitchtip" {
   name = "app/glitchtip"
 
   policy = <<-EOT
@@ -24,7 +24,7 @@ resource "vault_policy" "glitchtip" {
   EOT
 }
 
-resource "vault_policy" "immich" {
+resource "vault_policy" "app_immich" {
   name = "app/immich"
 
   policy = <<-EOT
@@ -33,7 +33,7 @@ resource "vault_policy" "immich" {
   EOT
 }
 
-resource "vault_policy" "infisical" {
+resource "vault_policy" "app_infisical" {
   name = "app/infisical"
 
   policy = <<-EOT
@@ -44,7 +44,7 @@ resource "vault_policy" "infisical" {
   EOT
 }
 
-resource "vault_policy" "open_webui" {
+resource "vault_policy" "app_open_webui" {
   name = "app/open-webui"
 
   policy = <<-EOT
@@ -55,7 +55,7 @@ resource "vault_policy" "open_webui" {
   EOT
 }
 
-resource "vault_policy" "paperless" {
+resource "vault_policy" "app_paperless" {
   name = "app/paperless"
 
   policy = <<-EOT
@@ -66,7 +66,7 @@ resource "vault_policy" "paperless" {
   EOT
 }
 
-resource "vault_policy" "postgres" {
+resource "vault_policy" "app_postgres" {
   name = "app/postgres"
 
   policy = <<-EOT
