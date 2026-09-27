@@ -56,17 +56,13 @@ Kuma 2.x не использует SQLite: переменные `UPTIME_KUMA_DB_
 нечётного числа узлов, и выживший узел уходит в read-only, то есть вместо
 простоя приложение получает ошибки записи.
 
-### Перенос
+### Переключение на внешнюю базу
 
-1. Создать в Vault значения и применить политику:
+Переноса данных нет: база внешняя наполняется заново, мониторы и история
+проверок создаются с нуля. Порядку важно — Kuma стартует на пустой базе раньше,
+чем Terraform успеет создать мониторы.
 
-   ```sh
-   vault kv put kv/uptime-kuma/db DB_USERNAME=uptime_kuma DB_PASSWORD=...
-   vault kv put kv/uptime-kuma/root INIT_UPTIME_KUMA_MARIADB_ROOT_PASSWORD=...
-   cd terraform/vault && terraform apply
-   ```
-
-2. Применить кластер и секреты (Kuma на этом шаге не трогается):
+1. Применить кластер и секреты:
 
    ```sh
    kubectl apply -f platform/mariadb/uptime-kuma-mariadb.instance.yaml
@@ -75,32 +71,58 @@ Kuma 2.x не использует SQLite: переменные `UPTIME_KUMA_DB_
    kubectl apply -f apps/uptime-kuma/k8s/vaultstaticsecret-mariadb.yaml
    ```
 
-3. Перенести данные:
+2. Дождаться готовности кластера и синхронизации секретов:
 
    ```sh
-   apps/uptime-kuma/migrate-db.sh
+   kubectl -n uptime-kuma get mariadb,pods
+   kubectl -n uptime-kuma annotate vaultstaticsecret uptime-kuma-mariadb \
+     vso.secrets.hashicorp.com/force-sync="$(date +%s)" --overwrite
    ```
 
-   Скрипт снимает дамп со встроенной MariaDB через unix-сокет (аутентификация
-   по сокету, пароль не нужен) и заливает его во внешний кластер, после чего
-   сверяет набор таблиц. Kuma при этом продолжает работать: `--single-transaction`
-   даёт согласованный снимок InnoDB без остановки. Повторный запуск безопасен —
-   целевая база очищается перед заливкой.
+3. Переключить Kuma: остановить под, удалить старый том вместе с данными
+   встроенной MariaDB и применить kustomization — PVC пересоздастся пустым,
+   а Deployment получит `UPTIME_KUMA_DB_*`:
 
-4. Переключить Kuma на внешнюю базу: в `k8s/deployment.yaml` добавить
-   `UPTIME_KUMA_DB_TYPE`, `UPTIME_KUMA_DB_HOSTNAME`, `UPTIME_KUMA_DB_PORT`,
-   `UPTIME_KUMA_DB_NAME` и учётные данные из Secret `uptime-kuma-mariadb`, затем
-   `kubectl apply -k apps/uptime-kuma/`. Переменные перекрывают
-   `/app/data/db-config.json` (приоритет env над файлом, `server/setup-database.js`),
-   поэтому Kuma перепишет конфигурацию сама.
+   ```sh
+   kubectl -n uptime-kuma scale deploy/uptime-kuma --replicas=0
+   kubectl -n uptime-kuma delete pvc uptime-kuma-data
+   # Longhorn-том после удаления PVC остаётся сиротой: убрать и его.
+   kubectl -n longhorn-system delete volume <том из шага ниже>
+   kubectl apply -k apps/uptime-kuma/
+   kubectl -n uptime-kuma get pods -w
+   ```
 
-5. Проверить в UI, что на месте все мониторы и status page, а `/metrics`
-   отдаётся. Мониторы описаны в Terraform, поэтому после переподключения
-   `terraform plan` должен остаться пустым.
+   Проверить, что Kuma поднялся на внешней базе:
 
-6. Удалить старые данные с тома: каталоги `/app/data/mariadb` и `/app/data/run`.
-   Сам PVC `uptime-kuma-data` не удаляется — в нём остаются `upload/`,
-   `screenshots/` и `error.log`.
+   ```sh
+   kubectl -n uptime-kuma logs deploy/uptime-kuma | grep -i "Database Type"
+   ```
+
+   В логе должно быть `Database Type: mariadb`. Если осталось `sqlite` или
+   `embedded-mariadb` — секреты не синхронизировались, и Kuma упала бы на
+   отсутствии пароля, либо вернулась к встроенной БД.
+
+4. Создать мониторы:
+
+   ```sh
+   cd terraform/uptime-kuma
+   terraform apply
+   ```
+
+   Мониторы, теги, status page, прокси и настройки создаются из
+   `terraform/uptime-kuma/`. Импортировать нечего: база пустая, поэтому
+   `imports.tf` в модуле нет.
+
+5. Проверить в UI, что все 62 монитора на месте, а `/metrics` отдаётся.
+
+### Ключ метрик после перезапуска
+
+Ключ API для `/metrics` хранится в базе, поэтому после её пересоздания он
+исчезает, а basic auth на `/metrics` включается обратно. Нужен новый ключ в
+UI (Настройки → API Keys, без срока действия) и новое значение в Vault по пути
+`kv/uptime-kuma/@monitoring/uptime-kuma-metrics-api-key` — его читает vmagent
+(`apps/victoria-metrics/k8s/vmagent.deployment.yaml`). После этого перезапустить
+vmagent, иначе он продолжит скрейпить со старым ключом.
 
 ### Оговорка про пароль на диске
 

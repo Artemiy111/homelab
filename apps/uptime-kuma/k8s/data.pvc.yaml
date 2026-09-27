@@ -1,6 +1,10 @@
-# SQLite, мониторы и история uptime-kuma: без backup target, поэтому
-# longhorn-retain — удаление PVC не должно стирать данные. RWO-том на одной ноде
-# требует strategy.type: Recreate (см. deployment.yaml).
+# Состояние Kuma вне базы: db-config.json (параметры подключения), upload/,
+# screenshots/, error.log. Мониторы и история проверок живут в MariaDB
+# (platform/mariadb), поэтому том больше не главное хранилище.
+#
+# longhorn-retain (reclaimPolicy: Retain): удаление PVC не должно стирать
+# содержимое. RWO-том на одной ноде требует strategy.type: Recreate (см.
+# deployment.yaml).
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -12,5 +16,6 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      # Данные ~265 МБ; запас под историю проверок.
+      # Данных тут немного: пара мегабайт скриншотов и загрузок. Запас — на
+      # логи и на случай, если вернётся embedded-mariadb.
       storage: 512Mi

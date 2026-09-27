@@ -30,6 +30,32 @@ spec:
           env:
             - name: NODE_OPTIONS
               value: "--max-old-space-size=512"
+            # Внешняя MariaDB вместо встроенной (platform/mariadb). Без
+            # UPTIME_KUMA_DB_TYPE Kuma 2.x поднимает embedded-mariadb внутри
+            # пода и держит данные в /app/data/mariadb.
+            #
+            # Переменные перекрывают /app/data/db-config.json: в
+            # server/setup-database.js приоритет env над файлом, и Kuma
+            # переписывает конфигурацию сама. Учти, что она записывает туда же
+            # пароль открытым текстом — это её устройство, а не настройка.
+            - name: UPTIME_KUMA_DB_TYPE
+              value: "mariadb"
+            - name: UPTIME_KUMA_DB_HOSTNAME
+              value: "uptime-kuma-mariadb"
+            - name: UPTIME_KUMA_DB_PORT
+              value: "3306"
+            - name: UPTIME_KUMA_DB_NAME
+              value: "kuma"
+            - name: UPTIME_KUMA_DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: uptime-kuma-mariadb
+                  key: DB_USERNAME
+            - name: UPTIME_KUMA_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: uptime-kuma-mariadb
+                  key: DB_PASSWORD
           startupProbe:
             httpGet:
               path: /
