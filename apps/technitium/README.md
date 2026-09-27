@@ -23,7 +23,7 @@ sudo ss -lntup | grep ':53 '
 ### Через веб-интерфейс
 
 Открыть `https://dns.${DOMAIN}/` (через Traefik). Войти под `admin`; пароль
-хранится в `apps/technitium/secrets.enc.env` (`TECHNITIUM_ADMIN_PASSWORD`).
+берётся из Vault (`kv/technitium/secret`, `TECHNITIUM_ADMIN_PASSWORD`).
 
 1. Zones → New Zone → Primary → ввести `${DOMAIN}`.
 2. Добавить A-запись: Name `*`, Value `${HOST_IP}`, TTL `3600`.
@@ -104,8 +104,8 @@ ENV `DNS_ADMIN_PASSWORD` применяется только при первич
 `admin/admin`.
 
 Затем сменить пароль через API (`api/user/changePassword` с параметрами
-`token`, `pass` — старый, `newPass` — новый) и записать его в секреты сервиса
-(`secrets.enc.env`).
+`token`, `pass` — старый, `newPass` — новый) и записать новый в Vault
+(`kv/technitium/secret`).
 
 ## Блокировка рекламы
 

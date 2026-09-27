@@ -56,7 +56,7 @@ ZITADEL_PAT=... ./zitadel/zitadel-passkey-link.sh
 
 - Type: Web;
 - Redirect URI: `https://oauth.example.com/oauth2/callback`;
-- client_id и client_secret скопировать в `apps/oauth2-proxy/secrets.enc.env`.
+- client_id и client_secret записать в Vault: `kv/oauth2-proxy/oidc`.
 
 ## Обновление
 

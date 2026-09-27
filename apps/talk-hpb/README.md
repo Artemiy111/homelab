@@ -29,7 +29,7 @@
 
 Проксирование через Traefik описано в `platform/homelab/templates/routes/talk-hpb.yaml`.
 HPB регистрируется в самом Talk (signaling, STUN и TURN); секреты
-`SIGNALING_SECRET` и `TURN_SECRET` хранятся в зашифрованном `secrets.enc.env`.
+`SIGNALING_SECRET` и `TURN_SECRET` лежат в Vault (`kv/talk-hpb/secret`).
 
 ## Firewall
 

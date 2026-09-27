@@ -8,7 +8,7 @@ URL: `https://auth.example.com/`
 ## Первый запуск
 
 Секреты сервиса — секретный ключ Authentik, пароль PostgreSQL, CIDR Traefik —
-хранятся в `apps/authentik/secrets.enc.env` с правами `0600`.
+приходят из Vault через `k8s/vaultstaticsecret.yaml`.
 
 Откройте `https://auth.example.com/if/flow/initial-setup/` и задайте
 пароль встроенному администратору `akadmin`. Не меняйте

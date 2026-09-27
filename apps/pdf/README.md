@@ -14,8 +14,8 @@ Stirling PDF — веб-сервис для операций с PDF. Он дос
 
 Разворачивается манифестами в apps/pdf/k8s/.
 
-Учётные данные администратора хранятся в зашифрованном `secrets.enc.env`
-(`PDF_ADMIN_USERNAME` и `PDF_ADMIN_PASSWORD`).
+Учётные данные администратора приходят из Vault (`kv/pdf/secret`, ключи
+`PDF_ADMIN_USERNAME` и `PDF_ADMIN_PASSWORD`).
 
 Проверка состояния:
 

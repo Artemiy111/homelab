@@ -22,8 +22,8 @@ Secret'а `glitchtip-db-auth`, а приложение — из своего Sec
 
 ## Вход через Zitadel (OIDC)
 
-Провайдер настраивается переменными из `secrets.enc.env` — вручную ничего в БД
-добавлять не нужно:
+Провайдер настраивается переменными из Vault (`kv/glitchtip/secret`) — вручную
+ничего в БД добавлять не нужно:
 
 - `GLITCHTIP_CLIENT_ID`, `GLITCHTIP_CLIENT_SECRET` — учётные данные
   OIDC-приложения Zitadel;

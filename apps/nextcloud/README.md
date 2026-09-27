@@ -35,14 +35,10 @@ DB-Deployment и его hostPath-каталог удалены.
 
 Разворачивается манифестами в apps/nextcloud/k8s/.
 
-Независимые пароли PostgreSQL и администратора записываются только в
-`apps/nextcloud/secrets.enc.env` с правами `0600`; существующий файл не
-перезаписывается. Узнать первичные реквизиты можно непосредственно
-в терминале сервера:
-
-```sh
-sops -d apps/nextcloud/secrets.enc.env | sed -n '/^NEXTCLOUD_ADMIN_\(USER\|PASSWORD\)=/p'
-```
+Независимые пароли PostgreSQL и администратора задаются в Vault:
+`kv/nextcloud/@nextcloud/db` (выдаёт CNPG) и `kv/nextcloud/admin`
+(`NEXTCLOUD_ADMIN_USER` / `NEXTCLOUD_ADMIN_PASSWORD`). Узнать первичные
+реквизиты можно в UI или вычитав их из Kubernetes Secret.
 
 После входа создать обычную пользовательскую учётную запись. Начальную
 административную учётную запись не использовать для повседневной работы.

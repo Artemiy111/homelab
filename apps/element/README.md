@@ -60,8 +60,7 @@ LiveKit рекламирует LAN-адрес сервера (`<node1-ip>`), а 
 
 Секреты приходят из Vault пятью путями (`k8s/vaultstaticsecret.yaml`): `db`,
 `registration`, `@fcm/fcm-server-key`, `@livekit/livekit-credentials`,
-`@turn/turn-credentials`. Исходные значения — в зашифрованном
-`apps/element/secrets.enc.env`.
+`@turn/turn-credentials`.
 
 Креды TURN и LiveKit дублируются в конфигах на узле
 (`/storage/apps/element/turn/turnserver.conf`, `livekit/config.yaml`): их читает

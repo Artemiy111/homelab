@@ -26,9 +26,8 @@ Forward auth перед приложениями без своей автори�
 
 1. В ZITADEL создать OIDC-приложение с redirect URI
    `https://oauth.example.com/oauth2/callback`.
-2. В `apps/oauth2-proxy/secrets.enc.env` хранится случайный
-   `OAUTH2_PROXY_COOKIE_SECRET`; остаётся вписать client_id и client_secret
-   из шага 1.
+2. В Vault по путям `kv/oauth2-proxy/cookie` (`OAUTH2_PROXY_COOKIE_SECRET`),
+   `kv/oauth2-proxy/oidc` (client_id и client_secret из шага 1).
 
 Разворачивается манифестами в apps/oauth2-proxy/k8s/.
 

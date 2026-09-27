@@ -95,10 +95,8 @@ production-практикам DevOps.
 ## Структура репозитория
 
 - `apps/<сервис>/` — один каталог на сервис:
-  - `k8s/` — Kubernetes-манифесты: Deployment, Service, SealedSecret, PVC и т.д.;
-  - `README.md` — как развернуть, проверить и эксплуатировать;
-  - `secrets.enc.env` — SOPS + age, расшифровываемый реестр значений секретов
-    (в доставке не участвует, см. «Секреты»).
+  - `k8s/` — Kubernetes-манифесты: Deployment, Service, VaultStaticSecret, PVC и т.д.;
+  - `README.md` — как развернуть, проверить и эксплуатировать.
 - `platform/<компонент>/` — платформенные манифесты и values (k0s, traefik,
   longhorn, local-storage, cnpg, mariadb, monitoring, headlamp).
 - `platform/homelab/` — Helm-чарт общей конфигурации и всех HTTP-маршрутов;
@@ -148,15 +146,11 @@ production-практикам DevOps.
 `apps/<сервис>/k8s/vaultstaticsecret.yaml` синхронизирует Secret из пути
 `kv/<сервис>/<секрет>`. Раскладка путей — `docs/adr/0006-vault-secret-path-layout.md`.
 
-Оставшиеся `SealedSecret` (`apps/<сервис>/k8s/sealedsecret.yaml`) ещё не
-переведены и будут сняты следующими шагами.
+Оставшиеся `SealedSecret`: `apps/zitadel/` (исключён из миграции),
+`apps/cert-manager/` (вне scope), `apps/image-updates/` (токен не используется).
 
-Файлы `apps/<сервис>/secrets.enc.env` (SOPS + age) в доставке не участвуют,
-но поддерживаются как расшифровываемый реестр значений: SealedSecret необратим,
-а `secrets.enc.env` позволяет достать исходные значения. Приватный age-ключ
-существует только на сервере, в Git лежит лишь публичный.
-
-Plaintext-файлы с секретами в репозитории не хранятся.
+Расшифровываемого реестра значений в репозитории нет — единственная копия
+секретов в Vault. Plaintext-файлы с секретами в репозитории не хранятся.
 
 ## Хранилище
 

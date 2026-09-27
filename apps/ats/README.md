@@ -91,8 +91,8 @@ PURGE реально попадает в загружаемый `remap.config`, 
 выше).
 
 Secret `ats-purge-token` синхронизируется из Vault по
-`k8s/vaultstaticsecret.yaml` (путь `kv/ats/purge-token`, значение также в
-`secrets.enc.env`); имя ключа — `ATS_PURGE_TOKEN`.
+`k8s/vaultstaticsecret.yaml` (путь `kv/ats/purge-token`); имя ключа —
+`ATS_PURGE_TOKEN`.
 
 `PURGE` защищён секретом, но по умолчанию `ip_allow.yaml` образа разрешает
 этот метод только с localhost (иначе — `403`). Свой `config/ip_allow.yaml`
@@ -164,8 +164,7 @@ RUSTUP_DIST_SERVER=http://ats.ats.svc.cluster.local/rust             # static.ru
 
 ## Размер кэша и очистка
 
-Том — `longhorn`, 5Gi, без `Retain`. Удалить объект из кэша (секрет — из
-`secrets.enc.env` на сервере, `sops -d`):
+Том — `longhorn`, 5Gi, без `Retain`. Удалить объект из кэша (токен взять из секрета сервиса):
 
 ```sh
 curl -X PURGE -H "X-ATS-Purge: $ATS_PURGE_TOKEN" \

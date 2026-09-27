@@ -75,10 +75,9 @@ curl --resolve ha.example.com:443:<node1-ip> \
 Интеграция ставится не через HACS: версия закреплена, а релиз скачивается в
 `custom_components/` персистентного каталога данных, который целиком mount'ится
 в контейнер как `/config/custom_components`. Креденшалы клиента
-(`OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`) лежат в закоммиченном зашифрованном
-`secrets.enc.env` (SOPS + age) и попадают в контейнер окружением;
-`configuration.yaml` читает их через `!env_var`. Plaintext-файл секретов
-на диске не создаётся.
+(`OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`) приходят из Vault
+(`kv/home-assistant/oidc`) и попадают в контейнер окружением;
+`configuration.yaml` читает их через `!env_var`.
 
 Права: новый пользователь ZITADEL при первом входе получает обычную (не
 админскую) учётку HA, привязанную к его subject в ZITADEL. Автоматически
@@ -101,12 +100,8 @@ curl --resolve ha.example.com:443:<node1-ip> \
    тип **Web**, auth method **CODE**, redirect URI
    `https://ha.example.com/auth/oidc/callback`; сохранить
    ClientID/ClientSecret (секрет показывается один раз).
-2. Вписать креденшалы в зашифрованный secrets.enc.env (локально или на
-   сервере; приватный age-ключ есть только на сервере):
-
-```sh
-sops home-assistant/secrets.enc.env
-```
+2. Вписать креденшалы в Vault по путям `kv/home-assistant/oidc`
+   (client_id) и `kv/home-assistant/@hacs/hacs-secret` (client_secret).
 
 3. Перезапустить сервис и проверить вход:
 

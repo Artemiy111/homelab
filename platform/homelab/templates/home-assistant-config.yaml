@@ -48,7 +48,7 @@ data:
       auth_providers: []
     
     # SSO через ZITADEL (custom component hass-oidc-auth; см. README).
-    # Креденшалы приходят из окружения (secrets.enc.env).
+    # Креденшалы приходят из окружения (Vault через VSO).
     auth_oidc:
       client_id: !env_var OIDC_CLIENT_ID
       client_secret: !env_var OIDC_CLIENT_SECRET

@@ -89,42 +89,39 @@ ssh homelab-agent 'sudo -u artlab bash -lc "cd /home/artlab/projects/homelab && 
 
 ## Секреты
 
-Доставка секретов в кластер — только SealedSecret
-(`apps/<сервис>/k8s/sealedsecret.yaml`). Контроллер sealed-secrets в
-`kube-system` расшифровывает его в обычный Secret внутри кластера. Шифрует
-`kubeseal`, которому нужен доступ к контроллеру (то есть kubeconfig на сервере).
+Секреты живут в HashiCorp Vault. В кластер их доставляет
+External Secrets Operator: `VaultStaticSecret`
+(`apps/<сервис>/k8s/vaultstaticsecret.yaml`) создаёт и обновляет обычный
+Secret, который читает приложение. Значение задаёт пользователь в Vault по
+пути из `docs/adr/0006-vault-secret-path-layout.md`.
 
-Файлы `apps/<сервис>/secrets.enc.env` (SOPS поверх age) в доставке не
-участвуют, но поддерживаются в актуальном состоянии как расшифровываемый
-реестр значений. SealedSecret необратим, поэтому именно
-age-файл позволяет достать исходные значения. Приватный age-ключ существует
-**только на сервере**: `/home/artlab/.config/sops/age/keys.txt` (`0600`). На macOS
-есть лишь публичный ключ, поэтому расшифровать существующий файл можно только на
-сервере.
+Изменение секрета:
 
-Изменение или добавление секрета:
+1. Обновить значение в Vault по нужному пути (`kv/<сервис>/<секрет>`).
+2. Если меняется набор ключей или путь — обновить `VaultStaticSecret`,
+   `deployment` и policy в `terraform/vault/policies/`, затем выполнить
+   `terraform apply` в `terraform/`.
+3. Доставить через `git pull --ff-only` по схеме из «Единственный процесс
+   доставки».
 
-1. Внести значение в реестр на сервере (там живёт age-ключ):
-   `sops apps/<сервис>/secrets.enc.env`. `sops` перешифровывает файл целиком.
-2. Запечатать значение в SealedSecret через `kubeseal` (контроллер
-   `sealed-secrets-controller` в `kube-system`); имя Secret должно совпадать с
-   тем, что читает приложение.
-3. Перенести оба зашифрованных файла (`secrets.enc.env`, `sealedsecret.yaml`) в
-   рабочую копию на macOS (шифротекст можно передавать открыто) и доставить
-   стандартной схемой commit → push → `git pull --ff-only`.
-
-Приватный age-ключ на macOS не копировать и в Git не добавлять. Plaintext-файлы
-с секретами не создавать и не хранить. Не выводить расшифрованные значения в
-логи или ответы — для диагностики показывать только имена переменных:
+VSO перечитывает значение по `refreshAfter` (1 час). Форсировать
+перечитывание, не удаляя CR: удаление сносит и destination Secret, значение
+придётся заводить заново.
 
 ```sh
-ssh homelab-agent 'sudo -u artlab bash -lc "cd /home/artlab/projects/homelab && sops -d apps/nextcloud/secrets.enc.env | cut -d= -f1 | sort | grep -v ^sops"'
+kubectl -n <ns> annotate vaultstaticsecret <имя> \
+  vso.secrets.hashicorp.com/force-sync="$(date +%s)" --overwrite
 ```
 
-Потеря приватного age-ключа означает потерю расшифровываемого реестра
-(`secrets.enc.env`); на работу кластера это не влияет — SealedSecret
-расшифровывает контроллер своим ключом. Резервную копию age-ключа пользователь
-хранит вне репозитория. Установку `sops` и `kubeseal` делает `ansible/host.yml`.
+Расшифровываемого реестра значений в репозитории нет, единственная копия —
+Vault. Резервную копию Vault пользователь делает сам (снапшот raft).
+Не выводить значения в логи или ответы: для диагностики показывать имена
+ключей и метаданные.
+
+```sh
+kubectl -n <ns> get vaultstaticsecret -o json | \
+  jq -r '.items[]|select(.status.conditions[0].status!="True")|.metadata.name'
+```
 
 Изменять или перевыпускать секреты только когда это необходимо для задачи и
 после определения затронутых сервисов.

@@ -27,7 +27,7 @@ entrypoint `websecure`. DNS подхватывается wildcard-записью
 Убирать эти роутеры нельзя: без них вход в консоль ломается
 (`SignatureDoesNotMatch`, см. rustfs#887, rustfs#3062).
 
-Root-креденшелы хранилища — `rustfs/secrets.enc.env`:
+Root-креденшелы хранилища — в Vault (`kv/rustfs/secret`):
 `RUSTFS_ACCESS_KEY`, `RUSTFS_SECRET_KEY`. Логин в веб-консоль выполняется этими
 же значениями.
 
@@ -36,7 +36,7 @@ Root-креденшелы хранилища — `rustfs/secrets.enc.env`:
 - Образ запускается под uid/gid `1000:1000` (вместо родного uid 10001),
   чтобы писать в том без chown под root.
 - Данные хранятся в томе сервиса.
-- Секреты: `secrets.enc.env` (SOPS поверх age).
+- Секреты: `kv/rustfs/secret` (Vault).
 
 ## Использование
 
@@ -55,8 +55,8 @@ aws --endpoint-url https://s3.${DOMAIN} \
 
 Разворачивается через kustomize: `kubectl apply -k apps/rustfs`.
 
-Смена root-креденшелов: отредактировать `secrets.enc.env` на сервере
-(`sops rustfs/secrets.enc.env` от имени artlab) и пересоздать под.
+Смена root-креденшелов: обновить значение в Vault по пути `kv/rustfs/secret`,
+дождаться синка VSO и пересоздать под.
 Учтите: креды применяются только при инициализации пустого `/data`; для смены
 на существующих данных создать нового пользователя через консоль/API, а не
 переопределять env.

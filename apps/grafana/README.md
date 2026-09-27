@@ -23,10 +23,8 @@ VictoriaMetrics как datasource.
   `k8s/vaultstaticsecret.yaml`. Регистрация новых пользователей
   отключена; доступ к UI контролирует `oauth2-proxy`, локальный вход нужен для
   правок datasource и диагностики.
-- Пароли `GRAFANA_ADMIN_PASSWORD` и `GRAFANA_DB_PASSWORD` продублированы в
-  расшифровываемом реестре `apps/grafana/secrets.enc.env` (SOPS поверх age;
-  приватный ключ — только на сервере). Исходные значения достаются из этого
-  файла, в Vault они заведены заново.
+- Пароли `GRAFANA_ADMIN_PASSWORD` и `GRAFANA_DB_PASSWORD` лежат в Vault
+  (`kv/grafana/admin` и `kv/grafana/@grafana/db`, второй — выданный CNPG).
 - `NTFY_TOPIC` для метрических алертов — в отдельном Secret'е `grafana-ntfy`
   (путь `kv/ntfy/topic`). Отдельный путь, потому что темой делится ещё и gatus:
   один путь `kv/ntfy/topic` читают два `VaultStaticSecret` — `grafana-ntfy` и
