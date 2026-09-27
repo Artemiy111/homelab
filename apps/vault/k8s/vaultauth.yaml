@@ -1,33 +1,9 @@
-# Подключение Vault Secrets Operator к Vault, который поднят чартом
-# hashicorp/vault-helm (argocd/applications/vault.yaml).
-#
-# Файл применяется kubectl, как остальные манифесты в apps/*/k8s/ — оператором
-# ArgoCD не управляется, потому что это не часть чарта.
-#
-# Цепочка: VaultStaticSecret ссылается на VaultAuth, тот на VaultConnection.
-# ServiceAccount указывается в неймспейсе самого секрета (vault), а не
-# неймспейса оператора.
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: vso-poc-reader
   namespace: vault
 ---
-# ClusterRoleBinding на system:auth-delegator здесь НЕ нужен, хотя это
-# стандартный рецепт из документации VSO. Проверено на стенде: с удалённым
-# биндингом и после перезапуска контроллера (сбросил кэш токенов в памяти)
-# VaultStaticSecret отчитался `Secret synced`.
-#
-# Причина: auth-delegator нужен тому, кто ВЫЗЫВАЕТ TokenReview, а вызывает его
-# Vault-сервер, и у него это право есть отдельно — `server.authDelegator` в
-# argocd/applications/vault.yaml. ServiceAccount, чей токен предъявляют, в
-# этом праве не участвует.
----
-# Адрес Vault. Порт 8200 — как в чарте (server.service.port); ручной Service
-# отдавал наружу 80, и это значение больше нигде не используется.
-#
-# caBundle не задаём: listener Vault работает на tls_disable, TLS терминирует
-# Traefik, внутри кластера CA Vault не нужно.
 apiVersion: secrets.hashicorp.com/v1beta1
 kind: VaultConnection
 metadata:
@@ -36,8 +12,6 @@ metadata:
 spec:
   address: http://vault.vault.svc.cluster.local:8200
 ---
-# Роль и политика — в terraform/vault (roles.tf, policies.tf).
-# https://developer.hashicorp.com/vault/docs/auth/kubernetes
 apiVersion: secrets.hashicorp.com/v1beta1
 kind: VaultAuth
 metadata:
@@ -50,5 +24,3 @@ spec:
   kubernetes:
     role: poc-reader
     serviceAccount: vso-poc-reader
-    audiences:
-      - vault

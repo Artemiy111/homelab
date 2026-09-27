@@ -18,9 +18,6 @@ resource "vault_kubernetes_auth_backend_role" "uptime_kuma" {
   token_ttl                        = 3600
 }
 
-# Роль по потребителю: vmagent получает ключи, которые выпустили другие
-# сервисы. Имя роли в Vault переживает смену оператора, поэтому без префикса
-# vso- (см. apps/vault/k8s/vaultauth.yaml — префикс остаётся на k8s-объектах).
 resource "vault_kubernetes_auth_backend_role" "vmagent" {
   backend                          = "kubernetes"
   role_name                        = "vmagent"

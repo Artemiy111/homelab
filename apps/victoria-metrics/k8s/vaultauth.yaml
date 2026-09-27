@@ -1,31 +1,10 @@
 # Доступ VSO к креденшелам мониторинга, которые выпустили другие сервисы.
-#
-# Всё живёт в namespace monitoring, а не в vault: destination Secret создаётся
-# в своём неймспейсе, и serviceAccount в VaultAuth обязан лежать в неймспейсе
-# потребляющего секрета.
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: vso-vmagent
   namespace: monitoring
 ---
-# ClusterRoleBinding на system:auth-delegator здесь НЕ нужен, хотя это
-# стандартный рецепт из документации VSO. Проверено на стенде: с удалённым
-# биндингом и после перезапуска контроллера (сбросил кэш токенов в памяти)
-# VaultStaticSecret отчитался `Secret synced`, то есть VSO успешно залогинился
-# и прочитал значение.
-#
-# Причина: auth-delegator нужен тому, кто ВЫЗЫВАЕТ TokenReview, а вызывает его
-# Vault-сервер, и у него это право есть отдельно — `server.authDelegator` в
-# argocd/applications/vault.yaml вешает его на ServiceAccount самого Vault.
-# ServiceAccount, чей токен предъявляют, в этом праве не участвует.
-#
-# Право проверяется так: удалить биндинг, перезапустить контроллер, удалить
-# destination Secret и убедиться, что статус `Secret synced`, а не
-# `no sync required` — второе означает, что Vault не открывали вовсе.
-#
-# Роль по потребителю: vmagent получает ключи, которые выпустили другие
-# сервисы. Политика перечисляет пути по одному на каждый, без wildcard.
 apiVersion: secrets.hashicorp.com/v1beta1
 kind: VaultAuth
 metadata:
@@ -38,5 +17,3 @@ spec:
   kubernetes:
     role: vmagent
     serviceAccount: vso-vmagent
-    audiences:
-      - vault

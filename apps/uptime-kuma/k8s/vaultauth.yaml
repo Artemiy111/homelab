@@ -1,47 +1,18 @@
-# Доступ Vault Secrets Operator к секретам uptime-kuma.
-#
-# Всё живёт в namespace uptime-kuma, а не в vault: destination Secret
-# создаётся в своём неймспейсе, и serviceAccount в VaultAuth обязан лежать
-# в неймспейсе потребляющего секрета.
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: vso-uptime-kuma
   namespace: uptime-kuma
 ---
-# ClusterRoleBinding на system:auth-delegator здесь НЕ нужен, хотя это
-# стандартный рецепт из документации VSO. Проверено на стенде: с удалённым
-# биндингом и после перезапуска контроллера (сбросил кэш токенов в памяти)
-# VaultStaticSecret отчитался `Secret synced`, то есть VSO успешно залогинился
-# и прочитал значение.
-#
-# Причина: auth-delegator нужен тому, кто ВЫЗЫВАЕТ TokenReview, а вызывает его
-# Vault-сервер, и у него это право есть отдельно — `server.authDelegator` в
-# argocd/applications/vault.yaml вешает его на ServiceAccount самого Vault.
-# ServiceAccount, чей токен предъявляют, в этом праве не участвует.
-#
-# Роль по потребителю: uptime-kuma. Роль в Vault переживает смену оператора,
-# поэтому без префикса vso-, в отличие от k8s-объектов ниже.
 apiVersion: secrets.hashicorp.com/v1beta1
 kind: VaultAuth
 metadata:
   name: vso-uptime-kuma
   namespace: uptime-kuma
 spec:
-  # vaultConnectionRef не указан: подключение берётся из VaultConnection/default,
-  # который создаёт чарт оператора (argocd/applications/vault-secrets-operator.yaml,
-  # defaultVaultConnection). Раньше здесь стояло `vault/vault` — ссылка с
-  # префиксом пространства, без неё VSO ищет VaultConnection в своём неймспейсе
-  # и возвращает `VaultConnection "vault" not found`.
-  #
-  # Общие headers/params и разрешённые неймспейсы — из VaultAuthGlobal.
-  # Роль остаётся здесь своей, потому что vaultAuthGlobalRef отвечает только за
-  # headers и params, а доступ определяется ролью в Vault.
   vaultAuthGlobalRef:
     name: vso-global
     namespace: vault-secrets-operator
   kubernetes:
     role: uptime-kuma
     serviceAccount: vso-uptime-kuma
-    audiences:
-      - vault

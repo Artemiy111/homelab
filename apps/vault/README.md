@@ -1,13 +1,5 @@
 # HashiCorp Vault — сервер и синхронизация секретов
 
-Хранилище секретов, динамические учётные данные, transit-шифрование, PKI.
-Лицензия — BSL 1.1 (Vault и VSO), у charta-источника она указана в `LICENSE`
-репозитория.
-
-Разворачивается **чартом** `hashicorp/vault-helm`, Argo рендерит его сам
-(`argocd/applications/vault.yaml`). Ручных манифестов сервера в репозитории
-больше нет.
-
 ## Состав
 
 | Что | Где | Чем управляется |
@@ -18,19 +10,8 @@
 | NetworkPolicy неймспейса Vault | `apps/vault/k8s/networkpolicy.yaml` | `kubectl apply` |
 | NetworkPolicy неймспейса VSO | `apps/vault/k8s/networkpolicy-vso.yaml` | `kubectl apply` |
 | Маршрут и UI | `platform/homelab/templates/routes/vault.yaml` | чарт `platform/homelab` |
-| Скрейп метрик | `apps/victoria-metrics/config/vmagent/scrape.yml` | `kubectl apply` |
-
-Почему чарты берутся из git-репозиториев HashiCorp, а не из
-`helm.releases.hashicorp.com`: CDN отдаёт `403` (CloudFront WAF) из этой сети.
-ArgoCD умеет рендерить чарт прямо из git, поэтому `repoURL` указывает на
-репозиторий, а чарт лежит в его корне (`/`) или в `chart/`.
 
 ## Применение
-
-Порядок важен: сначала ArgoCD создаёт оба неймспейса, потом применяются CR.
-Неймспейс `vault-secrets-operator` появляется только после синка
-`vault-secrets-operator` в Argo, а `kubectl apply` на каталог падает целиком,
-если хотя бы один неймспейс ещё не существует.
 
 ```sh
 # 1. Дождаться, пока ArgoCD создаст namespace vault-secrets-operator
@@ -82,16 +63,7 @@ vault secrets enable -path=kv kv-v2
 vault kv put kv/poc/probe answer=42
 ```
 
-Политики, роли и конфигурация метода `kubernetes` управляются terraform
-(`terraform/vault/`), вручную их не создавать: повторное создание даст дрейф,
-который покажет `plan`, а `apply` отменит. `audience` обязателен на Vault 1.21+,
-`role_name` роли совпадает с `spec.kubernetes.role` в `VaultAuth`.
-
-| Файл | Что описывает |
-| --- | --- |
-| `policies.tf` | политики `terraform`, `app/uptime-kuma`, `poc-reader` |
-| `roles.tf` | роли `uptime-kuma` и `poc-reader` в методе `kubernetes` |
-| `k8s.tf` | сам метод `kubernetes`: как Vault проверяет сервис-аккаунт |
+Политики, роли и конфигурация метода `kubernetes` управляются terraform.
 
 Пока значение в Vault не заведено, `VaultStaticSecret` не в статусе `synced` —
 это ожидаемо, а не ошибка.
