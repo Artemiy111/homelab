@@ -158,12 +158,15 @@ kustomize-набор в `apps/victoria-metrics/`: манифесты в `k8s/`, 
 - `victoriametrics.deployment.yaml`, `victoriametrics.service.yaml` — TSDB;
 - `vmagent.deployment.yaml`, `vmagent.service.yaml` — сборщик; монтирует
   собранный из `config/vmagent/scrape.yml` ConfigMap и получает креды целей из
-  Secrets;
+  Secrets `vmagent-<владелец>`;
 - `vmagent-rbac.yaml` — доступ к kubelet/cAdvisor и service discovery;
 - `vmdata.pvc.yaml` — том TSDB;
-- `sealedsecret.yaml` — Secret `vmagent` (`UPTIME_KUMA_METRICS_API_KEY`); прочие
-  креды берутся из Secrets соответствующих сервисов (`navidrome`, `dawarich`,
-  `forgejo`, `technitium`, `mailserver`).
+- `vaultauth.yaml`, `vaultstaticsecret.yaml` — восемь `VaultStaticSecret` в
+  неймспейсе `monitoring`, по одному на путь `kv/<владелец>/@monitoring/<кред>`.
+  Владельцы: `uptime-kuma`, `dawarich`, `forgejo`, `technitium`, `mailserver`,
+  `local-ai`, `home-assistant`, `navidrome`. Креды не хранятся в Secret `vmagent`
+  скопом — каждый в своём, и под каждый отдельная строка в политике
+  `app/vmagent`.
 
 Применение (от `artlab` на сервере, после `git pull --ff-only`):
 

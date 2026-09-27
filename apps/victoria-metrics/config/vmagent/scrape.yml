@@ -219,7 +219,7 @@ scrape_configs:
 
   # Секретный путь метрик Navidrome (ND_PROMETHEUS_ENABLED).
   - job_name: navidrome
-    metrics_path: /metrics_%{NAVIDROME_METRICS_PATH}
+    metrics_path: /metrics_%{NAVIDROME_SECRET_METRICS_PATH}
     static_configs:
       - targets:
           - navidrome.navidrome.svc.cluster.local
