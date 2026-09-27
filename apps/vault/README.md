@@ -6,7 +6,9 @@
 |---|---|---|
 | Vault-сервер | `argocd/applications/vault.yaml` | Argo (чарт `v0.34.1`, Vault 2.0.4) |
 | Vault Secrets Operator | `argocd/applications/vault-secrets-operator.yaml` | Argo (чарт `v1.6.0`) |
+| `VaultAuthGlobal` | `apps/vault/k8s/vaultauthglobal.yaml` | `kubectl apply` |
 | `VaultConnection`, `VaultAuth`, PoC | `apps/vault/k8s/` | `kubectl apply` |
+| `VaultAuth` и `VaultStaticSecret` приложения | `apps/<сервис>/k8s/` | `kubectl apply` вместе с приложением |
 | NetworkPolicy неймспейса Vault | `apps/vault/k8s/networkpolicy.yaml` | `kubectl apply` |
 | NetworkPolicy неймспейса VSO | `apps/vault/k8s/networkpolicy-vso.yaml` | `kubectl apply` |
 | Маршрут и UI | `platform/homelab/templates/routes/vault.yaml` | чарт `platform/homelab` |
@@ -18,6 +20,7 @@
 kubectl get namespace vault-secrets-operator
 
 # 2. CR оператора
+kubectl apply -f apps/vault/k8s/vaultauthglobal.yaml
 kubectl apply -f apps/vault/k8s/vaultauth.yaml
 kubectl apply -f apps/vault/k8s/poc-vaultstaticsecret.yaml
 kubectl apply -f apps/vault/k8s/networkpolicy.yaml
@@ -89,6 +92,6 @@ vault login
   молча: PV уходит в `Released`, и том остаётся в `volumes.longhorn.io`.
 - `/v1/sys/metrics` отдаётся без токена (блок `telemetry` в `listener`).
   В дефолте чарта он закомментирован, и без него vmagent получает 401.
-- В кластере сосуществуют четыре системы секретов: Sealed Secrets (канонический
-  путь доставки, 40 файлов), SOPS+age (реестр исходных значений), этот Vault и
-  Infisical (тестовый). VSO секретов пока не обслуживает.
+- В кластере сосуществуют четыре системы секретов: Vault через VSO
+  (канонический путь доставки), Sealed Secrets (переводится, #345), SOPS+age
+  (реестр исходных значений) и Infisical (тестовый).

@@ -44,12 +44,12 @@ spec:
             - name: RUSTFS_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
-                  name: rustfs
+                  name: rustfs-credentials
                   key: RUSTFS_ACCESS_KEY
             - name: RUSTFS_SECRET_KEY
               valueFrom:
                 secretKeyRef:
-                  name: rustfs
+                  name: rustfs-credentials
                   key: RUSTFS_SECRET_KEY
             - name: RUSTFS_VOLUMES
               value: /data

@@ -27,7 +27,7 @@ spec:
             - name: JELLYFIN_TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: jellyfin
+                  name: jellyfin-api-key
                   key: JELLYFIN_API_KEY
           startupProbe:
             httpGet:

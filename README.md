@@ -144,9 +144,12 @@ production-практикам DevOps.
 
 ## Секреты
 
-Доставка секретов в кластер — только SealedSecret
-(`apps/<сервис>/k8s/sealedsecret.yaml`). Контроллер sealed-secrets в
-`kube-system` расшифровывает их в обычные Secret внутри кластера.
+Доставка секретов в кластер — через HashiCorp Vault и оператор VSO:
+`apps/<сервис>/k8s/vaultstaticsecret.yaml` синхронизирует Secret из пути
+`kv/<сервис>/<секрет>`. Раскладка путей — `docs/adr/0006-vault-secret-path-layout.md`.
+
+Оставшиеся `SealedSecret` (`apps/<сервис>/k8s/sealedsecret.yaml`) ещё не
+переведены и будут сняты следующими шагами.
 
 Файлы `apps/<сервис>/secrets.enc.env` (SOPS + age) в доставке не участвуют,
 но поддерживаются как расшифровываемый реестр значений: SealedSecret необратим,

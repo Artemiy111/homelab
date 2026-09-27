@@ -60,12 +60,12 @@ spec:
             - name: JICOFO_AUTH_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: jitsi
+                  name: jitsi-auth
                   key: JICOFO_AUTH_PASSWORD
             - name: JICOFO_COMPONENT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: jitsi
+                  name: jitsi-auth
                   key: JICOFO_COMPONENT_SECRET
             - name: AUTH_TYPE
               value: internal

@@ -5,13 +5,39 @@ metadata:
   namespace: vault-secrets-operator
 spec:
   allowedNamespaces:
-    - vault
-    - uptime-kuma
+    - 3x-ui
+    - ats
+    - authentik
+    - beszel
+    - dawarich
+    - element
+    - forgejo
+    - glitchtip
+    - home-assistant
+    - immich
+    - infisical
+    - jellyfin
+    - jitsi
+    - local-ai
+    - mailserver
     - monitoring
+    - navidrome
+    - nextcloud
+    - oauth2-proxy
+    - open-webui
+    - paperless
+    - pdf
+    - postgres
+    - rustfs
+    - seafile
+    - sure
+    - talk-hpb
+    - technitium
+    - uptime-kuma
+    - vault
   defaultAuthMethod: kubernetes
   defaultVaultNamespace: ""
   kubernetes:
     mount: kubernetes
     audiences:
       - vault
-

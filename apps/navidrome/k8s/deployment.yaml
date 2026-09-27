@@ -34,7 +34,7 @@ spec:
             - name: NAVIDROME_METRICS_PATH
               valueFrom:
                 secretKeyRef:
-                  name: navidrome
+                  name: navidrome-metrics-path
                   key: NAVIDROME_METRICS_PATH
             - name: ND_DATAFOLDER
               value: /data

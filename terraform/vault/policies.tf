@@ -32,29 +32,6 @@ resource "vault_policy" "terraform" {
   EOT
 }
 
-resource "vault_policy" "uptime_kuma" {
-  name = "app/uptime-kuma"
-
-  policy = <<-EOT
-    path "kv/data/uptime-kuma/sync"     { capabilities = ["read"] }
-    path "kv/metadata/uptime-kuma/sync" { capabilities = ["read", "list"] }
-  EOT
-}
-
-resource "vault_policy" "vmagent" {
-  name = "app/vmagent"
-
-  policy = <<-EOT
-    path "kv/data/uptime-kuma/x/monitoring/uptime-kuma-metrics-api-key" {
-      capabilities = ["read"]
-    }
-
-    path "kv/metadata/uptime-kuma/x/monitoring/uptime-kuma-metrics-api-key" {
-      capabilities = ["read", "list"]
-    }
-  EOT
-}
-
 resource "vault_policy" "poc_reader" {
   name = "poc-reader"
 

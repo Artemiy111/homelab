@@ -41,12 +41,12 @@ spec:
             - name: BESZEL_AGENT_KEY
               valueFrom:
                 secretKeyRef:
-                  name: beszel
+                  name: beszel-agent
                   key: BESZEL_AGENT_KEY
             - name: BESZEL_AGENT_TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: beszel
+                  name: beszel-agent
                   key: BESZEL_AGENT_TOKEN
             - name: LISTEN
               value: /beszel_socket/beszel.sock

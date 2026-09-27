@@ -13,7 +13,7 @@ status: accepted
 
 ```
 kv/<сервис>/<секрет>                      # читает сам владелец
-kv/<сервис>/x/<потребитель>/<секрет>      # кред, выданный внешнему потребителю
+kv/<сервис>/@<потребитель>/<секрет>      # кред, выданный внешнему потребителю
 ```
 
 Префикса окружения нет. Кластер один — значит и окружение одно, а изоляцию
@@ -21,7 +21,7 @@ kv/<сервис>/x/<потребитель>/<секрет>      # кред, в�
 именем в пути. При появлении второго кластера это будет второй Vault с теми же
 путями, и те же политики заработают без правок.
 
-Сегмент `x/` — не про ширину политики, а про **структурную границу**. Без него
+Сегмент `@` — не про ширину политики, а про **структурную границу**. Без него
 естественно написать для `monitoring` `path "kv/data/uptime-kuma/*"`, и тогда
 вместе с метриками уйдёт пароль входа. Сегмент делает такой wildcard
 очевидно неправильным. Он же сохраняет факт «кто выдал», который
@@ -43,8 +43,8 @@ kv/<сервис>/x/<потребитель>/<секрет>      # кред, в�
    принципала нет — CNPG действует от имени приложения, и при компрометации
    приложения роль всё равно пришлось бы ротировать.
 
-3. **Потребитель — другой принципал, и кред выдан ему отдельно.** Сегмент `x/`:
-   `kv/<сервис>/x/<потребитель>/<секрет>`. Случай метрик: vmagent получает от
+3. **Потребитель — другой принципал, и кред выдан ему отдельно.** Сегмент `@`:
+   `kv/<сервис>/@<потребитель>/<секрет>`. Случай метрик: vmagent получает от
    uptime-kuma собственный ключ, который можно отозвать, не трогая доступ к
    самому uptime-kuma. Отдельный кред здесь обязателен — именно из-за
    независимой отзываемости.
@@ -52,9 +52,9 @@ kv/<сервис>/x/<потребитель>/<секрет>      # кред, в�
 ## Инвариант
 
 **Один путь — одно значение. Дублировать ключ по потребителям нельзя.**
-Сегмент `x/<потребитель>/` появляется только когда у потребителя **свой**
+Сегмент `@<потребитель>/` появляется только когда у потребителя **свой**
 кред. Если два потребителя читают одно и то же значение, это не два
-потребителя, а один: доступ выдаётся точным `path` без wildcard, а сегмент `x/`
+потребителя, а один: доступ выдаётся точным `path` без wildcard, а сегмент `@`
 не появляется. Нарушение инварианта даёт две точки истины: ротация обновит
 одну, вторая останется старой, а точечно отозвать доступ станет невозможно.
 
@@ -89,7 +89,7 @@ SMTP, свой OIDC-клиент и четыре ключа сторонних �
 `seafile` и `element` — ключи вроде `LIVEKIT_API_KEY`/`LIVEKIT_API_SECRET`
 или `ONLYOFFICE_JWT_SECRET` эти приложения не «используют», а **выдали**
 другому сервису. Это случай правила 3 — отдельный кред отдельному принципалу,
-поэтому они живут под `x/`. Их собственный `JWT_PRIVATE_KEY` остаётся без
+поэтому они живут под `@`. Их собственный `JWT_PRIVATE_KEY` остаётся без
 сегмента, потому что читает владелец.
 
 ```
@@ -97,10 +97,10 @@ kv/sure/db                                  username, password
 kv/sure/session                             SECRET_KEY_BASE
 kv/sure/smtp                                SMTP_PASSWORD
 kv/sure/oidc                                OIDC_CLIENT_SECRET
-kv/sure/x/langfuse/langfuse-secret-key      LANGFUSE_SECRET_KEY
-kv/sure/x/openai/openai-access-token        OPENAI_ACCESS_TOKEN
-kv/sure/x/posthog/posthog-key               POSTHOG_KEY
-kv/sure/x/twelvedata/twelvedata-api-key     TWELVE_DATA_API_KEY
+kv/sure/@langfuse/langfuse-secret-key      LANGFUSE_SECRET_KEY
+kv/sure/@openai/openai-access-token        OPENAI_ACCESS_TOKEN
+kv/sure/@posthog/posthog-key               POSTHOG_KEY
+kv/sure/@twelvedata/twelvedata-api-key     TWELVE_DATA_API_KEY
 
 kv/home-assistant/oidc                      HOME_ASSISTANT_TOKEN,
                                             OIDC_CLIENT_ID,
@@ -109,13 +109,13 @@ kv/home-assistant/oidc                      HOME_ASSISTANT_TOKEN,
 kv/element/db                               POSTGRES_PASSWORD
 kv/element/jwt                              JWT_PRIVATE_KEY
 kv/element/registration                      SYNAPSE_REGISTRATION_SHARED_SECRET
-kv/element/x/livekit/livekit-credentials     LIVEKIT_API_KEY, LIVEKIT_API_SECRET
-kv/element/x/turn/turn-credentials           TURN_PASSWORD, TURN_SECRET
+kv/element/@livekit/livekit-credentials     LIVEKIT_API_KEY, LIVEKIT_API_SECRET
+kv/element/@turn/turn-credentials           TURN_PASSWORD, TURN_SECRET
 ```
 
 Ключи, сгенерированные **внешней** системой (`POSTHOG_KEY`, `OPENAI_ACCESS_TOKEN`),
-тоже уходят под `x/<владелец ключа>/`: с точки зрения нашего Vault значение
-выдано наружу, а не лежит у нас. `x/posthog/` читается как «sure отдал этот
+тоже уходят под `@<владелец ключа>/`: с точки зрения нашего Vault значение
+выдано наружу, а не лежит у нас. `@posthog/` читается как «sure отдал этот
 доступ клиенту PostHog», что верно.
 
 Следствие: число путей на приложение влияет на его политику — у `sure` семь
@@ -197,7 +197,7 @@ Wildcard `kv/data/*/*` недопустим. `metadata` нужен рядом с
 
 ## Consequences
 
-- Появляется магический сегмент `x/`, значение которого не читается из пути.
+- Появляется магический сегмент `@`, значение которого не читается из пути.
   Компенсируется тем, что правило зафиксировано здесь.
 - `vault token capabilities` и `vault read auth/kubernetes/role/<имя>` становятся
   основным инструментом проверки, а не UI: UI не показывает, что именно не

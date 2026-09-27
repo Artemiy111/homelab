@@ -34,7 +34,7 @@ spec:
             - name: LOCALAI_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: local-ai
+                  name: local-ai-api-key
                   key: LOCALAI_API_KEY
             - name: HOME
               value: /tmp/localai

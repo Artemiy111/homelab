@@ -67,17 +67,17 @@ spec:
             - name: INTERNAL_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: talk-hpb
+                  name: talk-hpb-secrets
                   key: INTERNAL_SECRET
             - name: SIGNALING_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: talk-hpb
+                  name: talk-hpb-secrets
                   key: SIGNALING_SECRET
             - name: TURN_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: talk-hpb
+                  name: talk-hpb-secrets
                   key: TURN_SECRET
             - name: AIO_LOG_LEVEL
               value: warn

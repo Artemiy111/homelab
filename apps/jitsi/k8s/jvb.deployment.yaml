@@ -78,7 +78,7 @@ spec:
             - name: JVB_AUTH_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: jitsi
+                  name: jitsi-auth
                   key: JVB_AUTH_PASSWORD
             - name: COLIBRI_REST_ENABLED
               value: "true"

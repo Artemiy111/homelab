@@ -34,7 +34,7 @@ spec:
             - name: ATS_PURGE_TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: ats
+                  name: ats-purge-token
                   key: ATS_PURGE_TOKEN
           ports:
             - name: http

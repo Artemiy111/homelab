@@ -76,13 +76,13 @@ spec:
             - name: PAPERLESS_SECRET_KEY
               valueFrom:
                 secretKeyRef:
-                  name: paperless
+                  name: paperless-secrets
                   key: PAPERLESS_SECRET_KEY
             - name: PAPERLESS_DBPASS
               valueFrom:
                 secretKeyRef:
-                  name: paperless
-                  key: POSTGRES_PASSWORD
+                  name: paperless-db
+                  key: password
             - name: PAPERLESS_URL
               value: "https://paperless.$(DOMAIN)"
             - name: PAPERLESS_CSRF_TRUSTED_ORIGINS

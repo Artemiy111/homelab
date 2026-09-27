@@ -27,13 +27,13 @@ spec:
             - name: WEBUI_SECRET_KEY
               valueFrom:
                 secretKeyRef:
-                  name: open-webui
+                  name: open-webui-secrets
                   key: WEBUI_SECRET_KEY
             - name: OPENWEBUI_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: open-webui
-                  key: OPENWEBUI_DB_PASSWORD
+                  name: open-webui-db
+                  key: password
             - name: HOME
               value: /tmp/open-webui
             # Временные данные приложения (uploads, кэши, аудит) — в memory-backed

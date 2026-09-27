@@ -48,12 +48,12 @@ spec:
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: postgres
-                  key: POSTGRES_PASSWORD
+                  name: postgres-playground
+                  key: password
             - name: PGWEB_AUTH_PASS
               valueFrom:
                 secretKeyRef:
-                  name: postgres
+                  name: postgres-pgweb
                   key: PGWEB_AUTH_PASS
             - name: PGWEB_DATABASE_URL
               value: "postgres://playground:$(POSTGRES_PASSWORD)@shared-rw.databases.svc.cluster.local:5432/playground?sslmode=disable"

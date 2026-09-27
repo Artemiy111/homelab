@@ -90,7 +90,8 @@ PURGE реально попадает в загружаемый `remap.config`, 
 подставляет `$(ATS_PURGE_TOKEN)` из Secret в `remap.config` (см. «Конфигурация»
 выше).
 
-Secret `ats` приходит из `k8s/sealedsecret.yaml` (значение также в
+Secret `ats-purge-token` синхронизируется из Vault по
+`k8s/vaultstaticsecret.yaml` (путь `kv/ats/purge-token`, значение также в
 `secrets.enc.env`); имя ключа — `ATS_PURGE_TOKEN`.
 
 `PURGE` защищён секретом, но по умолчанию `ip_allow.yaml` образа разрешает

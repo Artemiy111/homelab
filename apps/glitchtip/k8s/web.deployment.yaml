@@ -33,19 +33,19 @@ spec:
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: glitchtip
-                  key: POSTGRES_PASSWORD
+                  name: glitchtip-db
+                  key: password
             - name: DATABASE_URL
               value: "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@shared-rw.databases.svc.cluster.local:5432/$(POSTGRES_DB)"
             - name: GLITCHTIP_CLIENT_ID
               valueFrom:
                 secretKeyRef:
-                  name: glitchtip
+                  name: glitchtip-secrets
                   key: GLITCHTIP_CLIENT_ID
             - name: GLITCHTIP_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: glitchtip
+                  name: glitchtip-secrets
                   key: GLITCHTIP_CLIENT_SECRET
           command: ["/bin/sh", "-c"]
           args:
@@ -90,12 +90,12 @@ spec:
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: glitchtip
-                  key: POSTGRES_PASSWORD
+                  name: glitchtip-db
+                  key: password
             - name: SECRET_KEY
               valueFrom:
                 secretKeyRef:
-                  name: glitchtip
+                  name: glitchtip-secrets
                   key: SECRET_KEY
             - name: DATABASE_URL
               value: "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@shared-rw.databases.svc.cluster.local:5432/$(POSTGRES_DB)"

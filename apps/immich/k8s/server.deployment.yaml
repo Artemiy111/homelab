@@ -75,8 +75,8 @@ spec:
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: immich
-                  key: DB_PASSWORD
+                  name: immich-db
+                  key: password
             - name: DB_HOSTNAME
               value: immich-db-rw.immich.svc.cluster.local
             - name: REDIS_HOSTNAME

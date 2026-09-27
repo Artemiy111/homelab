@@ -3,7 +3,8 @@ kind: Kustomization
 namespace: rustfs
 resources:
   - k8s/namespace.yaml
-  - k8s/sealedsecret.yaml
+  - k8s/vaultauth.yaml
+  - k8s/vaultstaticsecret.yaml
   - k8s/service.yaml
   - k8s/deployment.yaml
   - k8s/data.pvc.yaml

@@ -42,12 +42,12 @@ spec:
             - name: SECURITY_INITIALLOGIN_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: stirlingpdf
+                  name: pdf-admin
                   key: PDF_ADMIN_USERNAME
             - name: SECURITY_INITIALLOGIN_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: stirlingpdf
+                  name: pdf-admin
                   key: PDF_ADMIN_PASSWORD
             - name: DOMAIN
               valueFrom:
