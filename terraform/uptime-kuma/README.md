@@ -10,16 +10,6 @@
 macOS нужен маршрут в домашнюю сеть (Tailscale). Учётная запись администратора
 Kuma не должна быть с 2FA: провайдер её не поддерживает.
 
-Значения настроек и реквизиты берутся из окружения, в state они не попадают.
-Реквизиты администратора Kuma лежат в Vault по пути `kv/uptime-kuma/sync`
-(ключи `UPTIME_KUMA_USERNAME` и `UPTIME_KUMA_PASSWORD`); после `vault login`
-их нужно экспортировать в `UPTIME_KUMA_USERNAME` и `UPTIME_KUMA_PASSWORD`.
-
-`UPTIME_KUMA_ENDPOINT` задавать не нужно: endpoint собран из `var.domain`.
-
-Параметры кластера живут в неотслеживаемом `terraform.tfvars` (в git его нет,
-формат — в разделе «Значения»):
-
 ```sh macOS
 cd terraform/uptime-kuma
 terraform init
@@ -27,28 +17,55 @@ terraform plan
 terraform apply
 ```
 
+`terraform.tfvars` читается при каждом plan и apply, поэтому параметры вводятся
+один раз и интерактивных вопросов Terraform не задаёт. Вводить заново в каждом
+новом терминале нужно только реквизиты: это переменные окружения, и
+`~/.vault-token` живёт 24 часа, так что `vault login` всё равно приходится
+делать заново. Реквизиты лежат в Vault по пути `kv/uptime-kuma/sync` (ключи
+`UPTIME_KUMA_USERNAME` и `UPTIME_KUMA_PASSWORD`). Без попадания в историю
+оболочки:
+
+```sh macOS
+export UPTIME_KUMA_USERNAME=…
+read -rsp "Kuma password: " UPTIME_KUMA_PASSWORD UPTIME_KUMA_PASSWORD && echo
+export UPTIME_KUMA_PASSWORD
+```
+
+В state они не попадают: аргументы блока `provider` Terraform не сохраняет.
+`UPTIME_KUMA_ENDPOINT` задавать не нужно, endpoint собран из `var.domain`.
+
 ## Значения
 
 ```hcl
-domain     = "example.com"     # тот же домен, что в platform/homelab
-host_ip    = "192.0.2.10"      # адрес сервера
-kube_dns_ip = "10.96.0.10"     # ClusterIP сервиса kube-dns
-timezone   = "Asia/Yekaterinburg"
+domain   = "example.com"     # тот же домен, что в platform/homelab
+timezone = "Asia/Yekaterinburg"
 ```
+
+Адрес сервера отдельной переменной задавать не нужно: он берётся из
+`data "external"`, которая на машине, где запущен Terraform, спрашивает
+`dns.<домен>` через локальный DNS. Kuma проверяет Xray-вход и Xray-прокси по
+этому адресу, а DNS-мониторы через Technitium — по тому же. Если discovery не
+сработал (например, macOS не видит домашнюю зону), адрес можно задать явно:
+
+```hcl
+host_ip = "192.0.2.10"
+```
+
+ClusterIP kube-dns тоже не нужен: Kuma сама резолвит имя резолвера, поэтому
+в мониторах «через CoreDNS» стоит `kube-dns.kube-system.svc.cluster.local`.
 
 ## Первый apply
 
 `imports.tf` импортирует 41 существующий монитор, остальные 21 создаются с
-нуля. План перед первым apply не будет пустым, и это ожидаемо: в нём видны
-изменения, которых не было в `monitors.yaml`.
+нуля. План перед первым apply не будет пустым, и это ожидаемо.
 
 | Что меняется | Почему |
 | --- | --- |
 | `accepted_status_codes` с `200-299` на `200` у 37 мониторов | Gatus проверяет ровно 200 |
-| `tags` у всех 41 | в `monitors.yaml` тегов не было, в Kuma их заводят для группировки |
+| `tags` у всех 41 | в `monitors.yaml` тегов не было, в Kuma их заводят для группировке |
 | Home Assistant: `http://home-assistant…svc/` → `https://ha.<домен>/` | Kuma работает в поде, порт узла 8123 из под-сети недостижим (firewalld режет INPUT) |
 | Sure: `/` → `/sessions/new` | как в Gatus: корень отдаёт 302 |
-| Technitium DNS: `uptime.<домен>` → `traefik.<домен>` + условие на ответ | как в Gatus |
+| Technitium DNS: `uptime.<домен>` → `traefik.<домен>` | как в Gatus |
 
 После apply `terraform plan` обязан быть пустым. Если после apply что-то
 остаётся — это рассинхрон конфигурации, а не ожидаемое поведение.
@@ -67,14 +84,27 @@ timezone   = "Asia/Yekaterinburg"
    `published`, `show_certificate_expiry` и `show_tags`; если страница создалась
    неопубликованной, публикуется один раз в UI.
 
+## Проверки тела ответа
+
+17 мониторов пока проверяют только код ответа, хотя Gatus проверяет ещё и тело.
+В `locals.tf` у них заполнены `keyword` или `json_path` с ожидаемым
+значением — данные готовы, не хватает только `kind`.
+
+Перевод на `keyword` и `json-query` сделан отдельной правкой — #368, и её
+обязательно применять **после** первого apply. Порядок важен: Kuma не умеет
+менять тип монитора на месте, поэтому конвертация — это пересоздание. Если
+сделать её до первого apply, старые 17 мониторов ещё не окажутся в state,
+Terraform о них не узнает и не удалит: в Kuma останется 34 монитора вместо 17,
+половина с теми же именами. После первого apply мониторы принадлежат
+Terraform, и следующая правка удалит их сама.
+
+История heartbeats у этих 17 мониторов при такой конвертации теряется: она
+лежит в базе Kuma по id монитора, а у пересозданного id другой.
+
 ## Чего модуль не делает
 
 - **Уведомления.** Ни `ntfy`, ни `telegram` в Terraform не заводятся: их
   реквизиты попали бы в state открытым текстом. Алертинг остаётся у Gatus.
-- **Проверки тела ответа у 17 мониторов.** В `locals.tf` у них заполнены
-  `keyword` / `json_path`, но объявлены они как `kind = "http"`, то есть
-  проверяется только код ответа. Kuma не меняет тип монитора на месте, а
-  пересоздание обнуляет историю проверок. Конвертация — #368.
 - **Срок действия сертификата.** Gatus роняет endpoint, если сертификат
   истекает раньше чем через 168 часов. У HTTP-мониторов Kuma условий нет.
   Ближайшее, что есть, — `tls_expiry_notify_days = [7]`: уведомление за неделю

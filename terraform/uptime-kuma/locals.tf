@@ -45,9 +45,9 @@ locals {
       kind               = "dns"
       description        = "Разрешение имени traefik в локальном DNS-сервере Technitium."
       hostname           = "traefik.${var.domain}"
-      dns_resolve_server = var.host_ip
+      dns_resolve_server = local.server_ip
       conditions = [
-        { variable = "record", operator = "equals", value = var.host_ip },
+        { variable = "record", operator = "equals", value = local.server_ip },
       ]
     }
 
@@ -65,7 +65,7 @@ locals {
       group       = "infrastructure"
       kind        = "tcp"
       description = "Доступность опубликованного TCP-входа Xray; UDP тем же монитором не проверяется."
-      hostname    = var.host_ip
+      hostname    = local.server_ip
       port        = 8443
     }
 
@@ -471,7 +471,7 @@ locals {
       kind               = "dns"
       description        = "Разрешение data.forgejo.org через kube-dns: тот же путь, что и у job'ов, тянущих экшены."
       hostname           = "data.forgejo.org"
-      dns_resolve_server = var.kube_dns_ip
+      dns_resolve_server = "kube-dns.kube-system.svc.cluster.local"
       interval           = 20
     }
 
@@ -481,7 +481,7 @@ locals {
       kind               = "dns"
       description        = "Разрешение data.forgejo.org прямым запросом в Technitium: отделяет отказ промежуточного резолвера от недоступности сервиса."
       hostname           = "data.forgejo.org"
-      dns_resolve_server = var.host_ip
+      dns_resolve_server = local.server_ip
       interval           = 20
     }
 
@@ -502,7 +502,7 @@ locals {
       kind               = "dns"
       description        = "Разрешение github.com через kube-dns: публичное зеркало репозитория и источник экшенов."
       hostname           = "github.com"
-      dns_resolve_server = var.kube_dns_ip
+      dns_resolve_server = "kube-dns.kube-system.svc.cluster.local"
       interval           = 20
     }
 
@@ -512,7 +512,7 @@ locals {
       kind               = "dns"
       description        = "Разрешение github.com прямым запросом в Technitium: отделяет отказ промежуточного резолвера от недоступности сервиса."
       hostname           = "github.com"
-      dns_resolve_server = var.host_ip
+      dns_resolve_server = local.server_ip
       interval           = 20
     }
 
@@ -533,7 +533,7 @@ locals {
       kind               = "dns"
       description        = "Разрешение ghcr.io через kube-dns: источник job-образов."
       hostname           = "ghcr.io"
-      dns_resolve_server = var.kube_dns_ip
+      dns_resolve_server = "kube-dns.kube-system.svc.cluster.local"
       interval           = 20
     }
 
@@ -543,7 +543,7 @@ locals {
       kind               = "dns"
       description        = "Разрешение ghcr.io прямым запросом в Technitium: отделяет отказ промежуточного резолвера от недоступности сервиса."
       hostname           = "ghcr.io"
-      dns_resolve_server = var.host_ip
+      dns_resolve_server = local.server_ip
       interval           = 20
     }
 
@@ -564,7 +564,7 @@ locals {
       kind               = "dns"
       description        = "Разрешение registry-1.docker.io через kube-dns: источник job-образов."
       hostname           = "registry-1.docker.io"
-      dns_resolve_server = var.kube_dns_ip
+      dns_resolve_server = "kube-dns.kube-system.svc.cluster.local"
       interval           = 20
     }
 
@@ -574,7 +574,7 @@ locals {
       kind               = "dns"
       description        = "Разрешение registry-1.docker.io прямым запросом в Technitium: отделяет отказ промежуточного резолвера от недоступности сервиса."
       hostname           = "registry-1.docker.io"
-      dns_resolve_server = var.host_ip
+      dns_resolve_server = local.server_ip
       interval           = 20
     }
 
@@ -595,7 +595,7 @@ locals {
       kind               = "dns"
       description        = "Разрешение www.google.com через kube-dns: общий доступ в интернет."
       hostname           = "www.google.com"
-      dns_resolve_server = var.kube_dns_ip
+      dns_resolve_server = "kube-dns.kube-system.svc.cluster.local"
       interval           = 20
     }
 
@@ -605,7 +605,7 @@ locals {
       kind               = "dns"
       description        = "Разрешение www.google.com прямым запросом в Technitium: отделяет отказ промежуточного резолвера от недоступности сервиса."
       hostname           = "www.google.com"
-      dns_resolve_server = var.host_ip
+      dns_resolve_server = local.server_ip
       interval           = 20
     }
 
@@ -626,7 +626,7 @@ locals {
       kind               = "dns"
       description        = "Разрешение ya.ru через kube-dns: общий доступ в интернет."
       hostname           = "ya.ru"
-      dns_resolve_server = var.kube_dns_ip
+      dns_resolve_server = "kube-dns.kube-system.svc.cluster.local"
       interval           = 20
     }
 
@@ -636,7 +636,7 @@ locals {
       kind               = "dns"
       description        = "Разрешение ya.ru прямым запросом в Technitium: отделяет отказ промежуточного резолвера от недоступности сервиса."
       hostname           = "ya.ru"
-      dns_resolve_server = var.host_ip
+      dns_resolve_server = local.server_ip
       interval           = 20
     }
 

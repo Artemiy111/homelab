@@ -4,13 +4,9 @@ variable "domain" {
 }
 
 variable "host_ip" {
-  description = "Адрес сервера во внутренней сети"
+  description = "Адрес сервера. Если не задан, берётся из A-записи dns.<домен> на машине, где запущен terraform"
   type        = string
-}
-
-variable "kube_dns_ip" {
-  description = "ClusterIP сервиса kube-dns"
-  type        = string
+  default     = null
 }
 
 variable "timezone" {
