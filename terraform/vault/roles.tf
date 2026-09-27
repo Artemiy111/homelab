@@ -35,10 +35,39 @@ locals {
     "uptime-kuma"    = { namespace = "uptime-kuma", policy = "app/uptime-kuma" },
     "vmagent"        = { namespace = "monitoring", policy = "app/vmagent" },
   }
+  # Сторона CNPG в неймспейсе databases: по роли на приложение, чтобы
+  # токен оператора для одной роли не доставал пароли других.
+  db_roles = {
+    "authentik-db"  = { namespace = "databases", policy = "db/authentik" },
+    "element-db"    = { namespace = "databases", policy = "db/element" },
+    "forgejo-db"    = { namespace = "databases", policy = "db/forgejo" },
+    "gatus-db"      = { namespace = "databases", policy = "db/gatus" },
+    "glitchtip-db"  = { namespace = "databases", policy = "db/glitchtip" },
+    "grafana-db"    = { namespace = "databases", policy = "db/grafana" },
+    "infisical-db"  = { namespace = "databases", policy = "db/infisical" },
+    "nextcloud-db"  = { namespace = "databases", policy = "db/nextcloud" },
+    "open-webui-db" = { namespace = "databases", policy = "db/open-webui" },
+    "paperless-db"  = { namespace = "databases", policy = "db/paperless" },
+    "postgres-db"   = { namespace = "databases", policy = "db/postgres" },
+    "sure-db"       = { namespace = "databases", policy = "db/sure" },
+  }
 }
 
 resource "vault_kubernetes_auth_backend_role" "app" {
   for_each = local.app_roles
+
+  backend                          = "kubernetes"
+  role_name                        = each.key
+  audience                         = "vault"
+  bound_service_account_names      = ["vso-${each.key}"]
+  bound_service_account_namespaces = [each.value.namespace]
+  token_policies                   = [each.value.policy]
+  token_ttl                        = 3600
+}
+
+# Роли для чтения базовых паролей ролей CNPG (см. policies-db.tf).
+resource "vault_kubernetes_auth_backend_role" "db" {
+  for_each = local.db_roles
 
   backend                          = "kubernetes"
   role_name                        = each.key

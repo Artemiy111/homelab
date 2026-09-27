@@ -1,0 +1,231 @@
+# Роли для чтения базовых паролей в неймспейсе databases. По роли на
+# приложение: оператор CNPG читает пароль каждой роли своим токеном, и токен
+# одной роли не должен доставать пароли других (ADR 0006).
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: vso-authentik-db
+  namespace: databases
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultAuth
+metadata:
+  name: vso-authentik-db
+  namespace: databases
+spec:
+  vaultAuthGlobalRef:
+    name: vso-global
+    namespace: vault-secrets-operator
+  kubernetes:
+    role: authentik-db
+    serviceAccount: vso-authentik-db
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: vso-element-db
+  namespace: databases
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultAuth
+metadata:
+  name: vso-element-db
+  namespace: databases
+spec:
+  vaultAuthGlobalRef:
+    name: vso-global
+    namespace: vault-secrets-operator
+  kubernetes:
+    role: element-db
+    serviceAccount: vso-element-db
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: vso-forgejo-db
+  namespace: databases
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultAuth
+metadata:
+  name: vso-forgejo-db
+  namespace: databases
+spec:
+  vaultAuthGlobalRef:
+    name: vso-global
+    namespace: vault-secrets-operator
+  kubernetes:
+    role: forgejo-db
+    serviceAccount: vso-forgejo-db
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: vso-gatus-db
+  namespace: databases
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultAuth
+metadata:
+  name: vso-gatus-db
+  namespace: databases
+spec:
+  vaultAuthGlobalRef:
+    name: vso-global
+    namespace: vault-secrets-operator
+  kubernetes:
+    role: gatus-db
+    serviceAccount: vso-gatus-db
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: vso-glitchtip-db
+  namespace: databases
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultAuth
+metadata:
+  name: vso-glitchtip-db
+  namespace: databases
+spec:
+  vaultAuthGlobalRef:
+    name: vso-global
+    namespace: vault-secrets-operator
+  kubernetes:
+    role: glitchtip-db
+    serviceAccount: vso-glitchtip-db
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: vso-grafana-db
+  namespace: databases
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultAuth
+metadata:
+  name: vso-grafana-db
+  namespace: databases
+spec:
+  vaultAuthGlobalRef:
+    name: vso-global
+    namespace: vault-secrets-operator
+  kubernetes:
+    role: grafana-db
+    serviceAccount: vso-grafana-db
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: vso-infisical-db
+  namespace: databases
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultAuth
+metadata:
+  name: vso-infisical-db
+  namespace: databases
+spec:
+  vaultAuthGlobalRef:
+    name: vso-global
+    namespace: vault-secrets-operator
+  kubernetes:
+    role: infisical-db
+    serviceAccount: vso-infisical-db
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: vso-nextcloud-db
+  namespace: databases
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultAuth
+metadata:
+  name: vso-nextcloud-db
+  namespace: databases
+spec:
+  vaultAuthGlobalRef:
+    name: vso-global
+    namespace: vault-secrets-operator
+  kubernetes:
+    role: nextcloud-db
+    serviceAccount: vso-nextcloud-db
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: vso-open-webui-db
+  namespace: databases
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultAuth
+metadata:
+  name: vso-open-webui-db
+  namespace: databases
+spec:
+  vaultAuthGlobalRef:
+    name: vso-global
+    namespace: vault-secrets-operator
+  kubernetes:
+    role: open-webui-db
+    serviceAccount: vso-open-webui-db
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: vso-paperless-db
+  namespace: databases
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultAuth
+metadata:
+  name: vso-paperless-db
+  namespace: databases
+spec:
+  vaultAuthGlobalRef:
+    name: vso-global
+    namespace: vault-secrets-operator
+  kubernetes:
+    role: paperless-db
+    serviceAccount: vso-paperless-db
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: vso-postgres-db
+  namespace: databases
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultAuth
+metadata:
+  name: vso-postgres-db
+  namespace: databases
+spec:
+  vaultAuthGlobalRef:
+    name: vso-global
+    namespace: vault-secrets-operator
+  kubernetes:
+    role: postgres-db
+    serviceAccount: vso-postgres-db
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: vso-sure-db
+  namespace: databases
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultAuth
+metadata:
+  name: vso-sure-db
+  namespace: databases
+spec:
+  vaultAuthGlobalRef:
+    name: vso-global
+    namespace: vault-secrets-operator
+  kubernetes:
+    role: sure-db
+    serviceAccount: vso-sure-db
