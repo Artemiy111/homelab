@@ -1,5 +1,5 @@
 # Конфигурация Forgejo Runner. Токен в неё не попадает: он читается рантаймом
-# из файла (token_url), который монтируется из Secret'а runner.sealedsecret.yaml.
+# из файла (token_url), который монтируется из Secret'а forgejo-runner.
 #
 # Метки (labels) — это `runs-on` в workflow; образы пинятся дайджестом, иначе
 # контейнер job'а после первого скачивания не обновляется молча (docs/forgejo).

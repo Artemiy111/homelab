@@ -37,7 +37,7 @@ spec:
             - name: DNS_ADMIN_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: technitium
+                  name: technitium-admin
                   key: TECHNITIUM_ADMIN_PASSWORD
             - name: DNS_SERVER_NAME
               value: "dns.$(DOMAIN)"

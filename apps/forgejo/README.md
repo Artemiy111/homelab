@@ -47,7 +47,7 @@ Actions. Сервер только планирует задачи и храни
 |---|---|
 | Deployment | `apps/forgejo/k8s/runner.deployment.yaml` |
 | Конфиг | `apps/forgejo/k8s/runner.configmap.yaml` |
-| Секрет регистрации | `apps/forgejo/k8s/runner.sealedsecret.yaml` |
+| Секрет регистрации | `apps/forgejo/k8s/vaultstaticsecret.yaml` (`forgejo-runner`) |
 | Конфиг dockerd | `apps/forgejo/k8s/runner-dind.configmap.yaml` |
 | Том dockerd | PVC `forgejo-runner-dind` (`local-path`, 10Gi) |
 | Область | instance-wide (`--scope ""`), раннер `homelab-runner` |
@@ -83,8 +83,8 @@ kubectl -n forgejo exec -i deploy/forgejo -c forgejo -- \
 ```
 
 Команда печатает UUID (это не случайное значение, а UUID из первых 16 символов
-секрета) — он идёт в `runner.configmap.yaml`; сам секрет — `token` в
-SealedSecret'е. Токен в ConfigMap не попадает: раннер читает его из файла
+секрета) — он идёт в `runner.configmap.yaml`; сам секрет — `token` в пути
+`kv/forgejo/runner`. Токен в ConfigMap не попадает: раннер читает его из файла
 (`server.connections.forgejo.token_url`), смонтированного из Secret'а.
 
 **Метки** (`runs-on`) и образы заданы в ConfigMap'е. `ubuntu-latest` и
@@ -257,9 +257,9 @@ kubectl -n forgejo logs deploy/forgejo-runner -c runner
 Подключение идёт на `shared-rw.databases.svc.cluster.local:5432`, доступ
 разрешён в `platform/cnpg/networkpolicy.yaml` (`allow-shared-from-consumers`).
 
-Пароль роли лежит в `databases/forgejo-db-auth` и он же — в
-`forgejo/forgejo-secrets` (один плейнтекст, два запечатанных SealedSecret'а —
-принятая в репозитории схема, см. `platform/cnpg/README.md`). Подставляется в
+Пароль роли лежит в `databases/forgejo-db-auth` (ещё SealedSecret, перенос в
+фазе 2 #345) и он же — в `forgejo/forgejo-db`, оба из пути `kv/forgejo/db`.
+Подставляется в
 app.ini через `FORGEJO__database__PASSWD` из `gitea.additionalConfigFromEnvs`,
 поэтому секрет чарту не нужен.
 
@@ -284,14 +284,15 @@ app.ini через `FORGEJO__database__PASSWD` из `gitea.additionalConfigFromE
 
 ## Секреты
 
-| SealedSecret | Что внутри | Кто читает |
-|---|---|---|
-| `apps/forgejo/k8s/secrets.sealedsecret.yaml` | `POSTGRES_PASSWORD`, `FORGEJO_METRICS_TOKEN` | чарт (env → app.ini) |
-| `apps/forgejo/k8s/admin.sealedsecret.yaml` | `username` (`forgejo-admin`), `password` админа | чарт (init-контейнер) |
+| Путь Vault | Ключи | Secret | Кто читает |
+|---|---|---|---|
+| `kv/forgejo/db` | `username`, `password` | `forgejo-db` | чарт (env → app.ini) |
+| `kv/forgejo/@monitoring/forgejo-metrics-token` | `FORGEJO_METRICS_TOKEN` | `forgejo-metrics` | чарт (env → app.ini) |
+| `kv/forgejo/admin` | `username`, `password` | `forgejo-admin` | чарт (init-контейнер) |
+| `kv/forgejo/runner` | `token` | `forgejo-runner` | регистрация раннера |
 
-Перезапечатать можно только на сервере: `kubeseal` привязан к namespace и
-имени, а приватный ключ контроллера доступен лишь там
-(`docs/agents/server-access.md`).
+Все четыре — `VaultStaticSecret` в `apps/forgejo/k8s/vaultstaticsecret.yaml`,
+значения в Vault заводит человек.
 
 **Про админа:** это служебная учётка (`forgejo-admin`, почта
 `admin@example.com`), а не личный аккаунт человека: роль в сервисе и
@@ -309,9 +310,9 @@ reserved»), поэтому имя с суффиксом сервиса; поч�
 админа).
 
 Осторожно с именами: чарт создаёт Secret с именем релиза (`forgejo`) для своих
-init-скриптов, поэтому секреты сервиса названы `forgejo-secrets` и
-`forgejo-admin`. Совпадение имён означало бы двух владельцев одного объекта
-(SealedSecret-контроллер и Argo), и они затирали бы ключи друг друга.
+init-скриптов, поэтому секреты сервиса названы с префиксом `forgejo-`.
+Совпадение имён означало бы двух владельцев одного объекта (VSO и Argo), и они
+затирали бы ключи друг друга.
 
 ## Проверка
 

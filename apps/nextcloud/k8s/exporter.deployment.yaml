@@ -27,12 +27,12 @@ spec:
             - name: NEXTCLOUD_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: nextcloud
+                  name: nextcloud-admin
                   key: NEXTCLOUD_ADMIN_USER
             - name: NEXTCLOUD_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: nextcloud
+                  name: nextcloud-metrics
                   key: NEXTCLOUD_METRICS_PASSWORD
           startupProbe:
             httpGet:

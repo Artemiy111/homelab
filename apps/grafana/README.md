@@ -18,21 +18,19 @@ VictoriaMetrics как datasource.
   Secret'а `grafana-db` (ключ `GRAFANA_DB_PASSWORD`).
 - Локальный диск под `/var/lib/grafana` — `emptyDir`: это только скретч (кэш
   плагинов, индекс поиска), сами данные в Postgres, поэтому том не нужен.
-- Логин администратора — `admin`, пароль — в кластерном Secret `grafana`
-  (`GRAFANA_ADMIN_PASSWORD`), создаётся из SealedSecret
-  `apps/grafana/k8s/sealedsecret.yaml`. Регистрация новых пользователей
+- Логин администратора — `admin`, пароль — в кластерном Secret `grafana-admin`
+  (`GRAFANA_ADMIN_PASSWORD`), синхронизируется из Vault по
+  `k8s/vaultstaticsecret.yaml`. Регистрация новых пользователей
   отключена; доступ к UI контролирует `oauth2-proxy`, локальный вход нужен для
   правок datasource и диагностики.
 - Пароли `GRAFANA_ADMIN_PASSWORD` и `GRAFANA_DB_PASSWORD` продублированы в
   расшифровываемом реестре `apps/grafana/secrets.enc.env` (SOPS поверх age;
-  приватный ключ — только на сервере). SealedSecret необратим, поэтому исходные
-  значения достаются из этого файла.
-- `NTFY_TOPIC` для метрических алертов — в отдельном Secret'е
-  `grafana-alerting` (`k8s/sealedsecret-alerting.yaml`). Отдельный Secret, а не
-  ключ в `grafana`: SealedSecret write-only, добавить ключ к существующему можно
-  только перезапечатав его целиком, то есть зная открытый `GRAFANA_ADMIN_PASSWORD`,
-  а он нигде не хранится в расшифровываемом виде. Значение `NTFY_TOPIC` то же,
-  что в `apps/gatus/secrets.enc.env`, — это один канал уведомлений на homelab.
+  приватный ключ — только на сервере). Исходные значения достаются из этого
+  файла, в Vault они заведены заново.
+- `NTFY_TOPIC` для метрических алертов — в отдельном Secret'е `grafana-ntfy`
+  (путь `kv/ntfy/topic`). Отдельный путь, потому что темой делится ещё и gatus:
+  один путь `kv/ntfy/topic` читают два `VaultStaticSecret` — `grafana-ntfy` и
+  `gatus-ntfy`, значение хранится один раз.
 
 ## Провижининг
 
@@ -147,7 +145,7 @@ UI перезаписывается при следующем провижини
 через `webhook`-contact point: встроенной интеграции ntfy в Grafana нет.
 Параметр `template=alertmanager` заставляет ntfy отформатировать тело, иначе
 уведомление приходит JSON-конвертом целиком. Тема приходит из Secret'а
-`grafana-alerting` (`NTFY_TOPIC`) и совпадает с темой Gatus, поэтому проверки
+`grafana-ntfy` (`NTFY_TOPIC`) и совпадает с темой Gatus, поэтому проверки
 доступности и метрические алерты приходят в один поток.
 
 Шаблон `alertmanager`, а не `grafana`: первый рассчитан на payload Unified
@@ -177,7 +175,7 @@ self-hosted ntfy** с `auth-default-access: deny-all`; там Android push тр�
 собственного Firebase-ключа или UnifiedPush, то есть надёжность доставки в
 фоне падает. Если тема в БД Grafana когда-нибудь станет неприемлема, вариант
 без потери push — вынести ntfy-конфиг во внутренний Alertmanager
-(`prometheus-alertmanager`-contact point): тогда тема живёт в SealedSecret, а не
+(`prometheus-alertmanager`-contact point): тогда тема живёт в Vault, а не
 в БД Grafana. Отдельная задача.
 
 Два артефакта рендера, которые не лечатся с нашей стороны (шаблон — файл ntfy):

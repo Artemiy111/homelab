@@ -115,12 +115,12 @@ spec:
             - name: FORGEJO__database__PASSWD
               valueFrom:
                 secretKeyRef:
-                  name: forgejo-secrets
-                  key: POSTGRES_PASSWORD
+                  name: forgejo-db
+                  key: password
             - name: FORGEJO__metrics__TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: forgejo-secrets
+                  name: forgejo-metrics
                   key: FORGEJO_METRICS_TOKEN
             - name: FORGEJO__i18n__DEFAULT_LOCALE
               valueFrom:

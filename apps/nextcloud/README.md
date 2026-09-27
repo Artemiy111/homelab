@@ -20,8 +20,8 @@ PostgreSQL и Redis на хост не публикуются.
 PostgreSQL в общем кластере CNPG `shared` (namespace `databases`, эндпоинт
 `shared-rw.databases.svc.cluster.local:5432`). Роль `nextcloud`, база `nextcloud`
 и NetworkPolicy объявлены в `platform/cnpg/`; пароль роль берёт из Secret'а
-`nextcloud-db-auth`, а приложение — из своего Secret'а `nextcloud` (ключ
-`POSTGRES_PASSWORD`), это один плейнтекст в двух SealedSecret'ах.
+`nextcloud-db-auth`, а приложение — из своего Secret'а `nextcloud-db` (ключ
+`password`). Значение одно: путь `kv/nextcloud/db`.
 
 Реальные параметры подключения живут в `config.php` внутри тома `html`, а не в
 env: переменная `POSTGRES_HOST` учитывается только при первой установке. Поэтому

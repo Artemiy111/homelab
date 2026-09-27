@@ -56,12 +56,12 @@ spec:
             - name: STALWART_ADMIN_PASS
               valueFrom:
                 secretKeyRef:
-                  name: mailserver
+                  name: mailserver-admin
                   key: STALWART_ADMIN_PASS
             - name: STALWART_METRICS_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: mailserver
+                  name: mailserver-metrics
                   key: STALWART_METRICS_PASSWORD
             - name: STALWART_RECOVERY_ADMIN
               value: "$(STALWART_ADMIN_USER):$(STALWART_ADMIN_PASS)"

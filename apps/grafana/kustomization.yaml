@@ -4,8 +4,8 @@ namespace: monitoring
 resources:
   - k8s/grafana.deployment.yaml
   - k8s/grafana.service.yaml
-  - k8s/sealedsecret.yaml
-  - k8s/sealedsecret-alerting.yaml
+  - k8s/vaultauth.yaml
+  - k8s/vaultstaticsecret.yaml
 configMapGenerator:
   # Провижининг datasources и dashboards + сами дашборды собираются из файлов
   # configMapGenerator'ом: kustomize добавляет хэш содержимого к имени и

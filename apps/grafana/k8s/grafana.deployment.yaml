@@ -40,7 +40,7 @@ spec:
             - name: GF_SECURITY_ADMIN_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: grafana
+                  name: grafana-admin
                   key: GRAFANA_ADMIN_PASSWORD
             - name: GF_USERS_ALLOW_SIGN_UP
               value: "false"
@@ -52,18 +52,18 @@ spec:
             # Тема ntfy для метрических алертов. Провижининг подставляет
             # $NTFY_TOPIC в URL contact point'а, см.
             # config/alerting/contact-points.yaml; значение лежит в Secret'е
-            # grafana-alerting.
+            # grafana-ntfy.
             - name: NTFY_TOPIC
               valueFrom:
                 secretKeyRef:
-                  name: grafana-alerting
+                  name: grafana-ntfy
                   key: NTFY_TOPIC
             - name: GF_SERVER_ROOT_URL
               value: "https://grafana.$(DOMAIN)"
             # Данные (пользователи, дашборды, аннотации) — в общем кластере CNPG
             # shared, а не в SQLite. Роль grafana и база grafana объявлены в
             # platform/cnpg/; пароль — из Secret'а grafana-db (см.
-            # k8s/sealedsecret.yaml).
+            # k8s/vaultstaticsecret.yaml).
             - name: GF_DATABASE_TYPE
               value: postgres
             - name: GF_DATABASE_HOST
@@ -78,7 +78,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: grafana-db
-                  key: GRAFANA_DB_PASSWORD
+                  key: password
           startupProbe:
             httpGet:
               path: /api/health

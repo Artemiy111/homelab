@@ -4,7 +4,8 @@ namespace: monitoring
 resources:
   - k8s/deployment.yaml
   - k8s/service.yaml
-  - k8s/sealedsecret.yaml
+  - k8s/vaultauth.yaml
+  - k8s/vaultstaticsecret.yaml
 configMapGenerator:
   - name: gatus-config
     files:

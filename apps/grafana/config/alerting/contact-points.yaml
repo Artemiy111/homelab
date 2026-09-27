@@ -19,8 +19,8 @@ apiVersion: 1
 # Если переменная NTFY_TOPIC не подставилась, URL станет `https://ntfy.sh/`
 # и публикация вернёт ошибку — канал деградирует заметно, а не молча.
 #
-# Тема ntfy приходит из Secret'а `grafana-alerting` (см.
-# k8s/sealedsecret-alerting.yaml); она же используется Gatus, поэтому
+# Тема ntfy приходит из Secret'а `grafana-ntfy` (см.
+# k8s/vaultstaticsecret.yaml, путь kv/ntfy/topic); она же используется Gatus, поэтому
 # уведомления о проверках и о метриках приходят в один канал. На публичном
 # ntfy.sh тема и есть пароль (access control там не включён), поэтому в URL
 # она лежит открыто — см. README, раздел «Канал доставки».

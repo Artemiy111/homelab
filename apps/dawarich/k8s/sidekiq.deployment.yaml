@@ -107,17 +107,17 @@ spec:
             - name: DATABASE_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: dawarich
-                  key: POSTGRES_PASSWORD
+                  name: dawarich-db
+                  key: password
             - name: SECRET_KEY_BASE
               valueFrom:
                 secretKeyRef:
-                  name: dawarich
+                  name: dawarich-secrets
                   key: SECRET_KEY_BASE
             - name: METRICS_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: dawarich
+                  name: dawarich-metrics
                   key: DAWARICH_METRICS_PASSWORD
             - name: METRICS_USERNAME
               value: netdata

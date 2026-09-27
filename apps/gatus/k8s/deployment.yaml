@@ -28,9 +28,31 @@ spec:
           envFrom:
             - configMapRef:
                 name: homelab-config
-            - secretRef:
-                name: gatus
           env:
+            # Секреты только явными ссылками по ключу. envFrom Secret'а не
+            # годится: состав Secret'а задаётся в Vault, и любой лишний ключ
+            # молча стал бы переменной окружения. Список ниже и есть полный
+            # перечень секретов gatus.
+            - name: GATUS_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: gatus-db
+                  key: password
+            - name: NTFY_TOPIC
+              valueFrom:
+                secretKeyRef:
+                  name: gatus-ntfy
+                  key: NTFY_TOPIC
+            - name: TELEGRAM_BOT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: gatus-telegram
+                  key: TELEGRAM_BOT_TOKEN
+            - name: TELEGRAM_CHAT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: gatus-telegram
+                  key: TELEGRAM_CHAT_ID
             - name: HOST_IP
               valueFrom:
                 fieldRef:
