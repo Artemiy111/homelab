@@ -41,6 +41,28 @@ resource "vault_policy" "uptime_kuma" {
   EOT
 }
 
+resource "vault_policy" "vmagent" {
+  name = "app/vmagent"
+
+  # vmagent читает ключи, которые выпустили чужие сервисы, поэтому пути
+  # перечислены по одному на кред. Правило на префикс
+  # `kv/data/*/x/monitoring/*` отдало бы vmagent все такие креды разом, а
+  # `kv/data/*/*` — вообще все секреты кластера.
+  #
+  # По мере переноса остальных семи ключей из Secret `vmagent` сюда
+  # добавляется по строке на каждый. Их владельцы: forgejo, dawarich,
+  # home-assistant, local-ai, technitium, mailserver (stalwart), navidrome.
+  policy = <<-EOT
+    path "kv/data/uptime-kuma/x/monitoring/uptime-kuma-metrics-api-key" {
+      capabilities = ["read"]
+    }
+
+    path "kv/metadata/uptime-kuma/x/monitoring/uptime-kuma-metrics-api-key" {
+      capabilities = ["read", "list"]
+    }
+  EOT
+}
+
 resource "vault_policy" "poc_reader" {
   name = "poc-reader"
 

@@ -3,6 +3,11 @@ kind: Kustomization
 namespace: monitoring
 resources:
   - k8s/sealedsecret.yaml
+  # Креды мониторинга из Vault. Не удаляют sealedsecret.yaml: остальные семь
+  # ключей Secret `vmagent` пока приходят оттуда, и удаление файла убрало бы их
+  # из кластера вместе с шифротекстом в git.
+  - k8s/vaultauth.yaml
+  - k8s/vaultstaticsecret.yaml
   - k8s/victoriametrics.deployment.yaml
   - k8s/victoriametrics.service.yaml
   - k8s/vmagent-rbac.yaml

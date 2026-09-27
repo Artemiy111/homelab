@@ -40,10 +40,13 @@ spec:
                 configMapKeyRef:
                   name: homelab-config
                   key: DOMAIN
+            # Кред uptime-kuma на скрейп метрик. Источник — Vault
+            # (Secret vmagent-vault, apps/victoria-metrics/k8s/vaultstaticsecret.yaml),
+            # а не Secret `vmagent` от SealedSecret, где он лежит копией.
             - name: UPTIME_KUMA_METRICS_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: vmagent
+                  name: vmagent-vault
                   key: UPTIME_KUMA_METRICS_API_KEY
             - name: NAVIDROME_METRICS_PATH
               valueFrom:

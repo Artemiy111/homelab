@@ -1,0 +1,47 @@
+# Доступ VSO к креденшелам мониторинга, которые выпустили другие сервисы.
+#
+# Всё живёт в namespace monitoring, а не в vault: destination Secret создаётся
+# в своём неймспейсе, и serviceAccount в VaultAuth обязан лежать в неймспейсе
+# потребляющего секрета.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: vso-vmagent
+  namespace: monitoring
+---
+# Vault проверяет предъявленный ServiceAccount-токен через TokenReview.
+# Имя ClusterRoleBinding уникально для всего кластера, поэтому с префиксом
+# сервиса: одноимённый объект в другом неймспейсе конфликтовал бы за ресурс.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: vso-vmagent-delegator
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:auth-delegator
+subjects:
+  - kind: ServiceAccount
+    name: vso-vmagent
+    namespace: monitoring
+---
+# Аутентификация оператора в Vault методом kubernetes.
+#
+# Роль vmagent и её policy создаются через terraform/vault/roles.tf и
+# policies.tf. Политика перечисляет пути по одному на каждый кред, без
+# wildcard: vmagent читает ключи чужих сервисов, и префиксное правило на
+# `kv/data/*/x/monitoring/*` отдало бы ему все такие креды разом.
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultAuth
+metadata:
+  name: vso-vmagent
+  namespace: monitoring
+spec:
+  vaultAuthGlobalRef:
+    name: vso-global
+    namespace: vault-secrets-operator
+  kubernetes:
+    role: vmagent
+    serviceAccount: vso-vmagent
+    audiences:
+      - vault
