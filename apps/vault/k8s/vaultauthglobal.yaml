@@ -5,7 +5,7 @@
 # VaultAuth.
 #
 # Что это НЕ делает: не превращает все сервисы в одну учётку. Роль в Vault
-# остаётся per-service (vso-reader, vso-uptime-kuma), и именно она определяет
+# остаётся per-service (uptime-kuma, poc-reader), и именно она определяет
 # границы доступа. vaultAuthGlobalRef отвечает только за headers и params,
 # поэтому per-service роль в VaultAuth сохраняется.
 #

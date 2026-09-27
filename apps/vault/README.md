@@ -89,8 +89,8 @@ vault kv put kv/poc/probe answer=42
 
 | Файл | Что описывает |
 | --- | --- |
-| `policies.tf` | политики `terraform`, `uptime-kuma`, `vso-reader` |
-| `roles.tf` | роли `vso-reader`, `vso-uptime-kuma` в методе `kubernetes` |
+| `policies.tf` | политики `terraform`, `app/uptime-kuma`, `poc-reader` |
+| `roles.tf` | роли `uptime-kuma` и `poc-reader` в методе `kubernetes` |
 | `k8s.tf` | сам метод `kubernetes`: как Vault проверяет сервис-аккаунт |
 
 Пока значение в Vault не заведено, `VaultStaticSecret` не в статусе `synced` —

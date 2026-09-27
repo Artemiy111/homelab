@@ -41,8 +41,8 @@ resource "vault_policy" "uptime_kuma" {
   EOT
 }
 
-resource "vault_policy" "vso_reader" {
-  name = "vso-reader"
+resource "vault_policy" "poc_reader" {
+  name = "poc-reader"
 
   policy = <<-EOT
     path "kv/data/poc/*"     { capabilities = ["read"] }
