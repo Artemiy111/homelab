@@ -27,6 +27,15 @@ spec:
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: traefik
+    # mariadb-system — оператор, который управляет uptime-kuma-mariadb: без
+    # доступа к 3306 он не сможет ни создать базу, ни применить гранты.
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: mariadb-system
+      ports:
+        - port: 3306
+          protocol: TCP
     - from:
         - namespaceSelector:
             matchLabels:

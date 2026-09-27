@@ -1,0 +1,41 @@
+# Пользователь Uptime Kuma и его права в uptime-kuma-mariadb.
+#
+# Пароль берём из Secret uptime-kuma-mariadb (путь kv/uptime-kuma/db) — того
+# же, из которого Deployment читает UPTIME_KUMA_DB_USERNAME/DB_PASSWORD.
+# Один источник значения: смена пароля в Vault доезжает и в БД, и в приложение.
+#
+# maxUserConnections: 0 = без персонального лимита. CRD по умолчанию ставит 10,
+# а пул Kuma по умолчанию тоже 10 соединений (UPTIME_KUMA_DB_POOL_MAX_CONNECTIONS),
+# и лимит 10 означал бы, что при реконнекте пул упирается в него вплотную.
+#
+# ALL PRIVILEGES на базу, а не на схему mysql: Kuma выполняет собственные
+# миграции схемы при старте, и на стыке версий ему нужен DDL.
+apiVersion: k8s.mariadb.com/v1alpha1
+kind: User
+metadata:
+  name: uptime-kuma
+  namespace: uptime-kuma
+spec:
+  mariaDbRef:
+    name: uptime-kuma-mariadb
+  name: uptime_kuma
+  passwordSecretKeyRef:
+    name: uptime-kuma-mariadb
+    key: DB_PASSWORD
+  host: "%"
+  maxUserConnections: 0
+---
+apiVersion: k8s.mariadb.com/v1alpha1
+kind: Grant
+metadata:
+  name: uptime-kuma
+  namespace: uptime-kuma
+spec:
+  mariaDbRef:
+    name: uptime-kuma-mariadb
+  privileges:
+    - "ALL PRIVILEGES"
+  database: kuma
+  table: "*"
+  username: uptime_kuma
+  host: "%"

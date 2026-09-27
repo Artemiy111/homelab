@@ -1,0 +1,22 @@
+# База Uptime Kuma внутри uptime-kuma-mariadb. До миграции (migrate-db.sh) она
+# пустая: данные лежат во встроенной в Kuma MariaDB.
+#
+# cleanupPolicy: Skip — при удалении CR оператор НЕ выполняет DROP DATABASE.
+# Опечатка в манифесте не должна удалять мониторы и историю проверок; удалять
+# базу можно только руками.
+#
+# Кодировка utf8mb4: Kuma после подключения выполняет SET CHARACTER SET utf8mb4
+# (server/database.js), а встроенный инстанс на 10.11 тоже utf8mb4 по умолчанию.
+# Дамп переносится без преобразования.
+apiVersion: k8s.mariadb.com/v1alpha1
+kind: Database
+metadata:
+  name: uptime-kuma
+  namespace: uptime-kuma
+spec:
+  mariaDbRef:
+    name: uptime-kuma-mariadb
+  name: kuma
+  characterSet: utf8mb4
+  collate: utf8mb4_general_ci
+  cleanupPolicy: Skip
