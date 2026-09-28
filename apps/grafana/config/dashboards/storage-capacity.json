@@ -219,8 +219,8 @@
       "fieldConfig": {
         "defaults": { "custom": { "lineWidth": 1, "fillOpacity": 80 } },
         "overrides": [
-          { "matcher": { "id": "byName", "options": "занято" }, "properties": [ { "id": "unit", "value": "bytes" }, { "id": "color", "value": { "mode": "fixed", "fixedColor": "green" } } ] },
-          { "matcher": { "id": "byName", "options": "свободно" }, "properties": [ { "id": "unit", "value": "bytes" }, { "id": "color", "value": { "mode": "fixed", "fixedColor": "dark-gray" } } ] }
+          { "matcher": { "id": "byName", "options": "занято" }, "properties": [ { "id": "unit", "value": "bytes" }, { "id": "color", "value": { "mode": "fixed", "fixedColor": "#73BF69" } } ] },
+          { "matcher": { "id": "byName", "options": "свободно" }, "properties": [ { "id": "unit", "value": "bytes" }, { "id": "color", "value": { "mode": "fixed", "fixedColor": "#8E8E8E" } } ] }
         ]
       },
       "options": {
