@@ -54,8 +54,6 @@ bcrypt_rounds: 12
 password_config:
   enabled: true
   min_length: 8
-admin_users:
-  - "@admin:__SERVER_NAME__"
 oidc_providers:
   - idp_id: zitadel
     idp_name: Zitadel
@@ -68,6 +66,7 @@ oidc_providers:
       config:
         localpart_template: "{{ (user.email.split('@')[0]) if user.email else (user.preferred_username.split('@')[0] if user.preferred_username else 'u' ~ user.sub) }}"
         display_name_template: "{{ user.name or user.preferred_username or user.sub }}"
+        email_template: "{{ user.email }}"
 rc_message:
   per_second: 0.5
   burst_count: 30
