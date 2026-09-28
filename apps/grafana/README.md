@@ -73,7 +73,9 @@ ConfigMap это не влияет, и отдельного подтвержде
 Дашборды: `cloudnative-pg.json` и `postgresql-database.json` — экспорт из UI
 Grafana; `traefik.json` — написан руками под метрики Traefik;
 `traefik-official.json` — официальный дашборд Traefik с grafana.com, вендорен с
-правками под наш datasource (см. ниже).
+правками под наш datasource (см. ниже); `storage-capacity.json` — написан
+руками обзор заполняемости томов: PVC по `kubelet_volume_stats_*`, тома и узлы
+Longhorn по `longhorn_*`, файловые системы узла.
 
 `traefik.json` и `traefik-official.json` не дублируют друг друга: официальный
 не содержит ни одного запроса `traefik_router_*` (все 14 панелей смотрят на
