@@ -40,3 +40,4 @@ configMapGenerator:
       - config/dashboards/storage-capacity.json
       - config/dashboards/traefik.json
       - config/dashboards/traefik-official.json
+      - config/dashboards/logs-overview.json
