@@ -16,9 +16,12 @@
 
 С macOS: провайдер ходит в `https://forgejo.<домен>` напрямую.
 
+Токен вводится командой ниже: ввод не отображается и не попадает в историю.
+
 ```sh macOS
 cd terraform/forgejo
-export FORGEJO_API_TOKEN="<токен>"
+read -rs FORGEJO_API_TOKEN && echo
+export FORGEJO_API_TOKEN
 terraform init
 terraform plan
 ```

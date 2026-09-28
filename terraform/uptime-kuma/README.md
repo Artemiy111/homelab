@@ -32,7 +32,7 @@ terraform apply
 
 ```sh macOS
 export UPTIMEKUMA_USERNAME=…
-read -rsp "Kuma password: " UPTIMEKUMA_PASSWORD UPTIMEKUMA_PASSWORD && echo
+read -rs UPTIMEKUMA_PASSWORD && echo
 export UPTIMEKUMA_PASSWORD
 ```
 
