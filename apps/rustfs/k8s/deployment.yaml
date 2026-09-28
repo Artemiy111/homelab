@@ -71,6 +71,10 @@ spec:
               value: "true"
             - name: RUSTFS_OBS_SERVICE_NAME
               value: rustfs
+            - name: RUSTFS_OBS_LOG_STDOUT_ENABLED
+              value: "true"
+            - name: RUSTFS_OBS_LOGS_EXPORT_ENABLED
+              value: "false"
           startupProbe:
             httpGet:
               path: /health
