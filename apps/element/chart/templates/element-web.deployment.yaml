@@ -17,7 +17,7 @@ spec:
       enableServiceLinks: false
       containers:
         - name: element-web
-          image: "vectorim/element-web:v1.12.26@sha256:a9be04cef41ed94cba0dcaeca5a81f89826d4f8be3d57ba5a6fa988f34eda703"
+          image: "vectorim/element-web:v1.12.29@sha256:da32e88c8dafe2c3d4f40ca5e90ab2f43a7c9ac35f0977ec7662dcb4fdcd56d8"
           ports:
             - name: http
               containerPort: 80
