@@ -341,3 +341,4 @@ scrape_configs:
     static_configs:
       - targets:
           - seafile-mariadb-exporter.seafile.svc.cluster.local:9104
+          - uptime-kuma-mariadb-exporter.uptime-kuma.svc.cluster.local:9104

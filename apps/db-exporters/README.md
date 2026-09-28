@@ -33,7 +33,7 @@ namespace своего сервиса.
 Тип | Под | Порт | Инстансы
 ---|---|---|---
 Redis/Valkey | `redis-exporter` (`v1.91.1`) | 9121 | 9
-MariaDB | `mysqld-exporter` (`v0.20.0`) | 9104 | 1
+MariaDB | `mysqld-exporter` (`v0.20.0`) | 9104 | 2
 
 ### Redis/Valkey (9)
 
@@ -41,11 +41,13 @@ MariaDB | `mysqld-exporter` (`v0.20.0`) | 9104 | 1
 `infisical-redis`, `nextcloud-redis`, `paperless-broker`, `seafile-redis`,
 `sure-redis` — все без аутентификации, экспортеру нужен только `REDIS_ADDR`.
 
-### MariaDB (1)
+### MariaDB (2)
 
-`seafile-mariadb-exporter` → `seafile-mariadb:3306` (MariaDB-инстанс под
-mariadb-operator), пользователь `root`, пароль из Secret
-`seafile`/`INIT_SEAFILE_MYSQL_ROOT_PASSWORD` (через `MYSQLD_EXPORTER_PASSWORD`).
+- `seafile-mariadb-exporter` → `seafile-mariadb:3306` (пользователь `root`,
+  пароль из Secret `seafile`/`INIT_SEAFILE_MYSQL_ROOT_PASSWORD`);
+- `uptime-kuma-mariadb-exporter` → `uptime-kuma-mariadb:3306` (пользователь
+  `root`, пароль из Secret `uptime-kuma-mariadb-root`/
+  `INIT_UPTIME_KUMA_MARIADB_ROOT_PASSWORD`).
 
 ## Развёртывание
 
@@ -56,7 +58,7 @@ kubectl apply -f apps/db-exporters/k8s/
 Проверка, что все экспортеры живы:
 
 ```sh
-kubectl get pods -l 'app in (seafile-mariadb-exporter,seafile-redis-exporter)'
+kubectl get pods -l 'app in (seafile-mariadb-exporter,uptime-kuma-mariadb-exporter,seafile-redis-exporter)'
 ```
 
 Состояние целей в VictoriaMetrics (ожидаем `1` для всех инстансов):
