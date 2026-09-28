@@ -17,6 +17,12 @@ exporters:
     endpoint: tempo.monitoring.svc.cluster.local:4317
     tls:
       insecure: true
+  # Логи уходят в Loki по OTLP/HTTP: Loki 3.x принимает их нативно и маппит
+  # resource-атрибуты в лейблы/structured metadata. Источник — RustFS.
+  otlphttp/loki:
+    endpoint: http://loki.monitoring.svc.cluster.local:3100/otlp
+    tls:
+      insecure: true
 
 processors:
   # Ограничитель памяти обязателен перед batch: без него очередь батчей
@@ -51,3 +57,7 @@ service:
       receivers: [otlp]
       processors: [memory_limiter, batch]
       exporters: [otlp/tempo]
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [otlphttp/loki]
