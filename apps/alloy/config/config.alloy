@@ -65,6 +65,30 @@ loki.process "pods" {
   }
 }
 
+loki.relabel "journal" {
+  forward_to = []
+
+  rule {
+    source_labels = ["__journal__systemd_unit"]
+    target_label  = "unit"
+  }
+
+  rule {
+    source_labels = ["__journal_priority_keyword"]
+    target_label  = "level"
+  }
+
+  rule {
+    target_label = "job"
+    replacement  = "node-journal"
+  }
+}
+
+loki.source.journal "node" {
+  forward_to    = [loki.write.loki.receiver]
+  relabel_rules = loki.relabel.journal.rules
+}
+
 loki.write "loki" {
   endpoint {
     url = "http://loki.monitoring.svc.cluster.local:3100/loki/api/v1/push"
