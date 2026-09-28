@@ -4,7 +4,6 @@ namespace: uptime-kuma
 resources:
   - k8s/namespace.yaml
   - k8s/vaultauth.yaml
-  - k8s/vaultstaticsecret.yaml
   - k8s/vaultstaticsecret-mariadb.yaml
   - k8s/service.yaml
   - k8s/deployment.yaml

@@ -25,3 +25,11 @@ regexTarget = "match"
 regexes = [
   '''tsig-[0-9]+\.<dns-provider>\.com''',
 ]
+
+[[allowlists]]
+description = "Длительности Go в login policy Zitadel: это AsDuration(), а не пароль"
+paths = ['''^terraform/zitadel/policies\.tf$''']
+regexTarget = "match"
+regexes = [
+  '''^\d+h0m0s$''',
+]

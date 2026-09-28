@@ -9,6 +9,7 @@
 | --- | --- | --- |
 | `vault/` | Политики, роли и kubernetes-auth в HashiCorp Vault | `apps/vault/README.md` |
 | `uptime-kuma/` | Мониторы, теги, status page и настройки Uptime Kuma | `terraform/uptime-kuma/README.md` |
+| `zitadel/` | Организация, проект, OIDC-приложения, роли, членства, гранты и политика логина Zitadel | `terraform/zitadel/README.md` |
 
 ## Запуск
 
@@ -30,8 +31,15 @@ terraform plan
 ```
 
 Значения окружения для `terraform/vault` не нужны: провайдер берёт адрес из
-`VAULT_ADDR`, токен — из `~/.vault-token`. У `terraform/uptime-kuma` свой
-набор, он описан в его README.
+`VAULT_ADDR`, токен — из `~/.vault-token`. У `terraform/uptime-kuma` и
+`terraform/zitadel` свои наборы, они описаны в их README.
+
+## Доступ к Zitadel
+
+Провайдер получает путь к JSON-ключу service account (private key JWT), а не сам
+ключ и не токен, поэтому приватный ключ не попадает ни в репозиторий, ни в
+state. Ключ готовится один раз в консоли Zitadel, путь и роли описаны в
+`terraform/zitadel/README.md`.
 
 ## Параметры
 
@@ -44,4 +52,6 @@ terraform plan
 через блок `provider`: аргументы блока в state не сохраняются. Ресурсы, чьи
 атрибуты содержат секреты, в этом репозитории не заводятся — пароль
 администратора Vault в state не лежит, и по той же причине уведомления
-Uptime Kuma остались за пределами Terraform.
+Uptime Kuma остались за пределами Terraform. В `terraform/zitadel` секрет
+`client_secret` приложений намеренно не импортируется: он остаётся в Vault,
+а в state его нет.

@@ -52,11 +52,18 @@ ZITADEL_PAT=... ./zitadel/zitadel-passkey-link.sh
 
 ## OIDC-клиент для oauth2-proxy
 
-Для forward auth (см. `oauth2-proxy/`) создать в консоли ZITADEL приложение:
+Приложение `Oauth Proxy` уже создано и импортировано в Terraform
+(`terraform/zitadel/applications.tf`). client_id и client_secret лежат в Vault:
+`kv/oauth2-proxy/oidc`. Новые клиенты заводить через Terraform, а не в консоли.
 
-- Type: Web;
-- Redirect URI: `https://oauth.example.com/oauth2/callback`;
-- client_id и client_secret записать в Vault: `kv/oauth2-proxy/oidc`.
+## Содержимое инстанса
+
+Организация `homelab`, проект, OIDC-приложения, роли, членства, гранты и
+политика логина описаны в Terraform — `terraform/zitadel/`. Разворачивается
+инстанс здесь, `apps/zitadel/`; Terraform управляет тем, что внутри.
+
+Что осталось в консоли: human users, service account `homelab-service`,
+системные объекты инстанса. Список и причины — `terraform/zitadel/README.md`.
 
 ## Обновление
 

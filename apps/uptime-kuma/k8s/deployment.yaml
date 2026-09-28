@@ -4,9 +4,6 @@ metadata:
   name: uptime-kuma
   namespace: uptime-kuma
 spec:
-  # SQLite на RWO-томе: два пода при rolling update пишут в одну БД.
-  # Recreate, а не RollingUpdate: два пода одновременно означали бы две копии
-  # мониторов, пишущих heartbeat'ы в одну базу и дублирующих алерты.
   strategy:
     type: Recreate
   revisionHistoryLimit: 2
@@ -32,14 +29,10 @@ spec:
           env:
             - name: NODE_OPTIONS
               value: "--max-old-space-size=512"
-            # Внешняя MariaDB вместо встроенной (platform/mariadb). Без
-            # UPTIME_KUMA_DB_TYPE Kuma 2.x поднимает embedded-mariadb внутри
-            # пода и держит данные в /app/data/mariadb.
-            #
             # Переменные перекрывают /app/data/db-config.json: в
             # server/setup-database.js приоритет env над файлом, и Kuma
-            # переписывает конфигурацию сама. Учти, что она записывает туда же
-            # пароль открытым текстом — это её устройство, а не настройка.
+            # переписывает конфигурацию сама. Она записывает туда же
+            # пароль открытым текстом.
             - name: UPTIME_KUMA_DB_TYPE
               value: "mariadb"
             - name: UPTIME_KUMA_DB_HOSTNAME
@@ -93,8 +86,7 @@ spec:
             - name: data
               mountPath: /app/data
       volumes:
-        # Мониторы, история и настройки лежат во внешней MariaDB
-        # (platform/mariadb), поэтому PVC больше не нужен. В /app/data остаются
+        # В /app/data остаются
         # db-config.json, upload/, screenshots/ и error.log: первый Kuma
         # переписывает из переменных окружения при каждом старте, скриншоты
         # пересоздаются проверками, а загрузки из UI переживут только до

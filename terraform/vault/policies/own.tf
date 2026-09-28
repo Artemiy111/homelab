@@ -115,8 +115,6 @@ resource "vault_policy" "app_uptime_kuma" {
   name = "app/uptime-kuma"
 
   policy = <<-EOT
-    path "kv/data/uptime-kuma/sync"      { capabilities = ["read"] }
-    path "kv/metadata/uptime-kuma/sync"  { capabilities = ["read", "list"] }
     path "kv/data/uptime-kuma/db"        { capabilities = ["read"] }
     path "kv/metadata/uptime-kuma/db"    { capabilities = ["read", "list"] }
     path "kv/data/uptime-kuma/root"      { capabilities = ["read"] }
