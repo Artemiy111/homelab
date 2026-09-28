@@ -34,8 +34,9 @@ VictoriaMetrics как datasource.
 
 Datasource VictoriaMetrics описан декларативно в `config/datasources.yaml`
 (uid `victoriametrics` зафиксирован — на него ссылаются панели дашбордов).
-Там же заведён datasource Tempo (uid `tempo`, `http://tempo:3200`), поверх
-которого работает Explore с трейсами (`apps/tempo/`).
+Там же заведены datasource Tempo (uid `tempo`, `http://tempo:3200`) и Loki
+(uid `loki`, `http://loki:3100`) — поверх них работает Explore с трейсами
+(`apps/tempo/`) и логами (`apps/loki/`).
 
 Дашборды тоже код: JSON-файлы в `config/dashboards/`, провайдер — в
 `config/dashboards.yaml`. Провайдер собирается с `allowUiUpdates: false`:

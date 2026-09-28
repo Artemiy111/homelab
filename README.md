@@ -88,7 +88,7 @@ production-практикам DevOps.
 | Uptime Kuma | Мониторинг доступности | `kuma.example.com` |
 | Beszel | Метрики хоста | `beszel.example.com` |
 | GlitchTip | Сбор ошибок приложений (Sentry SDK) | `glitchtip.example.com` |
-| Elasticsearch + Kibana | Централизованные логи (Filebeat) | `kibana.example.com` |
+| Loki + Grafana Alloy | Централизованные логи (Alloy DaemonSet → Loki) | без UI |
 | node-exporter | Метрики узла (`node_*`) для vmagent | без UI |
 | db-exporters | Экспортеры PostgreSQL / Redis / MariaDB | без UI |
 | otel-collector | Приём OTLP и отдача в Prometheus-формате | без UI |

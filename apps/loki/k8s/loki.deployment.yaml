@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: loki
+  namespace: monitoring
+spec:
+  # RWO-том loki-data: два пода при rolling update пишут в один каталог.
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
+  replicas: 1
+  selector:
+    matchLabels:
+      app: loki
+  template:
+    metadata:
+      labels:
+        app: loki
+    spec:
+      enableServiceLinks: false
+      # fsGroup даёт групповую запись в том Longhorn под uid/gid 10001 образа
+      # grafana/loki (USER 10001).
+      securityContext:
+        fsGroup: 10001
+      containers:
+        - name: loki
+          image: "grafana/loki:3.7.6@sha256:efd47c67f9bac88ca29bcf8cb997d9ab29d1848bd0aff579282295542a745952"
+          args:
+            - -config.file=/etc/loki/loki.yaml
+          ports:
+            - name: http
+              containerPort: 3100
+          startupProbe:
+            httpGet:
+              path: /ready
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /ready
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          securityContext:
+            runAsUser: 10001
+            runAsGroup: 10001
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          volumeMounts:
+            - name: config
+              mountPath: /etc/loki
+              readOnly: true
+            - name: data
+              mountPath: /var/loki
+      volumes:
+        - name: config
+          configMap:
+            name: loki-config
+        - name: data
+          persistentVolumeClaim:
+            claimName: loki-data

@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: alloy
+  namespace: monitoring
+spec:
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: alloy
+  template:
+    metadata:
+      labels:
+        app: alloy
+    spec:
+      enableServiceLinks: false
+      serviceAccountName: alloy
+      containers:
+        - name: alloy
+          image: "grafana/alloy:v1.20.0@sha256:f111cce835516c5f99166342be7038496b52ced16667be5a11e19258a3e4cd30"
+          args:
+            - run
+            - /etc/alloy/config.alloy
+            - --storage.path=/var/lib/alloy/data
+          env:
+            # DaemonSet читает логи только подов своей ноды: discovery.kubernetes
+            # фильтрует их по spec.nodeName, а не тянет весь кластер каждым подом.
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          startupProbe:
+            httpGet:
+              path: /-/ready
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /-/healthy
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /-/ready
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          ports:
+            - name: http
+              containerPort: 12345
+          securityContext:
+            fsGroup: 10001
+            runAsUser: 10001
+            runAsGroup: 10001
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              memory: 512Mi
+          volumeMounts:
+            - name: config
+              mountPath: /etc/alloy
+              readOnly: true
+            - name: data
+              mountPath: /var/lib/alloy/data
+      volumes:
+        - name: config
+          configMap:
+            name: alloy-config
+        - name: data
+          emptyDir: {}
