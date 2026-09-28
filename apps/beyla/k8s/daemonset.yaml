@@ -1,0 +1,114 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: beyla
+  namespace: monitoring
+  annotations:
+    # В DaemonSet hostPID обязателен: без него Beyla не видит процессы
+    # соседних контейнеров на узле.
+    ignore-check.kube-linter.io/host-pid: "eBPF-инструментация требует видимости процессов узла (#542)"
+    # CAP_SYS_ADMIN нужен для uprobes (инструментация на уровне библиотек).
+    # Привилегированный контейнер не используется: capabilities ограничены
+    # явным списком, allowPrivilegeEscalation=false, rootfs read-only.
+    ignore-check.kube-linter.io/privilege-escalation-container: "CAP_SYS_ADMIN обязателен для uprobes в eBPF (#542)"
+spec:
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: beyla
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: beyla
+    spec:
+      serviceAccountName: beyla
+      hostPID: true
+      enableServiceLinks: false
+      containers:
+        - name: beyla
+          image: "grafana/beyla:3.37.0@sha256:bbb325e07ad0f242cf6281b4a94ca026ec9504b2cf9a12d7db582e281727520f"
+          env:
+            - name: BEYLA_CONFIG_PATH
+              value: /config/beyla.yml
+            - name: KUBE_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          ports:
+            - name: health
+              containerPort: 8080
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: health
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: health
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          securityContext:
+            runAsUser: 0
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              # Набор из официального примера unprivileged-развёртывания.
+              # SYS_ADMIN нужен для uprobes (инструментация на уровне
+              # библиотек), PERFMON — для загрузки BPF-программ,
+              # NET_RAW — для socket-фильтров, DAC_READ_SEARCH и
+              # CHECKPOINT_RESTORE — для чтения ELF, SYS_PTRACE — для
+              # доступа к /proc и namespace'ам контейнеров.
+              add:
+                - BPF
+                - SYS_ADMIN
+                - SYS_PTRACE
+                - NET_RAW
+                - DAC_READ_SEARCH
+                - PERFMON
+                - CHECKPOINT_RESTORE
+              drop:
+                - ALL
+          volumeMounts:
+            - name: config
+              mountPath: /config
+              readOnly: true
+            - name: var-run-beyla
+              mountPath: /var/run/beyla
+            - name: cgroup
+              mountPath: /sys/fs/cgroup
+              readOnly: true
+            - name: tracefs
+              mountPath: /sys/kernel/tracing
+              readOnly: true
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+      tolerations:
+        - effect: NoSchedule
+          operator: Exists
+        - effect: NoExecute
+          operator: Exists
+      volumes:
+        - name: config
+          configMap:
+            name: beyla-config
+        - name: var-run-beyla
+          emptyDir: {}
+        - name: cgroup
+          hostPath:
+            path: /sys/fs/cgroup
+            type: Directory
+        - name: tracefs
+          hostPath:
+            path: /sys/kernel/tracing
+            type: Directory
