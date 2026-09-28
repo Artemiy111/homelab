@@ -19,7 +19,7 @@ spec:
       # 10001, от которого работает непривилегированный Alloy.
       securityContext:
         fsGroup: 10001
-        supplementalGroups: [190, 4]
+        supplementalGroups: [190]
       containers:
         - name: alloy
           image: "grafana/alloy:v1.20.0@sha256:f111cce835516c5f99166342be7038496b52ced16667be5a11e19258a3e4cd30"
