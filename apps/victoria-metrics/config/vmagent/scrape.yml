@@ -147,6 +147,13 @@ scrape_configs:
       - targets:
           - tempo.monitoring.svc.cluster.local:3200
 
+  # Longhorn: менеджер отдаёт longhorn_* метрики (тома, диски, узлы) на 9500;
+  # доступ открыт доп. NetworkPolicy platform/longhorn/networkpolicy-metrics.yaml.
+  - job_name: longhorn
+    static_configs:
+      - targets:
+          - longhorn-backend.longhorn-system.svc.cluster.local:9500
+
   - job_name: jitsi-jvb
     static_configs:
       - targets:

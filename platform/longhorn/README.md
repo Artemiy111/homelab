@@ -31,6 +31,7 @@ Longhorn подключается явным `storageClassName` в PVC. Тома
 | `argocd/applications/snapshot-controller.yaml` | CRD + контроллер CSI-снапшотов (`kube-system`) |
 | `platform/longhorn/storageclasses.yaml` | StorageClass `longhorn` (Delete) и `longhorn-retain` (Retain) |
 | `platform/longhorn/volumesnapshotclass.yaml` | VolumeSnapshotClass: `longhorn-snapshot` (default, `type: snap`) и `longhorn-backup` (`type: bak`) |
+| `platform/longhorn/networkpolicy-metrics.yaml` | Доступ vmagent к метрикам менеджера (порт 9500) для job `longhorn` |
 | `platform/homelab/templates/routes/longhorn.yaml` | UI за oauth2-proxy |
 | `ansible/host.yml` (роль `longhorn_prereqs`), `etc/selinux/local_longhorn.cil` | Подготовка узла: `iscsid`, NFSv4-клиент, каталог данных, SELinux-модуль |
 
@@ -76,6 +77,9 @@ kubectl -n longhorn-system get pods --watch
 # 5. Классы и снапшот-класс
 kubectl apply -f platform/longhorn/storageclasses.yaml
 kubectl apply -f platform/longhorn/volumesnapshotclass.yaml
+
+# 5a. Доступ vmagent к метрикам Longhorn (дополняет чартовую NetworkPolicy)
+kubectl apply -f platform/longhorn/networkpolicy-metrics.yaml
 
 # 6. UI за oauth2-proxy
 helm template platform/homelab -f platform/homelab/values.private.yaml | kubectl apply -f -

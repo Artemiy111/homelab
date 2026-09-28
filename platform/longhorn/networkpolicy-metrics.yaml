@@ -1,0 +1,26 @@
+# Дополнение к NetworkPolicy `longhorn-manager` из чарта Longhorn: чартовая
+# пускает к менеджеру только внутренние компоненты Longhorn, а vmagent должен
+# скрейпить longhorn_* метрики с порта 9500. NetworkPolicy аддитивны: это
+# правило открывает доступ monitoring/vmagent, не трогая чартовую политику.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: longhorn-manager-metrics
+  namespace: longhorn-system
+spec:
+  podSelector:
+    matchLabels:
+      app: longhorn-manager
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+          podSelector:
+            matchLabels:
+              app: vmagent
+      ports:
+        - port: 9500
+          protocol: TCP
