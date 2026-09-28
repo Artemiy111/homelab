@@ -1,8 +1,9 @@
 # Commit conventions
 
-Сообщения коммитов следуют **Conventional Commits** и проверяются `commitlint`:
-локально — git-хуком husky (`.husky/commit-msg`), в CI — workflow
-`.forgejo/workflows/commitlint.yml`. Правила заданы в `commitlint.config.mjs`.
+Сообщения коммитов следуют **Conventional Commits**, пишутся на **английском** и
+проверяются `commitlint`: локально — git-хуком husky (`.husky/commit-msg`), в CI —
+workflow `.forgejo/workflows/commitlint.yml`. Правила заданы в
+`commitlint.config.mjs`.
 
 ## Формат
 
@@ -14,7 +15,7 @@ type(scope): subject
 | --- | --- |
 | `type` | один из `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert` |
 | `scope` | необязательно; подсистема или сервис в нижнем регистре (`argocd`, `traefik`, `forgejo`, `sealed-secrets`, `dotfiles`, имя приложения из `apps/`) |
-| `subject` | императив, нижний регистр (имена собственные допустимы: `Zitadel`, `DoH`, `GLITCHTIP`), без точки в конце |
+| `subject` | императив на английском, нижний регистр (имена собственные допустимы: `Zitadel`, `DoH`, `GLITCHTIP`), без точки в конце |
 | header | ≤ 72 символов, включая `type(scope): ` (для заголовка PR — с учётом ` (#<n>)`, см. ниже) |
 | body | **запрещено** (правило `body-empty`) |
 | footer | разрешён: `Refs #12`; `Reviewed-on` намеренно не добавляем — мержим с `-m ""` (см. ниже) |

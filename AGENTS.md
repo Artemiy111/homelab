@@ -26,7 +26,7 @@ Issues and specs are tracked in Forgejo Issues. See `docs/agents/issue-tracker.m
 
 ### Commit conventions
 
-Commit messages follow Conventional Commits and are checked by commitlint. See `docs/agents/commit-conventions.md`.
+Commit messages follow Conventional Commits, are written in English, and are checked by commitlint. See `docs/agents/commit-conventions.md`.
 
 ### Triage labels
 
