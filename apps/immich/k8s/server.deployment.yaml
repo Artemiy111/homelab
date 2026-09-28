@@ -87,6 +87,8 @@ spec:
               value: immich
             - name: IMMICH_TELEMETRY_INCLUDE
               value: all
+            - name: IMMICH_LOG_FORMAT
+              value: json
           startupProbe:
             httpGet:
               path: /api/server/ping

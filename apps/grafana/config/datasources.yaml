@@ -42,6 +42,6 @@ datasources:
       # Ссылка log → trace: находим trace_id в строке лога и открываем трейс.
       derivedFields:
         - name: TraceID
-          matcherRegex: '"trace_id":"(\w+)"'
+          matcherRegex: '(?:trace_id|traceId|traceID|TraceId)[^ ]{0,4}?([0-9a-fA-F]{16,})'
           url: "$${__value.raw}"
           datasourceUid: tempo
