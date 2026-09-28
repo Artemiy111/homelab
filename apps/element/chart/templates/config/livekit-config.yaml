@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: element-livekit-config
+  namespace: element
+data:
+  config.yaml: |-
+    port: 7880
+    prometheus:
+      port: 6789
+    rtc:
+      tcp_port: 7881
+      port_range_start: 50000
+      port_range_end: 50499
+      use_external_ip: false
+    redis:
+      address: element-valkey:6379
+    key_file: /etc/livekit-keys/keys.yaml
+    logging:
+      level: info

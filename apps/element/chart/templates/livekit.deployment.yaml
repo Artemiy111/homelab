@@ -42,6 +42,42 @@ spec:
             limits:
               cpu: 100m
               memory: 64Mi
+        - name: render-keys
+          image: "valkey/valkey:9@sha256:8e8d64b405ce18f41b8e5ee20aa4687a8ed0022d1298f2ce31cdcf3a76e09411"
+          command:
+            - /bin/sh
+            - -c
+            - 'printf "%s: %s\n" "$LIVEKIT_API_KEY" "$LIVEKIT_API_SECRET" > /etc/livekit-keys/keys.yaml'
+          env:
+            - name: LIVEKIT_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: element-secrets
+                  key: LIVEKIT_API_KEY
+            - name: LIVEKIT_API_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: element-secrets
+                  key: LIVEKIT_API_SECRET
+          securityContext:
+            runAsUser: 999
+            runAsGroup: 999
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 50m
+              memory: 32Mi
+          volumeMounts:
+            - name: keys
+              mountPath: /etc/livekit-keys
       containers:
         - name: livekit
           image: "livekit/livekit-server:v1.13.5@sha256:3497163e15c48fef6e7830c78716f9e9d5edc28abf7aa90b61c86e93bbc306b1"
@@ -105,9 +141,14 @@ spec:
           volumeMounts:
             - name: config
               mountPath: /etc/livekit/config.yaml
+              subPath: config.yaml
+              readOnly: true
+            - name: keys
+              mountPath: /etc/livekit-keys
               readOnly: true
       volumes:
         - name: config
-          hostPath:
-            path: /storage/apps/element/livekit/config.yaml
-            type: File
+          configMap:
+            name: element-livekit-config
+        - name: keys
+          emptyDir: {}
