@@ -7,3 +7,8 @@ import {
   to = forgejo_branch_protection.main
   id = "artemiy/homelab/main"
 }
+
+import {
+  to = forgejo_repository.mirror["checkout"]
+  id = "actions/checkout"
+}

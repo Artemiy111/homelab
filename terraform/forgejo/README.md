@@ -1,8 +1,8 @@
 # Forgejo (Terraform)
 
-Управляет настройками репозитория `artemiy/homelab` и защитой его ветки `main`.
-Развёртывание самого инстанса — `apps/forgejo/` (Argo CD + `forgejo-helm`),
-здесь только его содержимое.
+Управляет настройками репозитория `artemiy/homelab`, защитой его ветки `main` и
+пилотным pull-зеркалом `actions/checkout`. Развёртывание самого инстанса —
+`apps/forgejo/` (Argo CD + `forgejo-helm`), здесь только его содержимое.
 
 ## Что управляется
 
@@ -10,6 +10,7 @@
 | --- | --- | --- |
 | `forgejo_repository.homelab` | репозиторий `artemiy/homelab` | squash — единственный стиль merge, набор unit'ов, wiki, трекер |
 | `forgejo_branch_protection.main` | ветка `main` | запрет прямого push, обязательные status checks |
+| `forgejo_repository.mirror["..."]` | pull-зеркала `actions/*` | upstream и интервал синхронизации |
 
 ## Запуск
 
@@ -48,18 +49,19 @@ domain = "example.com"
 
 ## Импорт
 
-`imports.tf` переносит в state два уже существующих объекта. Id импорта —
+`imports.tf` переносит в state три уже существующих объекта. Id импорта —
 человекочитаемые, числовые ID из базы не нужны:
 
 | Ресурс | Id |
 | --- | --- |
 | `forgejo_repository.homelab` | `artemiy/homelab` |
 | `forgejo_branch_protection.main` | `artemiy/homelab/main` |
+| `forgejo_repository.mirror["checkout"]` | `actions/checkout` |
 
 ```sh macOS
 terraform init
-terraform plan     # 2 to import
-terraform apply    # импорт + правка двух write-only полей (см. ниже)
+terraform plan     # 3 to import
+terraform apply    # импорт + правка write-only полей (см. ниже)
 terraform plan     # No changes
 ```
 
@@ -72,18 +74,37 @@ terraform plan     # No changes
 ```sh macOS
 curl -fsS -H "Authorization: token $FORGEJO_API_TOKEN" \
   "https://forgejo.$DOMAIN/api/v1/repos/artemiy/homelab"
+curl -fsS -H "Authorization: token $FORGEJO_API_TOKEN" \
+  "https://forgejo.$DOMAIN/api/v1/repos/actions/checkout"
 ```
 
-## Осторожно: репозиторий
+## Осторожно: репозиторий и зеркала
 
-У `forgejo_repository` есть create-only поля — `auto_init`, `gitignores`,
-`license`, `readme`, `issue_labels`, `template`, `clone_addr`, `mirror`,
-`mirror_interval`. Изменение любого из них **пересоздаёт репозиторий с потерей
-данных**, поэтому они не заданы (они `Optional + Computed`) и добавлять их
-нельзя. Поле `auth_token` содержит секрет и тоже не задаётся.
+`forgejo_repository` пересоздаёт репозиторий при изменении create-only полей —
+`auto_init`, `gitignores`, `license`, `readme`, `issue_labels`, `template`,
+`clone_addr`, `mirror`, `mirror_interval`. На ресурсе стоит
+`lifecycle.prevent_destroy` как страховка.
 
-На `forgejo_repository.homelab` стоит `lifecycle.prevent_destroy`: удаление
-репозитория — потеря кода.
+Для `homelab` эти поля не заданы (они `Optional + Computed`), поэтому обычная
+правка репозитория их не трогает. Поле `auth_token` содержит секрет и не задаётся.
+
+Для зеркал `clone_addr` и `mirror` заданы намеренно и обязаны совпадать с
+сервером символ в символ — см. «Зеркала actions/».
+
+## Зеркала actions/
+
+`mirrors.tf` описывает pull-зеркала организации `actions` одной картой
+`local.mirrors`: добавление зеркала — запись в карте плюс блок `import`. Пилот —
+только `actions/checkout`; `actions/cache` в карту не входит, это не зеркало, а
+ручной снапшот (`apps/forgejo/README.md`).
+
+Значения берутся из дампа сервера, потому что `mirror` и `clone_addr` —
+create-only (`RequiresReplaceIfConfigured`): любое расхождение даёт
+destroy+recreate. Поэтому `clone_addr` — это ровно `original_url` с сервера
+(вместе с `.git`), а `mirror_interval` — гошная строка (`8h0m0s`).
+
+Организация `actions` при этом не управляется (см. ниже): репозитории
+импортируются независимо от неё.
 
 ## Ограничения провайдера
 
