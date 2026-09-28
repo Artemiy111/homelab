@@ -196,10 +196,81 @@
       "options": { "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["lastNotNull"] }, "tooltip": { "mode": "multi" } }
     },
     {
+      "id": 13,
+      "type": "table",
+      "title": "PVC: занято / ёмкость / заполнено",
+      "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 15 },
+      "targets": [
+        {
+          "refId": "USED",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "expr": "kubelet_volume_stats_used_bytes{namespace=~\"$namespace\"}",
+          "instant": true,
+          "format": "table"
+        },
+        {
+          "refId": "CAP",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "expr": "kubelet_volume_stats_capacity_bytes{namespace=~\"$namespace\"}",
+          "instant": true,
+          "format": "table"
+        },
+        {
+          "refId": "PCT",
+          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
+          "expr": "100 * kubelet_volume_stats_used_bytes{namespace=~\"$namespace\"} / kubelet_volume_stats_capacity_bytes{namespace=~\"$namespace\"}",
+          "instant": true,
+          "format": "table"
+        }
+      ],
+      "transformations": [
+        { "id": "labelsToFields", "options": { "mode": "columns" } },
+        { "id": "joinByField", "options": { "byField": "persistentvolumeclaim", "mode": "outer" } },
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "pattern": "^(persistentvolumeclaim|namespace|kubelet_volume_stats_used_bytes|kubelet_volume_stats_capacity_bytes|Value)$"
+            }
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {},
+            "renameByName": {
+              "persistentvolumeclaim": "PVC",
+              "namespace": "namespace",
+              "kubelet_volume_stats_used_bytes": "занято",
+              "kubelet_volume_stats_capacity_bytes": "ёмкость",
+              "Value": "заполнено %"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "занято" }, "properties": [ { "id": "unit", "value": "bytes" } ] },
+          { "matcher": { "id": "byName", "options": "ёмкость" }, "properties": [ { "id": "unit", "value": "bytes" } ] },
+          {
+            "matcher": { "id": "byName", "options": "заполнено %" },
+            "properties": [
+              { "id": "unit", "value": "percent" },
+              { "id": "custom.displayMode", "value": "color-background" },
+              { "id": "thresholds", "value": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "yellow", "value": 75 }, { "color": "red", "value": 90 } ] } }
+            ]
+          }
+        ]
+      },
+      "options": { "showHeader": true, "sortBy": [ { "displayName": "заполнено %", "desc": true } ] }
+    },
+    {
       "id": 8,
       "type": "row",
       "title": "Longhorn",
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 15 },
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 24 },
       "collapsed": false
     },
     {
@@ -207,7 +278,7 @@
       "type": "timeseries",
       "title": "Longhorn: занято / ёмкость узлов",
       "datasource": { "type": "prometheus", "uid": "victoriametrics" },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 25 },
       "targets": [
         {
           "refId": "A",
@@ -233,7 +304,7 @@
       "type": "bargauge",
       "title": "Longhorn: заполнение томов (actual / capacity)",
       "datasource": { "type": "prometheus", "uid": "victoriametrics" },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 25 },
       "targets": [
         {
           "refId": "A",
@@ -260,7 +331,7 @@
       "type": "timeseries",
       "title": "Longhorn: состояние томов (robustness)",
       "datasource": { "type": "prometheus", "uid": "victoriametrics" },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 33 },
       "targets": [
         {
           "refId": "A",
@@ -281,7 +352,7 @@
       "title": "Файловые системы узла",
       "description": "заполнение по mountpoint (без tmpfs/ramfs)",
       "datasource": { "type": "prometheus", "uid": "victoriametrics" },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 33 },
       "targets": [
         {
           "refId": "A",
