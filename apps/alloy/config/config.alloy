@@ -34,7 +34,35 @@ discovery.relabel "pods" {
 
 loki.source.kubernetes "pods" {
   targets    = discovery.relabel.pods.output
+  forward_to = [loki.process.pods.receiver]
+}
+
+loki.process "pods" {
   forward_to = [loki.write.loki.receiver]
+
+  stage.json {
+    expressions = {
+      level    = "level"
+      trace_id = "trace_id"
+      span_id  = "span_id"
+    }
+  }
+
+  stage.logfmt {
+    mapping = {
+      level    = "level"
+      trace_id = "traceId"
+      span_id  = "spanId"
+    }
+  }
+
+  stage.structured_metadata {
+    values = {
+      level    = ""
+      trace_id = ""
+      span_id  = ""
+    }
+  }
 }
 
 loki.write "loki" {
