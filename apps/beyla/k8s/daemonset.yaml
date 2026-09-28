@@ -3,6 +3,14 @@ kind: DaemonSet
 metadata:
   name: beyla
   namespace: monitoring
+  annotations:
+    # В DaemonSet hostPID обязателен: без него Beyla не видит процессы
+    # соседних контейнеров на узле.
+    ignore-check.kube-linter.io/host-pid: "eBPF-инструментация требует видимости процессов узла (#542)"
+    # CAP_SYS_ADMIN нужен для uprobes (инструментация на уровне библиотек).
+    # Привилегированный контейнер не используется: capabilities ограничены
+    # явным списком, allowPrivilegeEscalation=false, rootfs read-only.
+    ignore-check.kube-linter.io/privilege-escalation-container: "CAP_SYS_ADMIN обязателен для uprobes в eBPF (#542)"
 spec:
   revisionHistoryLimit: 2
   selector:
@@ -14,11 +22,6 @@ spec:
     metadata:
       labels:
         app: beyla
-      annotations:
-        # В DaemonSet hostPID обязателен: без него Beyla не видит процессы
-        # соседних контейнеров на узле. Привилегированный контейнер не нужен —
-        # хватает перечисленных capabilities (см. securityContext).
-        ignore-check.kube-linter.io/host-pid: "Beyla needs hostPID to discover node processes (#542)"
     spec:
       serviceAccountName: beyla
       hostPID: true
