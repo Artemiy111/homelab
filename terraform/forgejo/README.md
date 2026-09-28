@@ -1,8 +1,17 @@
 # Forgejo (Terraform)
 
-Защита ветки `main` репозитория `artemiy/homelab`. Развёртывание самого
+Управляет содержимым инстанса Forgejo: репозиторием `artemiy/homelab`, защитой
+его ветки `main` и организацией `actions` (зеркала экшенов). Развёртывание самого
 инстанса — `apps/forgejo/` (Argo CD + `forgejo-helm`), здесь только его
 содержимое.
+
+## Что управляется
+
+| Ресурс | Объект | Что фиксирует |
+| --- | --- | --- |
+| `forgejo_organization.actions` | организация `actions` | `visibility = public`, `repo_admin_change_team_access` |
+| `forgejo_repository.homelab` | репозиторий `artemiy/homelab` | squash — единственный стиль merge, набор unit'ов, wiki, трекер |
+| `forgejo_branch_protection.main` | ветка `main` | запрет прямого push, обязательные status checks |
 
 ## Запуск
 
@@ -22,8 +31,8 @@ terraform plan
 здесь вообще нет (см. «Чего модуль не делает»).
 
 Токен заводится один раз в веб-интерфейсе: **Settings → Applications → Access
-tokens → Generate new token**. Достаточно скоупа `write:repository`; для
-управления пользователями и их ресурсами потребовался бы `write:admin`.
+tokens → Generate new token**. Нужны скоупы `write:repository` (репозиторий и
+защита ветки) и `write:organization` (организация).
 
 Самоподписанный сертификат Forgejo-клиент игнорировать не умеет — хост должен
 отдавать сертификат, которому доверяет macOS. Публичный домен стенда этому
@@ -40,51 +49,62 @@ domain = "example.com"
 подставляется `forgejo.${var.domain}`, как в `apps/forgejo`. Реальное значение —
 в `terraform.tfvars`, который не коммитится.
 
-## Импорт защиты ветки
+## Импорт
 
-Импорт идёт по человекочитаемому id `<owner>/<repo>/<branch>` — числовые ID из
-базы искать не нужно. Числовой `repository_id`, который требует ресурс,
-резолвится через data source `forgejo_repository` по имени и владельцу.
+`imports.tf` переносит в state три уже существующих объекта. Id импорта —
+человекочитаемые, числовые ID из базы не нужны:
 
-`imports.tf` переносит уже существующую защиту `main` в state декларативно:
+| Ресурс | Id |
+| --- | --- |
+| `forgejo_organization.actions` | `actions` |
+| `forgejo_repository.homelab` | `artemiy/homelab` |
+| `forgejo_branch_protection.main` | `artemiy/homelab/main` |
 
 ```sh macOS
 terraform init
-terraform plan
+terraform plan     # 3 to import, 0 to add, 0 to change, 0 to destroy
+terraform apply    # выполняет только импорт
+terraform plan     # No changes
 ```
 
-Первый plan покажет `1 to import, 0 to add, 0 to change, 0 to destroy`.
-`terraform apply` выполняет импорт; после него plan — `No changes`. Блок
-`import` идемпотентен и остаётся в репозитории: повторный импорт тех же объектов
-ничего не меняет.
+Блоки `import` идемпотентны и остаются в репозитории: повторный импорт тех же
+объектов ничего не меняет.
 
-Альтернатива — импорт из командной строки или генерация конфига из сервера:
-
-```sh macOS
-terraform import forgejo_branch_protection.main artemiy/homelab/main
-terraform plan -generate-config-out=generated.tf   # черновик конфига по серверу
-```
-
-Если plan предлагает правку, сначала сравнить её с `curl`-выводом текущей
-защиты, а не нажимать apply:
+Если plan предлагает правку, сначала сравнить её с `curl`-выводом текущего
+состояния, а не нажимать apply:
 
 ```sh macOS
 curl -fsS -H "Authorization: token $FORGEJO_API_TOKEN" \
-  "https://forgejo.$DOMAIN/api/v1/repos/artemiy/homelab/branch_protections"
+  "https://forgejo.$DOMAIN/api/v1/repos/artemiy/homelab"
+curl -fsS -H "Authorization: token $FORGEJO_API_TOKEN" \
+  "https://forgejo.$DOMAIN/api/v1/orgs/actions"
 ```
+
+## Осторожно: репозиторий и организация
+
+У `forgejo_repository` есть create-only поля — `auto_init`, `gitignores`,
+`license`, `readme`, `issue_labels`, `template`, `clone_addr`, `mirror`, `mirror_interval`.
+Изменение любого из них **пересоздаёт репозиторий с потерей данных**, поэтому они
+не заданы (они `Optional + Computed`) и добавлять их нельзя. Поле `auth_token`
+содержит секрет и тоже не задаётся.
+
+На `forgejo_repository.homelab` и `forgejo_organization.actions` стоит
+`lifecycle.prevent_destroy`: удаление репозитория — потеря кода, удаление
+организации `actions` — потеря зеркал экшенов.
 
 ## Почему часть полей не задана
 
-Все настройки защиты, кроме `branch_name` и `repository_id`, в схеме провайдера —
-`Optional + Computed`: не объявив их, Terraform берёт серверное значение в state
-и не следит за дрейфом. Значения, которые нужно удерживать, выписаны в
-`branch-protection.tf` явно.
+Все настройки, кроме обязательных, в схеме провайдера — `Optional + Computed`:
+не объявив их, Terraform берёт серверное значение в state и не следит за дрейфом.
+Значения, которые нужно удерживать (стиль merge, набор unit'ов, видимость
+организации), выписаны явно. Пустые строки (`description`, `website`, `location`)
+не заданы: пустое значение и отсутствие значения неотличимы на сервере.
 
-Whitelist-поля (`*_whitelist_usernames`, `*_whitelist_teams`,
+Whitelist-поля защиты ветки (`*_whitelist_usernames`, `*_whitelist_teams`,
 `push_whitelist_deploy_keys`) не заданы сознательно: сейчас все соответствующие
 `enable_*_whitelist` выключены, а провайдер на уровне `ValidateConfig` запрещает
-whitelist-атрибут при выключенном флаге. Включать их — нечего; когда понадобится
-ограничить push/merge/approvals кругом лиц, флаги и списки добавляются вместе.
+whitelist-атрибут при выключенном флаге. Когда понадобится ограничить
+push/merge/approvals кругом лиц, флаги и списки добавляются вместе.
 
 Два поля защиты провайдер не умеет: `apply_to_admins` и `ignore_stale_approvals`.
 Они остаются как есть и вне Terraform.
@@ -103,3 +123,7 @@ whitelist-атрибут при выключенном флаге. Включа�
 
 То же решение, что `client_secret` приложений Zitadel и уведомления Uptime Kuma.
 Push-зеркало в GitHub тоже вне модуля: URL зеркала содержит токен.
+
+Провайдер также не умеет OAuth2-приложения, защиту тегов, instance-настройки
+(`app.ini`) и регистрацию раннера — последняя делается через
+`forgejo-cli actions register` (`apps/forgejo/README.md`).

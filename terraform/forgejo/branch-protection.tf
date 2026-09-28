@@ -1,11 +1,6 @@
-data "forgejo_repository" "homelab" {
-  owner = "artemiy"
-  name  = "homelab"
-}
-
 resource "forgejo_branch_protection" "main" {
   branch_name   = "main"
-  repository_id = data.forgejo_repository.homelab.id
+  repository_id = forgejo_repository.homelab.id
 
   enable_push = false
 
