@@ -15,6 +15,10 @@ spec:
     spec:
       enableServiceLinks: false
       serviceAccountName: alloy
+      # fsGroup даёт групповую запись в emptyDir /var/lib/alloy/data под uid/gid
+      # 10001, от которого работает непривилегированный Alloy.
+      securityContext:
+        fsGroup: 10001
       containers:
         - name: alloy
           image: "grafana/alloy:v1.20.0@sha256:f111cce835516c5f99166342be7038496b52ced16667be5a11e19258a3e4cd30"
@@ -54,7 +58,6 @@ spec:
             - name: http
               containerPort: 12345
           securityContext:
-            fsGroup: 10001
             runAsUser: 10001
             runAsGroup: 10001
             runAsNonRoot: true
