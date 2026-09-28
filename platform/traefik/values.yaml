@@ -38,6 +38,7 @@ metrics:
   prometheus:
     service:
       enabled: true
+    addRoutersLabels: true
 
 # Нативный health-endpoint entrypoint'а. Нужен, чтобы мониторинг проверял
 # живость Traefik без авторизации: панель /dashboard закрыта oauth2-proxy и
@@ -45,6 +46,21 @@ metrics:
 # (монитор раз в минуту — это ~1440 событий в eventstore в сутки).
 additionalArguments:
   - --ping
+
+accessLog:
+  enabled: true
+  format: json
+  fields:
+    queryParameters:
+      defaultMode: drop
+
+tracing:
+  sampleRate: 1.0
+  otlp:
+    enabled: true
+    http:
+      enabled: true
+      endpoint: http://otel-collector.monitoring.svc.cluster.local:4318/v1/traces
 
 ingressRoute:
   healthcheck:
