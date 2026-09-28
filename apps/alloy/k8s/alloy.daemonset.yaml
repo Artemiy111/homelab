@@ -77,7 +77,10 @@ spec:
               mountPath: /etc/alloy
               readOnly: true
             - name: data
-              mountPath: /var/lib/alloy/data
+              # Монтируем весь /var/lib/alloy, а не /var/lib/alloy/data: родитель
+              # в образе принадлежит root и недоступен на обход пользователю
+              # 10001, поэтому Alloy не может создать подкаталог data.
+              mountPath: /var/lib/alloy
       volumes:
         - name: config
           configMap:
