@@ -17,7 +17,7 @@ terraform plan
 
 ## Доступ провайдера
 
-Креды — root RustFS из Vault (`kv/rustfs/secret`, ключи `RUSTFS_ACCESS_KEY` и
+Креды — root RustFS из Vault (`kv/rustfs/credentials`, ключи `RUSTFS_ACCESS_KEY` и
 `RUSTFS_SECRET_KEY`); отдельного IAM-пользователя RustFS не отдаёт. Провайдер
 берёт их из окружения, в блок `provider` они не пишутся, поэтому в state не
 попадают. Ввод без истории оболочки:
