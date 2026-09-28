@@ -1,15 +1,13 @@
 # Forgejo (Terraform)
 
-Управляет содержимым инстанса Forgejo: репозиторием `artemiy/homelab`, защитой
-его ветки `main` и организацией `actions` (зеркала экшенов). Развёртывание самого
-инстанса — `apps/forgejo/` (Argo CD + `forgejo-helm`), здесь только его
-содержимое.
+Управляет настройками репозитория `artemiy/homelab` и защитой его ветки `main`.
+Развёртывание самого инстанса — `apps/forgejo/` (Argo CD + `forgejo-helm`),
+здесь только его содержимое.
 
 ## Что управляется
 
 | Ресурс | Объект | Что фиксирует |
 | --- | --- | --- |
-| `forgejo_organization.actions` | организация `actions` | `visibility = public`, `repo_admin_change_team_access` |
 | `forgejo_repository.homelab` | репозиторий `artemiy/homelab` | squash — единственный стиль merge, набор unit'ов, wiki, трекер |
 | `forgejo_branch_protection.main` | ветка `main` | запрет прямого push, обязательные status checks |
 
@@ -31,8 +29,7 @@ terraform plan
 здесь вообще нет (см. «Чего модуль не делает»).
 
 Токен заводится один раз в веб-интерфейсе: **Settings → Applications → Access
-tokens → Generate new token**. Нужны скоупы `write:repository` (репозиторий и
-защита ветки) и `write:organization` (организация).
+tokens → Generate new token**. Достаточно скоупа `write:repository`.
 
 Самоподписанный сертификат Forgejo-клиент игнорировать не умеет — хост должен
 отдавать сертификат, которому доверяет macOS. Публичный домен стенда этому
@@ -51,19 +48,18 @@ domain = "example.com"
 
 ## Импорт
 
-`imports.tf` переносит в state три уже существующих объекта. Id импорта —
+`imports.tf` переносит в state два уже существующих объекта. Id импорта —
 человекочитаемые, числовые ID из базы не нужны:
 
 | Ресурс | Id |
 | --- | --- |
-| `forgejo_organization.actions` | `actions` |
 | `forgejo_repository.homelab` | `artemiy/homelab` |
 | `forgejo_branch_protection.main` | `artemiy/homelab/main` |
 
 ```sh macOS
 terraform init
-terraform plan     # 3 to import, 0 to add, 0 to change, 0 to destroy
-terraform apply    # выполняет только импорт
+terraform plan     # 2 to import
+terraform apply    # импорт + правка двух write-only полей (см. ниже)
 terraform plan     # No changes
 ```
 
@@ -76,29 +72,49 @@ terraform plan     # No changes
 ```sh macOS
 curl -fsS -H "Authorization: token $FORGEJO_API_TOKEN" \
   "https://forgejo.$DOMAIN/api/v1/repos/artemiy/homelab"
-curl -fsS -H "Authorization: token $FORGEJO_API_TOKEN" \
-  "https://forgejo.$DOMAIN/api/v1/orgs/actions"
 ```
 
-## Осторожно: репозиторий и организация
+## Осторожно: репозиторий
 
 У `forgejo_repository` есть create-only поля — `auto_init`, `gitignores`,
-`license`, `readme`, `issue_labels`, `template`, `clone_addr`, `mirror`, `mirror_interval`.
-Изменение любого из них **пересоздаёт репозиторий с потерей данных**, поэтому они
-не заданы (они `Optional + Computed`) и добавлять их нельзя. Поле `auth_token`
-содержит секрет и тоже не задаётся.
+`license`, `readme`, `issue_labels`, `template`, `clone_addr`, `mirror`,
+`mirror_interval`. Изменение любого из них **пересоздаёт репозиторий с потерей
+данных**, поэтому они не заданы (они `Optional + Computed`) и добавлять их
+нельзя. Поле `auth_token` содержит секрет и тоже не задаётся.
 
-На `forgejo_repository.homelab` и `forgejo_organization.actions` стоит
-`lifecycle.prevent_destroy`: удаление репозитория — потеря кода, удаление
-организации `actions` — потеря зеркал экшенов.
+На `forgejo_repository.homelab` стоит `lifecycle.prevent_destroy`: удаление
+репозитория — потеря кода.
+
+## Ограничения провайдера
+
+**`forgejo_organization` не импортируется.** В `organization_resource.go` нет
+`ResourceWithImportState`, поэтому `import` падает с `Resource Import Not
+Implemented` ещё до обращения к API (это не про скоупы токена). Существующую
+организацию, в частности `actions` с зеркалами экшенов, под Terraform завести
+нельзя — только создавать новые. Пока организация вне модуля.
+
+**У `forgejo_repository` часть полей write-only.** Их провайдер не читает
+обратно в `Read`: `default_delete_branch_after_merge`, `wiki_branch`,
+`allow_rebase_update`, `default_update_style`, `enable_prune`,
+`globally_editable_wiki`, `default_allow_maintainer_edit`,
+`allow_fast_forward_only`, `allow_manual_merge`, `autodetect_manual_merge`,
+`auto_init`, `gitignores`, `issue_labels`, `license`, `readme`, `trust_model`,
+`auth_token`, `lfs`, `lfs_endpoint`, `milestones`, `labels`, `service`,
+`archive_on_destroy`. Значения таких полей берутся из конфига, а не с сервера,
+поэтому дрейф по ним Terraform не увидит.
+
+Следствие для импорта: `ImportState` выставляет `default_delete_branch_after_merge
+= false` и `wiki_branch = ""`, а конфиг — серверные `true` и `main`. Первый
+`apply` после импорта обновит эти два поля, но на сервере значения уже такие —
+правка идёт в них же.
 
 ## Почему часть полей не задана
 
 Все настройки, кроме обязательных, в схеме провайдера — `Optional + Computed`:
 не объявив их, Terraform берёт серверное значение в state и не следит за дрейфом.
-Значения, которые нужно удерживать (стиль merge, набор unit'ов, видимость
-организации), выписаны явно. Пустые строки (`description`, `website`, `location`)
-не заданы: пустое значение и отсутствие значения неотличимы на сервере.
+Значения, которые нужно удерживать (стиль merge, набор unit'ов), выписаны явно.
+Пустые строки (`description`, `website`) не заданы: пустое значение и отсутствие
+значения неотличимы на сервере.
 
 Whitelist-поля защиты ветки (`*_whitelist_usernames`, `*_whitelist_teams`,
 `push_whitelist_deploy_keys`) не заданы сознательно: сейчас все соответствующие

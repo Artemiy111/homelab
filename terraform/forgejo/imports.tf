@@ -1,9 +1,4 @@
 import {
-  to = forgejo_organization.actions
-  id = "actions"
-}
-
-import {
   to = forgejo_repository.homelab
   id = "artemiy/homelab"
 }
