@@ -70,7 +70,15 @@ spec:
               mountPath: /app/config.json
               subPath: config.json
               readOnly: true
+            - name: log-format
+              mountPath: /etc/nginx/conf.d/00-log-format.conf
+              subPath: 00-log-format.conf
+              readOnly: true
       volumes:
         - name: config
           configMap:
             name: element-web-config
+        - name: log-format
+          configMap:
+            name: element-web-log-format
+            defaultMode: 0444

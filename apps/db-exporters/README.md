@@ -37,7 +37,7 @@ MariaDB | `mysqld-exporter` (`v0.20.0`) | 9104 | 2
 
 ### Redis/Valkey (9)
 
-`dawarich-redis`, `element-redis`, `glitchtip-valkey`, `immich-valkey`,
+`dawarich-redis`, `element-valkey`, `glitchtip-valkey`, `immich-valkey`,
 `infisical-redis`, `nextcloud-redis`, `paperless-broker`, `seafile-redis`,
 `sure-redis` — все без аутентификации, экспортеру нужен только `REDIS_ADDR`.
 

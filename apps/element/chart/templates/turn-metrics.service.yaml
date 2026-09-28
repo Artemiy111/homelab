@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: element-turn-metrics
+  namespace: element
+  labels:
+    app: element-turn
+spec:
+  type: ClusterIP
+  selector:
+    app: element-turn
+  ports:
+    # coturn prometheus-экспортёр (директива prometheus в turnserver.conf).
+    - name: metrics
+      port: 9641
+      targetPort: metrics
+      protocol: TCP
