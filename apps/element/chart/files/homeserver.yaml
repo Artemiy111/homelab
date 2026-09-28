@@ -59,8 +59,8 @@ oidc_providers:
   - idp_id: zitadel
     idp_name: Zitadel
     issuer: __ISSUER__
-    client_id: __OIDC_CLIENT_ID__
-    client_secret: __OIDC_CLIENT_SECRET__
+    client_id: "__OIDC_CLIENT_ID__"
+    client_secret: "__OIDC_CLIENT_SECRET__"
     scopes: ["openid", "profile", "email"]
     allow_existing_users: true
     user_mapping_provider:
