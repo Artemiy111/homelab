@@ -22,6 +22,47 @@ spec:
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
       enableServiceLinks: false
+      initContainers:
+        - name: render-config
+          image: "valkey/valkey:9@sha256:8e8d64b405ce18f41b8e5ee20aa4687a8ed0022d1298f2ce31cdcf3a76e09411"
+          command:
+            - /bin/sh
+            - -c
+            - 'printf "listening-port=3479\nlistening-ip=0.0.0.0\nrelay-ip=%s\nexternal-ip=%s\nrealm=%s\nuse-auth-secret\nstatic-auth-secret=%s\nlog-file=stdout\nverbose\nno-multicast-peers\nno-cli\nno-tls\nno-tlsv1\nno-tlsv1_1\nproc-quota=20\ntotal-quota=100\nstale-nonce=600\nmax-bps=0\nmin-port=21000\nmax-port=21499\n" "$SERVER_IP" "$SERVER_IP" "$DOMAIN" "$TURN_SHARED_SECRET" > /etc/turn/turnserver.conf'
+          env:
+            - name: SERVER_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-config
+                  key: DOMAIN
+            - name: TURN_SHARED_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: element-secrets
+                  key: TURN_SHARED_SECRET
+          securityContext:
+            runAsUser: 999
+            runAsGroup: 999
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 50m
+              memory: 32Mi
+          volumeMounts:
+            - name: config
+              mountPath: /etc/turn
       containers:
         - name: turn
           image: "coturn/coturn:4.17@sha256:aa68aab64a3b929d57fc2924c98ea447bf996cf8dade2508e7b71eaf23f1f14e"
@@ -45,9 +86,8 @@ spec:
           volumeMounts:
             - name: config
               mountPath: /etc/turnserver.conf
+              subPath: turnserver.conf
               readOnly: true
       volumes:
         - name: config
-          hostPath:
-            path: /storage/apps/element/turn/turnserver.conf
-            type: File
+          emptyDir: {}
