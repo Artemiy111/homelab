@@ -57,6 +57,10 @@ host_ip = "192.0.2.10"    # адрес Technitium: ему tailnet отдаёт �
 split-DNS записи, которые в admin console приходилось удалять руками
 (`apps/tailscale/README.md`).
 
+Провайдер помечает `tailscale_dns_configuration` как **alpha**: схема может
+меняться между версиями. При обновлении провайдера читать release notes, а не
+только план.
+
 ## Первый apply
 
 Конфигурация уже существует в admin console, поэтому `imports.tf` переносит её
