@@ -60,8 +60,8 @@ spec:
                   name: element-secrets
                   key: LIVEKIT_API_SECRET
           securityContext:
-            runAsUser: 999
-            runAsGroup: 999
+            runAsUser: 1000
+            runAsGroup: 1000
             runAsNonRoot: true
             allowPrivilegeEscalation: false
             capabilities:
@@ -126,6 +126,8 @@ spec:
             timeoutSeconds: 10
             failureThreshold: 3
           securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
             allowPrivilegeEscalation: false
             capabilities:
               drop: ["ALL"]
