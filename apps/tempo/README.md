@@ -17,7 +17,9 @@ Traefik ──OTLP/HTTP:4318──> otel-collector ──OTLP/gRPC:4317──> t
 
 Трейсы лежат на PVC `tempo-data` (Longhorn, `longhorn-retain`, 5 Ги) в
 `/var/tempo`: `wal` — незакрытые блоки, `blocks` — скомпактированные. Retention
-задан в `config/tempo.yaml` (`compactor.compaction.block_retention: 72h`).
+пока дефолтный (336 ч, 14 суток); настройка под локальный бэкенд в Tempo 3.0
+живёт в `backend_scheduler.provider.compaction.compaction.block_retention` —
+зададим её, если 14 суток окажется мало для объёма.
 
 В production Tempo принято хранить трейсы в S3-совместимом объектном хранилище
 (у homelab для этого есть RustFS): это позволяет переживать потерю узла и не
