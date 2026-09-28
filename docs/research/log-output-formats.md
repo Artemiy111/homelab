@@ -72,3 +72,13 @@ jvb), coturn, Element-web, redis/valkey, mariadb, ATS. Для них либо о
 client-go. JSON нативно не отдаёт; настраивается только уровень (`LOG_LEVEL`
 или `KubeControllersConfiguration.spec.logSeverityScreen`). Структуру может дать
 только парсер на шиппере (Alloy).
+
+Прочее без штатного JSON:
+
+- **konnectivity-agent**: klog, флаг `--logging-format` не поддерживает (и
+  управляется k0s). Alloy вытаскивает уровень из первой буквы строки в
+  `klog_level`.
+- **glitchtip-worker**: Celery, воркер создаётся кодом без формата — JSON нет.
+- **dawarich**: Rails/Sidekiq — штатного JSON нет.
+- **Synapse**: JSON умеет (`log_config` + `synapse.logging.TerseJsonFormatter`),
+  но конфиг задаётся в `homeserver.yaml` на хосте (вне Git) — см. #482.

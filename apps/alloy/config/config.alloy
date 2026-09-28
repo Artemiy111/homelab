@@ -85,6 +85,11 @@ loki.process "pods" {
     expression = "(?:span_id|spanId|spanID|SpanId|SpanID)[^A-Za-z0-9]{0,5}(?P<span_id>[0-9a-fA-F]{16,})"
   }
 
+  // klog-строки (konnectivity-agent, client-go warnings у calico): уровень — первая буква I/W/E/F.
+  stage.regex {
+    expression = "^(?P<klog_level>[IWEF])[0-9]{4} [0-9:.]+ +[0-9]+ [A-Za-z0-9_.-]+:[0-9]+\\]"
+  }
+
   // Строки Gatus: пары key=value; ... (logfmt их не берёт из-за ';' и пробелов в значениях).
   stage.regex {
     expression = "group=(?P<group>[^;]+); endpoint=(?P<endpoint>[^;]+); key=(?P<key>[^;]+); success=(?P<success>[a-z]+); errors=(?P<errors>[0-9]+); duration=(?P<duration>[^; ]+)"
@@ -93,14 +98,15 @@ loki.process "pods" {
   // Извлечённые поля — в structured metadata Loki (не индекс-лейблы).
   stage.structured_metadata {
     values = {
-      level    = "",
-      trace_id = "",
-      span_id  = "",
-      group    = "",
-      endpoint = "",
-      key      = "",
-      success  = "",
-      duration = "",
+      level      = "",
+      trace_id   = "",
+      span_id    = "",
+      group      = "",
+      endpoint   = "",
+      key        = "",
+      success    = "",
+      duration   = "",
+      klog_level = "",
     }
   }
 }
