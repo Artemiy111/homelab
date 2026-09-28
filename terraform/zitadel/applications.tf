@@ -151,7 +151,6 @@ resource "zitadel_application_v2" "zot" {
     version                      = "OIDC_VERSION_1_0"
     access_token_type            = "OIDC_TOKEN_TYPE_BEARER"
     clock_skew                   = "0s"
-    id_token_userinfo_assertion  = true
     skip_native_app_success_page = false
   }
 
@@ -197,6 +196,7 @@ resource "zitadel_application_v2" "element" {
     version                      = "OIDC_VERSION_1_0"
     access_token_type            = "OIDC_TOKEN_TYPE_BEARER"
     clock_skew                   = "0s"
+    id_token_userinfo_assertion  = true
     skip_native_app_success_page = false
   }
 
