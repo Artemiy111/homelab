@@ -76,6 +76,10 @@ http://rustfs.rustfs.svc.cluster.local/mirror/<path>
 известным sha256 проверяются перед загрузкой, а CI — после скачивания. Бакет
 append-only: чтобы заменить версию, удалить объект и перезапустить.
 
+Бакет `mirror` и его public-read policy — код в `terraform/rustfs`: правка бакета
+в консоли будет перезаписана на следующем `terraform apply`, а CronJob
+`mirror-sync` только заливает объекты.
+
 Скрипт (`mirror-sync.sh`) и манифест (`artifacts.tsv`) едут в ConfigMap
 `mirror-sync` через kustomize — отдельного шага нет:
 

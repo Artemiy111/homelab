@@ -13,6 +13,7 @@
 | `zitadel/` | Организация, проект, OIDC-приложения, роли, членства, гранты и политика логина Zitadel | `terraform/zitadel/README.md` |
 | `tailscale/` | DNS tailnet: MagicDNS и split DNS на домашний домен | `terraform/tailscale/README.md` |
 | `technitium/` | DNS-записи зоны стенда и bootstrap-зоны `cloudflare-dns.com` | `terraform/technitium/README.md` |
+| `rustfs/` | Бакет `mirror` и его public-read policy | `terraform/rustfs/README.md` |
 
 ## Запуск
 
@@ -35,8 +36,8 @@ terraform plan
 
 Значения окружения для `terraform/vault` не нужны: провайдер берёт адрес из
 `VAULT_ADDR`, токен — из `~/.vault-token`. У `terraform/uptime-kuma`,
-`terraform/zitadel`, `terraform/tailscale` и `terraform/technitium` свои наборы,
-они описаны в их README.
+`terraform/zitadel`, `terraform/tailscale`, `terraform/technitium` и
+`terraform/rustfs` свои наборы, они описаны в их README.
 
 ## Доступ к Zitadel
 

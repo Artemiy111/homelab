@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 #
-# Зеркалит артефакты в RustFS (бакет mirror) и открывает бакет на анонимное
-# чтение, чтобы CI тянул их без интернета и без креденшелов.
+# Зеркалит артефакты в RustFS (бакет mirror), чтобы CI тянул их без интернета и
+# без креденшелов. Бакет и public-read policy принадлежат terraform/rustfs, здесь
+# остаётся только заливка объектов.
 #
 # Запускается in-cluster как CronJob mirror-sync (образ amazon/aws-cli): у пода
 # есть egress к upstream'ам, aws-cli, curl и sha256sum; git/tar для сборки схем
@@ -29,17 +30,6 @@ s3cp() { aws --endpoint-url "$S3_ENDPOINT" s3 cp "$@"; }
 ensure_build_tools() {
   command -v git >/dev/null 2>&1 && command -v tar >/dev/null 2>&1 && return 0
   dnf install -y git tar gzip >/dev/null 2>&1
-}
-
-ensure_bucket() {
-  if ! s3api head-bucket --bucket "$BUCKET" >/dev/null 2>&1; then
-    s3api create-bucket --bucket "$BUCKET"
-  fi
-  # Бакет читается анонимно: CI тянет артефакты без креденшелов.
-  s3api put-bucket-policy --bucket "$BUCKET" --policy "$(cat <<JSON
-{"Version":"2012-10-17","Statement":[{"Sid":"PublicRead","Effect":"Allow","Principal":"*","Action":["s3:GetObject"],"Resource":["arn:aws:s3:::$BUCKET/*"]}]}
-JSON
-)"
 }
 
 object_exists() {
@@ -87,8 +77,6 @@ sync_schemas() {
   s3cp "$tmp/schemas.tar.gz" "s3://$BUCKET/$path"
   rm -rf "$tmp"
 }
-
-ensure_bucket
 
 while read -r path sha url _; do
   [ -z "${path:-}" ] && continue
