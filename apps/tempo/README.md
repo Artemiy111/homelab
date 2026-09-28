@@ -45,14 +45,14 @@ kubectl get pod,svc -n monitoring -l app=tempo
 Готовность:
 
 ```sh
-kubectl exec deploy/tempo -n monitoring -- wget -qO- http://127.0.0.1:3200/ready
+kubectl -n monitoring exec deploy/grafana -- curl -s http://tempo:3200/ready
 ```
 
 Трейсы доходят до Tempo (после нескольких запросов через Traefik):
 
 ```sh
-kubectl exec deploy/tempo -n monitoring -- wget -qO- \
-  'http://127.0.0.1:3200/api/search?limit=5'
+kubectl -n monitoring exec deploy/grafana -- \
+  curl -s 'http://tempo:3200/api/search?limit=5'
 ```
 
 В Grafana — Explore, datasource `Tempo`.

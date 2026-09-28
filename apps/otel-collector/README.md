@@ -48,9 +48,9 @@ kubectl exec deploy/victoriametrics -- wget -qO- \
 `up{job="otel-collector"}=1` и наличие `rustfs_*` метрик с лейблом
 `service_name="rustfs"`.
 
-Принятые трейсы (растёт при запросах через Traefik):
+Принятые трейсы (растёт при запросах через Traefik) видны в Tempo:
 
 ```sh
-kubectl exec deploy/victoriametrics -- wget -qO- \
-  'http://127.0.0.1:8428/api/v1/query?query=otelcol_receiver_accepted_spans_total'
+kubectl -n monitoring exec deploy/grafana -- \
+  curl -s 'http://tempo:3200/api/search?limit=5'
 ```
