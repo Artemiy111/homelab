@@ -45,6 +45,11 @@ curl -s "http://${HOST_IP}:5380/api/zones/records/add?token=$TOKEN&domain=%2A.${
 curl -s "http://${HOST_IP}:5380/api/zones/records/add?token=$TOKEN&domain=dns.${DOMAIN}&zone=${DOMAIN}&type=A&ipAddress=${HOST_IP}&ttl=3600"
 ```
 
+Записи зоны `${DOMAIN}` (wildcard и `dns`) и bootstrap-зона `cloudflare-dns.com`
+описаны кодом в `terraform/technitium`: ручная правка этих записей будет
+перезаписана на следующем `terraform apply`. Зоны, форвардеры и блокировка
+остаются ручными.
+
 ## Настройка upstream-резолверов
 
 Актуальная рабочая схема — **DoH Cloudflare с закреплённым бутстрапом** через
