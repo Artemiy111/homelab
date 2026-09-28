@@ -38,9 +38,9 @@ Datasource VictoriaMetrics описан декларативно в `config/data
 (uid `loki`, `http://loki:3100`) — поверх них работает Explore с трейсами
 (`apps/tempo/`) и логами (`apps/loki/`). Tempo и Loki связаны: из трейса можно
 уйти в логи (`tracesToLogsV2`), из лога — в трейс (`derivedFields` по
-`trace_id`). Переход находит результат только если `trace_id` есть в тексте
-лога; контейнерные логи его пока не содержат, поэтому связка заработает
-полностью после включения access-логов Traefik в JSON (отдельная задача).
+`trace_id`). У Traefik включены JSON access-логи (`accessLog` в
+`argocd/applications/traefik.yaml`), и в них есть поле `trace_id`, поэтому
+переходы trace↔log находят результат: логи Traefik попадают в Loki через Alloy.
 
 Дашборды тоже код: JSON-файлы в `config/dashboards/`, провайдер — в
 `config/dashboards.yaml`. Провайдер собирается с `allowUiUpdates: false`:

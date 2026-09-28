@@ -47,6 +47,16 @@ spec:
             addRoutersLabels: true
         additionalArguments:
           - --ping
+        # JSON access-логи в stdout (их собирает Alloy → Loki). В формате JSON
+        # Traefik отдаёт ядровые поля trace_id/span_id, по которым Loki и Tempo
+        # связаны (#446). Query-параметры дропаем, чтобы не писать в логи
+        # чувствительные значения вроде OAuth code.
+        accessLog:
+          enabled: true
+          format: json
+          fields:
+            queryParameters:
+              defaultMode: drop
         # Трейсы через OTLP/HTTP в otel-collector, дальше в Tempo. Сэмплинг 1.0 —
         # трафик homelab мал; при росте нагрузки снизить.
         tracing:
