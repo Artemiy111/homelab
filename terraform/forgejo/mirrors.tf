@@ -26,19 +26,10 @@ resource "forgejo_repository" "mirror" {
   has_packages      = false
   has_projects      = false
   has_pull_requests = false
-  has_releases      = false
+  has_releases      = true
   has_wiki          = false
 
   lifecycle {
     prevent_destroy = true
-
-    ignore_changes = [
-      allow_merge_commits,
-      allow_rebase,
-      allow_rebase_explicit,
-      allow_squash_merge,
-      default_merge_style,
-      ignore_whitespace_conflicts,
-    ]
   }
 }
