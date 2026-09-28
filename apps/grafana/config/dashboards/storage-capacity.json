@@ -197,15 +197,15 @@
     },
     {
       "id": 13,
-      "type": "table",
-      "title": "PVC: занято / ёмкость / заполнено",
+      "type": "barchart",
+      "title": "Заполнение PVC: занято / свободно",
       "datasource": { "type": "prometheus", "uid": "victoriametrics" },
-      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 15 },
+      "gridPos": { "h": 20, "w": 24, "x": 0, "y": 15 },
       "targets": [
         {
           "refId": "A",
           "datasource": { "type": "prometheus", "uid": "victoriametrics" },
-          "expr": "max by (pvc, kind) (label_replace(label_join(kubelet_volume_stats_used_bytes{namespace=~\"$namespace\"}, \"pvc\", \"/\", \"namespace\", \"persistentvolumeclaim\"), \"kind\", \"used\", \"\", \"\")) or max by (pvc, kind) (label_replace(label_join(kubelet_volume_stats_capacity_bytes{namespace=~\"$namespace\"}, \"pvc\", \"/\", \"namespace\", \"persistentvolumeclaim\"), \"kind\", \"capacity\", \"\", \"\")) or max by (pvc, kind) (label_replace(label_join(100 * kubelet_volume_stats_used_bytes{namespace=~\"$namespace\"} / kubelet_volume_stats_capacity_bytes{namespace=~\"$namespace\"}, \"pvc\", \"/\", \"namespace\", \"persistentvolumeclaim\"), \"kind\", \"percent\", \"\", \"\"))",
+          "expr": "max by (pvc, kind) (label_replace(label_join(kubelet_volume_stats_used_bytes{namespace=~\"$namespace\"}, \"pvc\", \"/\", \"namespace\", \"persistentvolumeclaim\"), \"kind\", \"занято\", \"\", \"\")) or max by (pvc, kind) (label_replace(label_join(kubelet_volume_stats_capacity_bytes{namespace=~\"$namespace\"} - kubelet_volume_stats_used_bytes{namespace=~\"$namespace\"}, \"pvc\", \"/\", \"namespace\", \"persistentvolumeclaim\"), \"kind\", \"свободно\", \"\", \"\"))",
           "instant": true,
           "format": "table"
         }
@@ -214,41 +214,30 @@
         { "id": "labelsToFields", "options": { "mode": "columns" } },
         { "id": "merge", "options": {} },
         { "id": "groupingToMatrix", "options": { "rowField": "pvc", "columnField": "kind", "valueField": "Value" } },
-        {
-          "id": "organize",
-          "options": {
-            "excludeByName": {},
-            "renameByName": {
-              "pvc\\kind": "PVC",
-              "used": "занято",
-              "capacity": "ёмкость",
-              "percent": "заполнено %"
-            }
-          }
-        }
+        { "id": "organize", "options": { "excludeByName": {}, "renameByName": { "pvc\\kind": "PVC" } } }
       ],
       "fieldConfig": {
-        "defaults": {},
+        "defaults": { "custom": { "lineWidth": 1, "fillOpacity": 80 } },
         "overrides": [
-          { "matcher": { "id": "byName", "options": "занято" }, "properties": [ { "id": "unit", "value": "bytes" } ] },
-          { "matcher": { "id": "byName", "options": "ёмкость" }, "properties": [ { "id": "unit", "value": "bytes" } ] },
-          {
-            "matcher": { "id": "byName", "options": "заполнено %" },
-            "properties": [
-              { "id": "unit", "value": "percent" },
-              { "id": "custom.displayMode", "value": "color-background" },
-              { "id": "thresholds", "value": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "yellow", "value": 75 }, { "color": "red", "value": 90 } ] } }
-            ]
-          }
+          { "matcher": { "id": "byName", "options": "занято" }, "properties": [ { "id": "unit", "value": "bytes" }, { "id": "color", "value": { "mode": "fixed", "fixedColor": "green" } } ] },
+          { "matcher": { "id": "byName", "options": "свободно" }, "properties": [ { "id": "unit", "value": "bytes" }, { "id": "color", "value": { "mode": "fixed", "fixedColor": "dark-gray" } } ] }
         ]
       },
-      "options": { "showHeader": true, "sortBy": [ { "displayName": "заполнено %", "desc": true } ] }
+      "options": {
+        "orientation": "horizontal",
+        "stacking": "normal",
+        "showValue": "auto",
+        "xField": "PVC",
+        "xTickLabelRotation": 0,
+        "legend": { "showLegend": true, "displayMode": "list", "placement": "bottom", "calcs": [] },
+        "tooltip": { "mode": "multi" }
+      }
     },
     {
       "id": 8,
       "type": "row",
       "title": "Longhorn",
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 24 },
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 35 },
       "collapsed": false
     },
     {
@@ -256,7 +245,7 @@
       "type": "timeseries",
       "title": "Longhorn: занято / ёмкость узлов",
       "datasource": { "type": "prometheus", "uid": "victoriametrics" },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 25 },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 36 },
       "targets": [
         {
           "refId": "A",
@@ -282,7 +271,7 @@
       "type": "bargauge",
       "title": "Longhorn: заполнение томов (actual / capacity)",
       "datasource": { "type": "prometheus", "uid": "victoriametrics" },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 25 },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 36 },
       "targets": [
         {
           "refId": "A",
@@ -309,7 +298,7 @@
       "type": "timeseries",
       "title": "Longhorn: состояние томов (robustness)",
       "datasource": { "type": "prometheus", "uid": "victoriametrics" },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 33 },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 44 },
       "targets": [
         {
           "refId": "A",
@@ -330,7 +319,7 @@
       "title": "Файловые системы узла",
       "description": "заполнение по mountpoint (без tmpfs/ramfs)",
       "datasource": { "type": "prometheus", "uid": "victoriametrics" },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 33 },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 44 },
       "targets": [
         {
           "refId": "A",
