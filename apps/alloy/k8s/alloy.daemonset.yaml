@@ -26,6 +26,9 @@ spec:
             - run
             - /etc/alloy/config.alloy
             - --storage.path=/var/lib/alloy/data
+            # Alloy по умолчанию слушает 127.0.0.1:12345, из-за чего probes
+            # kubelet не доходят; слушаем на всех интерфейсах.
+            - --server.http.listen-addr=0.0.0.0:12345
           env:
             # DaemonSet читает логи только подов своей ноды: discovery.kubernetes
             # фильтрует их по spec.nodeName, а не тянет весь кластер каждым подом.
