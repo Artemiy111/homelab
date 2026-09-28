@@ -24,6 +24,8 @@ resource "vault_policy" "app_element" {
     path "kv/metadata/element/db"      { capabilities = ["read", "list"] }
     path "kv/data/element/secrets"     { capabilities = ["read"] }
     path "kv/metadata/element/secrets" { capabilities = ["read", "list"] }
+    path "kv/data/element/oidc"        { capabilities = ["read"] }
+    path "kv/metadata/element/oidc"    { capabilities = ["read", "list"] }
   EOT
 }
 
