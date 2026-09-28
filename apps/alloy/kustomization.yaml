@@ -4,6 +4,7 @@ namespace: monitoring
 resources:
   - k8s/alloy-rbac.yaml
   - k8s/alloy.daemonset.yaml
+  - k8s/alloy.service.yaml
 configMapGenerator:
   # config.alloy собирается в ConfigMap `alloy-config`; kustomize добавляет хэш
   # содержимого к имени и переписывает ссылку в DaemonSet, поэтому правка

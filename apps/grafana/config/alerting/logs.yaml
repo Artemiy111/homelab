@@ -100,3 +100,89 @@ groups:
           description: >-
             Больше 20 строк с level=error за 5 минут в namespace {{ $labels.namespace }}. Открыть Grafana → Explore → Loki и отфильтровать `{namespace="{{ $labels.namespace }}"} | level=~"(?i)error"`.
           runbook: "docs/research/log-output-formats.md"
+      - uid: logs-pipeline-stalled
+        title: Логи не пишутся
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: victoriametrics
+            model:
+              datasource:
+                type: prometheus
+                uid: victoriametrics
+              editorMode: code
+              expr: 'sum(rate(loki_distributor_lines_received_total{is_internal_stream="false"}[10m])) == 0'
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: []
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              reducer: last
+              refId: B
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: C
+              type: threshold
+        noDataState: OK
+        execErrState: Error
+        for: 10m
+        isPaused: false
+        labels:
+          severity: critical
+        annotations:
+          summary: "Loki не принимает логи"
+          description: >-
+            За 10 минут в Loki не пришло ни одной строки. Обычно это остановка Alloy или сбой записи. Проверить `kubectl -n monitoring get pods -l app=alloy` и `up{job=~"loki|alloy"}`.
+          runbook: "apps/alloy/README.md"

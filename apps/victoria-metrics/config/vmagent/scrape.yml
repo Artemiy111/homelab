@@ -364,3 +364,13 @@ scrape_configs:
       - targets:
           - seafile-mariadb-exporter.seafile.svc.cluster.local:9104
           - uptime-kuma-mariadb-exporter.uptime-kuma.svc.cluster.local:9104
+
+  - job_name: loki
+    static_configs:
+      - targets:
+          - loki.monitoring.svc.cluster.local:3100
+
+  - job_name: alloy
+    static_configs:
+      - targets:
+          - alloy.monitoring.svc.cluster.local:12345
