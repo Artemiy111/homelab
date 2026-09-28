@@ -53,6 +53,13 @@ spec:
                   key: LIVEKIT_API_SECRET
             - name: LIVEKIT_FULL_ACCESS_HOMESERVERS
               value: "$(DOMAIN)"
+            # Хранилище delegated leave-событий (MSC4140). Без него сервис
+            # работает в памяти и теряет отложенные события при рестарте —
+            # в логах появляется "ActionRestart not found — emitting
+            # DelayedEventNotFound". Отдельная БД 1, чтобы не делить ключи
+            # с Synapse (который использует БД 0).
+            - name: LIVEKIT_REDIS_URL
+              value: "redis://element-valkey.element.svc.cluster.local:6379/1"
           startupProbe:
             httpGet:
               path: /healthz
