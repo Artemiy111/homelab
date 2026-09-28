@@ -20,9 +20,14 @@ API key создаётся в admin console (Settings → Keys → Generate acce
 Без попадания в историю оболочки:
 
 ```sh macOS
-read -rsp "Tailscale API key: " TAILSCALE_API_KEY && echo
+printf 'Tailscale API key: ' >&2
+read -rs TAILSCALE_API_KEY && echo
 export TAILSCALE_API_KEY
 ```
+
+`printf` с `read -rs` работают и в zsh, и в bash: у zsh флаг `-p` означает
+чтение из coprocess, а не prompt. `export` обязателен — без него значение
+остаётся переменной оболочки, и запущенный как потомок `terraform` её не видит.
 
 Ключ по правилам `docs/agents/information-handling.md` — секрет, в репозиторий
 и `terraform.tfvars` он не идёт. Если tailnet создан после октября 2025 и ключ
