@@ -19,7 +19,7 @@ spec:
       # 10001, от которого работает непривилегированный Alloy.
       securityContext:
         fsGroup: 10001
-        supplementalGroups: [190]
+        supplementalGroups: [190, 4]
       containers:
         - name: alloy
           image: "grafana/alloy:v1.20.0@sha256:f111cce835516c5f99166342be7038496b52ced16667be5a11e19258a3e4cd30"
@@ -91,6 +91,9 @@ spec:
             - name: run-journal
               mountPath: /run/log/journal
               readOnly: true
+            - name: machine-id
+              mountPath: /etc/machine-id
+              readOnly: true
       volumes:
         - name: config
           configMap:
@@ -103,3 +106,7 @@ spec:
         - name: run-journal
           hostPath:
             path: /run/log/journal
+        - name: machine-id
+          hostPath:
+            path: /etc/machine-id
+            type: File
