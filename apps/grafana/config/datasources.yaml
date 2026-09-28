@@ -19,6 +19,18 @@ datasources:
     access: proxy
     url: http://tempo:3200
     editable: false
+    jsonData:
+      # Ссылка trace → logs: в Loki ищем строки с этим trace id за окно вокруг
+      # спана. `$$` экранирует `$`, чтобы Grafana не подставила свою переменную
+      # провижининга.
+      tracesToLogsV2:
+        datasourceUid: loki
+        spanStartTimeShift: -5m
+        spanEndTimeShift: 5m
+        filterByTraceID: true
+        filterBySpanID: false
+        customQuery: true
+        query: '{namespace=~".+"} |= "$${__trace.traceId}"'
   - name: Loki
     uid: loki
     type: loki
@@ -27,3 +39,9 @@ datasources:
     editable: false
     jsonData:
       maxLines: 1000
+      # Ссылка log → trace: находим trace_id в строке лога и открываем трейс.
+      derivedFields:
+        - name: TraceID
+          matcherRegex: '"trace_id":"(\w+)"'
+          url: "$${__value.raw}"
+          datasourceUid: tempo

@@ -36,7 +36,11 @@ Datasource VictoriaMetrics описан декларативно в `config/data
 (uid `victoriametrics` зафиксирован — на него ссылаются панели дашбордов).
 Там же заведены datasource Tempo (uid `tempo`, `http://tempo:3200`) и Loki
 (uid `loki`, `http://loki:3100`) — поверх них работает Explore с трейсами
-(`apps/tempo/`) и логами (`apps/loki/`).
+(`apps/tempo/`) и логами (`apps/loki/`). Tempo и Loki связаны: из трейса можно
+уйти в логи (`tracesToLogsV2`), из лога — в трейс (`derivedFields` по
+`trace_id`). Переход находит результат только если `trace_id` есть в тексте
+лога; контейнерные логи его пока не содержат, поэтому связка заработает
+полностью после включения access-логов Traefik в JSON (отдельная задача).
 
 Дашборды тоже код: JSON-файлы в `config/dashboards/`, провайдер — в
 `config/dashboards.yaml`. Провайдер собирается с `allowUiUpdates: false`:
