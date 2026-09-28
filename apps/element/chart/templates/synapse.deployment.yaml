@@ -83,7 +83,9 @@ spec:
                   name: homelab-config
                   key: TZ
             - name: SERVER_IP
-              value: "{{ .Values.serverIp }}"
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
             - name: SYNAPSE_SERVER_NAME
               value: "$(DOMAIN)"
             - name: SYNAPSE_REPORT_STATS
