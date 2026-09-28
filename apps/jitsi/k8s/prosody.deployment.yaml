@@ -108,9 +108,12 @@ spec:
               value: recorder.meet.jitsi
             - name: PROSODY_ENABLE_METRICS
               value: "true"
-            # default в образе 172.16.0.0/12 не покрывает pod CIDR кластера.
+            # openmetrics_allow_cidr сверяется с адресом отправителя, но трафик
+            # pod→ClusterIP приходит SNAT'нутым с адресом узла, который в
+            # pod-сети не лежит. Доступ к метрикам ограничивает NetworkPolicy
+            # (только vmagent), поэтому allowlist здесь открыт.
             - name: PROSODY_METRICS_ALLOWED_CIDR
-              value: "10.244.0.0/16"
+              value: "0.0.0.0/0"
           startupProbe:
             exec:
               command: ["/bin/sh", "-c", "prosodyctl --config /run/prosody/config/prosody.cfg.lua status"]
