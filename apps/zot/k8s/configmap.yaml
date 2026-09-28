@@ -35,6 +35,9 @@ data:
         "realm": "zot",
         "compat": ["docker2s2"],
         "accessControl": {
+          "metrics": {
+            "anonymousPolicy": ["read"]
+          },
           "repositories": {
             "**": {
               "anonymousPolicy": ["read"]
@@ -46,6 +49,12 @@ data:
         "level": "info"
       },
       "extensions": {
+        "metrics": {
+          "enable": true,
+          "prometheus": {
+            "path": "/metrics"
+          }
+        },
         "sync": {
           "enable": true,
           "registries": [

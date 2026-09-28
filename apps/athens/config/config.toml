@@ -8,6 +8,7 @@
 GoEnv = "production"
 Port = ":3000"
 LogLevel = "info"
+StatsExporter = "prometheus"
 StorageType = "disk"
 SingleFlightType = "memory"
 DownloadMode = "sync"

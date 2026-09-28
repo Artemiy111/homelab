@@ -106,6 +106,11 @@ spec:
               value: muc.meet.jitsi
             - name: XMPP_RECORDER_DOMAIN
               value: recorder.meet.jitsi
+            - name: PROSODY_ENABLE_METRICS
+              value: "true"
+            # default в образе 172.16.0.0/12 не покрывает pod CIDR кластера.
+            - name: PROSODY_METRICS_ALLOWED_CIDR
+              value: "10.244.0.0/16"
           startupProbe:
             exec:
               command: ["/bin/sh", "-c", "prosodyctl --config /run/prosody/config/prosody.cfg.lua status"]

@@ -38,3 +38,5 @@ spec:
       ports:
         - port: 8080
           protocol: TCP
+        - port: 5280
+          protocol: TCP

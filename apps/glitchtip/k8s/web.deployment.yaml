@@ -111,6 +111,8 @@ spec:
               value: "true"
             - name: ENABLE_SOCIAL_APPS_USER_REGISTRATION
               value: "true"
+            - name: ENABLE_OBSERVABILITY_API
+              value: "true"
             - name: SOCIAL_AUTH_BLOCK_PRIVATE_IPS
               value: "false"
           startupProbe:
