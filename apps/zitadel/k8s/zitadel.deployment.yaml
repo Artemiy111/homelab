@@ -111,6 +111,16 @@ spec:
             # SSRF deny list без <lan-cidr> (back-channel logout в LAN).
             - name: ZITADEL_HTTPCLIENT_DENYLIST
               value: "localhost,0.0.0.0/8,10.0.0.0/8,100.64.0.0/10,127.0.0.0/8,169.254.0.0/16,172.16.0.0/12,198.18.0.0/15,::/128,::1/128,fc00::/7,fe80::/10"
+            - name: ZITADEL_INSTRUMENTATION_TRACE_EXPORTER_TYPE
+              value: grpc
+            - name: ZITADEL_INSTRUMENTATION_TRACE_EXPORTER_ENDPOINT
+              value: otel-collector.monitoring.svc.cluster.local:4317
+            - name: ZITADEL_INSTRUMENTATION_TRACE_EXPORTER_INSECURE
+              value: "true"
+            - name: ZITADEL_INSTRUMENTATION_TRACE_FRACTION
+              value: "1.0"
+            - name: ZITADEL_INSTRUMENTATION_SERVICENAME
+              value: zitadel
           startupProbe:
             exec:
               command: ["/app/zitadel", "ready"]

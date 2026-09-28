@@ -62,16 +62,24 @@ spec:
             - name: ENABLE_OPENAI_API
               value: "false"
             # Метрики push'ат OTLP/gRPC в otel-collector (job otel-collector), а не
-            # скрейпятся отдельно. Traces и logs Open WebUI не отдаём.
+            # скрейпятся отдельно. Логи Open WebUI не отдаём (их собирает Alloy).
             - name: ENABLE_OTEL
               value: "true"
             - name: ENABLE_OTEL_METRICS
               value: "true"
+            - name: ENABLE_OTEL_TRACES
+              value: "true"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://otel-collector.monitoring.svc.cluster.local:4317"
             - name: OTEL_METRICS_EXPORTER_OTLP_ENDPOINT
               value: "http://otel-collector.monitoring.svc.cluster.local:4317"
             # Порт коллектора без TLS; по умолчанию экспортёр идёт по TLS.
+            - name: OTEL_EXPORTER_OTLP_INSECURE
+              value: "true"
             - name: OTEL_METRICS_EXPORTER_OTLP_INSECURE
               value: "true"
+            - name: OTEL_SERVICE_NAME
+              value: open-webui
           startupProbe:
             httpGet:
               path: /health

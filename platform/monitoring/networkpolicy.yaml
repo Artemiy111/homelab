@@ -69,6 +69,12 @@ spec:
           podSelector:
             matchLabels:
               app: open-webui
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: zitadel
+          podSelector:
+            matchLabels:
+              app: zitadel
       ports:
         - port: 4317
           protocol: TCP
