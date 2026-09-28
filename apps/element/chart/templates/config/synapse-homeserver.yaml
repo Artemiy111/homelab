@@ -5,13 +5,13 @@ metadata:
   namespace: element
 data:
   homeserver.yaml: |-
-    server_name: !env SYNAPSE_SERVER_NAME
-    public_baseurl: !env SYNAPSE_PUBLIC_BASEURL
+    server_name: __SERVER_NAME__
+    public_baseurl: __PUBLIC_BASEURL__
     serve_server_wellknown: true
     extra_well_known_client_content:
       org.matrix.msc4143.rtc_foci:
         - type: livekit
-          livekit_service_url: !env SYNAPSE_LIVEKIT_URL
+          livekit_service_url: __LIVEKIT_URL__
     report_stats: false
     pid_file: /data/homeserver.pid
     enable_metrics: true
@@ -36,7 +36,7 @@ data:
       name: psycopg2
       args:
         user: synapse
-        password: !env POSTGRES_PASSWORD
+        password: __DB_PASSWORD__
         database: synapse
         host: shared-rw.databases.svc.cluster.local
         cp_min: 5
@@ -55,7 +55,7 @@ data:
       - 192.168.0.0/16
     enable_registration: false
     enable_registration_without_verification: false
-    registration_shared_secret: !env SYNAPSE_REGISTRATION_SHARED_SECRET
+    registration_shared_secret: __REGISTRATION_SHARED_SECRET__
     bcrypt_rounds: 12
     password_config:
       enabled: true
@@ -82,14 +82,14 @@ data:
       msc4222_enabled: true
     max_event_delay_duration: 24h
     turn_uris:
-      - !env SYNAPSE_TURN_URI_UDP
-      - !env SYNAPSE_TURN_URI_TCP
-    turn_shared_secret: !env SYNAPSE_TURN_SHARED_SECRET
+      - __TURN_URI_UDP__
+      - __TURN_URI_TCP__
+    turn_shared_secret: __TURN_SHARED_SECRET__
     turn_user_lifetime: 24h
     matrix_rtc:
       transports:
         - type: livekit
-          livekit_service_url: !env SYNAPSE_LIVEKIT_URL
+          livekit_service_url: __LIVEKIT_URL__
     max_upload_size: 104857600
     max_image_pixels: 26214400
     max_spider_size: 1048576

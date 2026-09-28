@@ -63,6 +63,79 @@ spec:
             limits:
               cpu: 100m
               memory: 64Mi
+        - name: render-config
+          image: "valkey/valkey:9@sha256:8e8d64b405ce18f41b8e5ee20aa4687a8ed0022d1298f2ce31cdcf3a76e09411"
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -eu
+              sed \
+                -e "s|__SERVER_NAME__|$SYNAPSE_SERVER_NAME|g" \
+                -e "s|__PUBLIC_BASEURL__|$SYNAPSE_PUBLIC_BASEURL|g" \
+                -e "s|__LIVEKIT_URL__|$SYNAPSE_LIVEKIT_URL|g" \
+                -e "s|__DB_PASSWORD__|$POSTGRES_PASSWORD|g" \
+                -e "s|__REGISTRATION_SHARED_SECRET__|$SYNAPSE_REGISTRATION_SHARED_SECRET|g" \
+                -e "s|__TURN_SHARED_SECRET__|$SYNAPSE_TURN_SHARED_SECRET|g" \
+                -e "s|__TURN_URI_UDP__|$SYNAPSE_TURN_URI_UDP|g" \
+                -e "s|__TURN_URI_TCP__|$SYNAPSE_TURN_URI_TCP|g" \
+                /etc/synapse-template/homeserver.yaml > /data/homeserver.yaml
+          env:
+            - name: DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-config
+                  key: DOMAIN
+            - name: SERVER_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: SYNAPSE_SERVER_NAME
+              value: "$(DOMAIN)"
+            - name: SYNAPSE_PUBLIC_BASEURL
+              value: "https://element.$(DOMAIN)/"
+            - name: SYNAPSE_LIVEKIT_URL
+              value: "https://element.$(DOMAIN)/livekit/jwt"
+            - name: SYNAPSE_TURN_URI_UDP
+              value: "turn:$(SERVER_IP):3479?transport=udp"
+            - name: SYNAPSE_TURN_URI_TCP
+              value: "turn:$(SERVER_IP):3479?transport=tcp"
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: element-db-auth
+                  key: password
+            - name: SYNAPSE_REGISTRATION_SHARED_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: element-secrets
+                  key: REGISTRATION_SHARED_SECRET
+            - name: SYNAPSE_TURN_SHARED_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: element-secrets
+                  key: TURN_SHARED_SECRET
+          securityContext:
+            runAsUser: 991
+            runAsGroup: 991
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 50m
+              memory: 32Mi
+          volumeMounts:
+            - name: synapse-template
+              mountPath: /etc/synapse-template
+            - name: data
+              mountPath: /data
       containers:
         - name: synapse
           image: "matrixdotorg/synapse:v1.159.0@sha256:edf259d2b575b669a3e81024918ab8d5cfb7d2fba5a53c9e09695f1abc5645cb"
@@ -164,10 +237,6 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /data
-            - name: homeserver-config
-              mountPath: /data/homeserver.yaml
-              subPath: homeserver.yaml
-              readOnly: true
             - name: log-config
               mountPath: /etc/synapse/log.config
               subPath: log.config
@@ -176,7 +245,7 @@ spec:
         - name: data
           persistentVolumeClaim:
             claimName: element-synapse
-        - name: homeserver-config
+        - name: synapse-template
           configMap:
             name: element-synapse-config
         - name: log-config

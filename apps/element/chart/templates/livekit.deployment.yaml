@@ -47,7 +47,7 @@ spec:
           command:
             - /bin/sh
             - -c
-            - 'printf "%s: %s\n" "$LIVEKIT_API_KEY" "$LIVEKIT_API_SECRET" > /etc/livekit-keys/keys.yaml'
+            - 'umask 077; printf "%s: %s\n" "$LIVEKIT_API_KEY" "$LIVEKIT_API_SECRET" > /etc/livekit-keys/keys.yaml'
           env:
             - name: LIVEKIT_API_KEY
               valueFrom:
