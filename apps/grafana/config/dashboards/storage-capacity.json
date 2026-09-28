@@ -238,7 +238,7 @@
         {
           "refId": "A",
           "datasource": { "type": "prometheus", "uid": "victoriametrics" },
-          "expr": "sort_desc(100 * sum by (pvc_namespace, pvc) (longhorn_volume_actual_size_bytes) / sum by (pvc_namespace, pvc) (longhorn_volume_capacity_bytes))",
+          "expr": "sort_desc(100 * max by (pvc_namespace, pvc) (longhorn_volume_actual_size_bytes) / max by (pvc_namespace, pvc) (longhorn_volume_capacity_bytes))",
           "legendFormat": "{{pvc_namespace}}/{{pvc}}",
           "instant": true
         }
