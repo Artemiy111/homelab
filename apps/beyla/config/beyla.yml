@@ -1,0 +1,42 @@
+# Grafana Beyla — eBPF-автоинструментация.
+# Трейсы и RED-метрики сервисов namespace `element` (Synapse, LiveKit,
+# coturn, lk-jwt-service) без изменений в приложениях.
+log_level: INFO
+log_format: json
+
+# Декорирование k8s-метаданными: k8s.namespace.name, k8s.deployment.name,
+# k8s.pod.name и т.д. Требует ServiceAccount с list/watch (k8s/rbac.yaml).
+attributes:
+  kubernetes:
+    enable: true
+
+otel_metrics_export:
+  endpoint: http://otel-collector.monitoring.svc.cluster.local:4317
+  protocol: grpc
+  interval: 30s
+  features:
+    - application
+    - application_span_otel
+    - application_service_graph
+    - application_runtime
+
+otel_traces_export:
+  endpoint: http://otel-collector.monitoring.svc.cluster.local:4317
+  protocol: grpc
+  # parentbased_traceidratio уважает решение родительского span: трейсы,
+  # инициированные Traefik (sampleRate 1.0), сохраняются полностью, а
+  # запросы без пропагированного контекста сэмплируются на 10%.
+  sampler:
+    name: parentbased_traceidratio
+    arg: "0.1"
+
+discovery:
+  # Только element. Всё остальное (в т.ч. сам monitoring с otelcol/alloy)
+  # исключено: monitoring — в списке default_exclude_instrument, поэтому
+  # дублей телеметрии с OTel Collector не будет.
+  instrument:
+    - k8s_namespace: element
+
+health_check:
+  port: 8080
+  listen_address: 0.0.0.0
