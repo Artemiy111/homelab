@@ -31,5 +31,14 @@ resource "forgejo_repository" "mirror" {
 
   lifecycle {
     prevent_destroy = true
+
+    ignore_changes = [
+      allow_merge_commits,
+      allow_rebase,
+      allow_rebase_explicit,
+      allow_squash_merge,
+      default_merge_style,
+      ignore_whitespace_conflicts,
+    ]
   }
 }

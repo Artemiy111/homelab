@@ -110,7 +110,11 @@ destroy+recreate. Поэтому `clone_addr` — это ровно `original_ur
 PR выключены, а merge-настройки не заданы вовсе: у них статичные дефолты, а
 валидатор `RequiresTrueIfConfigured` требует `has_pull_requests = true`, если
 любая из них задана (даже `false` считается «configured»). Поэтому минимальный
-набор — идентичность зеркала плюс выключенные unit'ы.
+набор — идентичность зеркала плюс выключенные unit'ы, а `allow_merge_commits`,
+`allow_rebase`, `allow_rebase_explicit`, `allow_squash_merge`,
+`default_merge_style` и `ignore_whitespace_conflicts` перечислены в
+`lifecycle.ignore_changes`: иначе их дефолты (`true`) вечно расходились бы с
+сервером, который при выключенных PR этих полей не отдаёт.
 
 ## Ограничения провайдера
 
