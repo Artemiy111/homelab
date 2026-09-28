@@ -142,6 +142,11 @@ scrape_configs:
       - targets:
           - grafana.monitoring.svc.cluster.local
 
+  - job_name: tempo
+    static_configs:
+      - targets:
+          - tempo.monitoring.svc.cluster.local:3200
+
   - job_name: jitsi-jvb
     static_configs:
       - targets:

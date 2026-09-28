@@ -82,6 +82,7 @@ production-практикам DevOps.
 | --- | --- | --- |
 | VictoriaMetrics | Долгосрочное хранение метрик (TSDB) | `vm.example.com` |
 | Grafana | Дашборды поверх VictoriaMetrics | `grafana.example.com` |
+| Tempo | Хранение трейсов (OTLP через otel-collector) | без UI |
 | Netdata | Посекундные метрики хоста и контейнеров | `netdata.example.com` |
 | Gatus | Декларативный status page | `uptime.example.com` |
 | Uptime Kuma | Мониторинг доступности | `kuma.example.com` |

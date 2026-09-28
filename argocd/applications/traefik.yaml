@@ -47,6 +47,15 @@ spec:
             addRoutersLabels: true
         additionalArguments:
           - --ping
+        # Трейсы через OTLP/HTTP в otel-collector, дальше в Tempo. Сэмплинг 1.0 —
+        # трафик homelab мал; при росте нагрузки снизить.
+        tracing:
+          sampleRate: 1.0
+          otlp:
+            enabled: true
+            http:
+              enabled: true
+              endpoint: http://otel-collector.monitoring.svc.cluster.local:4318/v1/traces
         ingressRoute:
           healthcheck:
             enabled: true

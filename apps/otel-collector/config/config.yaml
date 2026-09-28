@@ -1,0 +1,52 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+exporters:
+  prometheus:
+    endpoint: 0.0.0.0:8889
+    # Замена deprecated resource_to_telemetry_conversion: equivalent — included ["*"].
+    resource_constant_labels:
+      included: ["*"]
+  # Трейсы уходят в Tempo по OTLP/gRPC. Внутрикластерный трафик, TLS не нужен.
+  otlp/tempo:
+    endpoint: tempo.monitoring.svc.cluster.local:4317
+    tls:
+      insecure: true
+
+processors:
+  # Ограничитель памяти обязателен перед batch: без него очередь батчей
+  # может выйти за лимит контейнера и под попадёт под OOM.
+  memory_limiter:
+    check_interval: 5s
+    limit_percentage: 75
+    spike_limit_percentage: 20
+  batch: {}
+  # RustFS отдаёт rustfs_scanner_directories_scanned_total дважды с одинаковыми
+  # лейблами (похоже на баг его OTel-инструментации). prometheus-экспортёр из-за
+  # этого на каждом сборе печатает ошибку со стектрейсом. Метрика малоценная —
+  # дропаем до фикса в апстриме.
+  filter/rustfs-dup:
+    metrics:
+      metric:
+        - 'name == "rustfs_scanner_directories_scanned_total"'
+
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+
+service:
+  extensions: [health_check]
+  pipelines:
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, filter/rustfs-dup, batch]
+      exporters: [prometheus]
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [otlp/tempo]

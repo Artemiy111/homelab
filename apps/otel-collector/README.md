@@ -1,28 +1,31 @@
 # OpenTelemetry Collector
 
-Принимает телеметрию по OTLP (push) и переотдаёт метрики в Prometheus-формате,
-чтобы vmagent мог их скрейпить обычным pull'ом. Нужен для приложений, которые
-не отдают нативный `/metrics`, а только push'ат OTLP — сейчас это RustFS.
+Принимает телеметрию по OTLP (push): метрики переотдаёт в Prometheus-формате,
+чтобы vmagent мог их скрейпить обычным pull'ом, а трейсы — в Tempo по OTLP.
+Нужен для приложений, которые не отдают нативный `/metrics`, а только push'ат
+OTLP (сейчас это RustFS), и как единая точка приёма трейсов (Traefik).
 
 ```
 RustFS ──OTLP──> otel-collector:4318 ──Prometheus──> :8889 <──vmagent
+Traefik ──OTLP──> otel-collector:4318 ──OTLP──> tempo:4317
 ```
 
 ## Состав
 
-Манифесты в `apps/otel-collector/k8s/`:
-
-- `configmap.yaml` — pipeline: receiver `otlp` (gRPC 4317, HTTP 4318) →
+- `config/config.yaml` — pipeline: receiver `otlp` (gRPC 4317, HTTP 4318) →
   exporter `prometheus` (8889) с `resource_to_telemetry_conversion`, чтобы
-  resource-атрибуты (напр. `service_name`) становились лейблами; extension
+  resource-атрибуты (напр. `service_name`) становились лейблами, и exporter
+  `otlp/tempo` для трейсов; processors `memory_limiter` и `batch`; extension
   `health_check` (13133);
-- `deployment.yaml` — один под, образ зафиксирован по digest;
-- `service.yaml` — ClusterIP, порты 4317/4318 (приём) и 8889 (скрейп).
+- `kustomization.yaml` — собирает `config/config.yaml` в ConfigMap
+  `otel-collector` (kustomize добавляет хэш содержимого к имени);
+- `k8s/deployment.yaml` — один под, образ зафиксирован по digest;
+- `k8s/service.yaml` — ClusterIP, порты 4317/4318 (приём) и 8889 (скрейп).
 
 ## Развёртывание
 
 ```sh
-kubectl apply -f apps/otel-collector/k8s/
+kubectl apply -k apps/otel-collector/
 ```
 
 ## Подключение приложения
@@ -30,9 +33,12 @@ kubectl apply -f apps/otel-collector/k8s/
 RustFS шлёт OTLP на этот коллектор (`RUSTFS_OBS_ENDPOINT` в его Deployment).
 Чтобы добавить ещё сервис — достаточно указать ему OTLP-эндпоинт
 `http://otel-collector:4318` (или gRPC `:4317`); отдельный scrape-job не нужен,
-метрики придут в тот же job `otel-collector`.
+метрики придут в тот же job `otel-collector`. Трейсы принимаются на тот же
+эндпоинт и уходят в Tempo (`apps/tempo/`).
 
 ## Проверка
+
+Метрики:
 
 ```sh
 kubectl exec deploy/victoriametrics -- wget -qO- \
@@ -41,3 +47,10 @@ kubectl exec deploy/victoriametrics -- wget -qO- \
 
 `up{job="otel-collector"}=1` и наличие `rustfs_*` метрик с лейблом
 `service_name="rustfs"`.
+
+Принятые трейсы (растёт при запросах через Traefik):
+
+```sh
+kubectl exec deploy/victoriametrics -- wget -qO- \
+  'http://127.0.0.1:8428/api/v1/query?query=otelcol_receiver_accepted_spans_total'
+```
