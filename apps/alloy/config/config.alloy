@@ -42,25 +42,25 @@ loki.process "pods" {
 
   stage.json {
     expressions = {
-      level    = "level"
-      trace_id = "trace_id"
-      span_id  = "span_id"
+      level    = "level",
+      trace_id = "trace_id",
+      span_id  = "span_id",
     }
   }
 
   stage.logfmt {
     mapping = {
-      level    = "level"
-      trace_id = "traceId"
-      span_id  = "spanId"
+      level    = "level",
+      trace_id = "traceId",
+      span_id  = "spanId",
     }
   }
 
   stage.structured_metadata {
     values = {
-      level    = ""
-      trace_id = ""
-      span_id  = ""
+      level    = "",
+      trace_id = "",
+      span_id  = "",
     }
   }
 }
