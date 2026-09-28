@@ -22,7 +22,8 @@ kubectl -n monitoring exec deploy/grafana -- curl -sG \
 ## JSON
 
 traefik (access), authentik, zot, headlamp, infisical, postgres (CNPG отдаёт
-JSON по умолчанию), cert-controller, manager, worker, zitadel-login.
+JSON по умолчанию), cert-controller, manager, worker, zitadel-login, rustfs
+(после #468).
 
 ## logfmt
 
@@ -51,10 +52,10 @@ kube-state-metrics, migrate.
 | Сервис | Механизм | Статус |
 |---|---|---|
 | Immich | `IMMICH_LOG_FORMAT=json` | включено (#462) |
-| Verdaccio | `log.format: json` | включено (#461) |
-| WUD | `WUD_LOG_FORMAT=json` | включено (#461) |
-| Stirling PDF | `logging.structured.format.console` | не проверено: зависит от logback приложения |
-| RustFS | логи уже JSON через OTLP | не попадают в Loki: у otel-collector нет logs-пайплайна |
+| Verdaccio | `log.format: json` | включено (#464) |
+| WUD | `WUD_LOG_FORMAT=json` | включено (#464) |
+| RustFS | `RUSTFS_OBS_LOG_STDOUT_ENABLED=true` | включено (#468): stdout-mirror в JSON, OTLP-экспорт логов выключен во избежание дубля |
+| Stirling PDF | `logging.structured.format.console` | проверено на стенде: без эффекта (кастомный logback), остаётся текст |
 | Vault | `log_format = "json"` | отложено: рестарт требует повторного unseal |
 
 ## Без штатного структурного вывода
