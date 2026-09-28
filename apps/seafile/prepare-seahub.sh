@@ -29,6 +29,14 @@ wire_setting() {
 wire_setting ONLYOFFICE 'exec(open("/shared/seafile/conf/seahub_onlyoffice.py").read())'
 wire_setting OAUTH 'exec(open("/shared/seafile/conf/seahub_oauth.py").read())'
 
+# Метрики для Prometheus: /metrics под HTTP Basic. Пароль приходит из Secret'а,
+# имя пользователя — фиксированное (совпадает с basic_auth в scrape.yml).
+if [ -n "${METRIC_AUTH_PWD:-}" ]; then
+  wire_setting METRICS "ENABLE_METRIC = True
+METRIC_AUTH_USER = '${METRIC_AUTH_USER}'
+METRIC_AUTH_PWD = '${METRIC_AUTH_PWD}'"
+fi
+
 SEA_HOME="$(ls -d /opt/seafile/seafile-server-[0-9]*/seahub 2>/dev/null | head -1)"
 if [ -z "$SEA_HOME" ]; then
   echo "ERROR: seahub dir not found under /opt/seafile" >&2

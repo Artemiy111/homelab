@@ -104,6 +104,8 @@ resource "vault_policy" "app_seafile" {
     path "kv/metadata/seafile/secrets" { capabilities = ["read", "list"] }
     path "kv/data/seafile/oidc"        { capabilities = ["read"] }
     path "kv/metadata/seafile/oidc"    { capabilities = ["read", "list"] }
+    path "kv/data/seafile/@monitoring/seafile-metrics-password"     { capabilities = ["read"] }
+    path "kv/metadata/seafile/@monitoring/seafile-metrics-password" { capabilities = ["read", "list"] }
   EOT
 }
 
@@ -151,5 +153,7 @@ resource "vault_policy" "app_vmagent" {
     path "kv/metadata/home-assistant/@monitoring/home-assistant-token"     { capabilities = ["read", "list"] }
     path "kv/data/navidrome/@monitoring/navidrome-metrics-path"            { capabilities = ["read"] }
     path "kv/metadata/navidrome/@monitoring/navidrome-metrics-path"        { capabilities = ["read", "list"] }
+    path "kv/data/seafile/@monitoring/seafile-metrics-password"            { capabilities = ["read"] }
+    path "kv/metadata/seafile/@monitoring/seafile-metrics-password"        { capabilities = ["read", "list"] }
   EOT
 }

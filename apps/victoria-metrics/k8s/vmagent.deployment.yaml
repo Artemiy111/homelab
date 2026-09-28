@@ -73,6 +73,11 @@ spec:
                 secretKeyRef:
                   name: vmagent-mailserver
                   key: STALWART_METRICS_PASSWORD
+            - name: SEAFILE_METRICS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: vmagent-seafile
+                  key: SEAFILE_METRICS_PASSWORD
             - name: LOCALAI_API_KEY
               valueFrom:
                 secretKeyRef:

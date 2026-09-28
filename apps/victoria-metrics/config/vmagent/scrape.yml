@@ -298,6 +298,15 @@ scrape_configs:
       - targets:
           - mailserver.mailserver.svc.cluster.local
 
+  # Seahub /metrics под HTTP Basic (ENABLE_METRIC).
+  - job_name: seafile
+    basic_auth:
+      username: prometheus
+      password: "%{SEAFILE_METRICS_PASSWORD}"
+    static_configs:
+      - targets:
+          - seafile.seafile.svc.cluster.local
+
   # CNPG: встроенный экспортёр instance-manager отдаёт /metrics на порту
   # metrics (9187) каждого пода кластера; цели находятся service discovery
   # (role: pod) по метке cnpg.io/cluster, поэтому новые кластеры не требуют

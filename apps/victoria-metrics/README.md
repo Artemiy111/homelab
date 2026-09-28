@@ -39,7 +39,8 @@ Secrets и ConfigMap (см. `apps/victoria-metrics/k8s/vmagent.deployment.yaml`)
 Цели: `netdata`, `victoriametrics`, `vmagent`, `traefik`, `authentik`, `wud`,
 `gatus`, `synapse`, `immich`, `livekit`, `tempo`, `athens`, `glitchtip`, `zot`,
 `prosody`, `talk-hpb` (без аутентификации); `uptime-kuma`,
-`navidrome`, `dawarich`, `forgejo`, `technitium`, `stalwart` (креды из Secrets).
+`navidrome`, `dawarich`, `forgejo`, `technitium`, `stalwart`, `seafile` (креды из
+Secrets).
 
 cert-manager скрейпится тремя отдельными job'ами (`cert-manager`,
 `cert-manager-webhook`, `cert-manager-cainjector`) по Service'ам на порту 9402.
@@ -162,11 +163,11 @@ kustomize-набор в `apps/victoria-metrics/`: манифесты в `k8s/`, 
   Secrets `vmagent-<владелец>`;
 - `vmagent-rbac.yaml` — доступ к kubelet/cAdvisor и service discovery;
 - `vmdata.pvc.yaml` — том TSDB;
-- `vaultauth.yaml`, `vaultstaticsecret.yaml` — восемь `VaultStaticSecret` в
+- `vaultauth.yaml`, `vaultstaticsecret.yaml` — девять `VaultStaticSecret` в
   неймспейсе `monitoring`, по одному на путь `kv/<владелец>/@monitoring/<кред>`.
   Владельцы: `uptime-kuma`, `dawarich`, `forgejo`, `technitium`, `mailserver`,
-  `local-ai`, `home-assistant`, `navidrome`. Креды не хранятся в Secret `vmagent`
-  скопом — каждый в своём, и под каждый отдельная строка в политике
+  `local-ai`, `home-assistant`, `navidrome`, `seafile`. Креды не хранятся в Secret
+  `vmagent` скопом — каждый в своём, и под каждый отдельная строка в политике
   `app/vmagent`.
 
 Применение (от `artlab` на сервере, после `git pull --ff-only`):

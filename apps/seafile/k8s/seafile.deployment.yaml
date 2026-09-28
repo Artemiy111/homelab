@@ -109,6 +109,15 @@ spec:
                 secretKeyRef:
                   name: seafile-oidc
                   key: OAUTH_CLIENT_SECRET
+            # /metrics (ENABLE_METRIC), провижинится в seahub_settings.py через
+            # prepare-seahub.sh; пользователь фиксирован, пароль — из Vault.
+            - name: METRIC_AUTH_USER
+              value: "prometheus"
+            - name: METRIC_AUTH_PWD
+              valueFrom:
+                secretKeyRef:
+                  name: seafile-metrics
+                  key: SEAFILE_METRICS_PASSWORD
             - name: SEAFILE_SERVER_HOSTNAME
               value: "seafile.$(DOMAIN)"
             - name: SEAFILE_SERVER_PROTOCOL

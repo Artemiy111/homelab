@@ -32,6 +32,20 @@ MariaDB seafile-mariadb  ←  mariadb-operator
 репо (hostPath) и подключаются в `seahub_settings.py` по маркерам
 `BEGIN HOMELAB OAUTH` / `BEGIN HOMELAB ONLYOFFICE`.
 
+## Метрики
+
+Seahub отдаёт `/metrics` (Prometheus) под HTTP Basic при
+`ENABLE_METRIC = True`. Настройки провижинятся в `seahub_settings.py` скриптом
+`prepare-seahub.sh` из окружения пода: пользователь — `prometheus`, пароль — из
+Secret'а `seafile-metrics`, который VSO синхронизирует из Vault по пути
+`kv/seafile/@monitoring/seafile-metrics-password` (ключ
+`SEAFILE_METRICS_PASSWORD`). Тот же путь читает vmagent (job `seafile`).
+
+```sh
+kubectl -n monitoring exec deploy/victoriametrics -- wget -qO- \
+  'http://127.0.0.1:8428/api/v1/query?query=up%7Bjob%3D%22seafile%22%7D'
+```
+
 ## База данных (mariadb-operator)
 
 Инстанс и SQL-ресурсы объявлены в `platform/mariadb/`:
