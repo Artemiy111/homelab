@@ -23,7 +23,7 @@ kubectl -n monitoring exec deploy/grafana -- curl -sG \
 
 traefik (access), authentik, zot, headlamp, infisical, postgres (CNPG отдаёт
 JSON по умолчанию), cert-controller, manager, worker, zitadel-login, rustfs
-(после #468).
+(после #468), open-webui (после #498).
 
 ## logfmt
 
@@ -44,7 +44,7 @@ mariadb, redis, valkey, prosody, sidekiq, web, glitchtip-worker, mail, cron.
 
 ## Нет данных в окне
 
-rustfs, seafile, open-webui, glitchtip, wud, docker-socket-proxy,
+seafile, glitchtip, wud, docker-socket-proxy,
 kube-state-metrics, migrate.
 
 ## Включение структурного вывода
@@ -55,6 +55,7 @@ kube-state-metrics, migrate.
 | Verdaccio | `log.format: json` | включено (#464) |
 | WUD | `WUD_LOG_FORMAT=json` | включено (#464) |
 | RustFS | `RUSTFS_OBS_LOG_STDOUT_ENABLED=true` | включено (#468): stdout-mirror в JSON, OTLP-экспорт логов выключен во избежание дубля |
+| Open WebUI | `LOG_FORMAT=json` | включено (#498): однострочный JSON, trace_id/span_id в `extra` |
 | Stirling PDF | `logging.structured.format.console` | проверено на стенде: без эффекта (кастомный logback), остаётся текст |
 | Vault | `log_format = "json"` | отложено: рестарт требует повторного unseal |
 
@@ -65,3 +66,9 @@ Forgejo (только console/file/conn), oauth2-proxy (шаблоны стро�
 `logging.json`), Uptime Kuma, Seafile, Technitium, 3x-ui, Jitsi (prosody/jicofo/
 jvb), coturn, Element-web, redis/valkey, mariadb, ATS. Для них либо оставляем
 текст, либо парсим regex-стадиями в Alloy.
+
+Отдельно — **Calico** (`calico-kube-controllers`, `calico-node`): logrus с
+кастомным форматтером (`libcalico-go/logutils`) плюс klog для warning'ов
+client-go. JSON нативно не отдаёт; настраивается только уровень (`LOG_LEVEL`
+или `KubeControllersConfiguration.spec.logSeverityScreen`). Структуру может дать
+только парсер на шиппере (Alloy).
