@@ -137,6 +137,11 @@ scrape_configs:
       - targets:
           - livekit.element.svc.cluster.local:6789
 
+  - job_name: coturn
+    static_configs:
+      - targets:
+          - element-turn-metrics.element.svc.cluster.local:9641
+
   - job_name: grafana
     static_configs:
       - targets:
@@ -350,7 +355,7 @@ scrape_configs:
     static_configs:
       - targets:
           - dawarich-redis-exporter.dawarich.svc.cluster.local:9121
-          - element-redis-exporter.element.svc.cluster.local:9121
+          - element-valkey-exporter.element.svc.cluster.local:9121
           - glitchtip-valkey-exporter.glitchtip.svc.cluster.local:9121
           - immich-valkey-exporter.immich.svc.cluster.local:9121
           - infisical-redis-exporter.infisical.svc.cluster.local:9121

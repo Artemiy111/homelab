@@ -74,18 +74,18 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: element-redis-exporter
+  name: element-valkey-exporter
   namespace: element
 spec:
   revisionHistoryLimit: 2
   replicas: 1
   selector:
     matchLabels:
-      app: element-redis-exporter
+      app: element-valkey-exporter
   template:
     metadata:
       labels:
-        app: element-redis-exporter
+        app: element-valkey-exporter
     spec:
       enableServiceLinks: false
       containers:
@@ -96,7 +96,7 @@ spec:
               containerPort: 9121
           env:
             - name: REDIS_ADDR
-              value: "redis://element-redis.element.svc.cluster.local:6379"
+              value: "redis://element-valkey.element.svc.cluster.local:6379"
           livenessProbe:
             httpGet:
               path: /metrics
@@ -131,12 +131,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: element-redis-exporter
+  name: element-valkey-exporter
   namespace: element
 spec:
   type: ClusterIP
   selector:
-    app: element-redis-exporter
+    app: element-valkey-exporter
   ports:
     - name: metrics
       port: 9121

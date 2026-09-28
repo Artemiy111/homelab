@@ -28,7 +28,7 @@ spec:
           command:
             - /bin/sh
             - -c
-            - 'printf "listening-port=3479\nlistening-ip=0.0.0.0\nrelay-ip=%s\nexternal-ip=%s\nrealm=%s\nuse-auth-secret\nstatic-auth-secret=%s\nlog-file=stdout\nverbose\nno-multicast-peers\nno-cli\nno-tls\nno-tlsv1\nno-tlsv1_1\nproc-quota=20\ntotal-quota=100\nstale-nonce=600\nmax-bps=0\nmin-port=21000\nmax-port=21499\n" "$SERVER_IP" "$SERVER_IP" "$DOMAIN" "$TURN_SHARED_SECRET" > /etc/turn/turnserver.conf'
+            - 'printf "listening-port=3479\nlistening-ip=0.0.0.0\nrelay-ip=%s\nexternal-ip=%s\nrealm=%s\nuse-auth-secret\nstatic-auth-secret=%s\nlog-file=stdout\nno-multicast-peers\nno-cli\nno-tls\nno-tlsv1\nno-tlsv1_1\nproc-quota=20\ntotal-quota=100\nstale-nonce=600\nmax-bps=0\nmin-port=21000\nmax-port=21499\nprometheus\nprometheus-port=9641\n" "$SERVER_IP" "$SERVER_IP" "$DOMAIN" "$TURN_SHARED_SECRET" > /etc/turn/turnserver.conf'
           env:
             - name: SERVER_IP
               valueFrom:
@@ -66,6 +66,9 @@ spec:
       containers:
         - name: turn
           image: "coturn/coturn:4.17@sha256:aa68aab64a3b929d57fc2924c98ea447bf996cf8dade2508e7b71eaf23f1f14e"
+          ports:
+            - name: metrics
+              containerPort: 9641
           env:
             - name: TZ
               valueFrom:

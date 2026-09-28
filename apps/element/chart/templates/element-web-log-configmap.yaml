@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: element-web-log-format
+  namespace: element
+data:
+  # Монтируется в /etc/nginx/conf.d/00-log-format.conf. include этого каталога
+  # находится внутри http{} в nginx.conf образа, поэтому здесь переопределяются
+  # log_format/access_log без правки файлов из образа.
+  # escape=json обязателен: без него спецсимволы в URI ломают JSON.
+  00-log-format.conf: |
+    log_format json_combined escape=json
+      '{'
+        '"time":"$time_iso8601",'
+        '"remote_addr":"$remote_addr",'
+        '"request_method":"$request_method",'
+        '"request_uri":"$request_uri",'
+        '"status":$status,'
+        '"body_bytes_sent":$body_bytes_sent,'
+        '"request_length":$request_length,'
+        '"request_time":$request_time,'
+        '"http_referer":"$http_referer",'
+        '"http_user_agent":"$http_user_agent",'
+        '"http_x_forwarded_for":"$http_x_forwarded_for"'
+      '}';
+
+    access_log /dev/stdout json_combined;
+    error_log /dev/stderr warn;
