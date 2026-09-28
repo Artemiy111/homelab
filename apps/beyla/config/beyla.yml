@@ -37,6 +37,3 @@ discovery:
   instrument:
     - k8s_namespace: element
 
-health_check:
-  port: 8080
-  listen_address: 0.0.0.0
