@@ -55,3 +55,22 @@ spec:
       ports:
         - port: 8428
           protocol: TCP
+    # Приложения, push'ащие телеметрию по OTLP в otel-collector.
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: rustfs
+          podSelector:
+            matchLabels:
+              app: rustfs
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: open-webui
+          podSelector:
+            matchLabels:
+              app: open-webui
+      ports:
+        - port: 4317
+          protocol: TCP
+        - port: 4318
+          protocol: TCP

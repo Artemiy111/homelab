@@ -7,6 +7,7 @@ OTLP (сейчас это RustFS), и как единая точка приём�
 
 ```
 RustFS ──OTLP──> otel-collector:4318 ──Prometheus──> :8889 <──vmagent
+Open WebUI ──OTLP/gRPC──> otel-collector:4317
 Traefik ──OTLP──> otel-collector:4318 ──OTLP──> tempo:4317
 ```
 
@@ -31,10 +32,15 @@ kubectl apply -k apps/otel-collector/
 ## Подключение приложения
 
 RustFS шлёт OTLP на этот коллектор (`RUSTFS_OBS_ENDPOINT` в его Deployment).
-Чтобы добавить ещё сервис — достаточно указать ему OTLP-эндпоинт
-`http://otel-collector:4318` (или gRPC `:4317`); отдельный scrape-job не нужен,
-метрики придут в тот же job `otel-collector`. Трейсы принимаются на тот же
-эндпоинт и уходят в Tempo (`apps/tempo/`).
+Open WebUI шлёт метрики по OTLP/gRPC (`ENABLE_OTEL*` в его Deployment).
+Чтобы добавить ещё сервис — нужно указать ему **FQDN** коллектора
+`http://otel-collector.monitoring.svc.cluster.local:4318` (HTTP) или `:4317`
+(gRPC): короткое имя `otel-collector` резолвится только внутри namespace
+`monitoring`. Отдельный scrape-job не нужен — метрики придут в job
+`otel-collector`. Дополнительно namespace приложения надо внести в
+`platform/monitoring/networkpolicy.yaml` (default-deny ingress) на порты
+4317/4318. Трейсы принимаются на тот же эндпоинт и уходят в Tempo
+(`apps/tempo/`).
 
 ## Проверка
 
