@@ -1,3 +1,13 @@
+// Grafana Alloy: сбор логов в Loki.
+//
+// Два источника:
+//   1) логи подов — через API Kubernetes (pods/log), только своего узла;
+//   2) логи узла — systemd journal (k0s, containerd, systemd).
+// Перед отправкой строки разбираются: level/trace_id/span_id и поля Gatus
+// выносятся в structured metadata (не в индекс-лейблы, чтобы не раздувать
+// cardinality). Инвентарь форматов — docs/research/log-output-formats.md.
+
+// Обнаружение подов на этой ноде (фильтр по spec.nodeName из NODE_NAME).
 discovery.kubernetes "pods" {
   role = "pod"
   selectors {
@@ -6,24 +16,29 @@ discovery.kubernetes "pods" {
   }
 }
 
+// Из метаданных пода делаем низкокардинальные индекс-лейблы Loki.
 discovery.relabel "pods" {
   targets = discovery.kubernetes.pods.targets
 
+  // namespace пода.
   rule {
     source_labels = ["__meta_kubernetes_namespace"]
     target_label  = "namespace"
   }
 
+  // имя пода.
   rule {
     source_labels = ["__meta_kubernetes_pod_name"]
     target_label  = "pod"
   }
 
+  // имя контейнера.
   rule {
     source_labels = ["__meta_kubernetes_pod_container_name"]
     target_label  = "container"
   }
 
+  // job = namespace/container — устойчивый идентификатор в UI Grafana.
   rule {
     source_labels = ["__meta_kubernetes_namespace", "__meta_kubernetes_pod_container_name"]
     separator     = "/"
@@ -32,14 +47,17 @@ discovery.relabel "pods" {
   }
 }
 
+// Чтение stdout/stderr подов этой ноды по API (без hostPath и root).
 loki.source.kubernetes "pods" {
   targets    = discovery.relabel.pods.output
   forward_to = [loki.process.pods.receiver]
 }
 
+// Разбор строк перед записью в Loki. Стадии идут по порядку.
 loki.process "pods" {
   forward_to = [loki.write.loki.receiver]
 
+  // JSON-логи: level и trace_id/span_id верхнего уровня.
   stage.json {
     expressions = {
       level    = "level",
@@ -48,6 +66,7 @@ loki.process "pods" {
     }
   }
 
+  // logfmt-логи (Grafana-стек, Argo CD и т.п.).
   stage.logfmt {
     mapping = {
       level    = "level",
@@ -56,18 +75,22 @@ loki.process "pods" {
     }
   }
 
+  // trace_id в plain-text строке (в т.ч. JSON-фрагмент в конце) и TraceID= у Zitadel.
   stage.regex {
     expression = "(?:trace_id|traceId|traceID|TraceId|TraceID)[^A-Za-z0-9]{0,5}(?P<trace_id>[0-9a-fA-F]{16,})"
   }
 
+  // span_id аналогично.
   stage.regex {
     expression = "(?:span_id|spanId|spanID|SpanId|SpanID)[^A-Za-z0-9]{0,5}(?P<span_id>[0-9a-fA-F]{16,})"
   }
 
+  // Строки Gatus: пары key=value; ... (logfmt их не берёт из-за ';' и пробелов в значениях).
   stage.regex {
     expression = "group=(?P<group>[^;]+); endpoint=(?P<endpoint>[^;]+); key=(?P<key>[^;]+); success=(?P<success>[a-z]+); errors=(?P<errors>[0-9]+); duration=(?P<duration>[^; ]+)"
   }
 
+  // Извлечённые поля — в structured metadata Loki (не индекс-лейблы).
   stage.structured_metadata {
     values = {
       level    = "",
@@ -82,6 +105,7 @@ loki.process "pods" {
   }
 }
 
+// Отображение полей journald в лейблы: unit и level.
 loki.relabel "journal" {
   forward_to = []
 
@@ -91,21 +115,24 @@ loki.relabel "journal" {
   }
 
   rule {
-    source_labels = ["__journal_priority_keyword"]
+    source_labels = ["__journal__priority_keyword"]
     target_label  = "level"
   }
 
+  // job=node-journal — чтобы отличать логи узла от логов подов.
   rule {
     target_label = "job"
     replacement  = "node-journal"
   }
 }
 
+// Логи узла из systemd journal (k0scontroller, containerd, systemd).
 loki.source.journal "node" {
   forward_to    = [loki.write.loki.receiver]
   relabel_rules = loki.relabel.journal.rules
 }
 
+// Запись в Loki.
 loki.write "loki" {
   endpoint {
     url = "http://loki.monitoring.svc.cluster.local:3100/loki/api/v1/push"
