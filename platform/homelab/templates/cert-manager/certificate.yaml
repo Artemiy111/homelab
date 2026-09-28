@@ -6,10 +6,17 @@
 # (platform/traefik/tlsstore.yaml, `defaultCertificate.secretName: wildcard-tls`).
 # Secret в другом namespace TLSStore не увидит.
 #
-# dnsNames — ТОЛЬКО wildcard, без apex. Apex и wildcard дают два identifier'а,
-# а DNS-01 проверяет оба через одно имя `_acme-challenge.<домен>`: два challenge
-# делят одну TXT-запись и затирают токены друг друга. Apex в маршрутах не
-# используется (все хосты — поддомены).
+# dnsNames — wildcard + apex. Apex обязателен: Matrix-клиент ищет
+# `https://<server_name>/.well-known/matrix/client`, а server_name = apex-домен.
+# Без apex в сертификате well-known отдаёт TLS-ошибку, и клиент не получает
+# `org.matrix.msc4143.rtc_foci` → «Call is not supported» / MISSING_MATRIX_RTC_TRANSPORT.
+#
+# Оба identifier'а проверяются через одно имя `_acme-challenge.<домен>`, но
+# в пределах одного Certificate challenge'и идут последовательно, а не параллельно
+# (docs cert-manager: «If you specify both example.com and *.example.com on the
+# same Certificate, it will take slightly longer to perform validation as each
+# domain will have to be validated one after the other»). Конфликт TXT-записей
+# возникает только при параллельных challenge'ях разных Certificate.
 #
 # renewBefore 30d при 90-дневном сроке Let's Encrypt даёт запас на задержку
 # выпуска. issuerRef меняется на letsencrypt-staging для отладки первого выпуска.
@@ -25,5 +32,6 @@ spec:
     kind: ClusterIssuer
   dnsNames:
     - "*.{{ $domain }}"
+    - "{{ $domain }}"
   renewBefore: 720h
 {{- end }}
