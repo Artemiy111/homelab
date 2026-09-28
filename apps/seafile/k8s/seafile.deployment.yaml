@@ -192,33 +192,46 @@ spec:
               mountPath: /shared
             - name: seahub-onlyoffice
               mountPath: /shared/seafile/conf/seahub_onlyoffice.py
+              subPath: seahub_onlyoffice.py
               readOnly: true
             - name: seahub-oauth
               mountPath: /shared/seafile/conf/seahub_oauth.py
+              subPath: seahub_oauth.py
               readOnly: true
             - name: patches
               mountPath: /patches
               readOnly: true
             - name: prepare-seahub
               mountPath: /prepare-seahub.sh
+              subPath: prepare-seahub.sh
               readOnly: true
       volumes:
         - name: shared
           persistentVolumeClaim:
             claimName: seafile-shared
         - name: seahub-onlyoffice
-          hostPath:
-            path: /home/artlab/projects/homelab/apps/seafile/seahub_onlyoffice.py
-            type: File
+          configMap:
+            name: seafile-config
+            items:
+              - key: seahub_onlyoffice.py
+                path: seahub_onlyoffice.py
         - name: seahub-oauth
-          hostPath:
-            path: /home/artlab/projects/homelab/apps/seafile/seahub_oauth.py
-            type: File
+          configMap:
+            name: seafile-config
+            items:
+              - key: seahub_oauth.py
+                path: seahub_oauth.py
         - name: patches
-          hostPath:
-            path: /home/artlab/projects/homelab/apps/seafile/patches
-            type: Directory
+          configMap:
+            name: seafile-config
+            items:
+              - key: seahub-base-accounts.patch
+                path: seahub-base-accounts.patch
+              - key: seahub-oauth-views.patch
+                path: seahub-oauth-views.patch
         - name: prepare-seahub
-          hostPath:
-            path: /home/artlab/projects/homelab/apps/seafile/prepare-seahub.sh
-            type: File
+          configMap:
+            name: seafile-config
+            items:
+              - key: prepare-seahub.sh
+                path: prepare-seahub.sh

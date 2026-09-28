@@ -31,7 +31,11 @@ curl -fsS 'http://netdata:19999/api/v1/allmetrics?format=prometheus'
 
 ## Первый запуск
 
-Разворачивается манифестами в apps/netdata/k8s/.
+Разворачивается kustomize-сборкой из apps/netdata/ (конфиги `config/go.d/sd/docker.conf` и `config/health_alarm_notify.conf` собираются в ConfigMap):
+
+```sh
+kubectl apply -k apps/netdata/
+```
 
 Проверка после запуска:
 

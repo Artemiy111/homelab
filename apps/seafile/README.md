@@ -4,7 +4,8 @@ Seafile CE в Kubernetes k0s с SSO через Zitadel и OnlyOffice.
 
 Источник истины — манифесты в `apps/seafile/k8s/`. Скрипт
 `apps/seafile/prepare-seahub.sh`, конфиги `seahub_oauth.py` /
-`seahub_onlyoffice.py` и каталог `patches/` используются подом в кластере.
+`seahub_onlyoffice.py` и каталог `patches/` собираются в ConfigMap
+(`kustomization.yaml`) и монтируются в под. Развёртывание — `kubectl apply -k apps/seafile/`.
 
 ## Архитектура
 

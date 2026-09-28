@@ -83,9 +83,11 @@ spec:
               mountPath: /var/cache/netdata
             - name: docker-sd
               mountPath: /etc/netdata/go.d/sd/docker.conf
+              subPath: docker.conf
               readOnly: true
             - name: health-alarm-notify
               mountPath: /etc/netdata/health_alarm_notify.conf
+              subPath: health_alarm_notify.conf
               readOnly: true
             - name: host-root
               mountPath: /host/root
@@ -128,13 +130,17 @@ spec:
         - name: cache
           emptyDir: {}
         - name: docker-sd
-          hostPath:
-            path: /home/artlab/projects/homelab/apps/netdata/config/go.d/sd/docker.conf
-            type: File
+          configMap:
+            name: netdata-config
+            items:
+              - key: docker.conf
+                path: docker.conf
         - name: health-alarm-notify
-          hostPath:
-            path: /home/artlab/projects/homelab/apps/netdata/config/health_alarm_notify.conf
-            type: File
+          configMap:
+            name: netdata-config
+            items:
+              - key: health_alarm_notify.conf
+                path: health_alarm_notify.conf
         - name: host-root
           hostPath:
             path: /
