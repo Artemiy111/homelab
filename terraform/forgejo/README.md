@@ -106,6 +106,12 @@ destroy+recreate. Поэтому `clone_addr` — это ровно `original_ur
 Организация `actions` при этом не управляется (см. ниже): репозитории
 импортируются независимо от неё.
 
+Ненужные зеркалу unit'ы (issues, wiki, projects, releases, packages, actions) и
+PR выключены, а merge-настройки не заданы вовсе: у них статичные дефолты, а
+валидатор `RequiresTrueIfConfigured` требует `has_pull_requests = true`, если
+любая из них задана (даже `false` считается «configured»). Поэтому минимальный
+набор — идентичность зеркала плюс выключенные unit'ы.
+
 ## Ограничения провайдера
 
 **`forgejo_organization` не импортируется.** В `organization_resource.go` нет
