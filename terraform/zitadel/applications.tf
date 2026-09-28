@@ -13,10 +13,6 @@ resource "zitadel_application_v2" "oauth2_proxy" {
     access_token_type            = "OIDC_TOKEN_TYPE_BEARER"
     clock_skew                   = "0s"
     skip_native_app_success_page = false
-
-    login_version {
-      login_v2 {}
-    }
   }
 
   lifecycle {
@@ -39,10 +35,6 @@ resource "zitadel_application_v2" "beszel" {
     access_token_type            = "OIDC_TOKEN_TYPE_BEARER"
     clock_skew                   = "0s"
     skip_native_app_success_page = false
-
-    login_version {
-      login_v2 {}
-    }
   }
 
   lifecycle {
@@ -137,10 +129,6 @@ resource "zitadel_application_v2" "immich" {
     access_token_type            = "OIDC_TOKEN_TYPE_BEARER"
     clock_skew                   = "0s"
     skip_native_app_success_page = false
-
-    login_version {
-      login_v2 {}
-    }
   }
 
   lifecycle {
@@ -186,10 +174,6 @@ resource "zitadel_application_v2" "test" {
     access_token_type            = "OIDC_TOKEN_TYPE_BEARER"
     clock_skew                   = "0s"
     skip_native_app_success_page = false
-
-    login_version {
-      login_v2 {}
-    }
   }
 
   lifecycle {
