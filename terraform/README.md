@@ -7,6 +7,7 @@
 
 | Модуль | Что описывает | Документация |
 | --- | --- | --- |
+| `forgejo/` | Защита ветки `main` репозитория `homelab` | `terraform/forgejo/README.md` |
 | `vault/` | Политики, роли и kubernetes-auth в HashiCorp Vault | `apps/vault/README.md` |
 | `uptime-kuma/` | Мониторы, теги, status page и настройки Uptime Kuma | `terraform/uptime-kuma/README.md` |
 | `zitadel/` | Организация, проект, OIDC-приложения, роли, членства, гранты и политика логина Zitadel | `terraform/zitadel/README.md` |
