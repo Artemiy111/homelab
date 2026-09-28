@@ -11,6 +11,7 @@
 | `vault/` | Политики, роли и kubernetes-auth в HashiCorp Vault | `apps/vault/README.md` |
 | `uptime-kuma/` | Мониторы, теги, status page и настройки Uptime Kuma | `terraform/uptime-kuma/README.md` |
 | `zitadel/` | Организация, проект, OIDC-приложения, роли, членства, гранты и политика логина Zitadel | `terraform/zitadel/README.md` |
+| `tailscale/` | DNS tailnet: MagicDNS и split DNS на домашний домен | `terraform/tailscale/README.md` |
 
 ## Запуск
 
@@ -32,8 +33,9 @@ terraform plan
 ```
 
 Значения окружения для `terraform/vault` не нужны: провайдер берёт адрес из
-`VAULT_ADDR`, токен — из `~/.vault-token`. У `terraform/uptime-kuma` и
-`terraform/zitadel` свои наборы, они описаны в их README.
+`VAULT_ADDR`, токен — из `~/.vault-token`. У `terraform/uptime-kuma`,
+`terraform/zitadel` и `terraform/tailscale` свои наборы, они описаны в их
+README.
 
 ## Доступ к Zitadel
 
