@@ -38,7 +38,7 @@ spec:
             - --http-address=0.0.0.0:4180
             - --metrics-address=0.0.0.0:9100
             - --silence-ping-logging=true
-            - '--request-logging-format={"time":"{{.Timestamp}}","client":"{{.Client}}","request_id":"{{.RequestID}}","user":"{{.Username}}","host":"{{.Host}}","method":"{{.RequestMethod}}","uri":"{{.RequestURI}}","proto":"{{.Protocol}}","upstream":"{{.Upstream}}","ua":"{{.UserAgent}}","status":"{{.StatusCode}}","size":"{{.ResponseSize}}","duration":"{{.RequestDuration}}"}'
+            - '--request-logging-format={"time":"{{.Timestamp}}","client":"{{.Client}}","request_id":"{{.RequestID}}","user":"{{.Username}}","host":"{{.Host}}","method":"{{.RequestMethod}}","uri":{{.RequestURI}},"proto":"{{.Protocol}}","upstream":"{{.Upstream}}","ua":{{.UserAgent}},"status":"{{.StatusCode}}","size":"{{.ResponseSize}}","duration":"{{.RequestDuration}}"}'
           ports:
             - name: http
               containerPort: 4180
