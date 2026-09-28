@@ -40,6 +40,8 @@ spec:
               value: "false"
             - name: WUD_SERVER_FEATURE_DELETE
               value: "false"
+            - name: WUD_LOG_FORMAT
+              value: json
           startupProbe:
             httpGet:
               path: /health
