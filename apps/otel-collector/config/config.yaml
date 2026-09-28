@@ -26,14 +26,15 @@ processors:
     limit_percentage: 75
     spike_limit_percentage: 20
   batch: {}
-  # RustFS отдаёт rustfs_scanner_directories_scanned_total дважды с одинаковыми
-  # лейблами (похоже на баг его OTel-инструментации). prometheus-экспортёр из-за
-  # этого на каждом сборе печатает ошибку со стектрейсом. Метрика малоценная —
-  # дропаем до фикса в апстриме.
+  # RustFS отдаёт часть scanner-метрик дважды с одинаковыми лейблами (похоже на
+  # баг его OTel-инструментации). prometheus-экспортёр из-за этого на каждом
+  # сборе печатает ошибку со стектрейсом. Метрики малоценные — дропаем до фикса
+  # в апстриме.
   filter/rustfs-dup:
     metrics:
       metric:
         - 'name == "rustfs_scanner_directories_scanned_total"'
+        - 'name == "rustfs_scanner_objects_scanned_total"'
 
 extensions:
   health_check:
