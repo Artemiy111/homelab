@@ -71,8 +71,8 @@ spec:
               subPath: config.json
               readOnly: true
             - name: log-format
-              mountPath: /etc/nginx/conf.d/00-log-format.conf
-              subPath: 00-log-format.conf
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
               readOnly: true
       volumes:
         - name: config

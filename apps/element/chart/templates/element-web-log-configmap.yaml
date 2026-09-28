@@ -4,29 +4,52 @@ metadata:
   name: element-web-log-format
   namespace: element
 data:
-  # Монтируется в /etc/nginx/conf.d/00-log-format.conf. include этого каталога
-  # находится внутри http{} в nginx.conf образа.
-  #
-  # Переопределяем ИМЯ log_format "main", а не добавляем свою директиву
-  # access_log: несколько access_log на одном уровне в nginx накапливаются, а не
-  # заменяют друг друга — свой access_log дописал бы вторую строку в лог рядом с
-  # унаследованной, и каждое событие уходило бы в Loki дважды.
-  # access_log из образа уже пишет в /var/log/nginx/access.log → /dev/stdout.
-  # error_log тоже не трогаем: он уже пишет в /var/log/nginx/error.log → /dev/stderr.
-  #
-  # escape=json обязателен: без него кавычки и спецсимволы в URI ломают JSON.
-  00-log-format.conf: |
-    log_format main escape=json
-      '{'
-        '"time":"$time_iso8601",'
-        '"remote_addr":"$remote_addr",'
-        '"request_method":"$request_method",'
-        '"request_uri":"$request_uri",'
-        '"status":$status,'
-        '"body_bytes_sent":$body_bytes_sent,'
-        '"request_length":$request_length,'
-        '"request_time":$request_time,'
-        '"http_referer":"$http_referer",'
-        '"http_user_agent":"$http_user_agent",'
-        '"http_x_forwarded_for":"$http_x_forwarded_for"'
-      '}';
+  # Полная замена nginx.conf образа. В отличие от доки в conf.d/ здесь можно
+  # задать ровно одну директиву access_log: несколько access_log на одном уровне
+  # в nginx накапливаются (событие ушло бы в лог дважды), а переопределить
+  # существующее имя log_format "main" нельзя — nginx падает с
+  # `duplicate "log_format" name "main"`.
+  # Остальное содержимое повторяет nginx.conf образа; include conf.d/*.conf
+  # оставлен, чтобы entrypoint (envsubst) и server-блок из образа работали.
+  nginx.conf: |
+    worker_processes  auto;
+    error_log  /dev/stderr warn;
+    pid        /tmp/nginx.pid;
+
+    events {
+        worker_connections  1024;
+    }
+
+    http {
+        proxy_temp_path /tmp/proxy_temp;
+        client_body_temp_path /tmp/client_temp;
+        fastcgi_temp_path /tmp/fastcgi_temp;
+        uwsgi_temp_path /tmp/uwsgi_temp;
+        scgi_temp_path /tmp/scgi_temp;
+
+        include       /etc/nginx/mime.types;
+        default_type  application/octet-stream;
+
+        # escape=json обязателен: без него кавычки и спецсимволы в URI ломают JSON.
+        log_format  json_access  escape=json
+            '{'
+                '"time":"$time_iso8601",'
+                '"remote_addr":"$remote_addr",'
+                '"request_method":"$request_method",'
+                '"request_uri":"$request_uri",'
+                '"status":$status,'
+                '"body_bytes_sent":$body_bytes_sent,'
+                '"request_length":$request_length,'
+                '"request_time":$request_time,'
+                '"http_referer":"$http_referer",'
+                '"http_user_agent":"$http_user_agent",'
+                '"http_x_forwarded_for":"$http_x_forwarded_for"'
+            '}';
+
+        access_log  /dev/stdout  json_access;
+
+        sendfile        on;
+        keepalive_timeout  65;
+
+        include /etc/nginx/conf.d/*.conf;
+    }
