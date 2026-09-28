@@ -121,6 +121,14 @@ spec:
               value: "1.0"
             - name: ZITADEL_INSTRUMENTATION_SERVICENAME
               value: zitadel
+            - name: ZITADEL_TRACING_TYPE
+              value: otel
+            - name: ZITADEL_TRACING_ENDPOINT
+              value: otel-collector.monitoring.svc.cluster.local:4317
+            - name: ZITADEL_TRACING_SERVICENAME
+              value: zitadel
+            - name: ZITADEL_TRACING_FRACTION
+              value: "1.0"
           startupProbe:
             exec:
               command: ["/app/zitadel", "ready"]
