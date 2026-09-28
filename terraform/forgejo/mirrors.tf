@@ -1,11 +1,23 @@
 locals {
   mirrors = {
-    checkout = {
-      description     = "Mirror of data.forgejo.org/actions/checkout for offline CI"
-      clone_addr      = "https://data.forgejo.org/actions/checkout.git"
-      mirror_interval = "8h0m0s"
-    }
+    cascading-pr      = "https://data.forgejo.org/actions/cascading-pr.git"
+    checkout          = "https://data.forgejo.org/actions/checkout.git"
+    download-artifact = "https://data.forgejo.org/actions/download-artifact.git"
+    forgejo-release   = "https://data.forgejo.org/actions/forgejo-release.git"
+    git-backporting   = "https://data.forgejo.org/actions/git-backporting.git"
+    git-pages         = "https://data.forgejo.org/actions/git-pages.git"
+    go-hashfiles      = "https://data.forgejo.org/actions/go-hashfiles.git"
+    go-versions       = "https://data.forgejo.org/actions/go-versions.git"
+    renovate-config   = "https://code.forgejo.org/actions/renovate-config.git"
+    setup-forgejo     = "https://data.forgejo.org/actions/setup-forgejo.git"
+    setup-go          = "https://data.forgejo.org/actions/setup-go.git"
+    setup-java        = "https://data.forgejo.org/actions/setup-java.git"
+    setup-node        = "https://data.forgejo.org/actions/setup-node.git"
+    setup-python      = "https://data.forgejo.org/actions/setup-python.git"
+    upload-artifact   = "https://data.forgejo.org/actions/upload-artifact.git"
   }
+
+  mirror_interval = "8h0m0s"
 }
 
 resource "forgejo_repository" "mirror" {
@@ -14,12 +26,11 @@ resource "forgejo_repository" "mirror" {
   owner = "actions"
   name  = each.key
 
-  description = each.value.description
-  private     = false
-
-  clone_addr      = each.value.clone_addr
+  description     = "Mirror of ${trimsuffix(trimprefix(each.value, "https://"), ".git")} for offline CI"
+  private         = false
+  clone_addr      = each.value
   mirror          = true
-  mirror_interval = each.value.mirror_interval
+  mirror_interval = local.mirror_interval
 
   has_actions       = false
   has_issues        = false

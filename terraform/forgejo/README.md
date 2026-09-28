@@ -93,10 +93,15 @@ curl -fsS -H "Authorization: token $FORGEJO_API_TOKEN" \
 
 ## Зеркала actions/
 
-`mirrors.tf` описывает pull-зеркала организации `actions` одной картой
-`local.mirrors`: добавление зеркала — запись в карте плюс блок `import`. Пилот —
-только `actions/checkout`; `actions/cache` в карту не входит, это не зеркало, а
-ручной снапшот (`apps/forgejo/README.md`).
+`mirrors.tf` описывает pull-зеркала организации `actions` картой `local.mirrors`
+(имя → upstream): сейчас это 15 зеркал. Добавление зеркала — запись в карте плюс
+блок `import`. `actions/cache` в карту не входит: это не зеркало, а ручной
+снапшот (`apps/forgejo/README.md`).
+
+Upstream большей части зеркал — `data.forgejo.org/actions/*`, у
+`renovate-config` — `code.forgejo.org/actions/renovate-config`. Интервал у всех
+`8h0m0s` и вынесен в `local.mirror_interval`. Описание генерируется из upstream:
+`Mirror of <host>/actions/<name> for offline CI`.
 
 Значения берутся из дампа сервера, потому что `mirror` и `clone_addr` —
 create-only (`RequiresReplaceIfConfigured`): любое расхождение даёт
