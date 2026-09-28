@@ -79,6 +79,9 @@ spec:
                 -e "s|__TURN_SHARED_SECRET__|$SYNAPSE_TURN_SHARED_SECRET|g" \
                 -e "s|__TURN_URI_UDP__|$SYNAPSE_TURN_URI_UDP|g" \
                 -e "s|__TURN_URI_TCP__|$SYNAPSE_TURN_URI_TCP|g" \
+                -e "s|__ISSUER__|$SYNAPSE_OIDC_ISSUER|g" \
+                -e "s|__OIDC_CLIENT_ID__|$OIDC_CLIENT_ID|g" \
+                -e "s|__OIDC_CLIENT_SECRET__|$OIDC_CLIENT_SECRET|g" \
                 /etc/synapse-template/homeserver.yaml > /data/homeserver.yaml
           env:
             - name: DOMAIN
@@ -115,6 +118,18 @@ spec:
                 secretKeyRef:
                   name: element-secrets
                   key: TURN_SHARED_SECRET
+            - name: SYNAPSE_OIDC_ISSUER
+              value: "https://id.$(DOMAIN)"
+            - name: OIDC_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: element-oidc
+                  key: OIDC_CLIENT_ID
+            - name: OIDC_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: element-oidc
+                  key: OIDC_CLIENT_SECRET
           securityContext:
             runAsUser: 991
             runAsGroup: 991
