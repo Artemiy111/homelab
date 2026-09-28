@@ -36,7 +36,7 @@ spec:
             - -c
             - >-
               sed -i 's|^  whitelist_peers:|  whitelist_peers:\n  - "$(TALK_RELAY_NETWORK)"|' /conf/eturnal.yml
-              && awk -v ip="$(HOST_IP)" -v mn="$(TALK_RELAY_MIN_PORT)" -v mx="$(TALK_RELAY_MAX_PORT)" '{print} /^  secret:/{print "  relay_ipv4_addr: \"" ip "\""; print "  relay_min_port: " mn; print "  relay_max_port: " mx}' /conf/eturnal.yml > /conf/eturnal.yml.tmp
+              && awk -v ip="$(HOST_IP)" -v mn="$(TALK_RELAY_MIN_PORT)" -v mx="$(TALK_RELAY_MAX_PORT)" -v mp="$(TALK_METRICS_PORT)" '{print} /^  secret:/{print "  relay_ipv4_addr: \"" ip "\""; print "  relay_min_port: " mn; print "  relay_max_port: " mx; print "  modules:"; print "    mod_stats_prometheus:"; print "      port: " mp}' /conf/eturnal.yml > /conf/eturnal.yml.tmp
               && mv /conf/eturnal.yml.tmp /conf/eturnal.yml
               && sed -i 's|turn_server = "[^"]*"|turn_server = "127.0.0.1"|' /conf/janus.jcfg
               && exec supervisord -c /supervisord.conf
@@ -49,6 +49,8 @@ spec:
               protocol: UDP
             - name: signaling
               containerPort: 8081
+            - name: metrics
+              containerPort: 9105
           env:
             - name: DOMAIN
               valueFrom:
@@ -95,6 +97,10 @@ spec:
               value: "20499"
             - name: TALK_RELAY_NETWORK
               value: "192.0.2.10/16"
+            # mod_stats_prometheus у eturnal: дефолтный 8081 занят signaling,
+            # поэтому метрики на отдельном порту.
+            - name: TALK_METRICS_PORT
+              value: "9105"
             - name: TALK_MAX_STREAM_BITRATE
               value: "15728640"
             - name: TALK_MAX_SCREEN_BITRATE

@@ -38,7 +38,7 @@ Secrets и ConfigMap (см. `apps/victoria-metrics/k8s/vmagent.deployment.yaml`)
 
 Цели: `netdata`, `victoriametrics`, `vmagent`, `traefik`, `authentik`, `wud`,
 `gatus`, `synapse`, `immich`, `livekit`, `tempo`, `athens`, `glitchtip`, `zot`,
-`prosody` (без аутентификации); `uptime-kuma`,
+`prosody`, `talk-hpb` (без аутентификации); `uptime-kuma`,
 `navidrome`, `dawarich`, `forgejo`, `technitium`, `stalwart` (креды из Secrets).
 
 cert-manager скрейпится тремя отдельными job'ами (`cert-manager`,

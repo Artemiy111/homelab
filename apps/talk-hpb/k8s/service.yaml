@@ -12,3 +12,7 @@ spec:
       port: 80
       targetPort: signaling
       protocol: TCP
+    - name: metrics
+      port: 9105
+      targetPort: metrics
+      protocol: TCP
