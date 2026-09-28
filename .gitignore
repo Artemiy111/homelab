@@ -38,3 +38,4 @@ crash-*.log
 # Значения параметров модуля: домен, адреса. В git лежит только пример в
 # README модуля.
 terraform/*/terraform.tfvars
+apps/element/chart/values.private.yaml

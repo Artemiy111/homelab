@@ -1,0 +1,104 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: element-synapse-config
+  namespace: element
+data:
+  homeserver.yaml: |-
+    server_name: !env SYNAPSE_SERVER_NAME
+    public_baseurl: !env SYNAPSE_PUBLIC_BASEURL
+    serve_server_wellknown: true
+    extra_well_known_client_content:
+      org.matrix.msc4143.rtc_foci:
+        - type: livekit
+          livekit_service_url: !env SYNAPSE_LIVEKIT_URL
+    report_stats: false
+    pid_file: /data/homeserver.pid
+    enable_metrics: true
+    listeners:
+      - port: 8080
+        tls: false
+        type: http
+        bind_addresses:
+          - 0.0.0.0
+        resources:
+          - names: [client, federation]
+            compress: true
+      - port: 9009
+        tls: false
+        type: http
+        bind_addresses:
+          - 0.0.0.0
+        resources:
+          - names: [metrics]
+            compress: false
+    database:
+      name: psycopg2
+      args:
+        user: synapse
+        password: !env POSTGRES_PASSWORD
+        database: synapse
+        host: shared-rw.databases.svc.cluster.local
+        cp_min: 5
+        cp_max: 10
+    redis:
+      enabled: true
+      host: element-valkey
+      port: 6379
+    media_store_path: /data/media_store
+    upload_size: 104857600
+    url_preview_enabled: true
+    url_preview_ip_range_blacklist:
+      - 127.0.0.0/8
+      - 10.0.0.0/8
+      - 172.16.0.0/12
+      - 192.168.0.0/16
+    enable_registration: false
+    enable_registration_without_verification: false
+    registration_shared_secret: !env SYNAPSE_REGISTRATION_SHARED_SECRET
+    bcrypt_rounds: 12
+    password_config:
+      enabled: true
+      min_length: 8
+    rc_message:
+      per_second: 0.5
+      burst_count: 30
+    rc_login:
+      address:
+        per_second: 0.17
+        burst_count: 5
+      account:
+        per_second: 0.17
+        burst_count: 5
+      failed_login:
+        per_second: 0.17
+        burst_count: 5
+    rc_delayed_event_mgmt:
+      per_second: 1
+      burst_count: 20
+    experimental_features:
+      msc3266_enabled: true
+      msc4143_enabled: true
+      msc4222_enabled: true
+    max_event_delay_duration: 24h
+    turn_uris:
+      - !env SYNAPSE_TURN_URI_UDP
+      - !env SYNAPSE_TURN_URI_TCP
+    turn_shared_secret: !env SYNAPSE_TURN_SHARED_SECRET
+    turn_user_lifetime: 24h
+    matrix_rtc:
+      transports:
+        - type: livekit
+          livekit_service_url: !env SYNAPSE_LIVEKIT_URL
+    max_upload_size: 104857600
+    max_image_pixels: 26214400
+    max_spider_size: 1048576
+    federation:
+      client_maximum_delay: 0
+    presence:
+      enabled: true
+    retention:
+      enabled: false
+    push:
+      enabled: true
+    log_config: /etc/synapse/log.config

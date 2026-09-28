@@ -1,0 +1,6 @@
+apiVersion: v2
+name: element
+description: Element-стек (Synapse, LiveKit, coturn, redis, element-web, matrix-rtc-auth)
+type: application
+version: 0.1.0
+appVersion: "1.0"

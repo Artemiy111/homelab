@@ -1,0 +1,5 @@
+# Реальные значения лежат в untracked values.private.yaml (domain, serverIp).
+# Секреты (DB-пароль, registration/turn shared secret) — из Vault (VaultStaticSecret).
+
+domain: example.com
+serverIp: 192.0.2.10

@@ -24,8 +24,8 @@ spec:
       enableServiceLinks: false
       initContainers:
         - name: wait-for-redis
-          image: "redis:8.10-alpine@sha256:978f0e01593e65eed801f2402944efcd936d43b5027e4908a7897baf88ed6241"
-          command: ["/bin/sh", "-c", "until redis-cli -h element-redis ping | grep -q PONG; do echo waiting for element-redis; sleep 2; done"]
+          image: "valkey/valkey:9@sha256:8e8d64b405ce18f41b8e5ee20aa4687a8ed0022d1298f2ce31cdcf3a76e09411"
+          command: ["/bin/sh", "-c", "until valkey-cli -h element-valkey ping | grep -q PONG; do echo waiting for element-valkey; sleep 2; done"]
           securityContext:
             runAsUser: 999
             runAsGroup: 999

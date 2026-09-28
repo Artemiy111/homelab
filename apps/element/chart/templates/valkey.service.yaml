@@ -1,14 +1,14 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: element-redis
+  name: element-valkey
   namespace: element
 spec:
   type: ClusterIP
   selector:
-    app: element-redis
+    app: element-valkey
   ports:
-    - name: redis
+    - name: valkey
       port: 6379
-      targetPort: redis
+      targetPort: valkey
       protocol: TCP
