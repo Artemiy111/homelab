@@ -34,6 +34,11 @@ spec:
                   key: TZ
             - name: LIVEKIT_JWT_PORT
               value: "8080"
+            # При info сервис пишет "Health check from <ip:port>" на каждый
+            # запрос Kubernetes-проб (3 пробы × каждые 30 с — это ~90% объёма
+            # логов контейнера). Сами пробы идут на /healthz и никуда не логируются.
+            - name: LIVEKIT_LOG_LEVEL
+              value: "warn"
             - name: LIVEKIT_URL
               value: "wss://element.$(DOMAIN)/livekit/sfu"
             - name: LIVEKIT_KEY
