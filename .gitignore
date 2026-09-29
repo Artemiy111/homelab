@@ -6,6 +6,10 @@ node_modules
 # Приватные значения Helm-чарта: реальный домен и адрес сервера.
 platform/homelab/values.private.yaml
 
+# Приватные значения второго Helm-чарта (apps/element/chart): тот же домен и
+# адрес. Без записи `git add -A` на сервере увёл бы файл в публичное зеркало.
+apps/element/chart/values.private.yaml
+
 # Приватные values Argo Application (домен, externalIPs): merge-patch поверх
 # шаблона из argocd/applications/ (см. argocd/README.md).
 argocd/applications/*.private.yaml

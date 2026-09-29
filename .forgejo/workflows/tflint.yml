@@ -1,0 +1,46 @@
+name: tflint
+
+on:
+  push:
+    branches: [main]
+    paths: &paths
+      - "terraform/**"
+      - ".tflint.hcl"
+      - ".forgejo/workflows/tflint.yml"
+  pull_request:
+    paths: *paths
+
+jobs:
+  tflint:
+    name: tflint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - name: Cache tflint
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/bin
+          key: tflint-0.64.0-mirror-${{ runner.os }}
+      - name: Install tflint
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          set -euo pipefail
+          asset="tflint/0.64.0/tflint_linux_amd64.zip"
+          url="http://rustfs.rustfs.svc.cluster.local/mirror/$asset"
+          expected="$(awk -v p="$asset" '$1==p{print $2}' apps/rustfs/artifacts.tsv)"
+          mkdir -p "$HOME/.local/bin"
+          curl -fsSL -o /tmp/tflint.zip "$url"
+          echo "$expected  /tmp/tflint.zip" | sha256sum -c -
+          unzip -oq /tmp/tflint.zip -d /tmp
+          install -m 0755 /tmp/tflint "$HOME/.local/bin/tflint"
+      - name: Add tflint to PATH
+        run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - name: Lint Terraform
+        run: |
+          set -euo pipefail
+          tflint --version
+          tflint --recursive --no-color \
+            --chdir=terraform \
+            --config="$(pwd)/.tflint.hcl"

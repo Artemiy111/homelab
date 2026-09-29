@@ -196,6 +196,10 @@ manifest lint. A couple of them are required status checks.
 | `actionlint` | actionlint | The workflows themselves |
 | `ansible` | ansible-lint | `production` profile |
 | `shellcheck` | shellcheck | All shell scripts |
+| `tflint` | tflint | Terraform HCL, bundled ruleset |
+
+Every tool is fetched from an in-cluster mirror and verified against a pinned checksum, because
+the runners have no internet access. Details in [Supply chain](#supply-chain).
 
 Local hooks run the same checks before a commit leaves the machine ([`.husky/`](.husky/)), so CI
 failures should be the exception rather than the routine.

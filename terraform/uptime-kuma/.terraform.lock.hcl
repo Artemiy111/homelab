@@ -24,7 +24,8 @@ provider "registry.terraform.io/breml/uptimekuma" {
 }
 
 provider "registry.terraform.io/hashicorp/external" {
-  version = "2.4.2"
+  version     = "2.4.2"
+  constraints = "~> 2.4"
   hashes = [
     "h1:4UInMFuK4GNw4uf2vkUwwDtc0CajvJ88BkAE6xLKOa4=",
     "zh:0b51793be4f66934a3666339e44c01fd56e1c6a56256dfc66d1cb391584b4c2f",
