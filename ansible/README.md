@@ -57,6 +57,19 @@ ansible-playbook agent.yml    # окружение ai-agent
 ansible-playbook host.yml --ask-become-pass
 ```
 
+## Одна роль вместо всего плейбука
+
+Тег каждой роли равен её имени, поэтому прогоняется только нужная:
+
+```sh
+ansible-playbook host.yml --tags k0s_config --ask-become-pass
+ansible-playbook host.yml --list-tags
+```
+
+Теги заданы в `host.yml` в секции `roles`. Проверка одной роли идёт и в
+`--check --diff` — но `gather_facts` остаётся: факты собираются для плейбука,
+а не для роли.
+
 ## Dry-run
 
 Посмотреть, что было бы сделано, ничего не меняя:
