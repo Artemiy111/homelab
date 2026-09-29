@@ -12,6 +12,11 @@ spec:
     helm:
       releaseName: headlamp
       valuesObject:
+        resources:
+          requests:
+            memory: 64Mi
+          limits:
+            memory: 128Mi
         # Дефолтный CRB чарта (clusterRoleBinding.create: true) выдаёт
         # cluster-admin сервис-аккаунту ПОДА (headlamp). Под остаётся
         # бесправным, а права приходят из OIDC-токена пользователя.

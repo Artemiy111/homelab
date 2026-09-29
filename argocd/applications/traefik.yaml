@@ -13,6 +13,11 @@ spec:
       releaseName: traefik
       skipCrds: true
       valuesObject:
+        resources:
+          requests:
+            memory: 192Mi
+          limits:
+            memory: 384Mi
         providers:
           kubernetesCRD:
             allowCrossNamespace: true

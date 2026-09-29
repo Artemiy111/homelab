@@ -64,6 +64,22 @@ repoServer:
     limits:
       memory: 1Gi
 
+applicationSet:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      memory: 128Mi
+
+redis:
+  resources:
+    requests:
+      cpu: 25m
+      memory: 32Mi
+    limits:
+      memory: 128Mi
+
 # ─── Отключаем лишнее для пробного стенда ────────────────────────────────
 # dex — встроенный OIDC-провайдер. Дефолт: enabled: true (лишний под).
 # SSO у нас будет внешний (authentik) через configs.cm "oidc.config",

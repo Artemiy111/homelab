@@ -23,6 +23,25 @@ spec:
           # В апстримном манифесте тега v8.6.0 образ всё ещё v8.5.0 —
           # выравниваем с sidecar Longhorn, как советует его документация.
           - registry.k8s.io/sig-storage/snapshot-controller:v8.6.0
+        patches:
+          - target:
+              kind: Deployment
+              name: snapshot-controller
+            patch: |-
+              apiVersion: apps/v1
+              kind: Deployment
+              metadata:
+                name: snapshot-controller
+              spec:
+                template:
+                  spec:
+                    containers:
+                      - name: snapshot-controller
+                        resources:
+                          requests:
+                            memory: 64Mi
+                          limits:
+                            memory: 128Mi
   destination:
     server: https://kubernetes.default.svc
     namespace: kube-system

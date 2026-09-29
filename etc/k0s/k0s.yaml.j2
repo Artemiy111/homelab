@@ -30,9 +30,96 @@ spec:
       mode: vxlan
       overlay: Always
       wireguard: false
+      patches:
+        - target:
+            kind: DaemonSet
+            name: calico-node
+          patch:
+            type: StrategicMergePatch
+            content: |
+              spec:
+                template:
+                  spec:
+                    containers:
+                      - name: calico-node
+                        resources:
+                          requests:
+                            memory: 192Mi
+                          limits:
+                            memory: 384Mi
+        - target:
+            kind: Deployment
+            name: calico-kube-controllers
+          patch:
+            type: StrategicMergePatch
+            content: |
+              spec:
+                template:
+                  spec:
+                    containers:
+                      - name: calico-kube-controllers
+                        resources:
+                          requests:
+                            memory: 128Mi
+                          limits:
+                            memory: 256Mi
     kubeProxy:
       disabled: false
       mode: iptables
+      patches:
+        - target:
+            kind: DaemonSet
+            name: kube-proxy
+          patch:
+            type: StrategicMergePatch
+            content: |
+              spec:
+                template:
+                  spec:
+                    containers:
+                      - name: kube-proxy
+                        resources:
+                          requests:
+                            memory: 64Mi
+                          limits:
+                            memory: 128Mi
+    coreDNS:
+      patches:
+        - target:
+            kind: Deployment
+            name: coredns
+          patch:
+            type: StrategicMergePatch
+            content: |
+              spec:
+                template:
+                  spec:
+                    containers:
+                      - name: coredns
+                        resources:
+                          requests:
+                            memory: 64Mi
+                          limits:
+                            memory: 160Mi
+
+  metricsServer:
+    patches:
+      - target:
+          kind: Deployment
+          name: metrics-server
+        patch:
+          type: StrategicMergePatch
+          content: |
+            spec:
+              template:
+                spec:
+                  containers:
+                    - name: metrics-server
+                      resources:
+                        requests:
+                          memory: 64Mi
+                        limits:
+                          memory: 160Mi
 
   storage:
     type: etcd

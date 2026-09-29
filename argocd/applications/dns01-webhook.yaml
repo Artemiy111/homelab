@@ -29,6 +29,11 @@ spec:
       releaseName: dns01-webhook
       valuesObject:
         groupName: acme.homelab.local
+        resources:
+          requests:
+            memory: 64Mi
+          limits:
+            memory: 160Mi
         image:
           repository: forgejo.example.com/artemiy/cert-manager-webhook-dns01
           tag: 0.1.1
