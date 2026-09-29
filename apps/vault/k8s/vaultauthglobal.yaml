@@ -30,6 +30,7 @@ spec:
     - paperless
     - pdf
     - postgres
+    - radar
     - rustfs
     - seafile
     - sure
