@@ -57,21 +57,28 @@ ssh homelab-agent 'sudo -u artlab bash -lc "cd /home/artlab/projects/homelab && 
 
 ## Единственный процесс доставки
 
-Источником отслеживаемых изменений является рабочая копия на macOS. Порядок
+Источником отслеживаемых изменений является рабочая копия на macOS. Правки
+попадают в `main` только через PR: ветка защищена, прямой push отклоняется
+(`docs/agents/commit-conventions.md`, `docs/agents/issue-tracker.md`). Порядок
 всегда следующий:
 
-1. Изменить файлы локально.
-2. Проверить diff, манифесты и отсутствие секретов в открытом виде.
-3. Создать локальный commit.
-4. Выполнить push в `origin/main`.
-5. На сервере выполнить `git pull --ff-only`.
-6. Применить затронутые манифесты (`kubectl apply`).
-7. Проверить состояние подов, DNS, HTTP и логи.
+1. Завести issue под задачу и отдельное рабочее дерево (см. `AGENTS.md`).
+2. Изменить файлы в дереве.
+3. Проверить diff, манифесты и отсутствие секретов в открытом виде.
+4. Создать локальный commit в ветке дерева.
+5. Выполнить push ветки и merge PR в `main` (squash).
+6. На сервере выполнить `git checkout main` и `git pull --ff-only`.
+7. Применить затронутые манифесты (`kubectl apply`).
+8. Проверить состояние подов, DNS, HTTP и логи.
+
+Сервер держит `main`: `git pull --ff-only origin main` без checkout, пока он
+не переключён на другую ветку, приведёт к отказу — историю `main` двигают
+только fast-forward.
 
 Команда обновления сервера:
 
 ```sh
-ssh homelab-agent 'sudo -u artlab bash -lc "cd /home/artlab/projects/homelab && git pull --ff-only origin main"'
+ssh homelab-agent 'sudo -u artlab bash -lc "cd /home/artlab/projects/homelab && git checkout main && git pull --ff-only origin main"'
 ```
 
 Запрещено:
@@ -85,7 +92,7 @@ ssh homelab-agent 'sudo -u artlab bash -lc "cd /home/artlab/projects/homelab && 
   разрешения пользователя.
 
 Если после развёртывания обнаружена ошибка, исправить её локально и доставить
-отдельным новым commit.
+отдельным PR, не переписывая уже слитую историю.
 
 ## Секреты
 
