@@ -14,6 +14,46 @@
 
 Инструмент — `terraform`. Конфигурация, state и запуск живут на macOS
 
+## Работа в worktree
+
+Каждая задача агента живёт в своём рабочем дереве `.worktrees/`. Пути
+относительные, работай через параметр `workdir`.
+
+```sh
+# Создать: issue 577, слагизированный текст задачи
+git worktree add -b feat/577-readme .worktrees/577-readme main
+
+# Путь для workdir
+git worktree list                 # проверить, что появилось
+pwd                              # внутри .worktrees/577-readme
+
+# Коммиты и PR — обычные, из этого дерева
+git add -A && git commit -m "..."
+git push -u origin feat/577-readme
+
+# Убрать после merge
+git worktree remove .worktrees/577-readme
+git branch -d feat/577-readme
+```
+
+Правила:
+
+- Имя дерева — `<номер issue>-<слаг>`, имя ветки — `feat/<то же>`. Ветка
+  не переиспользуется между деревьями: одна ветка — одно дерево.
+- `git worktree list` — источник правды, кто где работает.
+- `git stash`, `git rebase`, `git checkout` вне своей ветки не делать: refs
+  и stash общие для всех деревьев.
+- `git worktree remove` требует чистого дерева. Не залитая в main ветка
+  удаляется только `git branch -D` и только осознанно.
+
+Приватные файлы в дерево **не переносятся** намеренно: `config.env`,
+`values.private.yaml`, `argocd/applications/*.private.yaml`,
+`platform/cert-manager/*.private.yaml`, `terraform/*/terraform.tfvars`,
+`.terraform/`, `*.tfstate`. В дереве агента их нет — не создавай симлинки и
+не запускай операции с приватным слоем. `helm template` поверх приватных
+values, `terraform plan`/`apply` и проверка Argo выполняются только в
+основном дереве.
+
 ## Инциденты
 
 Происшествия, повлиявшие на сервисы (простой, потеря данных, деградация), обязательно разбираются и записываются как blameless-постмортем в `docs/incidents/`. Формат, обязательные разделы и правила именования в `docs/incidents/README.md`. Диагностические разборы без влияния на работу идут в `docs/troubleshot/`. Действия по итогам инцидента заводятся как issues.

@@ -1,6 +1,8 @@
 .freebuff/
 node_modules
 
+/.worktrees/
+
 /config.env
 
 # Приватные значения Helm-чарта: реальный домен и адрес сервера.
@@ -42,3 +44,5 @@ crash-*.log
 # Значения параметров модуля: домен, адреса. В git лежит только пример в
 # README модуля.
 terraform/*/terraform.tfvars
+
+.worktrees
