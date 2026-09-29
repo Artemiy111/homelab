@@ -33,10 +33,12 @@ spec:
             - --storage.path=/var/lib/alloy/data
             - /etc/alloy/config.alloy
           env:
-            - name: HOSTNAME
+            - name: NODE_NAME
               valueFrom:
                 fieldRef:
-                  fieldPath: metadata.name
+                  # Имя НОДЫ, а не пода: по нему фильтруется выборка
+                  # discovery.kubernetes (spec.nodeName).
+                  fieldPath: spec.nodeName
             - name: TZ
               valueFrom:
                 configMapKeyRef:
