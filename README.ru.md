@@ -6,11 +6,29 @@
 
 Здесь не демо-стенд, а работающая инфраструктура: она закрывает ежедневные потребности
 домашнего хозяйства и при этом сделана по стандартам, которые применяют в работе, —
-образы закреплены по digest, на каждый namespace есть NetworkPolicy, секреты не попадают
-в Git, CI работает без доступа в интернет, инциденты разбираются по blameless-постмортемам,
-а ADR объясняют, почему каждое решение сложилось именно так.
+образы закреплены по digest, на namespace'ах с нагрузкой есть NetworkPolicy, секреты не
+попадают в Git, CI работает без доступа в интернет, инциденты разбираются по
+blameless-постмортемам, а ADR объясняют, почему каждое решение сложилось именно так.
 
 > English version: [`README.md`](README.md)
+
+---
+
+## Состояние
+
+[![services](docs/status/badges/ru/services.svg)](docs/status/README.md)
+[![manifests](docs/status/badges/ru/manifests.svg)](docs/status/README.md)
+[![images pinned](docs/status/badges/ru/images-pinned.svg)](docs/status/README.md)
+[![netpol coverage](docs/status/badges/ru/netpol-coverage.svg)](docs/status/README.md)
+[![ADR](docs/status/badges/ru/adr.svg)](docs/adr/)
+[![постмортемы](docs/status/badges/ru/postmortems.svg)](docs/incidents/)
+
+Это не бейджи аптайма. Каждое число считается из самого репозитория скриптом
+[`scripts/status-badges.sh`](scripts/status-badges.sh), и CI падает, если значения в
+коммите разошлись с кодом, поэтому любое из них можно пересчитать и поспорить с ним: что
+считается и что намеренно не считается, написано в
+[`docs/status/`](docs/status/README.md). Доступности, SLO и MTTR здесь пока нет — им нужна
+история, которая лежит в Gatus, а не в Git.
 
 ---
 

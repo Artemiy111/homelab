@@ -1,0 +1,31 @@
+name: status
+
+on:
+  push:
+    branches: [main]
+    paths: &paths
+      - "apps/**"
+      - "platform/**"
+      - "argocd/**"
+      - "docs/**"
+      - "scripts/**"
+      - ".forgejo/workflows/status.yml"
+  pull_request:
+    paths: *paths
+
+# Гейт на то, что числа в README соответствуют репозиторию. Бейджи лежат в
+# коммите, поэтому без проверки они тихо расходятся с кодом: добавил сервис —
+# badge «services» остался прежним, и README врёт.
+#
+# Тулчейн не расширяется: генератор на git, grep, awk и coreutils, поэтому
+# ничего не качаем из зеркала RustFS (apps/rustfs) и не добавляем в
+# apps/rustfs/artifacts.tsv.
+jobs:
+  status:
+    name: status
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - name: Check status artifacts
+        run: ./scripts/status-badges.sh --check

@@ -4,11 +4,30 @@ A production-shaped home server: **around fifty services on a single-node Kubern
 managed as code and operated as a learning project for DevOps and SRE practice.
 
 Everything here is real infrastructure, not a demo cluster. It serves the daily needs of one
-household while being engineered to the standards you would apply at work: digest-pinned images,
-network policies on every namespace, secrets that never touch Git, air-gapped CI, blameless
-postmortems, and ADRs explaining why each decision went the way it did.
+household while being engineered to the standards you would apply at work: digest-pinned
+images, network policies on the namespaces that run workloads, secrets that never touch Git,
+air-gapped CI, blameless postmortems, and ADRs explaining why each decision went the way it
+did.
 
 > Russian version: [`README.ru.md`](README.ru.md)
+
+---
+
+## Status
+
+[![services](docs/status/badges/en/services.svg)](docs/status/README.md)
+[![manifests](docs/status/badges/en/manifests.svg)](docs/status/README.md)
+[![images pinned](docs/status/badges/en/images-pinned.svg)](docs/status/README.md)
+[![netpol coverage](docs/status/badges/en/netpol-coverage.svg)](docs/status/README.md)
+[![ADRs](docs/status/badges/en/adr.svg)](docs/adr/)
+[![postmortems](docs/status/badges/en/postmortems.svg)](docs/incidents/)
+
+These are not uptime badges. Each number is counted from the repository itself by
+[`scripts/status-badges.sh`](scripts/status-badges.sh), and CI fails when the committed
+values drift from the code, so any of them can be recomputed and argued with: what is
+counted, and what is deliberately excluded, is written down in
+[`docs/status/`](docs/status/README.md). Availability, SLO and MTTR are not here yet — they
+need history that lives in Gatus rather than in Git.
 
 ---
 

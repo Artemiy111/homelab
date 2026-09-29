@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="63" height="20" role="img" aria-label="ADRs: 7">
+  <title>ADRs: 7</title>
+  <style>rect.label-bg{fill:#555}@media (prefers-color-scheme:dark){rect.label-bg{fill:#3f3f3f}}text{font-family:Verdana,DejaVu Sans,Geneva,sans-serif;font-size:11px;fill:#fff}</style>
+  <rect class="label-bg" width="44" height="20"/>
+  <rect x="44" width="19" height="20" fill="#007ec6"/>
+  <text x="22" y="14" text-anchor="middle">ADRs</text>
+  <text x="53" y="14" text-anchor="middle">7</text>
+</svg>

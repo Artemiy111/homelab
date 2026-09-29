@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="130" height="20" role="img" aria-label="images pinned: 99%">
+  <title>images pinned: 99%</title>
+  <style>rect.label-bg{fill:#555}@media (prefers-color-scheme:dark){rect.label-bg{fill:#3f3f3f}}text{font-family:Verdana,DejaVu Sans,Geneva,sans-serif;font-size:11px;fill:#fff}</style>
+  <rect class="label-bg" width="94" height="20"/>
+  <rect x="94" width="36" height="20" fill="#4c1"/>
+  <text x="47" y="14" text-anchor="middle">images pinned</text>
+  <text x="112" y="14" text-anchor="middle">99%</text>
+</svg>
