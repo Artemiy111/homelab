@@ -42,7 +42,7 @@ spec:
             - name: BEYLA_INTERNAL_METRICS_PROMETHEUS_PORT
               value: "8999"
           ports:
-            - name: internal-metrics
+            - name: metrics
               containerPort: 8999
           # Проб нет намеренно, как в официальном чарте Beyla. Health-эндпоинт
           # в 3.37 жёстко привязан к 127.0.0.1 (pkg/components/beyla.go вызывает

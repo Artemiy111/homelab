@@ -12,7 +12,7 @@ spec:
   selector:
     app: beyla
   ports:
-    - name: internal-metrics
+    - name: metrics
       port: 8999
-      targetPort: internal-metrics
+      targetPort: metrics
       protocol: TCP
