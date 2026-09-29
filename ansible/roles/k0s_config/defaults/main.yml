@@ -7,7 +7,7 @@ k0s_config_oidc_issuer_file: "{{ repo_root }}/platform/k0s/values.private.yaml"
 
 # Шаблон ClusterConfig. Переменная k0s_config_oidc_issuer подставляется в
 # etc/k0s/k0s.yaml.j2, потому что реальный домен в git не лежит.
-k0s_config_src: "{{ repo_root }}/platform/k0s/k0s.yaml"
+k0s_config_src: "{{ repo_root }}/etc/k0s/k0s.yaml.j2"
 k0s_config_dest: /etc/k0s/k0s.yaml
 
 # systemd-юнит k0s на хосте. Рестарт нужен при смене файла: spec.api не
