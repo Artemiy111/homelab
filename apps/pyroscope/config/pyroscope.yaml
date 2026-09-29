@@ -21,7 +21,7 @@ metastore:
     # Флаг есть в -help, но отсутствует в reference-configuration-parameters,
     # поэтому задан явно: иначе snapshot уходит в ./data/v2 и падает по
     # permission denied (рабочий каталог контейнера — /, он read-only).
-    snapshots-dir: /var/lib/pyroscope/metastore/raft
+    snapshots_dir: /var/lib/pyroscope/metastore/raft
 
 # Небо диска: 0 — данные не удаляются никогда. Неделя — как и у трейсов в
 # Tempo (block_retention 168h).
