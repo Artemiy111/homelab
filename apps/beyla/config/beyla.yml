@@ -1,6 +1,7 @@
 # Grafana Beyla — eBPF-автоинструментация.
-# Трейсы и RED-метрики сервисов namespace `element` (Synapse, LiveKit,
-# coturn, lk-jwt-service) без изменений в приложениях.
+# Трейсы и RED-метрики сервисов перечисленных ниже namespace'ов без изменений
+# в приложениях. Список намеренноallowlist, а не «всё кроме»: новое
+# приложение не начнёт отдавать телеметрию молча.
 log_level: INFO
 log_format: json
 
