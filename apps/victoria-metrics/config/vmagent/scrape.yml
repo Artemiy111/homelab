@@ -10,16 +10,6 @@ global:
   scrape_interval: 15s
 
 scrape_configs:
-  # Хост, контейнеры и Docker: netdata агрегирует их и отдаёт Prometheus-формат.
-  - job_name: netdata
-    metrics_path: /api/v1/allmetrics
-    params:
-      format:
-        - prometheus
-    static_configs:
-      - targets:
-          - netdata.monitoring.svc.cluster.local:19999
-
   - job_name: node-exporter
     static_configs:
       - targets:
@@ -228,13 +218,30 @@ scrape_configs:
           - beyla.monitoring.svc.cluster.local:8999
 
   - job_name: otel-collector
+    # Порядок важен: сначала span-метрики, потом всё остальное. Без
+    # metric_relabel_configs ОТДЕЛЬНЫЙ scrape этого эндпоинта на 8889 весит
+    # 76 МБ (лимит vmagent — 16 МБ) и джоба падает целиком, заодно унося с
+    # собой метрики самого коллектора. Причина — экспортёр с
+    # resource_constant_labels: ["*"] отдаёт ВСЕ метрики всех пайплайнов, а
+    # traces_span_metrics_* в одиночку занимает 20 МБ. Раньше это проходило
+    # незаметно: до spanmetrics эндпоинт был 55 МБ и так уже превышал лимит,
+    # но джоба была последней в списке и алерт молчал.
+    #
+    # Здесь span-метрики отфильтровываются, чтобы на 8889 попадали только
+    # метрики коллектора и приложений; сами span-метрики идут отдельной
+    # джобой с 8890, где отдаётся только spanmetrics (1 МБ).
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: traces_span_metrics_.*
+        action: drop
+    # 55 МБ на 8889 — это гистограммы http_client/http_server/db_*/go_* от
+    # Beyla, они и без spanmetrics не влезали в дефолтные 16 МБ. Дефолт
+    # задан не нами и не про этот стек, поэтому поднимаем явно.
+    max_scrape_size: 100MB
     static_configs:
       - targets:
           - otel-collector.monitoring.svc.cluster.local:8889
 
-  # Span-метрики из одноимённого коннектора. Отдельная джоба, а не ещё один
-  # target в otel-collector: в этом наборе нет resource-атрибутов трейсов, и
-  # метрики удобно отличать при разборе.
   - job_name: otel-spanmetrics
     static_configs:
       - targets:
