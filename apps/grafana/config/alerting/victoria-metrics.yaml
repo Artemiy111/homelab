@@ -459,3 +459,347 @@ groups:
           description: >-
             В значении job перечислены таргеты с up == 0 дольше 10 минут. Проверить /metrics таргета и его токен из Secret'а vmagent.
           runbook: "apps/victoria-metrics/README.md, раздел «Проверка»"
+      - uid: pipeline-metrics-stalled
+        title: Метрики не поступают в VictoriaMetrics
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: victoriametrics
+            model:
+              datasource:
+                type: prometheus
+                uid: victoriametrics
+              editorMode: code
+              expr: 'sum(rate(vm_http_requests_total{job="vmagent"}[10m])) == 0'
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: []
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              reducer: last
+              refId: B
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: C
+              type: threshold
+        noDataState: OK
+        execErrState: Error
+        for: 15m
+        isPaused: false
+        labels:
+          severity: critical
+        annotations:
+          summary: "vmagent не отправляет метрики в VictoriaMetrics"
+          description: >-
+            Компонент жив (up=1), но поток remote_write пустой: vmagent завис, потерял креды или упёрся в remote_write. Без этого алерта пайплайн метрик может молча остановиться. Проверить up{job="vmagent"}, логи vmagent и доступность VictoriaMetrics.
+          runbook: "apps/victoria-metrics/README.md"
+      - uid: pipeline-traces-stalled
+        title: Трейсы не поступают в Tempo
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: victoriametrics
+            model:
+              datasource:
+                type: prometheus
+                uid: victoriametrics
+              editorMode: code
+              expr: 'sum(rate(tempo_distributor_spans_received_total{job="tempo"}[10m])) == 0'
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: []
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              reducer: last
+              refId: B
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: C
+              type: threshold
+        noDataState: OK
+        execErrState: Error
+        for: 15m
+        isPaused: false
+        labels:
+          severity: warning
+        annotations:
+          summary: "В Tempo не поступают трейсы"
+          description: >-
+            Tempo и OTel Collector живы, но поток спанов пуст. Источники трейсов: Traefik (ingress) и Beyla (сервисы namespace element). После #542 именно поломка Beyla делает внутренние трейсы пустыми незаметно. Проверить up{job="beyla"} и логи подов beyla.
+          runbook: "apps/beyla/README.md"
+      - uid: vmagent-data-loss
+        title: vmagent теряет данные
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: victoriametrics
+            model:
+              datasource:
+                type: prometheus
+                uid: victoriametrics
+              editorMode: code
+              expr: 'sum(rate(vm_persistentqueue_bytes_dropped_total[10m])) > 0'
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: []
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              reducer: last
+              refId: B
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: C
+              type: threshold
+        noDataState: OK
+        execErrState: Error
+        for: 5m
+        isPaused: false
+        labels:
+          severity: critical
+        annotations:
+          summary: "vmagent отбрасывает семплы (переполнение persistent queue)"
+          description: >-
+            Данные теряются молча: часть семплов не доходит до VictoriaMetrics. Обычно причина в недоступном remote_write или нехватке места под очередь. Проверить vm_persistentqueue_blocks_dropped_total и логи vmagent.
+          runbook: "apps/victoria-metrics/README.md"
+      - uid: loki-active-streams-high
+        title: Много активных серий в Loki
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: victoriametrics
+            model:
+              datasource:
+                type: prometheus
+                uid: victoriametrics
+              editorMode: code
+              expr: 'sum(loki_ingester_memory_streams{job="loki"}) > 10000'
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: []
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              reducer: last
+              refId: B
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: C
+              type: threshold
+        noDataState: OK
+        execErrState: Error
+        for: 10m
+        isPaused: false
+        labels:
+          severity: warning
+        annotations:
+          summary: "Активных серий в Loki больше 10000 (норма порядка 165)"
+          description: >-
+            Рост кардинальности — главный способ положить Loki: новый лейбл с высокой уникальностью в приложении создаёт поток серий. Проверить, какое приложение добавило лейблы.
+          runbook: "apps/loki/README.md"

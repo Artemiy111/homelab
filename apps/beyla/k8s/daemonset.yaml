@@ -36,6 +36,14 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
+            # Собственные метрики Beyla: сколько eBPF-событий потеряно,
+            # сколько процессов инструментировано. Без них мы слепы к тихим
+            # потерям телеметрии на уровне ядра. Скрейпится vmagent (job beyla).
+            - name: BEYLA_INTERNAL_METRICS_PROMETHEUS_PORT
+              value: "8999"
+          ports:
+            - name: internal-metrics
+              containerPort: 8999
           # Проб нет намеренно, как в официальном чарте Beyla. Health-эндпоинт
           # в 3.37 жёстко привязан к 127.0.0.1 (pkg/components/beyla.go вызывает
           # health.ListenAndServe, который игнорирует listen_address из конфига),

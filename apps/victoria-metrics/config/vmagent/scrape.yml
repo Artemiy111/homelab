@@ -217,6 +217,14 @@ scrape_configs:
 
   # OTLP-приёмник: приложения, отдающие метрики push'ем, попадают сюда
   # (resource attributes в лейблах, напр. service_name="rustfs").
+  # Внутренние метрики Beyla: число инструментированных процессов, счётчики
+  # потерянных eBPF-событий. Без этого потеря телеметрии на уровне ядра
+  # невидима — процесс молчит, а данных нет.
+  - job_name: beyla
+    static_configs:
+      - targets:
+          - beyla.monitoring.svc.cluster.local:8999
+
   - job_name: otel-collector
     static_configs:
       - targets:

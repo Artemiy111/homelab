@@ -4,6 +4,7 @@ namespace: monitoring
 resources:
   - k8s/rbac.yaml
   - k8s/daemonset.yaml
+  - k8s/service.yaml
 configMapGenerator:
   # Конфиг собирается в ConfigMap `beyla-config`; kustomize добавляет хэш
   # содержимого к имени и переписывает ссылку в DaemonSet, поэтому правка
