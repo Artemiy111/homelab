@@ -12,6 +12,16 @@ exporters:
     # Замена deprecated resource_to_telemetry_conversion: equivalent — included ["*"].
     resource_constant_labels:
       included: ["*"]
+  # Span-метрики идут в отдельный экспортёр и на отдельный порт намеренно.
+  # У основного prometheus стоит resource_constant_labels: ["*"], и если
+  # отдать туда же span-метрики, то КАЖДЫЙ resource-атрибут трейса
+  # (service.instance.id, k8s.pod.uid, container.id) станет лейблом каждой
+  # серии. Кардинальность размножится на число подов — ровно то, что уже
+  # один раз уронило Loki. Изоляция ограничивает урон и делает откат
+  # одним действием.
+  prometheus/spanmetrics:
+    endpoint: 0.0.0.0:8890
+    send_timestamps: true
   # Трейсы уходят в Tempo по OTLP/gRPC. Внутрикластерный трафик, TLS не нужен.
   otlp/tempo:
     endpoint: tempo.monitoring.svc.cluster.local:4317
@@ -46,6 +56,35 @@ extensions:
   health_check:
     endpoint: 0.0.0.0:13133
 
+connectors:
+  # Агрегация RED прямо из трейсов: rate, errors, duration. Приложения ничего
+  # об этом не знают — ни кода, ни конфигурации.
+  #
+  # Главная ценность здесь — сервисы, которые шлют OTel сами: Beyla их
+  # намеренно пропускает (exclude_otel_instrumented_services), чтобы не
+  # задваивать трейсы, и RED-метрик по ним не даёт. Коннектор берёт трейсы
+  # независимо от источника.
+  #
+  # Исключён span_name: это главный источник кардинальности. У сервиса с
+  # сотней REST-маршрутов и gRPC-методов он даёт сотню серий на каждую
+  # метрику. Остаются service_name и status_code — их размер предсказуем.
+  # Если понадобится разрез по endpoint'ам, его надо включать точечно и
+  # через нормализацию, а не возвращать span_name целиком.
+  spanmetrics:
+    histogram:
+      explicit:
+        # Бакеты под локальный сервис: суб-миллисекундные хвосты в homelab
+        # не несут смысла и только раздувают число серий.
+        buckets: [1ms, 5ms, 10ms, 25ms, 50ms, 100ms, 250ms, 500ms, 1s, 2s, 5s, 10s]
+    dimensions: []
+    exclude_dimensions: [span_name]
+    # Exemplars — связь «график → конкретный трейс»: из графика задержек
+    # можно перейти прямо в медленный запрос. В Grafana включается в
+    # настройках datasource VictoriaMetrics.
+    exemplars:
+      enabled: true
+    metrics_flush_interval: 30s
+
 service:
   extensions: [health_check]
   pipelines:
@@ -56,7 +95,13 @@ service:
     traces:
       receivers: [otlp]
       processors: [memory_limiter, batch]
-      exporters: [otlp/tempo]
+      # spanmetrics здесь экспортёр: коннектор разветвляет трейсы — Tempo
+      # получает полные трейсы, коннектор получает копию на агрегацию.
+      exporters: [otlp/tempo, spanmetrics]
+    metrics/spanmetrics:
+      receivers: [spanmetrics]
+      processors: [memory_limiter, batch]
+      exporters: [prometheus/spanmetrics]
     logs:
       receivers: [otlp]
       processors: [memory_limiter, batch]

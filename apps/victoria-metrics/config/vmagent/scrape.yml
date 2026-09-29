@@ -232,6 +232,14 @@ scrape_configs:
       - targets:
           - otel-collector.monitoring.svc.cluster.local:8889
 
+  # Span-метрики из одноимённого коннектора. Отдельная джоба, а не ещё один
+  # target в otel-collector: в этом наборе нет resource-атрибутов трейсов, и
+  # метрики удобно отличать при разборе.
+  - job_name: otel-spanmetrics
+    static_configs:
+      - targets:
+          - otel-collector.monitoring.svc.cluster.local:8890
+
   - job_name: jellyfin
     static_configs:
       - targets:
