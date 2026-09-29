@@ -28,6 +28,7 @@
 | `sysctl` | `99-inotify.conf` |
 | `tailscale_policy_route` | systemd-юнит policy routing для tailnet |
 | `longhorn_prereqs` | `iscsid`, каталог данных, SELinux-модуль |
+| `k0s_config` | `ClusterConfig` k0s в `/etc/k0s/k0s.yaml`, рестарт `k0scontroller` |
 | `ai_agent` | Пользователь `ai-agent`: dotfiles, `authorized_keys`, sudoers |
 
 Параметры каждой роли — в её `roles/<имя>/defaults/main.yml`, задачи — в

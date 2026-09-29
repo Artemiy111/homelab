@@ -15,7 +15,7 @@ spec:
     # spec.api не обновляется динамически: после правки нужен
     # `k0s stop && k0s start`.
     extraArgs:
-      oidc-issuer-url: __OIDC_ISSUER_URL__
+      oidc-issuer-url: {{ k0s_config_oidc_issuer }}
       oidc-client-id: "392923102339689485"
       oidc-username-claim: sub
       oidc-username-prefix: "-"

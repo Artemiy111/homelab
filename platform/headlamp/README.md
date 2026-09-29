@@ -12,7 +12,7 @@
 |---|---|
 | Приложение OIDC в Zitadel | `terraform/zitadel/applications.tf` |
 | Claim `role` (`admin`/`user`) | `terraform/zitadel/actions.tf` |
-| Доверие apiserver к Zitadel | `platform/k0s/k0s.yaml`, `spec.api.extraArgs` |
+| Доверие apiserver к Zitadel | `etc/k0s/k0s.yaml.j2`, `spec.api.extraArgs` |
 | `cluster-admin` для группы `oidc:admin` | `headlamp-admins.clusterrolebinding.yaml` |
 | clientID/clientSecret/issuerURL/scopes | Vault `kv/headlamp/oidc` → `headlamp-oidc.vaultstaticsecret.yaml` |
 
