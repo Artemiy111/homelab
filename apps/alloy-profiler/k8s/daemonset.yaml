@@ -90,10 +90,15 @@ spec:
           resources:
             requests:
               cpu: 50m
-              memory: 128Mi
+              memory: 384Mi
             limits:
               cpu: 500m
-              memory: 512Mi
+              # 512Mi не хватало: при 41 инструментированном namespace'е
+              # Beyla и alloy-profiler упирались в собственный лимит и были
+              # убиты ядром (OOMKilled, exit 137). Лимит держит память под
+              # контролем, request близок к реальному пику, иначе планировщик
+              # не увидит footprint агента.
+              memory: 1Gi
       tolerations:
         - effect: NoSchedule
           operator: Exists
