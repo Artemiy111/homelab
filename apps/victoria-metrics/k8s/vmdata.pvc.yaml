@@ -9,4 +9,9 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 8Gi
+      # При retentionPeriod=30d и измеренном росте ~0.36 GiB/сутки данные
+      # занимают ~11 GiB. 20 Gi — это ~45 суток запаса плюс место под
+      # периодическую дедупликацию, которой временно нужно столько же, сколько
+      # занимает предыдущий месяц. Расширение онлайн: longhorn-retain имеет
+      # allowVolumeExpansion: true.
+      storage: 20Gi

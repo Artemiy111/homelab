@@ -18,6 +18,18 @@ storage:
       path: /var/tempo/wal
     local:
       path: /var/tempo/blocks
+    # Без этого опроса blocklist не происходит и compactor не знает, какие
+    # блоки устарели. Дефолт в Tempo 3.x — 5 минут, задаём явно.
+    blocklist_poll: 5m
+
+# Удалением трейсов в Tempo занимается только compactor. Без этой секции
+# данные не удаляются никогда, и PVC 5Gi переполнится (измеренный рост
+# ~0.24 GiB/сутки при Traefik с sampleRate 1.0 плюс Beyla).
+# 168h = неделя, по данным замеров это ~1.7 GiB — влезает в 5 Gi с запасом.
+compactor:
+  compaction:
+    block_retention: 168h
+    compacted_block_retention: 1h
 
 usage_report:
   reporting_enabled: false

@@ -27,7 +27,13 @@ spec:
           image: "victoriametrics/victoria-metrics:v1.150.0@sha256:54467c7764a3e6579199af1914bb779f01ce32265cd552eb5ae0d4f8a2b80a97"
           args:
             - -storageDataPath=/data
-            - -retentionPeriod=180d
+            # 180d несовместимо с томом 20Gi при росте ~0.36 GiB/сутки:
+            # потребовалось бы ~65 GiB. 30d ≈ 11 GiB — влезает с запасом.
+            - -retentionPeriod=30d
+            # Порог, ниже которого storage перестаёт принимать новые данные
+            # (данные не удаляются — для single-node перенаправлять некуда).
+            # По умолчанию 100 МБ, то есть фактически срабатывал бы неявно.
+            - -storage.minFreeDiskSpaceBytes=2GiB
             - -httpListenAddr=:8428
           ports:
             - name: http
