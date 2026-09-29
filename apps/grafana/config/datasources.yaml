@@ -45,3 +45,15 @@ datasources:
           matcherRegex: '(?:trace_id|traceId|traceID|TraceId|TraceID)[^A-Za-z0-9]{0,5}([0-9a-fA-F]{16,})'
           url: "$${__value.raw}"
           datasourceUid: tempo
+  - name: Pyroscope
+    uid: pyroscope
+    type: grafana-pyroscope-datasource
+    access: proxy
+    url: http://pyroscope:4040
+    editable: false
+    jsonData:
+      # Связь профиль → трайсы: Grafana умеет искать спаны по service.name
+      # профиля. Работает вместе с datasource Tempo.
+      tracesToProfiles:
+        datasourceUid: tempo
+        serviceName: '${__field.labels.service_name}'

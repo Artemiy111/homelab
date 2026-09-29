@@ -1,0 +1,20 @@
+// Alloy-профайлер: eBPF-сэмплирование стеков процессов в контейнерах этой
+// ноды. Отдельный инстанс от apps/alloy: лог-пайплайн намеренно работает без
+// root и eBPF-возможностей, профилирование их требует.
+discovery.kubernetes "local_pods" {
+  selectors {
+    field = "spec.nodeName=" + sys.env("HOSTNAME")
+  }
+  role = "pod"
+}
+
+pyroscope.ebpf "instance" {
+  targets    = discovery.kubernetes.local_pods.targets
+  forward_to = [pyroscope.write.endpoint.receiver]
+}
+
+pyroscope.write "endpoint" {
+  endpoint {
+    url = "http://pyroscope.monitoring.svc.cluster.local:4040"
+  }
+}

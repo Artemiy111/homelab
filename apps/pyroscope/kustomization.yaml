@@ -1,0 +1,14 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: monitoring
+resources:
+  - k8s/pvc.yaml
+  - k8s/deployment.yaml
+  - k8s/service.yaml
+configMapGenerator:
+  # Конфиг собирается в ConfigMap `pyroscope-config`; kustomize добавляет хэш
+  # к имени и переписывает ссылку в Deployment, поэтому правка конфига сама
+  # запускает rollout.
+  - name: pyroscope-config
+    files:
+      - config/pyroscope.yaml

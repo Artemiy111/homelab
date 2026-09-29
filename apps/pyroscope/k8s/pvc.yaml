@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pyroscope-data
+  namespace: monitoring
+spec:
+  storageClassName: longhorn-retain
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      # Профили — сэмплы стеков, поток невелик, но растёт с числом
+      # инструментируемых процессов. Pyroscope сам удаляет старые блоки при
+      # нехватке места (retention-policy + limits.retention_period), 10Gi —
+      # с запасом под неделю данных.
+      storage: 10Gi

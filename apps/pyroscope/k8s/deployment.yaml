@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pyroscope
+  namespace: monitoring
+spec:
+  revisionHistoryLimit: 2
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: pyroscope
+  template:
+    metadata:
+      labels:
+        app: pyroscope
+    spec:
+      enableServiceLinks: false
+      containers:
+        - name: pyroscope
+          image: "grafana/pyroscope:2.3.1@sha256:86a9ee7448487409ead8ada78789de7b78b739711b92b5d7224a1a54abf3eeb2"
+          args:
+            - -config.file=/etc/pyroscope/pyroscope.yaml
+          ports:
+            - name: http
+              containerPort: 4040
+            - name: grpc
+              containerPort: 9095
+          startupProbe:
+            httpGet:
+              path: /ready
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /ready
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          securityContext:
+            runAsUser: 0
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          volumeMounts:
+            - name: config
+              mountPath: /etc/pyroscope
+              readOnly: true
+            - name: data
+              mountPath: /var/lib/pyroscope
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+      volumes:
+        - name: config
+          configMap:
+            name: pyroscope-config
+        - name: data
+          persistentVolumeClaim:
+            claimName: pyroscope-data
