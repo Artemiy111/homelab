@@ -117,7 +117,25 @@ echo ""
 echo "Installing k0s..."
 
 mkdir -p /etc/k0s
-cp "${SCRIPT_DIR}/k0s.yaml" /etc/k0s/k0s.yaml
+
+# Реальный issuer Zitadel лежит в приватном слое: в git лежит только
+# плейсхолдер, иначе домен уехал бы в публичное зеркало.
+K0S_CONFIG="${SCRIPT_DIR}/k0s.yaml"
+K0S_PRIVATE="${SCRIPT_DIR}/values.private.yaml"
+
+if [[ -f "${K0S_PRIVATE}" ]]; then
+  issuer="$(sed -n 's/^[[:space:]]*oidcIssuerUrl:[[:space:]]*//p' "${K0S_PRIVATE}" | head -1)"
+  if [[ -n "${issuer}" ]]; then
+    sed "s|__OIDC_ISSUER_URL__|${issuer}|" "${K0S_CONFIG}" > /etc/k0s/k0s.yaml
+    echo "OIDC issuer: ${issuer}"
+  else
+    echo "Error: oidcIssuerUrl not found in ${K0S_PRIVATE}" >&2
+    exit 1
+  fi
+else
+  echo "Error: ${K0S_PRIVATE} not found (OIDC issuer placeholder left in place)" >&2
+  exit 1
+fi
 
 if k0s status 2>/dev/null | grep -q "Version"; then
   echo "k0s already installed. To reinstall: k0s reset && reboot"

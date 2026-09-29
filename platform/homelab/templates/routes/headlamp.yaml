@@ -7,13 +7,15 @@ spec:
   entryPoints:
     - websecure
   routes:
-    # Дальше идёт собственный вход Headlamp по ServiceAccount-токену.
+    # Дальше идёт собственный вход Headlamp по OIDC: Headlamp сам ходит в
+    # Zitadel и отдаёт apiserver'у токен, который тот проверяет по подписи
+    # (platform/k0s/k0s.yaml, spec.api.extraArgs). oauth2-proxy тут не нужен
+    # и только мешал бы: он пустил бы до Traefik, а решение о доступе всё
+    # равно принимает apiserver по claim `role`.
     - match: Host(`headlamp.{{ .Values.config.domain }}`)
       kind: Rule
       middlewares:
         # Middlewares объявлены в traefik (platform/traefik/oauth2-proxy.middleware.yaml).
-        - name: oauth2-proxy
-          namespace: traefik
         - name: secure-headers
           namespace: traefik
         - name: ratelimit-default

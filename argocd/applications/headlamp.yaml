@@ -13,54 +13,30 @@ spec:
       releaseName: headlamp
       valuesObject:
         # Дефолтный CRB чарта (clusterRoleBinding.create: true) выдаёт
-        # cluster-admin сервис-аккаунту ПОДА (headlamp). Под должен быть
-        # бесправным, поэтому чартовый CRB выключен, а cluster-admin выдаётся
-        # отдельному логин-аккаунту headlamp-admin ниже.
+        # cluster-admin сервис-аккаунту ПОДА (headlamp). Под остаётся
+        # бесправным, а права приходят из OIDC-токена пользователя.
         clusterRoleBinding:
           create: false
-        extraManifests:
-          - |
-            apiVersion: v1
-            kind: ServiceAccount
-            metadata:
-              name: headlamp-admin
-              namespace: headlamp
-          - |
-            apiVersion: rbac.authorization.k8s.io/v1
-            kind: ClusterRoleBinding
-            metadata:
-              name: headlamp-admin
-            roleRef:
-              apiGroup: rbac.authorization.k8s.io
-              kind: ClusterRole
-              name: cluster-admin
-            subjects:
-              - kind: ServiceAccount
-                name: headlamp-admin
-                namespace: headlamp
-          - |
-            apiVersion: v1
-            kind: Secret
-            metadata:
-              name: headlamp-admin-token
-              namespace: headlamp
-              annotations:
-                kubernetes.io/service-account.name: headlamp-admin
-            type: kubernetes.io/service-account-token
+        config:
+          oidc:
+            # clientSecret приходит из Secret через envFrom, clientID — тоже:
+            # он известен только после создания приложения в Zitadel.
+            secret:
+              create: false
+            externalSecret:
+              enabled: true
+              name: headlamp-oidc
+        # issuer и scopes не секреты, поэтому задаются здесь, а не в Vault.
+        # Здесь плейсхолдер: реальный домен приезжает из untracked
+        # argocd/applications/headlamp.private.yaml (см. argocd/README.md).
+        env:
+          - name: OIDC_ISSUER_URL
+            value: https://id.example.com
+          - name: OIDC_SCOPES
+            value: openid,profile,email
   destination:
     server: https://kubernetes.default.svc
     namespace: headlamp
-  # Контроллер service-account сам дописывает в token-Secret поля data и
-  # аннотацию uid. Без этого Argo сравнивал бы их с пустым desired и висел
-  # в OutOfSync.
-  ignoreDifferences:
-    - group: ""
-      kind: Secret
-      name: headlamp-admin-token
-      namespace: headlamp
-      jsonPointers:
-        - /data
-        - /metadata/annotations/kubernetes.io~1service-account.uid
   syncPolicy:
     syncOptions:
       - ServerSideApply=true

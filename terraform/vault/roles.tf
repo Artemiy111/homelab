@@ -13,6 +13,7 @@ locals {
     "gatus"          = { namespace = "monitoring", policy = "app/gatus" },
     "glitchtip"      = { namespace = "glitchtip", policy = "app/glitchtip" },
     "grafana"        = { namespace = "monitoring", policy = "app/grafana" },
+    "headlamp"       = { namespace = "headlamp", policy = "app/headlamp" },
     "home-assistant" = { namespace = "home-assistant", policy = "app/home-assistant" },
     "immich"         = { namespace = "immich", policy = "app/immich" },
     "infisical"      = { namespace = "infisical", policy = "app/infisical" },

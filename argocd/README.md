@@ -218,13 +218,13 @@ kubectl -n headlamp delete secret -l owner=helm,name=headlamp
 Границы владения: чарт по умолчанию создаёт `ClusterRoleBinding headlamp-admin`
 на SA пода `headlamp` — то есть выдаёт cluster-admin самому поду. Здесь это
 выключено (`clusterRoleBinding.create: false`): под остаётся бесправным и
-бежит под SA `headlamp`, а cluster-admin получает отдельный логин-аккаунт
-`headlamp-admin`. SA, `ClusterRoleBinding` на него и token-Secret описаны через
-`extraManifests` в том же Application (раньше — вручную в
-`platform/headlamp/headlamp-rbac.yaml`). `ignoreDifferences` по `/data` и аннотации
-`kubernetes.io/service-account.uid` нужен, потому что их дописывает контроллер
-service-account. Маршрут (`platform/homelab/templates/routes/headlamp.yaml`) —
-по-прежнему вне Application.
+бежит под SA `headlamp`. Права приходят из OIDC: Headlamp отдаёт apiserver'у
+`id_token`, который тот проверяет по подписи Zitadel и читает из него claim
+`role` как группу. `cluster-admin` выдаётся группе `oidc:admin`
+(`platform/headlamp/headlamp-admins.clusterrolebinding.yaml`), поэтому он есть
+только у пользователей с ролью `admin` в Zitadel. `extraManifests` в этом
+Application больше нет. Маршрут
+(`platform/homelab/templates/routes/headlamp.yaml`) — вне Application.
 
 ### Traefik
 

@@ -181,6 +181,32 @@ resource "zitadel_application_v2" "test" {
   }
 }
 
+resource "zitadel_application_v2" "headlamp" {
+  project_id = zitadel_project_v2.homelab.id
+  org_id     = zitadel_organization.homelab.id
+  name       = "Headlamp"
+
+  oidc {
+    grant_types       = ["OIDC_GRANT_TYPE_AUTHORIZATION_CODE"]
+    response_types    = ["OIDC_RESPONSE_TYPE_CODE"]
+    redirect_uris     = ["https://headlamp.${var.domain}/oidc-callback"]
+    app_type          = "OIDC_APP_TYPE_WEB"
+    auth_method_type  = "OIDC_AUTH_METHOD_TYPE_BASIC"
+    version           = "OIDC_VERSION_1_0"
+    access_token_type = "OIDC_TOKEN_TYPE_BEARER"
+    clock_skew        = "0s"
+    # Claim `role` кладёт zitadel_trigger_actions.add_role_userinfo.
+    # Headlamp шлёт id_token прямо в apiserver, поэтому claim должен быть в
+    # самом токене, а не только в ответе userinfo.
+    id_token_userinfo_assertion  = true
+    skip_native_app_success_page = false
+  }
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+
 resource "zitadel_application_v2" "element" {
   project_id = zitadel_project_v2.homelab.id
   org_id     = zitadel_organization.homelab.id

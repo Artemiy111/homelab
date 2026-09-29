@@ -28,6 +28,15 @@ resource "vault_policy" "app_beszel" {
   EOT
 }
 
+resource "vault_policy" "app_headlamp" {
+  name = "app/headlamp"
+
+  policy = <<-EOT
+    path "kv/data/headlamp/oidc"      { capabilities = ["read"] }
+    path "kv/metadata/headlamp/oidc"  { capabilities = ["read", "list"] }
+  EOT
+}
+
 resource "vault_policy" "app_home_assistant" {
   name = "app/home-assistant"
 
