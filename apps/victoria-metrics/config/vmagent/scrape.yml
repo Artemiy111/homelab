@@ -221,6 +221,8 @@ scrape_configs:
   # потерянных eBPF-событий. Без этого потеря телеметрии на уровне ядра
   # невидима — процесс молчит, а данных нет.
   - job_name: beyla
+    # Путь не /metrics: Beyla отдаёт внутренние метрики на /internal/metrics.
+    metrics_path: /internal/metrics
     static_configs:
       - targets:
           - beyla.monitoring.svc.cluster.local:8999
