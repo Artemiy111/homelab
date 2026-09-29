@@ -230,3 +230,30 @@ resource "zitadel_application_v2" "element" {
     prevent_destroy = true
   }
 }
+
+# Имя сегмента `zitadel` в пути колбэка не декоративно: Forgejo ищет источник
+# по имени (`GetActiveOAuth2SourceByName`), а не по id, и подставляет это же
+# имя в URL кнопки входа. Имя источника в values чарта и redirect URI здесь
+# обязаны совпадать.
+resource "zitadel_application_v2" "forgejo" {
+  project_id = zitadel_project_v2.homelab.id
+  org_id     = zitadel_organization.homelab.id
+  name       = "Forgejo"
+
+  oidc {
+    grant_types                  = ["OIDC_GRANT_TYPE_AUTHORIZATION_CODE"]
+    response_types               = ["OIDC_RESPONSE_TYPE_CODE"]
+    redirect_uris                = ["https://forgejo.${var.domain}/user/oauth2/zitadel/callback"]
+    post_logout_redirect_uris    = ["https://forgejo.${var.domain}/"]
+    app_type                     = "OIDC_APP_TYPE_WEB"
+    auth_method_type             = "OIDC_AUTH_METHOD_TYPE_BASIC"
+    version                      = "OIDC_VERSION_1_0"
+    access_token_type            = "OIDC_TOKEN_TYPE_BEARER"
+    clock_skew                   = "0s"
+    skip_native_app_success_page = false
+  }
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}

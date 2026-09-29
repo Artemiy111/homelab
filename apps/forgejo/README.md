@@ -12,10 +12,12 @@ Forgejo — лёгкая self-hosted Git-платформа (форк Gitea), к
 | Данные | PVC `forgejo-data` на `longhorn-retain` (Longhorn) |
 | База | CNPG-кластер `shared` в namespace `databases`, роль и база `forgejo` |
 | Actions | включены; runner `homelab-runner` (Deployment + DinD), instance-wide; экшены — из локального зеркала |
+| Вход | Zitadel (OIDC) поверх локальных паролей, см. [Вход через Zitadel](#вход-через-zitadel-oidc) |
 
 Самостоятельная регистрация выключена, новые репозитории и профили приватны.
 
-Домен и `service.ssh.externalIPs` в `argocd/applications/forgejo.yaml` — плейсхолдеры
+Домен, `service.ssh.externalIPs` и discovery URL Zitadel в
+`argocd/applications/forgejo.yaml` — плейсхолдеры
 и опущенные ключи: реальные значения приезжают из untracked
 `argocd/applications/forgejo.private.yaml` (см. `argocd/README.md`). Применять один
 шаблон нельзя — значения затрутся.
@@ -290,8 +292,9 @@ app.ini через `FORGEJO__database__PASSWD` из `gitea.additionalConfigFromE
 | `kv/forgejo/@monitoring/forgejo-metrics-token` | `FORGEJO_METRICS_TOKEN` | `forgejo-metrics` | чарт (env → app.ini) |
 | `kv/forgejo/admin` | `username`, `password` | `forgejo-admin` | чарт (init-контейнер) |
 | `kv/forgejo/runner` | `token` | `forgejo-runner` | регистрация раннера |
+| `kv/forgejo/oidc` | `key`, `secret` | `forgejo-oidc` | чарт (init-контейнер) |
 
-Все четыре — `VaultStaticSecret` в `apps/forgejo/k8s/vaultstaticsecret.yaml`,
+Все пять — `VaultStaticSecret` в `apps/forgejo/k8s/vaultstaticsecret.yaml`,
 значения в Vault заводит человек.
 
 **Про админа:** это служебная учётка (`forgejo-admin`, почта
@@ -306,13 +309,102 @@ reserved»), поэтому имя с суффиксом сервиса; поч�
 нет — на живом стенде он его не создал, потому что в базе уже был другой админ;
 после пересоздания базы учётки заведены руками (`forgejo admin user create`).
 
-Пользователи: `forgejo-admin` (служебный админ) и `user` (личный, без прав
+Пользователи: `forgejo-admin` (служебный админ) и `artemiy` (личный, без прав
 админа).
 
 Осторожно с именами: чарт создаёт Secret с именем релиза (`forgejo`) для своих
 init-скриптов, поэтому секреты сервиса названы с префиксом `forgejo-`.
 Совпадение имён означало бы двух владельцев одного объекта (VSO и Argo), и они
 затирали бы ключи друг друга.
+
+## Вход через Zitadel (OIDC)
+
+Локальная форма входа остаётся включённой намеренно: это страховка, если
+Zitadel недоступен или сломан issuer, и она же доказывает право на привязку.
+Через OIDC ходят и `forgejo-admin`, и `artemiy` — учётки не создаются заново, а
+привязываются к существующим.
+
+Источник создаёт не человек, а init-контейнер чарта: блок `gitea.oauth[]` в
+`argocd/applications/forgejo.yaml` превращается в `forgejo admin auth
+add-oauth`, а если источник уже есть — в `update-oauth`. Значит значения живут
+в GitOps, а правка источника в UI будет затёрта следующим sync.
+
+| | |
+|---|---|
+| Имя источника | `zitadel` |
+| Провайдер | `openidConnect`, auto discovery |
+| Redirect URI | `https://forgejo.<домен>/user/oauth2/zitadel/callback` |
+| Приложение в Zitadel | `terraform/zitadel` → `zitadel_application_v2.forgejo` |
+| Client id/secret | `kv/forgejo/oidc` → Secret `forgejo-oidc` |
+| Секция app.ini | `[oauth2_client]` — `ENABLE_AUTO_REGISTRATION`, `ACCOUNT_LINKING`, `OPENID_CONNECT_SCOPES` |
+
+```sh
+kubectl -n forgejo exec deploy/forgejo -c forgejo -- forgejo admin auth list
+```
+
+Ожидается строка `zitadel` с типом `OAuth2` — значит init-контейнер источник
+создал.
+
+### Как привязываются учётки
+
+Через OIDC **не создаётся ни одной новой учётки**: `ENABLE_AUTO_REGISTRATION:
+false`. Незнакомый Forgejo логин после колбэка попадает на
+`/user/link_account` — страницу с формой локального входа. Привязка происходит
+только после того, как человек ввёл пароль существующей учётки; если на
+учётке включён 2FA, Forgejo запрашивает и его (намеренно игнорируя «пропустить
+2FA для внешних источников» — привязка идёт к уже существующему пользователю).
+
+Дальше Forgejo помнит связь: в таблице внешних логинов у пользователя лежит
+пара `login_type=OAuth2`, `login_source=<id источника>`, `login_name=<sub из
+Zitadel>`. По ней он находит пользователя при каждом следующем входе, больше ни
+по имени, ни по почте не сверяясь. Поэтому привязка делается один раз и
+переживает смену почты; отвязать можно в Settings → Linked accounts.
+
+Порядок ручных действий — по одному на учётку: зайти в Zitadel логином
+`homelab admin`, нажать в Forgejo «Sign in with Zitadel», на странице привязки
+ввести локальные `forgejo-admin` и его пароль (лежит в `kv/forgejo/admin`).
+То же для `artemiy` — только учётка и пароль свои.
+
+Почему не `ACCOUNT_LINKING: auto`: Forgejo тогда сначала ищет совпадение по
+имени, потом по почте, и при совпадении привязывает учётку **молча**, без
+пароля и без 2FA. Для публично доступного identity-провайдера с
+`allow_register` это значит, что контроль над почтой в Zitadel даёт контроль
+над чужой учёткой Forgejo.
+
+### Порядок включения
+
+1. `terraform apply` в `terraform/vault` — иначе VSO не прочитает
+   `kv/forgejo/oidc` (политика `app/forgejo`).
+2. `terraform apply` в `terraform/zitadel` — в выводе `client_id` и
+   `client_secret` приложения `Forgejo`. В state и в git секрета нет
+   (см. `terraform/zitadel/README.md`), значения живут только в Vault.
+3. Vault: `kv/forgejo/oidc` с ключами `key` и `secret`.
+4. `argocd/applications/forgejo.yaml`, поверх — приватный merge-patch с
+   реальным discovery URL, затем sync и рестарт пода.
+5. Привязать учётки (см. выше) — по одной на логин.
+
+### Грабли
+
+- **Имя источника = сегмент в колбэке.** Forgejo ищет источник по имени
+  (`GetActiveOAuth2SourceByName`), а не по id, и подставляет это же имя в
+  ссылку кнопки входа: `/user/oauth2/<имя>/callback`. Переименование источника
+  без правки `name` в values и `redirect_uris` в Terraform ломает вход.
+- **Ключи в Secret задаёт чарт:** `key` и `secret` (env `GITEA_OAUTH_KEY_0` и
+  `GITEA_OAUTH_SECRET_0`), а не `OIDC_CLIENT_ID`/`OIDC_CLIENT_SECRET`, как у
+  соседних приложений, которые читают их в env.
+- **Список `gitea.oauth` патчится целиком.** Приватный merge-patch обязан
+  повторять его целиком с реальным discovery URL, иначе после patch
+  автосоздание источника уедет на плейсхолдер.
+- **Имя `admin` в Forgejo зарезервировано** («name is reserved») — логин Zitadel
+  `admin` (instance-админ) не сможет получить учётку, пока автосоздание
+  выключено, и привязаться к существующей тоже не сможет: страница привязки
+  спрашивает пароль от `admin`, которого нет.
+- **Дальше источник — в руках Forgejo, а не Zitadel.** Синхронизации ролей нет:
+  новый грант в Zitadel не даёт прав в Forgejo, а удаление гранта не отбирает.
+  Права живут в учётке Forgejo.
+- **`DISABLE_REGISTRATION: true` не мешает автосозданию через OIDC** (оно
+  проверяет отдельный флаг), поэтому включать `ENABLE_AUTO_REGISTRATION` без
+  отдельного решения нельзя.
 
 ## Проверка
 

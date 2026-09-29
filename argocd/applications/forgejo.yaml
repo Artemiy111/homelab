@@ -56,6 +56,27 @@ spec:
             existingSecret: forgejo-admin
             passwordMode: initialOnlyNoReset
             email: admin@example.com
+          # OIDC-источник входа через Zitadel. Init-контейнер чарта идемпотентно
+          # создаёт источник (`forgejo admin auth add-oauth`), а если он уже
+          # есть — обновляет (`update-oauth`), поэтому значения живут в
+          # GitOps, а не в UI. key/secret приходят из existingSecret
+          # (VaultStaticSecret forgejo-oidc → kv/forgejo/oidc); имена ключей
+          # в Secret задаёт чарт — `key` и `secret`.
+          #
+          # Имя источника `zitadel` не декоративно: Forgejo ищет источник по
+          # имени, а не по id, и подставляет это же имя в URL кнопки входа и
+          # в redirect_uri. Поэтому `name` здесь и redirect URI приложения в
+          # Zitadel (terraform/zitadel/applications.tf) обязаны совпадать.
+          #
+          # autoDiscoverUrl — с плейсхолдером, как и ROOT_URL выше: реальный
+          # домен приезжает из untracked argocd/applications/forgejo.private.yaml
+          # (см. argocd/README.md). Внимание: список oauth патчится целиком,
+          # поэтому приватный файл повторяет его вместе с реальным URL.
+          oauth:
+            - name: zitadel
+              provider: openidConnect
+              autoDiscoverUrl: https://id.example.com/.well-known/openid-configuration
+              existingSecret: forgejo-oidc
           config:
             server:
               # Наружу SSH отдаётся на 2222 (service.ssh.port ниже), внутри
@@ -93,8 +114,29 @@ spec:
             repository:
               DEFAULT_PRIVATE: private
             openid:
+              # OpenID 2.0, не OIDC: к нашему источнику (gitea.oauth выше)
+              # эти ключи отношения не имеют, кнопка входа рисуется по списку
+              # активных OAuth2-источников.
               ENABLE_OPENID_SIGNIN: false
               ENABLE_OPENID_SIGNUP: false
+            oauth2_client:
+              # Учётки через OIDC не создаются. Незнакомый логин Zitadel после
+              # колбэка попадает на /user/link_account, где привязка идёт только
+              # после локального входа; с auto-регистрацией он бы завёл новую
+              # учётку — в Zitadel включён allow_register, то есть логини
+              # заводит кто угодно извне.
+              ENABLE_AUTO_REGISTRATION: false
+              # Молча привязать OIDC-логин к существующей учётке нельзя: Forgejo
+              # сначала ищет совпадение по имени, потом по почте, и при
+              # совпадении привязка проходит без участия человека (и без 2FA).
+              # Здесь только явная привязка по локальному паролю, и 2FA учётки
+              # тут же запрашивается. Дефолт Forgejo здесь `login`, но
+              # значение зафиксировано явно: это то, что запрещает тихую
+              # привязку.
+              ACCOUNT_LINKING: login
+              # Claim email нужен для идентификации логина на странице привязки.
+              # Список через пробел, как в app.ini.
+              OPENID_CONNECT_SCOPES: profile email
             actions:
               ENABLED: true
               # Экшены тянем с локального инстанса (org `actions`), а не с
