@@ -65,6 +65,11 @@ spec:
                 - DAC_READ_SEARCH
                 - PERFMON
                 - CHECKPOINT_RESTORE
+                # Чтение адресов в /proc/kallsyms. Без него eBPF-трассировщик
+                # не стартует: "failed to read kernel symbols: unable to read
+                # kallsyms addresses - check capabilities". Ядро скрывает адреса
+                # (kptr_restrict) и открывает их только этой capability.
+                - SYSLOG
               drop:
                 - ALL
           volumeMounts:
