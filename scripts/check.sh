@@ -44,7 +44,15 @@ if ! command -v gitleaks >/dev/null 2>&1; then
   exit 1
 fi
 
-step "секреты в рабочем дереве" gitleaks dir --config .gitleaks.toml --no-banner --redact .
+# Секреты ищем в объектах git, а не обходом каталога: `gitleaks dir` заходит в
+# .worktrees/ и packages/, которые игнорируются репозиторием, и даёт ложные
+# срабатывания — path-анкерованные allowlist из .gitleaks.toml перестают
+# совпадать, а чужие фикстуры из packages/ попадают в чужой скан. Тот же
+# подход, что в гейте secrets.yml: только то, что может попасть в историю.
+
+step "секреты в staged" gitleaks git --staged --config .gitleaks.toml --no-banner --redact
+step "секреты в коммитах ветки" gitleaks git --config .gitleaks.toml --no-banner --redact \
+  --log-opts="origin/main..HEAD"
 step "числа в docs/status соответствуют репозиторию" ./scripts/status-badges.sh --check
 
 if optional shellcheck; then
