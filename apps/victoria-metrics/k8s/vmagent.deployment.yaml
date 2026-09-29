@@ -120,10 +120,15 @@ spec:
           resources:
             requests:
               cpu: 50m
-              memory: 128Mi
+              memory: 384Mi
             limits:
               cpu: "1"
-              memory: 512Mi
+              # 512Mi не хватало: vmagent держит в памяти конфигурацию всех
+              # таргетов и буферы незаписанных серий, и после расширения
+              # списка джоб упирался в собственный лимит — OOMKilled, exit 137.
+              # Request близок к реальному пику, иначе планировщик не видит
+              # footprint (тот же класс ошибки, что в инциденте #0004).
+              memory: 1Gi
           volumeMounts:
             - name: scrape-config
               mountPath: /etc/vmagent
