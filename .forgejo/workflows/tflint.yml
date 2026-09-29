@@ -9,6 +9,7 @@ on:
       - ".forgejo/workflows/tflint.yml"
   pull_request:
     paths: *paths
+  workflow_dispatch:
 
 jobs:
   tflint:
