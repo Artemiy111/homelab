@@ -8,6 +8,8 @@
 # есть egress к upstream'ам, aws-cli, curl и sha256sum; git/tar для сборки схем
 # доустанавливаются на ходу. Артефакты, уже лежащие в бакете, пропускаются —
 # зеркало append-only (чтобы заменить версию, удалить объект и перезапустить).
+# Недоступный апстрим не останавливает прогон: цикл доходит до конца манифеста,
+# неудачные артефакты перечисляются в конце, Job завершается ненулевым кодом.
 #
 # Манифест (apps/rustfs/artifacts.tsv, смонтирован в /scripts/artifacts.tsv) —
 # строки "<path> <sha256> <url>".
@@ -44,7 +46,11 @@ sync_url() {
   fi
   echo "fetch $path"
   tmp="$(mktemp)"
-  curl -fsSL -o "$tmp" "$url"
+  if ! curl -fsSL -o "$tmp" "$url"; then
+    echo "fetch failed for $path: $url" >&2
+    rm -f "$tmp"
+    return 1
+  fi
   got="$(sha256sum "$tmp" | awk '{print $1}')"
   if [ "$got" != "$sha" ]; then
     echo "sha256 mismatch for $path: got $got want $sha" >&2
@@ -78,15 +84,27 @@ sync_schemas() {
   rm -rf "$tmp"
 }
 
+failed=()
+
 while read -r path sha url _; do
   [ -z "${path:-}" ] && continue
   case "$path" in \#*) continue ;; esac
   [ -z "${url:-}" ] && continue
-  sync_url "$path" "$sha" "$url"
+  if ! sync_url "$path" "$sha" "$url"; then
+    failed+=("$path")
+  fi
 done < "$MANIFEST"
 
 if [ -n "${KUBERNETES_VERSION:-}" ]; then
-  sync_schemas "$KUBERNETES_VERSION"
+  if ! sync_schemas "$KUBERNETES_VERSION"; then
+    failed+=("kubeconform-schemas/$KUBERNETES_VERSION")
+  fi
+fi
+
+if [ "${#failed[@]}" -gt 0 ]; then
+  echo "mirror sync finished with ${#failed[@]} failure(s):" >&2
+  printf '  %s\n' "${failed[@]}" >&2
+  exit 1
 fi
 
 echo "mirror sync done"
