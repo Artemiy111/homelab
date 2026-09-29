@@ -1,0 +1,224 @@
+# Грабли при настройке observability
+
+Практические выводы из настройки стека. Каждый пункт — реально случившаяся
+ошибка, а не теория. Проверяй здесь, прежде чем менять конфиги Tempo, Loki,
+Beyla, Pyroscope, nginx или Alloy.
+
+Общий принцип: **сначала валидируй конфиг изолированно, потом деплой**.
+Все пункты ниже найдены либо валидатором, либо падением пода на стенде.
+
+## Tempo 3.x: секции `compactor` больше нет
+
+В Tempo 2.x удаление трейсов делал top-level блок `compactor`. В **3.0.3 его
+нет** — архитектура заменена на backend scheduler и backend worker:
+
+```
+field compactor not found in type app.Config
+```
+
+Retention теперь задаётся так:
+
+```yaml
+storage:
+  trace:
+    blocklist_poll: 5m
+backend_scheduler:
+  provider:
+    retention:
+      interval: 1h
+    compaction:
+      compaction:
+        block_retention: 168h
+        compacted_block_retention: 1h
+```
+
+`compactor.compaction.block_retention` из документации Tempo 2.x приводит к
+падению пода. Без `blocklist_poll` планировщик не узнаёт об устаревших
+блоках.
+
+**Проверка до деплоя:**
+
+```sh
+kubectl run tempo-verify --image=<tempo> --restart=Never --overrides=... \
+  --command -- /tempo -config.file=/etc/tempo/tempo.yaml -config.verify=true
+# Succeeded = валидно. Обязателен контрольный тест: сломанный конфиг должен
+# дать Failed, иначе вывод «Succeeded» ничего не доказывает.
+```
+
+## Tempo и Loki: retention не работает сам по себе
+
+- Tempo: без `blocklist_poll` + `block_retention` данные не удаляются **никогда**.
+- Loki: `retention_period` работает только с `compactor.retention_enabled: true`.
+
+В обоих случаях PVC конечен, и без retention он просто переполняется.
+
+## Pyroscope: три пути на диске по умолчанию относительные
+
+В v2 три пути дефолтят в `./data/v2/...`. Рабочий каталог контейнера — `/`,
+он read-only, и Pyroscope падает:
+
+```
+metastore: failed to initialize store: db dir: mkdir ./data/v2: permission denied
+```
+
+Задавать нужно все три явно, иначе ошибка вылезет по одному:
+
+```yaml
+storage:
+  filesystem:
+    dir: /var/lib/pyroscope/shared
+metastore:
+  data_dir: /var/lib/pyroscope/metastore/data
+  raft:
+    dir: /var/lib/pyroscope/metastore/raft
+    snapshots_dir: /var/lib/pyroscope/metastore/raft
+```
+
+Две ловушки в этом блоке:
+
+- `snapshots_dir` **есть** в `-help`, но **отсутствует** в
+  reference-configuration-parameters. Надо смотреть `-help` бинарника.
+- YAML-ключи используют **подчёркивания** (`snapshots_dir`, `data_dir`,
+  `bootstrap_peers`), хотя CLI-флаги — дефисы. С дефисом получаешь
+  `field snapshots-dir not found in type raftnode.Config`.
+
+Retention: `limits.retention_period` (дефолт 31d). Поле
+`compactor.compactor_blocks_retention_period` — **только для v1 storage**, в v2
+не работает.
+
+## Beyla: health-эндпоинт всегда на loopback
+
+Документация предлагает `health_check.listen_address: 0.0.0.0`, и
+`BEYLA_HEALTH_CHECK_LISTEN_ADDRESS`, но в 3.37.0 это не работает:
+`pkg/components/beyla.go` вызывает `health.ListenAndServe`, который жёстко
+использует `127.0.0.1`. Ключ просто не подключён (upstream-пробел).
+
+Любая kubectl-проба по адресу получает `connection refused`. Официальный чарт
+Beyla проб тоже не имеет — пошли следом и задокументировал причину.
+
+## Внутренние метрики Beyla: не `/metrics` и слушают все интерфейсы
+
+- Endpoint — `/internal/metrics`, а не `/metrics` (404 на `/metrics`).
+- Порт задаётся `BEYLA_INTERNAL_METRICS_PROMETHEUS_PORT` и вешается на
+  `:8999` (все интерфейсы, в отличие от health-эндпоинта) — скрейп с других
+  подов работает.
+
+## nginx: две ловушки с логами
+
+**1. Несколько `access_log` на одном уровне накапливаются.** Если добавить свою
+директиву рядом с унаследованной, каждое событие уйдёт в лог дважды. Именно
+так выглядели «дубли» в Loki.
+
+**2. Дублировать имя `log_format` нельзя:**
+
+```
+emerg: duplicate "log_format" name "main"
+```
+
+Под уходит в CrashLoop, а старый продолжает писать — выглядит как «формат не
+применился». Правильно: **взять `nginx.conf` под управление целиком** (через
+ConfigMap с `subPath` на `/etc/nginx/nginx.conf`) и задать один `access_log` с
+уникальным именем формата. `include /etc/nginx/conf.d/*.conf` в нём оставить —
+server-блок образа нужен.
+
+**Проверка до деплоя:** собрать префикс с кандидатом и прогнать `nginx -t`.
+
+## Kubernetes: имя порта не длиннее 15 символов
+
+`ports[0].name: must be no more than 15 characters`. Ошибка от `kubectl apply`
+видна сразу, но стоит лишнего цикла.
+
+## ConfigMap через `subPath` не обновляется в живом поде
+
+Монтирование файла из ConfigMap через `subPath` **не подхватывает** изменения
+ConfigMap: под надо пересоздавать. Правка конфига без `rollout restart`
+молча ничего не делает. Kustomize-оверлей с хэшем в имени ConfigMap решает
+это для Deployment/DaemonSet, потому что меняет pod template.
+
+## Alloy: `discovery.kubernetes` требует `role` дважды
+
+`role` обязателен **и** на верхнем уровне блока, **и** внутри `selectors`:
+
+```river
+discovery.kubernetes "local_pods" {
+  role = "pod"           # иначе "missing required attribute \"role\""
+  selectors {
+    role  = "pod"
+    field = "spec.nodeName=" + sys.env("NODE_NAME")
+  }
+}
+```
+
+`NODE_NAME` должен идти от `fieldRef: spec.nodeName`, а не от
+`metadata.name`: фильтр сравнивается с именем **ноды**. С `metadata.name`
+селектор просто ничего не найдёт — без ошибки.
+
+**Валидация конфига Alloy:**
+
+```sh
+alloy validate /etc/alloy/config.alloy
+```
+
+Подкоманда есть (`alloy validate`). `alloy fmt --verify` **не существует** —
+`unknown flag: --verify`.
+
+## eBPF: список capabilities неполон
+
+Одного `CAP_BPF`/`CAP_PERFMON`/`CAP_SYS_ADMIN` мало. Что реально требуется по
+мере наступления:
+
+| Capability | Зачем, симптом без неё |
+| --- | --- |
+| `CAP_SYS_ADMIN` | uprobe'ы, стек процессов |
+| `CAP_PERFMON` | `perf_event_open`, загрузка BPF-программ |
+| `CAP_SYSLOG` | `failed to read kernel symbols: unable to read kallsyms addresses` |
+| `CAP_SYS_RESOURCE` | `failed to adjust rlimit: operation not permitted` |
+| `CAP_SYS_PTRACE` | доступ к `/proc/<pid>` и namespace'ам |
+| `CAP_DAC_READ_SEARCH` | чтение ELF |
+| `CAP_CHECKPOINT_RESTORE` | открытие ELF |
+| `CAP_NET_RAW` | сокет-фильтры |
+
+`CAP_SYS_RESOURCE` в официальном примере Alloy закомментирован как
+«pre 5.11 only», но на ядре 7.2.7 он всё ещё нужен.
+
+## bpffs нужен обоим eBPF-компонентам
+
+Beyla пишет `OBI will use process-internal maps`, пока `/sys/fs/bpf` не
+примонтирован. Pinned BPF-карты должны быть **общими** у Beyla и
+alloy-profiler, иначе связка «трейс → профиль» не работает. Монтировать с
+`mountPropagation: HostToContainer`.
+
+## Kustomize не удаляет старые ConfigMap
+
+Каждая правка конфига создаёт новый `*-<hash>`, старые остаются лежать. Со
+временем в кластере копится мусор (`vmagent-scrape-*`, `grafana-alerting-*`).
+При выборе ConfigMap для проверки всегда сверяйся с тем, на который реально
+ссылается Deployment, а не с первым попавшимся `kubectl get cm`.
+
+## VictoriaMetrics: `minFreeDiskSpaceBytes` ничего не удаляет
+
+Флаг означает «ниже порога storage **перестаёт принимать новые данные**», и
+дефолт у него 100 МБ — то есть срабатывал бы неявно. В single-node
+перенаправлять данные некуда, поэтому старые данные **не вытесняются**: это
+не «мягкая деградация», а остановка сбора метрик. Реальное решение — место на
+диске плюс согласованный с ним `retentionPeriod`.
+
+## Grafana: файлы алертов и неизвестные опции
+
+- Провижинер Grafana при чтении смонтированного ConfigMap ругается на
+  `..data` и `..<timestamp>` (`file has invalid suffix ... skipping`) — это
+  артефакт Kubernetes, файлы при этом читаются.
+- Неизвестные опции конфига **молча игнорируются**: `admin_users` в Synapse
+  не существует, и Synapse стартовал как ни в чём не бывало. Проверять
+  фактическое поведение, а не «опцию поставил и жду».
+
+## Порядок работы, который себя оправдал
+
+1. Найти источник правды: `-help` бинарника, reference-доки **той же версии**,
+   исходники в тегах. Не память и не доки соседней мажорной версии.
+2. Провалидировать конфиг изолированным подом.
+3. Контрольный тест: сломанный вариант обязан упасть, иначе проверка ничего
+   не доказывает.
+4. Деплоить по одному компоненту, проверяя поды и логи.
+5. Читать фактическое состояние из рантайма (`/flags`, `/config`), а не из
+   применённого манифеста.
