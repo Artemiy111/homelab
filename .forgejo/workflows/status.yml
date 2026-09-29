@@ -27,5 +27,17 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      # Числа в бейджах зависят от всего дерева, а не от файла, который менял
+      # автор. Пока ветка ждала review, main успевал уехать вперёд, и к моменту
+      # merge артефакты уже расходились с merge-результатом: гейт на push в main
+      # падал post factum, то есть чинить приходилось отдельным PR. Поэтому на
+      # PR считаем по merge-результату — расхождение видно автору до merge.
+      # Конфликт при слиянии здесь не ложное срабатывание: он означает, что
+      # артефакты и правка автора претендуют на одно и то же место.
+      - name: Merge base into branch
+        if: github.event_name == 'pull_request'
+        run: git merge --no-edit "origin/${{ github.event.pull_request.base.ref }}"
       - name: Check status artifacts
         run: ./scripts/status-badges.sh --check
