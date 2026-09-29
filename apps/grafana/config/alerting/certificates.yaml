@@ -1,0 +1,211 @@
+apiVersion: 1
+
+# Срок действия сертификатов.
+#
+# Отдельная группа, потому что это про безопасность и доступность, а не про
+# ресурсы. Инцидент #0002 — про подмену боевого TLS-сертификата и сорванный
+# rate limit Let's Encrypt — показал, что срок действия стоит отслеживать
+# заранее, а не в момент истечения. cert-manager отдаёт
+# certmanager_certificate_expiration_timestamp_seconds, но до сих пор это
+# значение никем не читалось: метрики скрейпились тримя джобами и молчали.
+#
+# Порог 14 дней, а не 7: Let's Encrypt присылает уведомления за 20/10 дней,
+# но у нас отдельный канал доставки, а продление требует проверки, что ACME
+# вообще работает. 14 дней — это время заметить проблему и починить, не
+# задевая сервисы.
+#
+# Тот же приём с `< bool`, что и в storage.yaml: условие C — это `gt 0`,
+# поэтому выражение обязано отдавать положительные значения.
+groups:
+  - orgId: 1
+    name: certificates
+    folder: Сертификаты
+    interval: 1m
+    rules:
+      - uid: certificate-expiring-in-14-days
+        title: Certificate expires in less than 14 days
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: victoriametrics
+            model:
+              datasource:
+                type: prometheus
+                uid: victoriametrics
+              editorMode: code
+              # Операнды в этом порядке неслучайны: `and` возвращает значения
+              # ЛЕВОГО операнда, а условие C — это `gt 0`. С `< bool` слева
+              # на выходе 1/0; если поставить `> 0` слева, правило отдаст
+              # сырые таймстемпы (1.8e9), порог `gt 0` пройдёт всегда, и
+              # алерт будет висеть сработавшим постоянно.
+              expr: >-
+                (certmanager_certificate_expiration_timestamp_seconds - time() < bool 14 * 86400)
+                and on (namespace, name)
+                (certmanager_certificate_expiration_timestamp_seconds > 0)
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: []
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  reducer:
+                    params: []
+                    type: max
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              reducer: max
+              refId: B
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: C
+              type: threshold
+        noDataState: OK
+        execErrState: Error
+        for: 1h
+        isPaused: false
+        labels:
+          severity: warning
+        annotations:
+          summary: "Сертификат истекает менее чем через 14 дней"
+          description: >-
+            cert-manager не смог продлить сертификат, либо продление не
+            настроено. Сертификаты на грани: {{ $values.A }}.
+            Проверить Certificate и CertificateRequest в его namespace, состояние
+            ACME-челленджа и не исчерпан ли rate limit Let's Encrypt
+            (инцидент #0002). Если сертификат уже истёк, HTTPS-сервисы отдают
+            недоверенный сертификат.
+          runbook: "apps/cert-manager/README.md"
+      - uid: certificate-expired
+        title: Certificate already expired
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: victoriametrics
+            model:
+              datasource:
+                type: prometheus
+                uid: victoriametrics
+              editorMode: code
+              expr: 'certmanager_certificate_expiration_timestamp_seconds - time() < bool 0'
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: []
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  reducer:
+                    params: []
+                    type: max
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              reducer: max
+              refId: B
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: C
+              type: threshold
+        noDataState: OK
+        execErrState: Error
+        for: 5m
+        isPaused: false
+        labels:
+          severity: critical
+        annotations:
+          summary: "Сертификат уже истёк"
+          description: >-
+            Срок действия сертификата истёк, HTTPS-сервисы отдают недоверенный
+            сертификат пользователям. Истёкшие: {{ $values.A }}.
+            Это уже не предупреждение, а отказ: чинить немедленно.
+          runbook: "apps/cert-manager/README.md"

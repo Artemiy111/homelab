@@ -1,0 +1,216 @@
+apiVersion: 1
+
+# Правила на дисковое пространство: ОДИН механизм на все PVC кластера.
+#
+# Заменяет точечные правила вида «loki-data < 2e9», «tempo-data < 1e9»,
+# «victoriametrics fills in 3 days». Те были написаны руками под каждый том
+# стенки, и ни одно приложение не защищали: инцидент #0001 (переполнение
+# dawarich-db) система не могла заметить вообще, потому что правила про
+# dawarich-db не существовало. Перечисление томов вручную не масштабируется —
+# их 62.
+#
+# Два отличия от правил в victoria-metrics.yaml, и оба обязательны:
+#
+# 1. Редьюсер B — `max`, а не `last`. Правило покрывает десятки томов, значит
+#    запрос A возвращает вектор. `last` схлопывает его в ОДНО значение по
+#    произвольной серии: сработает правило, когда нужный том дал 0, и промолчит,
+#    когда он дал 1. `max` отвечает на вопрос «есть ли хоть один проблемный
+#    том» — это и нужно.
+# 2. Выражение A обязано возвращать ПОЛОЖИТЕЛЬНЫЕ значения, потому что
+#    условие C — это `threshold: gt 0`. Наивный `predict_linear(...) < 0`
+#    возвращает отрицательные числа, и условие `> 0` никогда не выполняется:
+#    правило не сработает НИКОГДА и при этом будет числиться здоровым. Поэтому
+#    сравнение через `< bool 0`, которое даёт 1/0.
+#
+# noDataState: OK: нет метрик томов — условие не выполнено, а не «не знаю».
+groups:
+  - orgId: 1
+    name: storage
+    folder: Хранилище
+    interval: 1m
+    rules:
+      - uid: pvc-will-fill-in-3-days
+        title: PVC fills within 3 days
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: victoriametrics
+            model:
+              datasource:
+                type: prometheus
+                uid: victoriametrics
+              editorMode: code
+              expr: >-
+                (predict_linear(kubelet_volume_stats_available_bytes{namespace!="",persistentvolumeclaim!=""}[1d], 3 * 86400) < bool 0)
+                and on (namespace, persistentvolumeclaim)
+                (kubelet_volume_stats_capacity_bytes{namespace!="",persistentvolumeclaim!=""} > 5e9)
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: []
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  reducer:
+                    params: []
+                    type: max
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              reducer: max
+              refId: B
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: C
+              type: threshold
+        noDataState: OK
+        execErrState: Error
+        for: 30m
+        isPaused: false
+        labels:
+          severity: warning
+        annotations:
+          summary: "PVC заполнится в течение 3 дней"
+          description: >-
+            По линейной экстраполяции за последние сутки доступное место на томе
+            закончится за трое суток. Затронутые тома: {{ $values.A }}.
+            Порог 5 ГиБ отсекает мелкие служебные тома, для которых предсказание
+            бессмысленно. Действия: расширить PVC, сократить retention либо
+            удалить неиспользуемые данные.
+          runbook: "docs/incidents/0001-dawarich-db-overflow.md, apps/victoria-metrics/README.md"
+      - uid: pvc-low-free-space
+        title: PVC low free space
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: victoriametrics
+            model:
+              datasource:
+                type: prometheus
+                uid: victoriametrics
+              editorMode: code
+              expr: >-
+                (kubelet_volume_stats_available_bytes{namespace!="",persistentvolumeclaim!=""} / kubelet_volume_stats_capacity_bytes{namespace!="",persistentvolumeclaim!=""} < 0.15)
+                and on (namespace, persistentvolumeclaim)
+                (kubelet_volume_stats_capacity_bytes{namespace!="",persistentvolumeclaim!=""} > 5e9)
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: []
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  reducer:
+                    params: []
+                    type: max
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: A
+              intervalMs: 1000
+              maxDataPoints: 43200
+              reducer: max
+              refId: B
+              type: reduce
+          - refId: C
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - B
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              datasource:
+                type: __expr__
+                uid: __expr__
+              expression: B
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: C
+              type: threshold
+        noDataState: OK
+        execErrState: Error
+        for: 30m
+        isPaused: false
+        labels:
+          severity: warning
+        annotations:
+          summary: "Мало свободного места на PVC"
+          description: >-
+            Доля свободного места на томе упала ниже 15%. Затронутые тома:
+            {{ $values.A }}. Порог 5 ГиБ отсекает мелкие тома, где 15% — это
+            несколько мегабайт. Действия: расширить PVC, сократить retention
+            либо почистить неиспользуемые данные.
+          runbook: "apps/victoria-metrics/README.md, раздел «Алерты»"

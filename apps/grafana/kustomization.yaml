@@ -27,6 +27,10 @@ configMapGenerator:
       - config/alerting/notification-policies.yaml
       - config/alerting/victoria-metrics.yaml
       - config/alerting/logs.yaml
+      # Один механизм на все PVC вместо ручного перечисления томов стенки,
+      # и контроль срока действия сертификатов.
+      - config/alerting/storage.yaml
+      - config/alerting/certificates.yaml
   - name: grafana-dashboards
     files:
       # Суммарный размер ConfigMap — 337946 Б, он больше лимита аннотации
