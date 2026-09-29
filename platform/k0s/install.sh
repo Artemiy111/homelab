@@ -2,9 +2,10 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 
 echo "=== k0s Installation Script ==="
-echo "Config: ${SCRIPT_DIR}/k0s.yaml"
+echo "Config: ${REPO_ROOT}/etc/k0s/k0s.yaml.j2"
 echo ""
 
 # --- Check prerequisites ---
@@ -118,15 +119,21 @@ echo "Installing k0s..."
 
 mkdir -p /etc/k0s
 
-# Реальный issuer Zitadel лежит в приватном слое: в git лежит только
-# плейсхолдер, иначе домен уехал бы в публичное зеркало.
-K0S_CONFIG="${SCRIPT_DIR}/k0s.yaml"
+# Шаблон ClusterConfig лежит в etc/k0s/ (источник правды для /etc, см.
+# etc/README.md), а Ansible его разворачивает ролью k0s_config. Здесь тот же
+# рендер вручную: install.sh идёт до установки k0s, когда Ansible ещё не на
+# что опереться.
+#
+# Реальный issuer Zitadel лежит в приватном слое: в git только плейсхолдер,
+# иначе домен уехал бы в публичное зеркало.
+K0S_CONFIG="${REPO_ROOT}/etc/k0s/k0s.yaml.j2"
 K0S_PRIVATE="${SCRIPT_DIR}/values.private.yaml"
 
 if [[ -f "${K0S_PRIVATE}" ]]; then
   issuer="$(sed -n 's/^[[:space:]]*oidcIssuerUrl:[[:space:]]*//p' "${K0S_PRIVATE}" | head -1)"
   if [[ -n "${issuer}" ]]; then
-    sed "s|__OIDC_ISSUER_URL__|${issuer}|" "${K0S_CONFIG}" > /etc/k0s/k0s.yaml
+    sed "s|{{ k0s_config_oidc_issuer }}|${issuer}|" "${K0S_CONFIG}" > /etc/k0s/k0s.yaml
+    chmod 0600 /etc/k0s/k0s.yaml
     echo "OIDC issuer: ${issuer}"
   else
     echo "Error: oidcIssuerUrl not found in ${K0S_PRIVATE}" >&2

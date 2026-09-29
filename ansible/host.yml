@@ -20,3 +20,4 @@
     - sysctl
     - tailscale_policy_route
     - longhorn_prereqs
+    - k0s_config

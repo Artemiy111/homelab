@@ -16,7 +16,25 @@ Single-node k0s на Fedora Server 44, максимально близкий к 
 > Версия k0s фиксируется в `k0s.yaml` не явно, а ставится через `get.k0s.sh`.
 > Актуальную версию на сервере: `k0s version`.
 
+## Конфигурация
+
+`ClusterConfig` — шаблон `etc/k0s/k0s.yaml.j2`, разворачивается в
+`/etc/k0s/k0s.yaml` ролью Ansible `k0s_config` (см. `ansible/host.yml`).
+`spec.api` не обновляется динамически, поэтому роль рестартует
+`k0scontroller` при смене файла.
+
+```sh
+cd ansible && ansible-playbook host.yml
+```
+
+Реальный issuer Zitadel для OIDC-входа apiserver лежит в приватном слое
+`platform/k0s/values.private.yaml` (untracked, образец — `.example`); в git
+только плейсхолдер.
+
 ## Установка
+
+Установку делает `install.sh`. Повторный запуск не идемпотентен: бинарь,
+PKI и юнит создаются один раз, для переустановки нужен `k0s reset`.
 
 ### Через скрипт (автоматически)
 
@@ -28,8 +46,10 @@ sudo bash platform/k0s/install.sh
 1. Установит k0s binary
 2. Настроит firewalld (порты + pod/service CIDR)
 3. Настроит SELinux (container-selinux + labels)
-4. Установит k0s с Calico CNI
-5. Настроит kubectl
+4. Развернёт `etc/k0s/k0s.yaml.j2` в `/etc/k0s/k0s.yaml` с issuer'ом из
+   приватного слоя — тем же рендером, что и роль Ansible
+5. Установит k0s с Calico CNI
+6. Настроит kubectl
 
 ### Вручную
 
@@ -135,19 +155,22 @@ sudo k0s stop && curl -sSLf https://get.k0s.sh | sudo sh && sudo k0s start
 
 ```
 platform/k0s/
-├── k0s.yaml                          # Main config (Calico, etcd)
-├── install.sh                        # Installation script
+├── install.sh                        # Bootstrap-установка (не идемпотентна)
+├── values.private.yaml.example       # Образец приватных значений
 ├── firewalld/
 │   ├── k0s-controller.xml            # Controller ports
 │   └── k0s-worker.xml                # Worker ports
 ├── selinux/
 │   └── containerd-selinux.toml       # SELinux for containerd
 └── README.md                         # This file
+
+etc/k0s/
+└── k0s.yaml.j2                       # ClusterConfig (шаблон, разворачивает Ansible)
 ```
 
 ## Состояние кластера
 
-Поверх k0s (Calico уже поднят из k0s.yaml):
+Поверх k0s (Calico уже поднят из `etc/k0s/k0s.yaml.j2`):
 
 | Слой | Где |
 |---|---|
