@@ -65,25 +65,44 @@ connectors:
   # задваивать трейсы, и RED-метрик по ним не даёт. Коннектор берёт трейсы
   # независимо от источника.
   #
-  # Исключён span_name: это главный источник кардинальности. У сервиса с
-  # сотней REST-маршрутов и gRPC-методов он даёт сотню серий на каждую
-  # метрику. Остаются service_name и status_code — их размер предсказуем.
-  # Если понадобится разрез по endpoint'ам, его надо включать точечно и
-  # через нормализацию, а не возвращать span_name целиком.
-  spanmetrics:
+  # Имя компонента — span_metrics, не spanmetrics: второе deprecated и скоро
+  # исчезнет.
+  span_metrics:
     histogram:
       explicit:
         # Бакеты под локальный сервис: суб-миллисекундные хвосты в homelab
         # не несут смысла и только раздувают число серий.
         buckets: [1ms, 5ms, 10ms, 25ms, 50ms, 100ms, 250ms, 500ms, 1s, 2s, 5s, 10s]
     dimensions: []
-    exclude_dimensions: [span_name]
+    # exclude_dimensions работает по ИМЕНАМ ИЗ НАБОРА ПО УМОЛЧАНИЮ, а в нём
+    # точки: span.name, service.name, span.kind, status.code,
+    # collector.instance.id. Подчёркивание (span_name) — это уже имя лейбла
+    # после конвертации в Prometheus, и его указание молча ничего не делает.
+    #
+    # span.name убран: у сервиса с сотней маршрутов он даёт сотню серий на
+    # каждую метрику. collector.instance.id убран: это UUID коллектора,
+    # добавленный ради Single Writer Principle; при одном коллекторе он
+    # бесполезен, а серии множит.
+    # Остаются service.name, span.kind и status.code — их размер предсказуем.
+    exclude_dimensions: [span.name, collector.instance.id]
+    # Предохранитель от взрыва кардинальности: после 5000 уникальных
+    # комбинаций новые отбрасываются и помечаются otel.metric.overflow="true".
+    # По умолчанию 0, то есть ограничения нет вообще. Страховка на случай,
+    # если появится сервис, спавнящий уникальные имена операций.
+    aggregation_cardinality_limit: 5000
+    # Подчищает осиротевшие комбинации: у bursty-нагрузки вроде импорта
+    # фото окончание одного процесса порождает серию, которая больше не
+    # обновляется, но продолжает занимать память и индекс.
+    series_expiration: 10m
     # Exemplars — связь «график → конкретный трейс»: из графика задержек
     # можно перейти прямо в медленный запрос. В Grafana включается в
     # настройках datasource VictoriaMetrics.
     exemplars:
       enabled: true
     metrics_flush_interval: 30s
+    # Ключ группировки метрик по ресурсу. Без него коннектор хеширует по
+    # ВСЕМ атрибутам ресурса, и поток метрик дробятся лишний раз.
+    resource_metrics_key_attributes: [service.name]
 
 service:
   extensions: [health_check]
@@ -97,9 +116,9 @@ service:
       processors: [memory_limiter, batch]
       # spanmetrics здесь экспортёр: коннектор разветвляет трейсы — Tempo
       # получает полные трейсы, коннектор получает копию на агрегацию.
-      exporters: [otlp/tempo, spanmetrics]
+      exporters: [otlp/tempo, span_metrics]
     metrics/spanmetrics:
-      receivers: [spanmetrics]
+      receivers: [span_metrics]
       processors: [memory_limiter, batch]
       exporters: [prometheus/spanmetrics]
     logs:
