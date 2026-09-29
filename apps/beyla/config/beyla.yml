@@ -31,9 +31,60 @@ otel_traces_export:
     arg: "0.1"
 
 discovery:
-  # Только element. Всё остальное (в т.ч. сам monitoring с otelcol/alloy)
-  # исключено: monitoring — в списке default_exclude_instrument, поэтому
-  # дублей телеметрии с OTel Collector не будет.
+  # Allowlist namespace'ов с приложениями. Явный список, а не «всё кроме»:
+  # так новое приложение не начнёт профилироваться молча, а инфраструктура
+  # (мониторинг, control plane, СУБД-службы) не попадёт в выборку.
+  #
+  # Инфраструктурные namespace'ы, сознательно не включённые: argocd, ats,
+  # cert-manager, cnpg-system, default, elastic-system, k0s-autopilot,
+  # kube-node-lease, kube-public, kube-system, local-path-storage, logging,
+  # longhorn-system, mariadb-system, monitoring, traefik, vault,
+  # vault-secrets-operator.
+  #
+  # Сервисы, которые уже сами шлют OTel (open-webui, zitadel), Beyla
+  # пропускает сам за счёт exclude_otel_instrumented_services — дубли трейсов
+  # не появятся.
   instrument:
     - k8s_namespace: element
+    - k8s_namespace: forgejo
+    - k8s_namespace: gitlab
+    - k8s_namespace: gitea
+    - k8s_namespace: authentik
+    - k8s_namespace: nextcloud
+    - k8s_namespace: seafile
+    - k8s_namespace: immich
+    - k8s_namespace: paperless
+    - k8s_namespace: dawarich
+    - k8s_namespace: navidrome
+    - k8s_namespace: jellyfin
+    - k8s_namespace: jitsi
+    - k8s_namespace: local-ai
+    - k8s_namespace: open-webui
+    - k8s_namespace: infisical
+    - k8s_namespace: glitchtip
+    - k8s_namespace: athens
+    - k8s_namespace: zot
+    - k8s_namespace: rustfs
+    - k8s_namespace: sure
+    - k8s_namespace: technitium
+    - k8s_namespace: mailserver
+    - k8s_namespace: uptime-kuma
+    - k8s_namespace: verdaccio
+    - k8s_namespace: code-server
+    - k8s_namespace: home-assistant
+    - k8s_namespace: beszel
+    - k8s_namespace: radar
+    - k8s_namespace: talk-hpb
+    - k8s_namespace: lute
+    - k8s_namespace: pdf
+    - k8s_namespace: mermaid-live-editor
+    - k8s_namespace: structurizr
+    - k8s_namespace: headlamp
+    - k8s_namespace: homepage
+    - k8s_namespace: oauth2-proxy
+    - k8s_namespace: 3x-ui
+    - k8s_namespace: zitadel
+    # PostgreSQL: полезно видеть, кто ест CPU на стороне БД.
+    - k8s_namespace: databases
+    - k8s_namespace: postgres
 
