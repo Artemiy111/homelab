@@ -16,6 +16,15 @@ discovery.kubernetes "local_pods" {
 pyroscope.ebpf "instance" {
   targets    = discovery.kubernetes.local_pods.targets
   forward_to = [pyroscope.write.endpoint.receiver]
+
+  // Off-CPU профили: кто и сколько времени НЕ делал ничего, ожидая
+  // блокировок, ввода-вывода и планировщика. По умолчанию 0 — выключено.
+  //
+  // В описании аргумента слово «threshold» (похоже на длительность),
+  // но текст говорит «probability from 0 to 1». Значение 0.1 выбрано как
+  // умеренное и проверено наблюдением: смотрим, какие профили приходят,
+  // сколько их и что это стоит по CPU.
+  off_cpu_threshold = 0.1
 }
 
 pyroscope.write "endpoint" {
