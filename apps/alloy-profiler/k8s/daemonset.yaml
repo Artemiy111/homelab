@@ -70,6 +70,9 @@ spec:
                 # kallsyms addresses - check capabilities". Ядро скрывает адреса
                 # (kptr_restrict) и открывает их только этой capability.
                 - SYSLOG
+                # Подъём memlock rlimit. Без неё не грузятся eBPF-карты:
+                # "failed to adjust rlimit: operation not permitted".
+                - SYS_RESOURCE
               drop:
                 - ALL
           volumeMounts:
