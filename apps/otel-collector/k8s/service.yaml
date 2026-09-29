@@ -20,3 +20,7 @@ spec:
       port: 8889
       targetPort: prometheus
       protocol: TCP
+    - name: spanmetrics
+      port: 8890
+      targetPort: spanmetrics
+      protocol: TCP
