@@ -3,10 +3,21 @@
 # его сам (см. argocd/README.md), маршрут —
 # platform/homelab/templates/routes/radar.yaml.
 #
-# auth.mode не задаём (по умолчанию none): доступ закрывает forward-auth
-# oauth2-proxy на Traefik, а Radar ходит в API под своим ServiceAccount с
-# чартовым read-only ClusterRole (rbac.* по умолчанию — чтение + логи, без
-# exec/port-forward/helm-write). Выбор режима аутентификации Radar — issue #42.
+# auth.mode=oidc: Radar входит в Zitadel сам и имперсонирует пользователя в
+# Kubernetes, поэтому права определяет RBAC пользователя, а не общий
+# ServiceAccount. oauth2-proxy с маршрута Radar убран — иначе Zitadel не смог бы
+# доставить back-channel logout (POST без cookie прокси) и вход был бы двойным.
+# Решение и его цена: issue #42.
+#
+# issuerURL, clientID и redirectURL содержат реальный домен, поэтому задаются в
+# untracked argocd/applications/radar.private.yaml. Секреты (clientSecret и
+# HMAC-ключ сессий) — в Vault, оттуда VSO (platform/radar/).
+#
+# ВНИМАНИЕ: auth.mode != none добавляет чартом в ClusterRole Radar'а
+# impersonate на users/groups и create на subjectaccessreviews, а также
+# автоматически включает rbac.secrets / viewRBAC / viewWebhooks. SA с таким
+# токеном эквивалентен cluster-admin, поэтому NetworkPolicy в
+# platform/radar/networkpolicy.yaml — единственная граница.
 #
 # Внешний маршрут и NetworkPolicy namespace radar живут вне Application
 # (platform/homelab, platform/radar/networkpolicy.yaml).
@@ -34,6 +45,37 @@ spec:
           limits:
             cpu: "1"
             memory: 512Mi
+        auth:
+          mode: oidc
+          # HMAC-ключ подписи сессий. Без него Radar генерирует случайный при
+          # старте, и каждый рестарт пода разлогинивает всех. existingSecretKey
+          # — дефолт чарта (auth-secret), читается из того же секрета Vault.
+          existingSecret: radar-auth
+          # Группы приходят из claim `role` (admin|user), который кладёт action
+          # addRole в Zitadel. Префикс `oidc:` даёт ровно ту группу `oidc:admin`,
+          # что и у Headlamp, поэтому ClusterRoleBinding из
+          # platform/headlamp/headlamp-admins.clusterrolebinding.yaml работает на
+          # оба UI. Привязка по Group, не по User: Radar берёт имя из claim
+          # `email`, apiserver — из `sub`, и kind: User у них не совпадёт.
+          oidc:
+            # Плейсхолдеры: реальный домен — в radar.private.yaml.
+            issuerURL: https://id.example.com
+            clientID: "0"
+            redirectURL: https://radar.example.com/auth/callback
+            postLogoutRedirectURL: https://radar.example.com/
+            groupsClaim: role
+            groupsPrefix: "oidc:"
+            # Без явного списка Radar просит ещё и scope `groups`, которого в
+            # Zitadel нет: Zitadel молча выкинет его из запроса, а группы всё
+            # равно приходят из claim `role`. Явный список фиксирует запрос.
+            scopes:
+              - openid
+              - profile
+              - email
+            # Ключ clientSecret — дефолт чарта (auth.oidc.clientSecretKey).
+            existingSecret: radar-auth
+            # Радиус действия: одна реплика, без обратного канала revoke.
+            backchannelLogout: true
         traffic:
           # Автодискавери Prometheus ищет well-known имена/лейблы и не знаком с
           # сервисом victoriametrics; задаём адрес явно (порт 80 сервиса).

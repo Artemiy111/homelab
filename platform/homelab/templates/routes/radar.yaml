@@ -9,9 +9,12 @@ spec:
   routes:
     - match: Host(`radar.{{ .Values.config.domain }}`)
       kind: Rule
+      # oauth2-proxy здесь намеренно нет (в отличие от grafana и netdata):
+      # Radar входит в Zitadel сам (auth.mode=oidc) и сам решает, пускать ли
+      # пользователя. Прокси поверх сломал бы back-channel logout — Zitadel
+      # шлёт POST на /auth/backchannel-logout без cookie прокси и получил бы
+      # 401, — и дал бы двойной вход.
       middlewares:
-        - name: oauth2-proxy
-          namespace: traefik
         - name: secure-headers
           namespace: traefik
         - name: ratelimit-default

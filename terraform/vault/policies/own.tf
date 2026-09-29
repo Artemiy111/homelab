@@ -102,6 +102,15 @@ resource "vault_policy" "app_pdf" {
   EOT
 }
 
+resource "vault_policy" "app_radar" {
+  name = "app/radar"
+
+  policy = <<-EOT
+    path "kv/data/radar/oidc"      { capabilities = ["read"] }
+    path "kv/metadata/radar/oidc"  { capabilities = ["read", "list"] }
+  EOT
+}
+
 resource "vault_policy" "app_rustfs" {
   name = "app/rustfs"
 

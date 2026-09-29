@@ -1,0 +1,12 @@
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultAuth
+metadata:
+  name: vso-radar
+  namespace: radar
+spec:
+  vaultAuthGlobalRef:
+    name: vso-global
+    namespace: vault-secrets-operator
+  kubernetes:
+    role: radar
+    serviceAccount: vso-radar

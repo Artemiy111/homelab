@@ -28,6 +28,7 @@ locals {
     "paperless"      = { namespace = "paperless", policy = "app/paperless" },
     "pdf"            = { namespace = "pdf", policy = "app/pdf" },
     "postgres"       = { namespace = "postgres", policy = "app/postgres" },
+    "radar"          = { namespace = "radar", policy = "app/radar" },
     "rustfs"         = { namespace = "rustfs", policy = "app/rustfs" },
     "seafile"        = { namespace = "seafile", policy = "app/seafile" },
     "sure"           = { namespace = "sure", policy = "app/sure" },

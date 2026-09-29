@@ -207,6 +207,41 @@ resource "zitadel_application_v2" "headlamp" {
   }
 }
 
+# Radar — свой OIDC-клиент, отдельный от Headlamp. Апстрим прямо советует не
+# переиспользовать клиент, которому доверяет apiserver: сессия Radar хранит
+# id_token пользователя, и утечка сессии дала бы токен и в apiserver.
+#
+# Claim `role` обязателен в самом id_token (id_token_userinfo_assertion): Radar
+# читает группы из токена, а не из userinfo. С groupsPrefix `oidc:` группа
+# получается ровно `oidc:admin` — та же, что у Headlamp, поэтому
+# ClusterRoleBinding из platform/headlamp/ работает на оба UI.
+resource "zitadel_application_v2" "radar" {
+  project_id = zitadel_project_v2.homelab.id
+  org_id     = zitadel_organization.homelab.id
+  name       = "Radar"
+
+  oidc {
+    grant_types    = ["OIDC_GRANT_TYPE_AUTHORIZATION_CODE"]
+    response_types = ["OIDC_RESPONSE_TYPE_CODE"]
+    redirect_uris  = ["https://radar.${var.domain}/auth/callback"]
+    # Работает только если oauth2-proxy убран из маршрута Radar: Zitadel шлёт
+    # сюда POST без cookie прокси, и forward-auth отдал бы 401.
+    back_channel_logout_uri      = "https://radar.${var.domain}/auth/backchannel-logout"
+    post_logout_redirect_uris    = ["https://radar.${var.domain}/"]
+    app_type                     = "OIDC_APP_TYPE_WEB"
+    auth_method_type             = "OIDC_AUTH_METHOD_TYPE_BASIC"
+    version                      = "OIDC_VERSION_1_0"
+    access_token_type            = "OIDC_TOKEN_TYPE_BEARER"
+    clock_skew                   = "0s"
+    id_token_userinfo_assertion  = true
+    skip_native_app_success_page = false
+  }
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+
 resource "zitadel_application_v2" "element" {
   project_id = zitadel_project_v2.homelab.id
   org_id     = zitadel_organization.homelab.id
