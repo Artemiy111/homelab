@@ -5,13 +5,22 @@ server:
   grpc_listen_port: 9095
   log_level: info
 
+# В v2 три пути на диске, и все три по умолчанию относительные
+# (./data/v2/...) — в контейнере рабочим каталогом является /, он
+# read-only, и Pyroscope падает с "mkdir ./data/v2: permission denied".
+# Поэтому задаём все явно, на PVC.
 storage:
   backend: filesystem
   filesystem:
-    dir: /var/lib/pyroscope
+    dir: /var/lib/pyroscope/shared
+
+metastore:
+  data_dir: /var/lib/pyroscope/metastore/data
+  raft:
+    dir: /var/lib/pyroscope/metastore/raft
 
 # Небо диска: 0 — данные не удаляются никогда. Неделя — как и у трейсов в
-# Tempo (backend_scheduler...block_retention 168h).
+# Tempo (block_retention 168h).
 limits:
   retention_period: 168h
 
