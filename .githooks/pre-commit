@@ -1,0 +1,14 @@
+#!/bin/sh
+# Локальные проверки перед коммитом. Файл отслеживается в git, поэтому хук
+# присутствует и в основном дереве, и в любом worktree: core.hooksPath
+# указывает на этот каталог (настройка описана в
+# docs/agents/commit-conventions.md, раздел «Хуки»).
+set -eu
+
+if ! command -v gitleaks >/dev/null 2>&1; then
+  echo "gitleaks не установлен (brew install gitleaks) — коммит остановлен" >&2
+  exit 1
+fi
+
+gitleaks git --staged --config .gitleaks.toml --no-banner --redact
+./scripts/status-badges.sh --check

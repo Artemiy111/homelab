@@ -1,7 +1,7 @@
 # Commit conventions
 
 Сообщения коммитов следуют **Conventional Commits**, пишутся на **английском** и
-проверяются `commitlint`: локально — git-хуком husky (`.husky/commit-msg`), в CI —
+проверяются `commitlint`: локально — хуком `.githooks/commit-msg`, в CI —
 workflow `.forgejo/workflows/commitlint.yml`. Правила заданы в
 `commitlint.config.mjs`.
 
@@ -78,11 +78,52 @@ feat(x): add y                  # + тело ниже — тело запрещ�
 - Тело коммита не нужно: пояснения живут в описании PR/issue, а история
   остаётся однострочной и машинно-разбираемой.
 
+## Хуки
+
+Хуки лежат в `.githooks/` и **отслеживаются в git**: ни генератора, ни
+`bun install` для них не нужно, поэтому они работают и в основном дереве, и в
+любом worktree. Включаются один раз на клон:
+
+```sh
+git config core.hooksPath .githooks
+```
+
+Путь записывается в общий `.git/config`, а сами файлы берутся из корня **того**
+дерева, в котором идёт коммит, — поэтому добавление `git worktree add` не
+требует ничего, чтобы заработали хуки. Проверить:
+
+```sh
+git config --get core.hooksPath          # .githooks
+./scripts/check.sh                       # те же проверки, что и в хуке
+```
+
+`commitlint` нужен глобально:
+
+```sh
+npm i -g @commitlint/cli @commitlint/config-conventional
+```
+
+Глобальная, а не локальная — потому что `bun x` в worktree без `node_modules`
+скачивает пакет из публичного npm в момент коммита, то есть непрокиненную
+версию из сети, и обходит Verdaccio с lockfile, на которых построен CI.
+Побочный эффект: глобальная версия плавает, поэтому **локальный хук — быстрая
+подсказка, а гейт — CI**. Правила в `commitlint.config.mjs` — единственный
+источник правды для обоих.
+
+| Хук | Что проверяет |
+| --- | --- |
+| `.githooks/pre-commit` | gitleaks по staged, соответствие `docs/status/` состоянию репозитория |
+| `.githooks/commit-msg` | сообщение коммита по `commitlint.config.mjs` |
+
+`./scripts/check.sh` (или `bun run check`) — те же проверки плюс shellcheck и
+actionlint; хуки, в отличие от скрипта, выполняются всегда, когда
+`core.hooksPath` настроен, а скрипт можно позвать руками.
+
 ## Локальная проверка
 
 ```sh
-bun x commitlint --last --verbose          # последний коммит
-bun x commitlint --from main --to HEAD     # диапазон
+commitlint --last                        # последний коммит
+commitlint --from origin/main --to HEAD  # диапазон
 ```
 
 CI делает то же: на `push` — последний коммит, на `pull_request` — диапазон
@@ -90,5 +131,5 @@ CI делает то же: на `push` — последний коммит, на
 `<заголовок> (#<n>)` — проверить локально можно так:
 
 ```sh
-printf '%s' "<заголовок PR> (#<n>)" | bun x commitlint --verbose
+printf '%s' "<заголовок PR> (#<n>)" | commitlint
 ```

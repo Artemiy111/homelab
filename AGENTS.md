@@ -45,6 +45,11 @@ git branch -d feat/577-readme
   и stash общие для всех деревьев.
 - `git worktree remove` требует чистого дерева. Не залитая в main ветка
   удаляется только `git branch -D` и только осознанно.
+- Локальные проверки перед коммитом: хуки из [`.githooks/`](.githooks/) (они
+  отслеживаются в git и работают в дереве без настройки, путь
+  `core.hooksPath` общий для всех деревьев) и `./scripts/check.sh` — те же
+  шаги плюс shellcheck и actionlint. Если `core.hooksPath` не настроен, хуки
+  молча не выполнятся, а `check.sh` об этом предупредит.
 
 Приватные файлы в дерево **не переносятся** намеренно: `config.env`,
 `values.private.yaml`, `argocd/applications/*.private.yaml`,

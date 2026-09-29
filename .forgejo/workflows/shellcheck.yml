@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths: &paths
       - "**/*.sh"
+      - ".githooks/**"
       - ".forgejo/workflows/shellcheck.yml"
   pull_request:
     paths: *paths
@@ -41,12 +42,14 @@ jobs:
           install -m 0755 "/tmp/shellcheck/shellcheck-v${ver}/shellcheck" "$HOME/.local/shellcheck/shellcheck"
       - name: Add shellcheck to PATH
         run: echo "$HOME/.local/shellcheck" >> "$GITHUB_PATH"
-      # Линтим все отслеживаемые *.sh по расширению; .agents и .claude — это
-      # шаблоны скиллов и инструментовка, их не проверяем. Порог warning задан
-      # явно, чтобы набор правил не зависел от дефолтов версии.
+      # Линтим все отслеживаемые *.sh по расширению, а также хуки в .githooks/
+      # (расширения у них нет, файлы называются pre-commit и commit-msg).
+      # .agents и .claude — это шаблоны скиллов и инструментовка, их не
+      # проверяем. Порог warning задан явно, чтобы набор правил не зависел от
+      # дефолтов версии.
       - name: Lint scripts
         run: |
           set -euo pipefail
           shellcheck --version
-          mapfile -t scripts < <(git ls-files -- '*.sh' ':!.agents/**' ':!.claude/**')
+          mapfile -t scripts < <(git ls-files -- '*.sh' '.githooks/*' ':!.agents/**' ':!.claude/**')
           shellcheck -S warning "${scripts[@]}"

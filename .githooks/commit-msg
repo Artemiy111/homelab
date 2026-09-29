@@ -1,0 +1,16 @@
+#!/bin/sh
+# Проверка сообщения коммита. Правила — в commitlint.config.mjs, те же, что
+# гоняет CI в .forgejo/workflows/commitlint.yml.
+#
+# commitlint ставится глобально, а не из node_modules дерева: bunx в worktree
+# без node_modules скачивает пакет из публичного npm в момент коммита, то есть
+# непрокиненную версию из сети. Глобальная версия плавает, поэтому гейт здесь
+# быстрый, а authoritative проверка — CI.
+set -eu
+
+if ! command -v commitlint >/dev/null 2>&1; then
+  echo "commitlint не установлен (npm i -g @commitlint/cli @commitlint/config-conventional) — коммит остановлен" >&2
+  exit 1
+fi
+
+commitlint --edit "$1"

@@ -73,7 +73,7 @@ PR, issue и лог CI становятся вечными и публичным
 
 | Слой | Что проверяет | Где |
 |---|---|---|
-| pre-commit | секреты в staged-изменениях | `.husky/pre-commit` + `.gitleaks.toml` |
+| pre-commit | секреты в staged-изменениях | `.githooks/pre-commit` + `.gitleaks.toml` |
 | CI | секреты в новых коммитах (push) и в diff PR | `.forgejo/workflows/secrets.yml` |
 | push protection | секрет не попадёт в публичный репозиторий | настройки GitHub (включить при открытии зеркала) |
 | branch protection | проверка `secrets` обязательна | настройки репозитория (при открытии зеркала) |

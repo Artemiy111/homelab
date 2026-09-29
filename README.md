@@ -220,8 +220,11 @@ manifest lint. A couple of them are required status checks.
 Every tool is fetched from an in-cluster mirror and verified against a pinned checksum, because
 the runners have no internet access. Details in [Supply chain](#supply-chain).
 
-Local hooks run the same checks before a commit leaves the machine ([`.husky/`](.husky/)), so CI
-failures should be the exception rather than the routine.
+Local hooks run the same checks before a commit leaves the machine
+([`.githooks/`](.githooks/)), so CI failures should be the exception rather than the routine.
+The hooks are tracked in the repository and enabled per clone with
+`git config core.hooksPath .githooks`, so they work in a `git worktree` with no
+extra setup — and `./scripts/check.sh` runs the same steps by hand.
 
 ---
 
