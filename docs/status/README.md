@@ -28,12 +28,36 @@ namespace'ов закрыто NetworkPolicy. Все они считаются и
 | services | каталоги под `apps/`, где есть хотя бы один YAML | включает `apps/elk`, выведенный из эксплуатации: манифесты ещё не удалены |
 | manifests | файлы в области гейта kubeconform: `apps/<сервис>/k8s/`, `platform/`, `argocd/` без `values.yaml`, `Chart.yaml` и шаблонов чарта | ровно то, что проверяет CI |
 | images pinned | `image: <ref>` одной строкой; в знаменателе только формы, где значение стоит на той же строке | многострочные формы (`image:` + `repository`/`tag` в CNPG и чартах Argo) не считаются: их нельзя объявить незакреплёнными без разбора YAML |
-| netpol coverage | namespace'ы, в которых есть манифест с `kind: NetworkPolicy`, делённые на все namespace'ы из `metadata.namespace` | namespace'и читаются по отступу в два пробела (формат kubiform), вложенные `namespace:` из subject'ов RBAC и service-ссылок вебхуков не считаются |
+| netpol coverage | namespace'ы, где есть манифест с `kind: NetworkPolicy`, делённые на все namespace'ы из манифестов: `metadata.namespace` и `spec.destination.namespace` у `Application` | вложенные `namespace:` из subject'ов RBAC и service-ссылок вебхуков не считаются |
 | ADR / postmortems | количество файлов в `docs/adr/` и `docs/incidents/NNNN-*.md` | — |
 
-Число считается по **области, известной только репозиторию**. Namespace или
-образ, который есть в живом кластере, но не в манифестах, в знаменатель не
-попадёт: это делает число нижней оценкой, а не истиной в последней инстанции.
+## Сверка с живым кластером
+
+Число считается по области, известной только репозиторию, поэтому это нижняя
+оценка, и она расходится с кластером в обе стороны. Замер на 2026-09-29:
+
+| | репозиторий | кластер |
+|---|---|---|
+| namespace'ы | 54 | 52 с подами |
+| из них с NetworkPolicy | 44 | 44 |
+| объектов NetworkPolicy | 87 | 96 |
+
+Три расхождения, каждое объяснимо:
+
+- **Приватный слой невидим.** `argocd/applications/*.private.yaml` и
+  `platform/cert-manager/*.private.yaml` в git не лежат, поэтому в кластере есть
+  4 NetworkPolicy в `argocd`, которых нет в репозитории, и часть объектов не
+  попадает в счёт. Для бейджа это поправка в плюс.
+- **`gitlab` посчитан, но не развёрнут.** Namespace в кластере создана, подов
+  нет: тестовый стенд не применяется. Репозиторий считает его в знаменателе,
+  кластер — нет.
+- **`apps/vault/k8s/networkpolicy-vso.yaml` не применён.** Манифест объявляет
+  NetworkPolicy для `vault-secrets-operator`, в кластере там его нет: `apps/*/k8s`
+  применяется вручную, а не через Argo, и ничто не проверяет, что файл доехал.
+  Это расхождение в минус и кандидат в issue.
+
+Отсюда правило: бейдж — нижняя оценка и повод сходить в кластер, а не истина в
+последней инстанции.
 
 ## Исключения
 
@@ -46,11 +70,15 @@ namespace'ов закрыто NetworkPolicy. Все они считаются и
   образа есть digest, его можно указать в `image`; альтернатива — публикация
   сборки в Zot.
 - **Namespace без NetworkPolicy:**
-  - `traefik`, `cert-manager`, `argocd` — control plane. Причина исключения в
-    репозитории не зафиксирована: для `traefik` и `cert-manager` ограничение
-    идёт через правила самого Traefik и через NetworkPolicy на webhook
-    (`security.networking.k8s.io/v1`), но решение «NetworkPolicy здесь не нужен»
-    нигде не записано. Это кандидат на ADR, а не на молчание в документации;
+  - `traefik`, `cert-manager`, `argocd`, `cnpg-system`, `elastic-system`,
+    `mariadb-system`, `vault-secrets-operator` — control plane и операторы.
+    Причина исключения в репозитории не зафиксирована: для `traefik` и
+    `cert-manager` ограничение идёт через правила самого Traefik и через
+    NetworkPolicy на webhook (`security.networking.k8s.io/v1`), но решение
+    «NetworkPolicy здесь не нужен» нигде не записано. Это кандидат на ADR, а не
+    на молчание в документации;
+  - `kube-system`, `local-path-storage` — системные, ими управляет k0s, а не
+    манифесты репозитория;
   - `headlamp` — разворачивается Argo, NetworkPolicy нет. Закрывается тривиально,
     ждёт своего issue;
   - `gitlab` — тестовый стенд, применяется вручную, вне Argo.

@@ -12,9 +12,9 @@
   "network_policy": {
     "objects": 87,
     "namespaces": 44,
-    "namespaces_total": 49,
-    "percent": 89,
-    "exceptions": ["argocd", "cert-manager", "gitlab", "headlamp", "traefik"]
+    "namespaces_total": 54,
+    "percent": 81,
+    "exceptions": ["argocd", "cert-manager", "cnpg-system", "elastic-system", "gitlab", "headlamp", "kube-system", "local-path-storage", "mariadb-system", "traefik"]
   },
   "secrets": {
     "vault_static_secret": 80,

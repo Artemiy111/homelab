@@ -101,28 +101,43 @@ images_exceptions="$(
     sort -u || true
 )"
 
-# namespace из metadata: ровно два пробела отступа — так их раскладывает
-# kubiform, и так отсекаются вложенные `namespace:` из subject'ов RBAC и из
-# service-ссылок вебхуков.
-namespaces() {
+# namespace из `metadata.namespace` (отступ 2, формат kubiform) и из
+# `spec.destination.namespace` у Application (отступ 4 под секцией
+# `destination:`). Второй источник нужен: иначе операторы, у которых в
+# репозитории есть только Application, выпадали бы из знаменателя и покрытие
+# завышалось бы. Вложенные `namespace:` из subject'ов RBAC и service-ссылок
+# вебхуков не считаются: у них отступ 2, но перед ними `-`.
+#
+# awk получает файлы целиком, а не отфильтрованные строки `namespace:`:
+# признак «сейчас секция destination» виден только в соседних строках.
+namespace_names() {
   deploy_files |
-    xargs grep -hE '^  namespace: [a-z0-9-]+$' |
-    awk '{print $2}' |
+    xargs awk '
+      /^  namespace: [a-z0-9-]+$/ { print $2; next }
+      /^    namespace: [a-z0-9-]+$/ && section == "destination" { print $2; next }
+      /^  [a-zA-Z0-9_-]+:/ { section = $1; sub(/:$/, "", section) }
+    ' |
     sort -u || true
+}
+
+netpol_files() {
+  deploy_files | xargs grep -lE '^kind: NetworkPolicy$' || true
 }
 
 netpol_namespaces() {
-  deploy_files |
-    xargs grep -lE '^kind: NetworkPolicy$' |
-    xargs grep -hE '^  namespace: [a-z0-9-]+$' |
-    awk '{print $2}' |
+  netpol_files |
+    xargs awk '
+      /^  namespace: [a-z0-9-]+$/ { print $2; next }
+      /^    namespace: [a-z0-9-]+$/ && section == "destination" { print $2; next }
+      /^  [a-zA-Z0-9_-]+:/ { section = $1; sub(/:$/, "", section) }
+    ' |
     sort -u || true
 }
 
-namespaces_total="$(namespaces | count_lines)"
+namespaces_total="$(namespace_names | count_lines)"
 netpol_namespaces_total="$(netpol_namespaces | count_lines)"
 netpol_percent=$((netpol_namespaces_total * 100 / namespaces_total))
-netpol_exceptions="$(comm -23 <(namespaces) <(netpol_namespaces))"
+netpol_exceptions="$(comm -23 <(namespace_names) <(netpol_namespaces))"
 netpol_objects="$(deploy_files | xargs grep -hE '^kind: NetworkPolicy$' | count_lines)"
 
 vault_static="$(deploy_files | xargs grep -hE '^kind: VaultStaticSecret$' | count_lines)"
