@@ -38,11 +38,12 @@
   ansible.builtin.template:
     src: "{{ k0s_config_src }}"
     dest: "{{ k0s_config_dest }}"
-    # В файле лежит issuer Zitadel: домен хоста по правилам
-    # docs/agents/information-handling.md относится к внутренней информации.
-    # Диффы в выводе плейбука его не показывают.
-    diff: false
     mode: "0600"
     owner: root
     group: root
+  # diff на уровне задачи, а не в аргументах модуля: action-плагин template
+  # после рендера передаёт оставшиеся аргументы в ansible.legacy.copy, который
+  # diff не принимает. Здесь это ключевое слово, и содержимое файла с issuer
+  # Zitadel в вывод плейбука не попадает.
+  diff: false
   notify: Restart k0s
