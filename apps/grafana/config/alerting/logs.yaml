@@ -356,7 +356,7 @@ groups:
         annotations:
           summary: "Мало свободного места на PVC трейсов (tempo-data)"
           description: >-
-            На PVC tempo-data (5Gi) осталось меньше 1 ГБ. Действия: расширить PVC либо сократить compactor.compaction.block_retention (сейчас 168h). Проверить, что compactor вообще работает: `tempo_compactor_blocks_processed_total`.
+            На PVC tempo-data (5Gi) осталось меньше 1 ГБ. Действия: расширить PVC либо сократить backend_scheduler.provider.compaction.compaction.block_retention (сейчас 168h). В Tempo 3.0.3 удалением занимается backend worker, а задачи генерирует backend scheduler; проверить его работу можно по метрикам блоков и retention-задач.
           runbook: "apps/tempo/README.md"
       - uid: node-disk-low
         title: Мало свободного места на узле
