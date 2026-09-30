@@ -1,8 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="124" height="20" role="img" aria-label="постмортемов: 4">
-  <title>постмортемов: 4</title>
+<svg xmlns="http://www.w3.org/2000/svg" width="124" height="20" role="img" aria-label="постмортемов: 5">
+  <title>постмортемов: 5</title>
   <style>rect.label-bg{fill:#555}@media (prefers-color-scheme:dark){rect.label-bg{fill:#3f3f3f}}text{font-family:Verdana,DejaVu Sans,Geneva,sans-serif;font-size:11px;fill:#fff}</style>
   <rect class="label-bg" width="105" height="20"/>
   <rect x="105" width="19" height="20" fill="#007ec6"/>
   <text x="52" y="14" text-anchor="middle">постмортемов</text>
-  <text x="114" y="14" text-anchor="middle">4</text>
+  <text x="114" y="14" text-anchor="middle">5</text>
 </svg>
