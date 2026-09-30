@@ -1,8 +1,9 @@
 # Базовый NetworkPolicy для namespace monitoring: default-deny ingress плюс
 # явные разрешения. traefik — UI (grafana, vm, netdata, wud); gatus и
 # uptime-kuma проверяют внутренние сервисы (victoriametrics, vmagent, netdata,
-# grafana, wud) напрямую по k8s-именам; kube-state-metrics приходит из default;
-# radar читает метрики ворклоадов из victoriametrics.
+# grafana, wud) напрямую по к8s-именам; kube-state-metrics приходит из default;
+# radar читает метрики ворклоадов из victoriametrics; grafana-operator ходит в
+# API инстанса Grafana, которым сам же управляет (#645).
 # Egress не ограничивается.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -54,6 +55,18 @@ spec:
               app: victoriametrics
       ports:
         - port: 8428
+          protocol: TCP
+    # Grafana Operator управляет инстансом через его API, поэтому нужен вход
+    # из его namespace. Порт 3000 — тот, что operator-генерируемый Service
+    # grafana-service отдаёт наружу (у ручного Service это 80, см.
+    # apps/grafana/k8s/grafana.service.yaml); правило пригодится с переездом
+    # apps/grafana/ на Grafana CR.
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: grafana-operator
+      ports:
+        - port: 3000
           protocol: TCP
     # Приложения, push'ащие телеметрию по OTLP в otel-collector.
     - from:

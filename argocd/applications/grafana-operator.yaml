@@ -1,0 +1,67 @@
+# Grafana Operator — оператор инстансов Grafana и её объектов (Grafana,
+# GrafanaDatasource, GrafanaDashboard, GrafanaAlertRuleGroup и остальные CR
+# группы grafana.integreatly.org). Ставится официальным чартом grafana-operator
+# 5.25.0 из OCI-реестра grafana; Argo рендерит его сам (см. argocd/README.md).
+#
+# Первый шаг переезда apps/grafana/ с самописных манифестов на CRD (#645).
+# Пока переезд не начат, Grafana продолжает жить на ручных манифестах: оператор
+# в кластере есть, но не управляет ещё ни одним инстансом.
+#
+# Оператор кластерный (namespaceScope: false, дефолт чарта): инстанс Grafana
+# живёт в monitoring, а оператор — в своём namespace grafana-operator, поэтому
+# watch по одному namespace не годится. Из этого следует ClusterRole чарта
+# (rbac.useClusterRole: true, дефолт) и запись в любой namespace.
+#
+# CRD берутся из сабчарта crds (crds.immutable: true, дефолт) — отдельный
+# релиз с crds.yaml не нужен. Argo передаёт `helm template --include-crds`,
+# поэтому CRD применяются вместе с остальным. Это же означает, что удаление
+# приложения с --cascade снесёт и CRD, а с ними все инстансы Grafana; от
+# случайной чистки при синке защищает Prune=false ниже.
+#
+# ServerSideApply=true обязателен: CRD grafanadatasources — 597 КБ, и
+# client-side apply не влезает в аннотацию
+# kubectl.kubernetes.io/last-applied-configuration (262144 Б). Тот же приём,
+# что у cloudnative-pg и mariadb-operator.
+#
+# Мониторинг: serviceMonitor.enabled оставлен дефолтным false. В кластере нет
+# CRD prometheus-operator (monitoring.coreos.com) — ServiceMonitor'ы некому
+# читать, а без serviceMonitor.enabled они и не рендерятся. Собственный
+# metrics-сервис чарта (порт 9090) при этом остаётся; заберёт ли его vmagent —
+# отдельная задача.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: grafana-operator
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: ghcr.io/grafana/helm-charts
+    chart: grafana-operator
+    targetRevision: 5.25.0
+    helm:
+      releaseName: grafana-operator
+      valuesObject:
+        # Дефолт, но фиксируем явно: значение определяет, смотрит ли оператор
+        # весь кластер или только свой namespace, и сменить его молча нельзя.
+        namespaceScope: false
+        # Дефолт у чарта: resources: {}. Для однонодного кластера это плохо:
+        # без requests планировщик не знает, что размещает, а без limits
+        # разъехавшийся оператор способен вытеснить сами инстансы Grafana.
+        resources:
+          requests:
+            cpu: 50m
+            memory: 128Mi
+          limits:
+            cpu: "1"
+            memory: 512Mi
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: grafana-operator
+  syncPolicy:
+    syncOptions:
+      - ServerSideApply=true
+      - Prune=false
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
