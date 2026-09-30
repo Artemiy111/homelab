@@ -11,6 +11,20 @@ providers:
     type: file
     disableDeletion: true
     updateIntervalSeconds: 30
-    allowUiUpdates: false
+    # ВРЕМЕННО: allowUiUpdates: true вместо false.
+    #
+    # Grafana держит provisioned-dashboard как read-only, и тогда оператор не может
+    # его перезаписать: POST /api/dashboards/db отвечает 400 "Cannot overwrite
+    # provisioned dashboard" (pkg/api/dashboard.go, проверка AllowsEdits).
+    # Переезд на GrafanaDashboard CR идёт в два шага: сначала этот файл с
+    # allowUiUpdates: true, потом CR и удаление провижининга.
+    #
+    # Обратно read-only не вернуть: это понятие провижининга, у dashboard,
+    # написанного через API, его просто нет. Практически защита не теряется —
+    # реконсилей дашборда НЕ пропускает хэш (в отличие от datasource'ов), он
+    # перезаписывает дашборд при каждом проходе, а период ресинка 10m. То есть
+    # правка в UI откатывается сама и даже чаще, чем при allowUiUpdates: false,
+    # где откат происходил только при рестарте Grafana.
+    allowUiUpdates: true
     options:
       path: /var/lib/grafana/dashboards
