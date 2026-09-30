@@ -29,6 +29,8 @@ Every change starts with an issue:
    **not** use `Closes`: merge does not mean the outcome is verified.
 5. Merge with `fj pr merge <n> --method squash --delete -m ""` (the empty `-m`
    stops `fj` from appending a `Reviewed-on:` URL — see `commit-conventions.md`).
+   Do not pass `-t`: it overrides the commit subject, so the message stops being
+   the PR title plus ` (#<n>)`, and nothing catches the divergence.
 6. Verify on the live stand (steps from the issue/README), then remove the state
    label and close manually:
    `fj issue close <n> -w "проверено: ..."`.
@@ -76,7 +78,7 @@ matter day to day:
   берёт заголовок и тело из коммитов. Флаги сверены с `forgejo-cli` 0.6.0.
 - **Status**: `fj pr status <n>` (add `--wait` to block until checks finish).
 - **View**: `fj pr view <n>`; diff with `fj pr view <n> diff`, files with `fj pr view <n> files`.
-- **Merge**: `fj pr merge <n> --method squash --delete -m ""` (empty `-m` avoids the `Reviewed-on:` body).
+- **Merge**: `fj pr merge <n> --method squash --delete -m ""` (empty `-m` avoids the `Reviewed-on:` body; `-t` is not passed — it would override the commit subject and drop ` (#<n>)`).
 - **Comment / close**: `fj pr comment <n> "..."` / `fj pr close <n> -w "..."`.
 
 ## When a skill says "publish to the issue tracker"
