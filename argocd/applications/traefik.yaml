@@ -5,82 +5,101 @@ metadata:
   namespace: argocd
 spec:
   project: default
-  source:
-    repoURL: https://traefik.github.io/charts
-    chart: traefik
-    targetRevision: 41.4.0
-    helm:
-      releaseName: traefik
-      skipCrds: true
-      valuesObject:
-        resources:
-          requests:
-            memory: 192Mi
-          limits:
-            memory: 384Mi
-        providers:
-          kubernetesCRD:
-            allowCrossNamespace: true
-        service:
-          spec:
-            type: ClusterIP
-        ports:
-          web:
-            port: 8000
-            expose:
-              default: true
-            protocol: TCP
-          websecure:
-            port: 8443
-            http:
-              tls:
+  # Два источника: чарт и приватные значения. Второй помечен `ref: values`, и
+  # именно этот ref сопоставляется с `$values` в valueFiles ниже. Учётные данные
+  # не указываем: Argo находит их сам по URL второго источника — в Secret с
+  # меткой argocd.argoproj.io/secret-type: repository
+  # (argocd/homelab-values-repo.vaultstaticsecret.yaml). Поле repoCreds есть
+  # только у одиночного spec.source, в spec.sources[] его нет.
+  sources:
+    - repoURL: https://traefik.github.io/charts
+      chart: traefik
+      targetRevision: 41.4.0
+      helm:
+        releaseName: traefik
+        skipCrds: true
+        valueFiles:
+          - $values/argocd/traefik-values.yaml
+        valuesObject:
+          resources:
+            requests:
+              memory: 192Mi
+            limits:
+              memory: 384Mi
+          providers:
+            kubernetesCRD:
+              allowCrossNamespace: true
+          service:
+            spec:
+              # externalIPs — адрес узла, и он нагрузочный: без него Traefik не
+              # принимает трафик на адрес узла. Поэтому его нет здесь, а
+              # приезжает из приватного репозитория. Домен в values Traefik не
+              # нужен: маршруты живут в platform/homelab/templates/routes/.
+              type: ClusterIP
+          ports:
+            web:
+              port: 8000
+              expose:
+                default: true
+              protocol: TCP
+            websecure:
+              port: 8443
+              http:
+                tls:
+                  enabled: true
+              expose:
+                default: true
+              protocol: TCP
+          metrics:
+            prometheus:
+              service:
                 enabled: true
-            expose:
-              default: true
-            protocol: TCP
-        metrics:
-          prometheus:
-            service:
-              enabled: true
-            # Per-router метрики. По умолчанию в Traefik выключены
-            # (addRoutersLabels=false), и без них в VM нет ни одной серии
-            # traefik_router_* — метрики только по бэкенд-сервисам, по роутеру
-            # не понять, какой маршрут ведёт себя неправильно. #284.
-            # Цена: серий примерно вдвое больше (объём дают бакеты гистограмм),
-            # а запас по диску vmdata после инцидента 0003 не расширялся —
-            # решение принято осознанно, отслеживать расход в #284.
-            addRoutersLabels: true
-        additionalArguments:
-          - --ping
-        # JSON access-логи в stdout (их собирает Alloy → Loki). В формате JSON
-        # Traefik отдаёт ядровые поля trace_id/span_id, по которым Loki и Tempo
-        # связаны (#446). Query-параметры дропаем, чтобы не писать в логи
-        # чувствительные значения вроде OAuth code.
-        accessLog:
-          enabled: true
-          format: json
-          fields:
-            queryParameters:
-              defaultMode: drop
-        # Трейсы через OTLP/HTTP в otel-collector, дальше в Tempo. Сэмплинг 1.0 —
-        # трафик homelab мал; при росте нагрузки снизить.
-        tracing:
-          sampleRate: 1.0
-          otlp:
+              # Per-router метрики. По умолчанию в Traefik выключены
+              # (addRoutersLabels=false), и без них в VM нет ни одной серии
+              # traefik_router_* — метрики только по бэкенд-сервисам, по роутеру
+              # не понять, какой маршрут ведёт себя неправильно. #284.
+              # Цена: серий примерно вдвое больше (объём дают бакеты гистограмм),
+              # а запас по диску vmdata после инцидента 0003 не расширялся —
+              # решение принято осознанно, отслеживать расход в #284.
+              addRoutersLabels: true
+          additionalArguments:
+            - --ping
+          # JSON access-логи в stdout (их собирает Alloy → Loki). В формате JSON
+          # Traefik отдаёт ядровые поля trace_id/span_id, по которым Loki и Tempo
+          # связаны (#446). Query-параметры дропаем, чтобы не писать в логи
+          # чувствительные значения вроде OAuth code.
+          accessLog:
             enabled: true
-            http:
+            format: json
+            fields:
+              queryParameters:
+                defaultMode: drop
+          # Трейсы через OTLP/HTTP в otel-collector, дальше в Tempo. Сэмплинг 1.0 —
+          # трафик homelab мал; при росте нагрузки снизить.
+          tracing:
+            sampleRate: 1.0
+            otlp:
               enabled: true
-              endpoint: http://otel-collector.monitoring.svc.cluster.local:4318/v1/traces
-        ingressRoute:
-          healthcheck:
+              http:
+                enabled: true
+                endpoint: http://otel-collector.monitoring.svc.cluster.local:4318/v1/traces
+          ingressRoute:
+            healthcheck:
+              enabled: true
+              entryPoints:
+                - websecure
+              tls: {}
+          ingressClass:
             enabled: true
-            entryPoints:
-              - websecure
-            tls: {}
-        ingressClass:
-          enabled: true
-          isDefaultClass: true
-          name: traefik
+            isDefaultClass: true
+            name: traefik
+    # Второй источник — репозиторий внутренних значений, ref: values
+    # сопоставляется с $values. Без ref Argo попытался бы применять манифесты
+    # оттуда, а не только читать values. service-DNS, потому что читает
+    # repo-server, то есть потребитель внутри кластера.
+    - repoURL: ssh://git@forgejo-ssh.forgejo.svc.cluster.local:2222/artemiy/homelab-values
+      targetRevision: main
+      ref: values
   destination:
     server: https://kubernetes.default.svc
     namespace: traefik
