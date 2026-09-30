@@ -22,6 +22,17 @@ spec:
           image: "grafana/pyroscope:2.3.1@sha256:86a9ee7448487409ead8ada78789de7b78b739711b92b5d7224a1a54abf3eeb2"
           args:
             - -config.file=/etc/pyroscope/pyroscope.yaml
+            # Ещё два относительных пути на диске, и они не задаются в
+            # конфиге: YAML-ключ blocks_storage в 2.3.1 не существует
+            # ("field blocks_storage not found in type main.mainFlags"),
+            # документированный интерфейс — флаг. Без них store-gateway падает
+            # на `mkdir data/pyroscope-sync: permission denied`, модуль уходит в
+            # Failed, и процесс завершается: "failed running pyroscope: failed
+            # services". Под уходит в CrashLoop, в логах это последние 10 строк,
+            # поэтому `kubectl logs` без --tail=-1 показывает только хвост
+            # с ошибкой. См. разбор в config/pyroscope.yaml.
+            - -blocks-storage.bucket-store.sync-dir=/var/lib/pyroscope/sync
+            - -compactor.data-dir=/var/lib/pyroscope/compactor
           ports:
             - name: http
               containerPort: 4040

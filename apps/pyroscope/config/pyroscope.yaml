@@ -9,6 +9,26 @@ server:
 # (./data/v2/...) — в контейнере рабочим каталогом является /, он
 # read-only, и Pyroscope падает с "mkdir ./data/v2: permission denied".
 # Поэтому задаём все явно, на PVC.
+#
+# Четвёртый и пятый пути задать здесь нельзя: их YAML-ключи в 2.3.1 не
+# существуют, и парсер падает с "field <key> not found in type
+# main.mainFlags". Официально документированный интерфейс для них — флаги, и
+# они заданы в k8s/deployment.yaml:
+#
+#   blocks_storage.bucket_store.sync_dir  ->  -blocks-storage.bucket-store.sync-dir
+#   compactor.data_dir                    ->  -compactor.data-dir
+#
+# Без них store-gateway не стартует: `initial blocks synchronization: 3 errors:
+# create dir: mkdir data/pyroscope-sync: permission denied`, модуль Failed →
+# процесс выходит с "failed running pyroscope: failed services", и под
+# уходит в CrashLoop. Проверять надо так — `kubectl logs` без --tail=-1
+# отдаёт только последние 10 строк, а это как раз хвост с ошибкой:
+#
+#   kubectl -n monitoring logs deploy/pyroscope --tail=-1 | grep "module failed"
+#
+# После старта в логах остаётся "no block metadata found; skipping" от
+# compactor: это старые блоки раскладки phlaredb (v1), оставшиеся на томе с
+# прошлой версии. Они не читаются и не удаляются, но и не мешают работе.
 storage:
   backend: filesystem
   filesystem:

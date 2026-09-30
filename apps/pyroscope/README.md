@@ -32,6 +32,31 @@ kubectl apply -k apps/pyroscope
 kubectl apply -k apps/alloy-profiler
 ```
 
+### Пути на диске
+
+Пять путей Pyroscope на диске, и все пять по умолчанию относительные — от
+рабочего каталога контейнера, который равен `/`. Первые три заданы в
+`config/pyroscope.yaml`, последние два — флагами в `k8s/deployment.yaml`,
+потому что их YAML-ключей в 2.3.1 нет, а парсер конфига на неизвестном ключе
+падает. Разбор и точная ошибка — в комментарии к `config/pyroscope.yaml`.
+
+Недозаданный путь выглядит как `permission denied` в `mkdir` и валит весь
+процесс, а не только модуль:
+
+```sh
+kubectl -n monitoring logs deploy/pyroscope --tail=-1 | grep "module failed"
+kubectl -n monitoring get pod -l app=pyroscope
+```
+
+`--tail=-1` здесь обязателен: без него `kubectl logs` отдаёт последние 10
+строк, а это ровно хвост с ошибкой — кажется, что процесс ничего не писал.
+
+### Профили не скрейпятся
+
+vmagent не имеет job'а `pyroscope` в `apps/victoria-metrics/config/vmagent/scrape.yml`,
+поэтому метрик у сервиса нет и в VM не попадает. Пока это так, ориентироваться
+надо на состояние пода и логи, а не на дашборд.
+
 ## Связка с трейсами
 
 `/sys/fs/bpf` смонтирован в **оба** компонента (Beyla и alloy-profiler) с
