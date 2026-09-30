@@ -17,6 +17,13 @@ certManager:
   enabled: true
   acmeEmail: acme@example.com
   webhookGroupName: acme.homelab.local
+  # Внутренний CA для имён, которых нет в публичной зоне. Ключ CA не покидает
+  # кластер, cert-manager выпускает им всё внутреннее.
+  internalCA:
+    enabled: true
+    # Имя хоста реестра. В отличие от config.domain это НЕ environment-specific:
+    # имя нечувствительное, поэтому живёт в git открытым текстом.
+    registryHost: forgejo.homelab.internal
 
 namespaces:
   - 3x-ui

@@ -1,0 +1,35 @@
+{{- if .Values.certManager.internalCA.enabled }}
+{{- $host := .Values.certManager.internalCA.registryHost }}
+# Внутренний маршрут к реестру Forgejo по имени <internal>.
+#
+# Отличие от routes/forgejo.yaml: TLS указан явно. Там сертификат на entrypoint
+# websecure берётся из TLSStore default, а тот один на весь публичный домен —
+# внутреннему имени он не соответствует. Здесь своя секция tls, и это
+# единственный маршрут с собственным сертификатом.
+#
+# Наружу это имя не торчит: DNS-зона internal обслуживается Technitium'ом
+# (terraform/technitium), а не публичным резолвером. Нужен ровно двум клиентам:
+# OCI-клиент Argo тянет отсюда чарт, а containerd на узле — образ.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: forgejo-internal
+  namespace: forgejo
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - {{ $host }}
+      secretName: forgejo-internal-tls
+  rules:
+    - host: {{ $host }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: forgejo-http
+                port:
+                  name: http
+{{- end }}
