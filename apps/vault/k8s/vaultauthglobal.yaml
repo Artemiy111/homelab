@@ -4,8 +4,12 @@ metadata:
   name: vso-global
   namespace: vault-secrets-operator
 spec:
+  # Namespace'ы, из которых VaultAuthGlobal выдаёт токены. Список закрытый: без
+  # записи здесь VaultStaticSecret в этом namespace получает отказ
+  # `target namespace ... is not allowed`.
   allowedNamespaces:
     - 3x-ui
+    - argocd
     - ats
     - authentik
     - beszel
