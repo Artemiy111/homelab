@@ -2,7 +2,7 @@
   "schema": 1,
   "source": "scripts/status-badges.sh",
   "services": 55,
-  "manifests": 390,
+  "manifests": 393,
   "images": {
     "pinned": 132,
     "total": 133,
@@ -17,11 +17,11 @@
     "exceptions": ["argocd", "cert-manager", "cnpg-system", "elastic-system", "gitlab", "headlamp", "kube-system", "local-path-storage", "mariadb-system", "traefik"]
   },
   "secrets": {
-    "vault_static_secret": 82,
+    "vault_static_secret": 83,
     "sealed_secret": 5
   },
   "docs": {
-    "adr": 7,
+    "adr": 8,
     "postmortems": 4,
     "research": 48
   }

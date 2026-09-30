@@ -1,0 +1,12 @@
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultAuth
+metadata:
+  name: vso-argocd
+  namespace: argocd
+spec:
+  vaultAuthGlobalRef:
+    name: vso-global
+    namespace: vault-secrets-operator
+  kubernetes:
+    role: argocd
+    serviceAccount: vso-argocd
