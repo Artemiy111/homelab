@@ -35,6 +35,3 @@
       tags: [longhorn_prereqs]
     - role: k0s_config
       tags: [k0s_config]
-    # После k0s_config: роль читает Secret из уже поднятого кластера.
-    - role: internal_ca
-      tags: [internal_ca]

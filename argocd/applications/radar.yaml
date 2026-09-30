@@ -9,10 +9,9 @@
 # доставить back-channel logout (POST без cookie прокси) и вход был бы двойным.
 # Решение и его цена: issue #42.
 #
-# issuerURL, clientID и redirectURL содержат реальный домен, поэтому их здесь
-# нет вовсе — они приезжают вторым источником из приватного репозитория
-# `homelab-values` (docs/adr/0008, #641). Секреты (clientSecret и HMAC-ключ
-# сессий) — в Vault, оттуда VSO (platform/radar/).
+# issuerURL, clientID и redirectURL содержат домен и адрес приложения, поэтому
+# заданы явно в auth.oidc ниже. Секреты (clientSecret и HMAC-ключ сессий) — в
+# Vault, оттуда VSO (platform/radar/).
 #
 # ВНИМАНИЕ: auth.mode != none добавляет чартом в ClusterRole Radar'а
 # impersonate на users/groups и create на subjectaccessreviews, а также
@@ -29,80 +28,63 @@ metadata:
   namespace: argocd
 spec:
   project: default
-  # Два источника: чарт и приватные значения. Второй помечен `ref: values`, и
-  # именно этот ref сопоставляется с `$values` в valueFiles ниже.
-  sources:
-    - repoURL: https://skyhook-io.github.io/helm-charts
-      chart: radar
-      targetRevision: 1.14.1
-      helm:
-        releaseName: radar
-        valueFiles:
-          - $values/argocd/radar-values.yaml
-        # Учётные данные не указываем: Argo находит их сам по URL второго
-        # источника — в Secret с меткой argocd.argoproj.io/secret-type:
-        # repository (argocd/homelab-values-repo.vaultstaticsecret.yaml).
-        # Поле repoCreds существует только у одиночного spec.source и в
-        # spec.sources[] не поддерживается.
-        valuesObject:
-          # Однозный кластер: лимиты умереннее дефолтных (2 CPU / 1Gi), чтобы
-          # информеры большого кластера не вытесняли соседей, но с запасом на
-          # всплески при churn.
-          resources:
-            requests:
-              cpu: 100m
-              memory: 128Mi
-            limits:
-              cpu: "1"
-              memory: 512Mi
-          auth:
-            mode: oidc
-            # HMAC-ключ подписи сессий. Без него Radar генерирует случайный при
-            # старте, и каждый рестарт пода разлогинивает всех. existingSecretKey
-            # — дефолт чарта (auth-secret), читается из того же секрета Vault.
+  source:
+    repoURL: https://skyhook-io.github.io/helm-charts
+    chart: radar
+    targetRevision: 1.14.1
+    helm:
+      releaseName: radar
+      valuesObject:
+        # Однозный кластер: лимиты умереннее дефолтных (2 CPU / 1Gi), чтобы
+        # информеры большого кластера не вытесняли соседей, но с запасом на
+        # всплески при churn.
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: "1"
+            memory: 512Mi
+        auth:
+          mode: oidc
+          # HMAC-ключ подписи сессий. Без него Radar генерирует случайный при
+          # старте, и каждый рестарт пода разлогинивает всех. existingSecretKey
+          # — дефолт чарта (auth-secret), читается из того же секрета Vault.
+          existingSecret: radar-auth
+          # Группы приходят из claim `role` (admin|user), который кладёт action
+          # addRole в Zitadel. Префикс `oidc:` даёт ровно ту группу `oidc:admin`,
+          # что и у Headlamp, поэтому ClusterRoleBinding из
+          # platform/headlamp/headlamp-admins.clusterrolebinding.yaml работает на
+          # оба UI. Привязка по Group, не по User: Radar берёт имя из claim
+          # `email`, apiserver — из `sub`, и kind: User у них не совпадёт.
+          oidc:
+            issuerURL: https://id.biplane.v6.rocks
+            clientID: "392954354702773261"
+            redirectURL: https://radar.biplane.v6.rocks/auth/callback
+            postLogoutRedirectURL: https://radar.biplane.v6.rocks/
+            groupsClaim: role
+            groupsPrefix: "oidc:"
+            # Без явного списка Radar просит ещё и scope `groups`, которого в
+            # Zitadel нет: Zitadel молча выкинет его из запроса, а группы всё
+            # равно приходят из claim `role`. Явный список фиксирует запрос.
+            scopes:
+              - openid
+              - profile
+              - email
+            # Ключ clientSecret — дефолт чарта (auth.oidc.clientSecretKey).
             existingSecret: radar-auth
-            # Группы приходят из claim `role` (admin|user), который кладёт action
-            # addRole в Zitadel. Префикс `oidc:` даёт ровно ту группу `oidc:admin`,
-            # что и у Headlamp, поэтому ClusterRoleBinding из
-            # platform/headlamp/headlamp-admins.clusterrolebinding.yaml работает на
-            # оба UI. Привязка по Group, не по User: Radar берёт имя из claim
-            # `email`, apiserver — из `sub`, и kind: User у них не совпадёт.
-            oidc:
-              # issuerURL, clientID, redirectURL и postLogoutRedirectURL здесь
-              # намеренно отсутствуют, а не заменены плейсхолдерами: у Argo
-              # приоритет значений `parameters > valuesObject > values >
-              # valueFiles`, поэтому приватный файл не смог бы перекрыть
-              # плейсхолдер отсюда. Значения приезжают из приватного репозитория.
-              groupsClaim: role
-              groupsPrefix: "oidc:"
-              # Без явного списка Radar просит ещё и scope `groups`, которого в
-              # Zitadel нет: Zitadel молча выкинет его из запроса, а группы всё
-              # равно приходят из claim `role`. Явный список фиксирует запрос.
-              scopes:
-                - openid
-                - profile
-                - email
-              # Ключ clientSecret — дефолт чарта (auth.oidc.clientSecretKey).
-              existingSecret: radar-auth
-              # Радиус действия: одна реплика, без обратного канала revoke.
-              backchannelLogout: true
-          traffic:
-            # Автодискавери Prometheus ищет well-known имена/лейблы и не знаком с
-            # сервисом victoriametrics; задаём адрес явно (порт 80 сервиса).
-            # Доступ из namespace radar в monitoring открыт NetworkPolicy.
-            prometheusUrl: http://victoriametrics.monitoring.svc.cluster.local
-          service:
-            # Чарт использует service.port и как порт контейнера (--port), и как
-            # порт Service; перевод сервиса на стандартный 80 меняет оба (см.
-            # issue #269). Порт нигде больше не зашит (NetworkPolicy без портов).
-            port: 80
-    # Второй источник — репозиторий внутренних значений, ref: values
-    # сопоставляется с $values. Без ref Argo попытался бы применять манифесты
-    # оттуда, а не только читать values. service-DNS, потому что читает
-    # repo-server, то есть потребитель внутри кластера.
-    - repoURL: ssh://git@forgejo-ssh.forgejo.svc.cluster.local:2222/artemiy/homelab-values
-      targetRevision: main
-      ref: values
+            # Радиус действия: одна реплика, без обратного канала revoke.
+            backchannelLogout: true
+        traffic:
+          # Автодискавери Prometheus ищет well-known имена/лейблы и не знаком с
+          # сервисом victoriametrics; задаём адрес явно (порт 80 сервиса).
+          # Доступ из namespace radar в monitoring открыт NetworkPolicy.
+          prometheusUrl: http://victoriametrics.monitoring.svc.cluster.local
+        service:
+          # Чарт использует service.port и как порт контейнера (--port), и как
+          # порт Service; перевод сервиса на стандартный 80 меняет оба (см.
+          # issue #269). Порт нигде больше не зашит (NetworkPolicy без портов).
+          port: 80
   destination:
     server: https://kubernetes.default.svc
     namespace: radar

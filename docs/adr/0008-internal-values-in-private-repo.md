@@ -1,5 +1,5 @@
 ---
-status: accepted
+status: superseded by [0009](0009-internal-values-in-repo.md)
 ---
 
 # Внутренние значения для Argo CD: приватный репозиторий вместо файлов на узле

@@ -5,21 +5,6 @@ node_modules
 
 /config.env
 
-# Приватные значения Helm-чарта: реальный домен и адрес сервера.
-platform/homelab/values.private.yaml
-
-# Приватные значения второго Helm-чарта (apps/element/chart): тот же домен и
-# адрес. Без записи `git add -A` на сервере увёл бы файл в публичное зеркало.
-apps/element/chart/values.private.yaml
-
-# Приватные values Argo Application (домен, externalIPs): merge-patch поверх
-# шаблона из argocd/applications/ (см. argocd/README.md).
-argocd/applications/*.private.yaml
-
-# Приватные значения platform-манифестов (email ACME, имя RFC2136-ключа):
-# merge-patch поверх шаблонов из platform/cert-manager/ (см. её README).
-platform/cert-manager/*.private.yaml
-
 # Приватные значения k0s (issuer Zitadel для OIDC-входа apiserver):
 # install.sh подставляет его в k0s.yaml вместо плейсхолдера.
 platform/k0s/*.private.yaml

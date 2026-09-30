@@ -52,17 +52,16 @@ git branch -d feat/577-readme
   молча не выполнятся, а `check.sh` об этом предупредит.
 
 Приватные файлы в дерево **не переносятся** намеренно: `config.env`,
-`values.private.yaml`, `argocd/applications/*.private.yaml`,
-`platform/cert-manager/*.private.yaml`, `terraform/*/terraform.tfvars`,
+`platform/k0s/values.private.yaml`, `terraform/*/terraform.tfvars`,
 `.terraform/`, `*.tfstate`. В дереве агента их нет — не создавай симлинки и
-не запускай операции с приватным слоем. `helm template` поверх приватных
-values, `terraform plan`/`apply` и проверка Argo выполняются только в
-основном дереве.
+не запускай операции с приватным слоем. `terraform plan`/`apply` и проверка
+Argo выполняются только в основном дереве.
 
-Внутренние значения (домен, адрес узла, issuer, clientID) живут в отдельном
-приватном репозитории `homelab-values`, который не зеркалируется на GitHub.
-Решение — `docs/adr/0008`. Credentials туда не кладутся никогда,
-для них Vault и `VaultStaticSecret`. Правила обращения с обоими уровнями —
+Внутренние значения (домен, адрес узла, issuer, clientID) лежат в репозитории
+рядом с остальными: `platform/homelab/values.yaml` и `valuesObject` в
+`argocd/applications/`. Отдельный приватный репозиторий отменён — решение
+`docs/adr/0009`. Credentials в values не кладутся никогда, для них Vault и
+`VaultStaticSecret`. Правила обращения с обоими уровнями —
 `docs/agents/information-handling.md`.
 
 ## Инциденты

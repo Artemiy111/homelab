@@ -9,16 +9,6 @@ import {
 }
 
 import {
-  to = technitium_zone.homelab_internal
-  id = "homelab.internal"
-}
-
-import {
-  to = technitium_record.homelab_internal_host
-  id = "homelab.internal::forgejo.homelab.internal::A::${var.host_ip}"
-}
-
-import {
   to = technitium_record.cloudflare_bootstrap_primary
   id = "cloudflare-dns.com::cloudflare-dns.com::A::104.16.123.96"
 }

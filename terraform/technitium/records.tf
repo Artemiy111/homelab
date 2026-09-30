@@ -14,14 +14,6 @@ resource "technitium_record" "dns" {
   ttl   = 3600
 }
 
-resource "technitium_record" "homelab_internal_host" {
-  zone  = "homelab.internal"
-  name  = "forgejo.homelab.internal"
-  type  = "A"
-  value = var.host_ip
-  ttl   = 3600
-}
-
 resource "technitium_record" "cloudflare_bootstrap_primary" {
   zone      = "cloudflare-dns.com"
   name      = "cloudflare-dns.com"

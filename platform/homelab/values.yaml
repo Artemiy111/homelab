@@ -1,29 +1,22 @@
 config:
-  domain: example.com
-  serverIp: 192.0.2.10
+  domain: biplane.v6.rocks
+  serverIp: 192.168.1.254
   timezone: Asia/Yekaterinburg
   locale: ru
 
 # cert-manager: выпуск wildcard-сертификата через ACME DNS-01.
 #
-# acmeEmail — environment-specific и относится к «внутреннему» уровню
-# (docs/agents/information-handling.md): в git плейсхолдер, реальное значение —
-# в untracked values.private.yaml.
+# acmeEmail — почта для регистрации в ACME-эмитент. Значение окружения, а не
+# секрет: по нему нельзя ни войти, ни получить доступ, и сам домен виден в
+# Certificate Transparency вместе с wildcard-сертификатом (docs/adr/0009).
 #
 # webhookGroupName — группа API собственного webhook'а-солвера
 # (packages/cert-manager-webhook-dns01); должна совпадать с groupName в чарте
 # webhook'а (argocd/applications/dns01-webhook.yaml).
 certManager:
   enabled: true
-  acmeEmail: acme@example.com
+  acmeEmail: letsencript@mailplane.v6.rocks
   webhookGroupName: acme.homelab.local
-  # Внутренний CA для имён, которых нет в публичной зоне. Ключ CA не покидает
-  # кластер, cert-manager выпускает им всё внутреннее.
-  internalCA:
-    enabled: true
-    # Имя хоста реестра. В отличие от config.domain это НЕ environment-specific:
-    # имя нечувствительное, поэтому живёт в git открытым текстом.
-    registryHost: forgejo.homelab.internal
 
 namespaces:
   - 3x-ui

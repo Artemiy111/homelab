@@ -5,30 +5,38 @@ metadata:
   namespace: argocd
 spec:
   project: default
-  # valuesObject здесь нет намеренно: у Argo `valueFiles` имеет низший приоритет
-  # и не перекрыл бы ключ, оставшийся в valuesObject, — значение из приватного
-  # репозитория просто не применилось бы. Поэтому values лежат целиком в
-  # приватном репозитории и приезжают одним файлом (docs/adr/0008, #641).
-  sources:
-    - repoURL: https://kubernetes-sigs.github.io/headlamp/
-      chart: headlamp
-      targetRevision: 0.45.0
-      helm:
-        releaseName: headlamp
-        valueFiles:
-          - $values/argocd/headlamp/values.yaml
-        # Учётные данные не указываем: Argo находит их сам по URL второго
-        # источника — в Secret с меткой argocd.argoproj.io/secret-type:
-        # repository (argocd/homelab-values-repo.vaultstaticsecret.yaml).
-        # Поле repoCreds существует только у одиночного spec.source и в
-        # spec.sources[] не поддерживается.
-    # Второй источник — репозиторий внутренних значений, ref: values
-    # сопоставляется с $values. Без ref Argo попытался бы применять манифесты
-    # оттуда, а не только читать values. service-DNS, потому что читает
-    # repo-server, то есть потребитель внутри кластера.
-    - repoURL: ssh://git@forgejo-ssh.forgejo.svc.cluster.local:2222/artemiy/homelab-values
-      targetRevision: main
-      ref: values
+  source:
+    repoURL: https://kubernetes-sigs.github.io/headlamp/
+    chart: headlamp
+    targetRevision: 0.45.0
+    helm:
+      releaseName: headlamp
+      valuesObject:
+        resources:
+          requests:
+            memory: 64Mi
+          limits:
+            memory: 128Mi
+        # Дефолтный CRB чарта (clusterRoleBinding.create: true) выдаёт
+        # cluster-admin сервис-аккаунту ПОДА (headlamp). Под остаётся
+        # безправным, а права приходят из OIDC-токена пользователя.
+        clusterRoleBinding:
+          create: false
+        config:
+          oidc:
+            # clientSecret приходит из Secret через envFrom, clientID — тоже: он
+            # известен только после создания приложения в Zitadel.
+            secret:
+              create: false
+            externalSecret:
+              enabled: true
+              name: headlamp-oidc
+        # scopes — константа, меняется только вместе с набором claim'ов в Zitadel.
+        env:
+          - name: OIDC_ISSUER_URL
+            value: https://id.biplane.v6.rocks
+          - name: OIDC_SCOPES
+            value: openid,profile,email
   destination:
     server: https://kubernetes.default.svc
     namespace: headlamp
