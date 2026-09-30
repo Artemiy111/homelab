@@ -57,13 +57,18 @@ spec:
   ca:
     secretName: homelab-internal-ca
 ---
-# Лист на внутреннее имя реестра. Secret в namespace traefik: оттуда его читает
-# Ingress (templates/routes/forgejo-internal.yaml).
+# Лист на внутреннее имя реестра.
+#
+# Secret лежит в namespace forgejo, а не traefik: Traefik ищет секрет из
+# `spec.tls` Ingress в namespace самого Ingress и тихо откатывается на
+# сертификат TLSStore по умолчанию, если секрета там нет — маршрут работает, но
+# отдаёт чужой сертификат. Для TLSStore правило другое (секрет в traefik), см.
+# certificate.yaml.
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: forgejo-internal
-  namespace: traefik
+  namespace: forgejo
 spec:
   secretName: forgejo-internal-tls
   dnsNames:
