@@ -161,3 +161,16 @@ resource "vault_policy" "app_vmagent" {
     path "kv/metadata/seafile/@monitoring/seafile-metrics-password"        { capabilities = ["read", "list"] }
   EOT
 }
+
+# Платформенный компонент, а не приложение: Argo читает из Vault выданный ему
+# кред. Сегмент `@argocd` означает то же, что и у остальных выданных кредов —
+# значение можно отозвать, не переписывая секреты Forgejo, потому что читает его
+# другой принципал (ServiceAccount vso-argocd).
+resource "vault_policy" "platform_argocd" {
+  name = "platform/argocd"
+
+  policy = <<-EOT
+    path "kv/data/forgejo/@argocd/ssh/homelab-values"     { capabilities = ["read"] }
+    path "kv/metadata/forgejo/@argocd/ssh/homelab-values" { capabilities = ["read", "list"] }
+  EOT
+}

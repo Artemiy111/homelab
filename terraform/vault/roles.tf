@@ -80,3 +80,24 @@ resource "vault_kubernetes_auth_backend_role" "db" {
   token_ttl                        = 3600
 }
 
+
+# Роль на платформенный компонент: ServiceAccount `vso-<компонент>` в своём
+# неймспейсе, политика `platform/<компонент>`. Отдельный ресурс, а не запись в
+# app_roles: Argo лежит вне apps/ и обслуживает кластер, а не является сервисом.
+locals {
+  platform_roles = {
+    "argocd" = { namespace = "argocd", policy = "platform/argocd" },
+  }
+}
+
+resource "vault_kubernetes_auth_backend_role" "platform" {
+  for_each = local.platform_roles
+
+  backend                          = "kubernetes"
+  role_name                        = each.key
+  audience                         = "vault"
+  bound_service_account_names      = ["vso-${each.key}"]
+  bound_service_account_namespaces = [each.value.namespace]
+  token_policies                   = [each.value.policy]
+  token_ttl                        = 3600
+}

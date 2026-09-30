@@ -126,9 +126,19 @@ argocd app sync local-path-provisioner                    # или ручной 
 
 ### Приватные values (домен, externalIPs)
 
-Часть values — environment-specific и не должна лежать в публичном git: домен и
-`externalIPs` в `traefik`, домен и `ssh.externalIPs` в `forgejo`. Конвенция: файл
-в `argocd/applications/` — это шаблон (плейсхолдеры или опущенные ключи), а
+Часть values — environment-specific и не должна лежать в публичном git: адрес
+узла в `traefik`, домен и `ssh.externalIPs` в `forgejo`, issuer и redirect URL в
+`headlamp` и `radar`, хост реестра в `dns01-webhook`. Секретов среди них нет:
+реальные credentials приходят из Vault через VSO, в Application лежат ссылки
+`existingSecret`.
+
+**Целевая схема** — отдельный приватный репозиторий (`docs/adr/0008`, #641):
+Argo читает values оттуда сам, через `spec.sources` + `repoCreds` +
+`helm.valueFiles: $values/<app>.yaml`. Файлов на узле в этой схеме нет, а правка
+внутреннего значения идёт через PR приватного репозитория.
+
+Пока перевод не сделан, работает прежняя конвенция: файл в
+`argocd/applications/` — это шаблон (плейсхолдеры или опущенные ключи), а
 реальные значения — в untracked `<name>.private.yaml` (merge-patch), который
 применяется сразу после шаблона:
 
@@ -138,10 +148,83 @@ kubectl -n argocd patch application forgejo --type=merge \
   --patch-file argocd/applications/forgejo.private.yaml
 ```
 
-Ручной `helm upgrade --set` не подходит: релизом владеет Argo, и selfHeal откатит.
-Применять один шаблон нельзя — приватные значения затрутся (домен станет
-`example.com`, `externalIPs` пропадут). `.gitignore` исключает
-`argocd/applications/*.private.yaml`.
+Два свойства этого способа, о которых нужно помнить:
+
+- **Ручной `helm upgrade --set` не подходит**: релизом владеет Argo, и selfHeal
+  откатит. Применять один шаблон тоже нельзя — приватные значения затрутся (домен
+  станет `example.com`, `externalIPs` пропадут).
+- **`--type=merge` заменяет массивы целиком**, поэлементного слияния нет.
+  Поэтому приватный файл обязан повторять весь список — так он и повторяет
+  `gitea.oauth` в `forgejo.private.yaml` — и любое новое поле внутри этого списка
+  патч затирает молча. Это ещё один довод за целевую схему, где values
+  приезжают целиком, а не оверлеем.
+
+`.gitignore` исключает `argocd/applications/*.private.yaml`; правило снимается
+только после того, как файлов не останется (#641).
+
+#### Доступ Argo к приватному репозиторию (настройка один раз)
+
+Транспорт — SSH по service-DNS, потому что читает repo-server, то есть потребитель
+внутри кластера. Наружу ничего открывать не нужно: `forgejo-ssh` — ClusterIP.
+Кред доставляется штатно, через Vault и VSO, как все остальные секреты:
+`argocd/vso-argocd.*` и `argocd/homelab-values-repo.vaultstaticsecret.yaml`.
+
+```sh
+# 1. Пара ключей на узле. Публичная половина становится deploy key'ом в Forgejo
+#    (Settings → Deploy keys, без галочки Allow Write access).
+ssh-keygen -t ed25519 -N '' -C 'argocd@homelab-values' -f ~/.ssh/argocd_homelab_values
+
+# 2. Приватная половина в Vault, как есть. Публичная кладётся рядом — она нужна
+#    только для регистрации deploy key'а и в кластер не попадает.
+vault kv put kv/forgejo/@argocd/ssh/homelab-values \
+  public=@$HOME/.ssh/argocd_homelab_values.pub \
+  private=@$HOME/.ssh/argocd_homelab_values
+
+# 3. Роль и политика в Vault — через terraform, иначе ServiceAccount не получит
+#    доступ на чтение пути. Сначала plan, потом apply: правило и роль на Argo
+#    добавляются рядом с остальными, ограничивать apply не нужно.
+terraform -chdir=terraform plan
+terraform -chdir=terraform apply
+
+# 4. Манифесты: ServiceAccount, VaultAuth и VaultStaticSecret. Secret
+#    `homelab-values-repo` создаст VSO, вручную его не делаем.
+kubectl apply -f argocd/vso-argocd.serviceaccount.yaml \
+  -f argocd/vso-argocd.vaultauth.yaml \
+  -f argocd/homelab-values-repo.vaultstaticsecret.yaml
+
+# 5. Проверить, что Secret собрался и в нём есть ключ, не печатая значение.
+kubectl -n argocd get vaultstaticsecret homelab-values-repo \
+  -o json | jq -r '.status.conditions[0].status'
+kubectl -n argocd get secret homelab-values-repo -o json | jq -r '.data | keys'
+
+# 6. Host key Forgejo. С узла service-DNS не резолвится, поэтому сканируем из
+#    пода, иначе git не сможет сверить ключ хоста.
+kubectl -n argocd run keyscan --rm -i --restart=Never --image=alpine:3 -- \
+  sh -c 'apk add -q openssh-client && ssh-keyscan -p 2222 forgejo-ssh.forgejo.svc.cluster.local'
+
+# 7. Отдать host key Argo. Через CLI, а не патчем ConfigMap: Argo сама разложит
+#    запись по правильному ключу, иначе нестандартный порт (запись вида
+#    [host]:2222) не переживёт ограничения ConfigMap на символы в имени ключа.
+#    CLI нужен залогиненный: см. «Вход» выше, вариант 2 с port-forward.
+ssh-keyscan -p 2222 forgejo-ssh.forgejo.svc.cluster.local | argocd cert add-ssh --batch
+
+# 8. Убрать приватную половину с узла — только после шага 5, когда Secret уже
+#    собран из Vault. До этого шага файл единственная копия ключа.
+rm ~/.ssh/argocd_homelab_values
+```
+
+Шаги 6-7 повторяются при смене host key'а Forgejo. Путь в Vault и
+`VaultStaticSecret` — единственное место, где живёт приватная половина: на узле
+она остаётся только между шагами 2 и 8, а в кластере появляется исключительно из
+Vault.
+
+Host key'ы Argo хранит в ConfigMap `argocd-ssh-known-hosts-cm`, а не в
+`argocd-tls-certs-cm`: в последнем лежат TLS-сертификаты для https-репозиториев,
+и для SSH он не читается.
+
+Второй источник в Application обязан иметь `ref: values` — именно он
+сопоставляется с `$values`. Без него Argo попытается применять манифесты из
+приватного репозитория, а не только читать из него values.
 
 Ещё две вещи, которые полезно знать до того, как что-то менять:
 
@@ -235,8 +318,13 @@ Application больше нет. Маршрут
 - `skipCrds: true` — CRD `*.traefik.io` кластерные; под управлением Argo они
   при удалении приложения снесли бы все `IngressRoute`/`Middleware` кластера.
 - values продублированы из `platform/traefik/values.yaml` инлайном. При правке
-  values менять оба места, иначе кластер уедет от файла. Альтернатива —
-  завести Argo repo credentials и ссылаться на `$values/...`.
+  values менять оба места, иначе кластер уедет от файла.
+- `service.spec.externalIPs` приезжает из `traefik.private.yaml`, и это
+  нагрузочное значение: без него   Traefik не принимает трафик на адрес узла. Домен
+  здесь не нужен — он живёт в маршрутах `platform/homelab`, а не в values
+  Traefik.
+- Обе строки выше снимаются вместе с переводом на values из приватного
+  репозитория: и дублирование, и файл (`docs/adr/0008`, #641).
 - Чарт сам создаёт `ClusterRole`/`ClusterRoleBinding`/`IngressClass` — они под
   управлением Argo (в отличие от RBAC headlamp, который вне чарта).
 

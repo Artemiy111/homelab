@@ -5,40 +5,28 @@ metadata:
   namespace: argocd
 spec:
   project: default
-  source:
-    repoURL: https://kubernetes-sigs.github.io/headlamp/
-    chart: headlamp
-    targetRevision: 0.45.0
-    helm:
-      releaseName: headlamp
-      valuesObject:
-        resources:
-          requests:
-            memory: 64Mi
-          limits:
-            memory: 128Mi
-        # Дефолтный CRB чарта (clusterRoleBinding.create: true) выдаёт
-        # cluster-admin сервис-аккаунту ПОДА (headlamp). Под остаётся
-        # бесправным, а права приходят из OIDC-токена пользователя.
-        clusterRoleBinding:
-          create: false
-        config:
-          oidc:
-            # clientSecret приходит из Secret через envFrom, clientID — тоже:
-            # он известен только после создания приложения в Zitadel.
-            secret:
-              create: false
-            externalSecret:
-              enabled: true
-              name: headlamp-oidc
-        # issuer и scopes не секреты, поэтому задаются здесь, а не в Vault.
-        # Здесь плейсхолдер: реальный домен приезжает из untracked
-        # argocd/applications/headlamp.private.yaml (см. argocd/README.md).
-        env:
-          - name: OIDC_ISSUER_URL
-            value: https://id.example.com
-          - name: OIDC_SCOPES
-            value: openid,profile,email
+  # valuesObject здесь нет намеренно: у Argo `valueFiles` имеет низший приоритет
+  # и не перекрыл бы ключ, оставшийся в valuesObject, — значение из приватного
+  # репозитория просто не применилось бы. Поэтому values лежат целиком в
+  # приватном репозитории и приезжают одним файлом (docs/adr/0008, #641).
+  sources:
+    - repoURL: https://kubernetes-sigs.github.io/headlamp/
+      chart: headlamp
+      targetRevision: 0.45.0
+      helm:
+        releaseName: headlamp
+        valueFiles:
+          - $values/argocd/headlamp/values.yaml
+        # Secret с приватной половиной read-only deploy key, namespace argocd.
+        repoCreds:
+          - homelab-values-repo
+    # Второй источник — репозиторий внутренних значений, ref: values
+    # сопоставляется с $values. Без ref Argo попытался бы применять манифесты
+    # оттуда, а не только читать values. service-DNS, потому что читает
+    # repo-server, то есть потребитель внутри кластера.
+    - repoURL: ssh://git@forgejo-ssh.forgejo.svc.cluster.local:2222/artemiy/homelab-values
+      targetRevision: main
+      ref: values
   destination:
     server: https://kubernetes.default.svc
     namespace: headlamp
