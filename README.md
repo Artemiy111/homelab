@@ -11,8 +11,6 @@ did.
 
 > Russian version: [`README.ru.md`](README.ru.md)
 
----
-
 ## Status
 
 [![services](docs/status/badges/en/services.svg)](docs/status/README.md)
@@ -29,8 +27,6 @@ counted, and what is deliberately excluded, is written down in
 [`docs/status/`](docs/status/README.md). Availability, SLO and MTTR are not here yet — they
 need history that lives in Gatus rather than in Git.
 
----
-
 ## What this demonstrates
 
 Rather than a list of tools, a set of practices I can defend and explain:
@@ -45,8 +41,6 @@ Rather than a list of tools, a set of practices I can defend and explain:
 | **IaC** | Terraform, one root module per external resource, and Ansible with a `production` lint profile |
 | **Testing** | A set of CI gates, a golden-file test suite for manifest formatting, Go unit tests |
 | **Incident response** | Several blameless postmortems with timelines, impact assessment, and tracked follow-ups |
-
----
 
 ## Architecture
 
@@ -113,8 +107,6 @@ flowchart TB
 Architecture model source: [`apps/structurizr/homelab.dsl`](apps/structurizr/homelab.dsl) — a
 Structurizr DSL workspace, rendered by the deployed Structurizr instance.
 
----
-
 ## Platform
 
 | Component | Role | Directory |
@@ -134,8 +126,6 @@ Structurizr DSL workspace, rendered by the deployed Structurizr instance.
 ACME DNS-01 is served by a webhook I wrote, because the DNS provider reserves the
 `_acme-challenge.` name and its RFC2136 delete is broken: see `cert-manager-webhook-dns01` below.
 
----
-
 ## Supply chain
 
 CI runners have no direct internet access. Every tool is fetched from an in-cluster mirror and
@@ -151,8 +141,6 @@ A `mirror-sync` CronJob keeps the mirrors populated. This turns the toolchain fr
 dependency on the public internet into a reviewed, checksummed, reproducible one — which is also
 what makes an air-gapped runner safe to trust.
 
----
-
 ## Secrets
 
 Vault is the only place a plaintext secret exists. Manifests declare what they need; the operator
@@ -163,8 +151,6 @@ materialises it.
 - Path layout and rationale: [`docs/adr/0006-vault-secret-path-layout.md`](docs/adr/0006-vault-secret-path-layout.md)
 - SOPS and SealedSecrets remain only where migration is not yet complete
 - gitleaks blocks secrets both on local commits and in CI
-
----
 
 ## Observability
 
@@ -190,16 +176,12 @@ what you see is what is deployed.
 Worth reading: [`docs/research/observability-standards-and-approaches.md`](docs/research/observability-standards-and-approaches.md)
 and [`docs/research/observability-pitfalls.md`](docs/research/observability-pitfalls.md).
 
----
-
 ## Identity
 
 Zitadel is the primary OIDC provider. Services without native OIDC sit behind oauth2-proxy in
 forward-auth mode, so access control is enforced at the ingress rather than per application. Since
 Traefik already emits traces and metrics, auth failures surface in the same dashboards as
 everything else.
-
----
 
 ## CI
 
@@ -226,8 +208,6 @@ The hooks are tracked in the repository and enabled per clone with
 `git config core.hooksPath .githooks`, so they work in a `git worktree` with no
 extra setup — and `./scripts/check.sh` runs the same steps by hand.
 
----
-
 ## Custom tooling
 
 Written to solve a specific problem here, not to fill a gap.
@@ -243,8 +223,6 @@ image and the chart to an OCI registry on tag.
 
 Both live in `packages/`, gitignored here, as standalone repositories with their own remotes, issue
 trackers, and CI.
-
----
 
 ## Services
 
@@ -301,8 +279,6 @@ trackers, and CI.
 Retired: [elk](apps/elk/), replaced by Loki and Alloy once it was clear a second log backend was
 redundant.
 
----
-
 ## Repository layout
 
 ```
@@ -320,8 +296,6 @@ docs/                    ADR, research, incidents, troubleshoot, agent docs
 Layering rationale: [`docs/adr/0004-repository-layout.md`](docs/adr/0004-repository-layout.md).
 The real domain and server address live in an untracked `values.private.yaml`.
 
----
-
 ## Delivery workflow
 
 Every change goes through an issue, a PR, and a squash merge, then verification on the real cluster
@@ -338,8 +312,6 @@ drift. Pruning is deliberately disabled where CRDs or StatefulSets are involved:
 on a single node is an outage, not a cleanup. Deviations from chart defaults are recorded with
 reasons in [`argocd/install/values.yaml`](argocd/install/values.yaml).
 
----
-
 ## Engineering practice
 
 - **ADRs** — records of decisions with context and consequences: [`docs/adr/`](docs/adr/)
@@ -350,8 +322,6 @@ reasons in [`argocd/install/values.yaml`](argocd/install/values.yaml).
   [`docs/troubleshot/`](docs/troubleshot/)
 - **Domain language** — a written glossary so terms do not drift between issues:
   [`CONTEXT.md`](CONTEXT.md)
-
----
 
 ## Known limitations
 
@@ -371,14 +341,3 @@ Stated plainly, because knowing the edges of a system is part of running it.
 - **No CI that deploys.** Every gate is static analysis; nothing applies manifests to an ephemeral
   cluster to prove they work.
 - **WUD is observe-only** — update triggers are not configured.
-
----
-
-## Further reading
-
-- [`docs/research/observability-standards-and-approaches.md`](docs/research/observability-standards-and-approaches.md)
-- [`docs/research/secret-management-providers.md`](docs/research/secret-management-providers.md)
-- [`docs/research/security-audit-standards.md`](docs/research/security-audit-standards.md)
-- [`docs/research/k8s/argo-cd-vs-flux-cd.md`](docs/research/k8s/argo-cd-vs-flux-cd.md)
-- [`docs/research/k8s/gitops-repo-structure.md`](docs/research/k8s/gitops-repo-structure.md)
-- [`docs/research/k8s/linting-tools-comparison.md`](docs/research/k8s/linting-tools-comparison.md)

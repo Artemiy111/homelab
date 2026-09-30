@@ -12,8 +12,6 @@ blameless-постмортемам, а ADR объясняют, почему ка
 
 > English version: [`README.md`](README.md)
 
----
-
 ## Состояние
 
 [![services](docs/status/badges/ru/services.svg)](docs/status/README.md)
@@ -30,8 +28,6 @@ blameless-постмортемам, а ADR объясняют, почему ка
 [`docs/status/`](docs/status/README.md). Доступности, SLO и MTTR здесь пока нет — им нужна
 история, которая лежит в Gatus, а не в Git.
 
----
-
 ## Что здесь демонстрируется
 
 Не список инструментов, а набор практик, которые я могу объяснить и защитить:
@@ -46,8 +42,6 @@ blameless-постмортемам, а ADR объясняют, почему ка
 | **IaC** | Terraform, по одному root-модулю на внешний ресурс, и Ansible с профилем линтера `production` |
 | **Тестирование** | Набор проверок в CI, golden-file тесты для форматирования манифестов, юнит-тесты на Go |
 | **Инциденты** | Blameless-постмортемы с таймлайном, оценкой влияния и отслеживаемыми действиями |
-
----
 
 ## Архитектура
 
@@ -114,8 +108,6 @@ flowchart TB
 Источник модели архитектуры: [`apps/structurizr/homelab.dsl`](apps/structurizr/homelab.dsl) —
 рабочее пространство Structurizr DSL, которое рендерится развёрнутым экземпляром Structurizr.
 
----
-
 ## Платформа
 
 | Компонент | Роль | Каталог |
@@ -135,8 +127,6 @@ flowchart TB
 ACME DNS-01 обслуживает написанный мной вебхук: DNS-провайдер резервирует имя
 `_acme-challenge.` и сломан RFC2136-delete — см. `cert-manager-webhook-dns01` ниже.
 
----
-
 ## Supply chain
 
 У раннеров CI нет прямого доступа в интернет. Каждый инструмент скачивается из
@@ -153,8 +143,6 @@ ACME DNS-01 обслуживает написанный мной вебхук: D
 публичного интернета в проверяемый, с контрольными суммами и воспроизводимый — именно это и
 делает доверенным раннер без доступа в сеть.
 
----
-
 ## Секреты
 
 Расшифрованный секрет существует только в Vault. Манифесты описывают, что нужно, оператор
@@ -165,8 +153,6 @@ ACME DNS-01 обслуживает написанный мной вебхук: D
 - Раскладка путей и обоснование: [`docs/adr/0006-vault-secret-path-layout.md`](docs/adr/0006-vault-secret-path-layout.md)
 - SOPS и SealedSecrets остались только там, где миграция ещё не закончена
 - gitleaks блокирует секреты и на локальных коммитах, и в CI
-
----
 
 ## Наблюдаемость
 
@@ -193,16 +179,12 @@ Grafana связывает сигналы между собой: `tracesToLogsV2
 Стоит прочитать: [`docs/research/observability-standards-and-approaches.md`](docs/research/observability-standards-and-approaches.md)
 и [`docs/research/observability-pitfalls.md`](docs/research/observability-pitfalls.md).
 
----
-
 ## Идентификация
 
 Zitadel — основной OIDC-провайдер. Сервисы без нативного OIDC стоят за oauth2-proxy в режиме
 forward auth, поэтому контроль доступа обеспечивается на ingress, а не в каждом приложении.
 Так как Traefik уже шлёт трейсы и метрики, отказы авторизации видны в тех же дашбордах, что
 и всё остальное.
-
----
 
 ## CI
 
@@ -230,8 +212,6 @@ forward auth, поэтому контроль доступа обеспечив�
 `git config core.hooksPath .githooks`, поэтому работают и в `git worktree` без
 дополнительной настройки, а `./scripts/check.sh` прогоняет те же шаги вручную.
 
----
-
 ## Свои инструменты
 
 Написаны под конкретную задачу здесь, а не для заполнения пробела.
@@ -247,8 +227,6 @@ DNS-01 для провайдера, который резервирует имя
 
 Оба лежат в `packages/`, который здесь в gitignore, — это самостоятельные репозитории со своими
 ремоутами, трекерами задач и CI.
-
----
 
 ## Сервисы
 
@@ -305,8 +283,6 @@ DNS-01 для провайдера, который резервирует имя
 Выведен из эксплуатации: [elk](apps/elk/) — заменён на Loki и Alloy, когда стало ясно, что
 второй бэкенд логов избыточен.
 
----
-
 ## Структура репозитория
 
 ```
@@ -324,8 +300,6 @@ docs/                    ADR, исследования, инциденты, ра
 Почему слои такие: [`docs/adr/0004-repository-layout.md`](docs/adr/0004-repository-layout.md).
 Настоящий домен и адрес сервера лежат в неотслеживаемом `values.private.yaml`.
 
----
-
 ## Доставка изменений
 
 Каждое изменение проходит через issue, PR и squash-merge, затем проверяется на реальном
@@ -342,8 +316,6 @@ Prune намеренно отключён там, где задействова�
 одноузловом кластере — это не уборка, а авария. Отклонения от дефолтов чарта записаны с
 обоснованием в [`argocd/install/values.yaml`](argocd/install/values.yaml).
 
----
-
 ## Инженерная практика
 
 - **ADR** — записи решений с контекстом и последствиями: [`docs/adr/`](docs/adr/)
@@ -354,8 +326,6 @@ Prune намеренно отключён там, где задействова�
   [`docs/troubleshot/`](docs/troubleshot/)
 - **Язык домена** — письменный словарь, чтобы термины не разъезжались между задачами:
   [`CONTEXT.md`](CONTEXT.md)
-
----
 
 ## Известные ограничения
 
@@ -377,14 +347,3 @@ Prune намеренно отключён там, где задействова�
 - **CI ничего не разворачивает.** Все проверки статические: манифесты нигде не применяются на
   эфемерный кластер, чтобы доказать, что они работают.
 - **WUD только наблюдает** — триггеры обновлений не настроены.
-
----
-
-## Что ещё почитать
-
-- [`docs/research/observability-standards-and-approaches.md`](docs/research/observability-standards-and-approaches.md)
-- [`docs/research/secret-management-providers.md`](docs/research/secret-management-providers.md)
-- [`docs/research/security-audit-standards.md`](docs/research/security-audit-standards.md)
-- [`docs/research/k8s/argo-cd-vs-flux-cd.md`](docs/research/k8s/argo-cd-vs-flux-cd.md)
-- [`docs/research/k8s/gitops-repo-structure.md`](docs/research/k8s/gitops-repo-structure.md)
-- [`docs/research/k8s/linting-tools-comparison.md`](docs/research/k8s/linting-tools-comparison.md)
