@@ -55,8 +55,8 @@ Drilldown (Logs / Metrics / Traces / Profiles) в дашбордах.
 
 Дальше datasource'и не отвечают (`plugin.notRegistered` в
 `/api/datasources/uid/<uid>/health`), панели пустые, а **ни одно правило
-алертинга не вычисляется** — `alert_instance` пуста. При этом Grafana выглядит
-живой: под `Running`, `GrafanaReady=True`, правила в UI есть.
+алертинга не вычисляется** — в `alert_rule_state` нет ни одной строки. При этом
+Grafana выглядит живой: под `Running`, `GrafanaReady=True`, правила в UI есть.
 
 Поэтому в CR стоит `disableDefaultSecurityContext: "Container"` — оператор
 перестаёт навешивать свой `readOnlyRootFilesystem`, а `securityContext`
@@ -364,15 +364,22 @@ deleteRules:
 ```sh
 kubectl exec -i shared-1 -n databases -c postgres -- \
   psql -U postgres -d grafana -c \
-  'SELECT rule_uid, current_state, last_eval_time, last_error FROM alert_instance ORDER BY rule_uid;'
+  "SELECT count(*) AS evaluated,
+          count(*) FILTER (WHERE position('\x416c657274696e67' in data) > 0) AS firing
+     FROM alert_rule_state;"
 ```
 
-Ожидается 19 строк (по числу правил в `config/alerting/`), `current_state` =
-`Normal` (или `no_data` до первого заполнения), `last_error` пустой. **Ноль строк
-означает, что ни одно правило не вычислилось** — при этом `alert_rule` в базе
-будет полной, а UI покажет
-созданные правила. Так выглядел баг с отсутствующим вложенным `datasource` в
-`model`.
+Ожидается `evaluated` = 19 (по числу правил в `config/alerting/`), `firing` —
+сколько правил сейчас в состоянии Alerting. Состояние лежит protobuf-блобом,
+поэтому читается поиском подстроки `Alerting` в hex; читаемой колонки нет.
+
+**Ноль в `evaluated` означает, что ни одно правило не вычислилось** — при этом
+`alert_rule` в базе будет полной, а UI покажет созданные правила. Так выглядел
+баг с отсутствующим вложенным `datasource` в `model`.
+
+Таблица `alert_instance` в Grafana 13 пустая и **не является признаком поломки**:
+состояние правил переехало в `alert_rule_state`. Проверять `alert_instance` нельзя
+— на ней самой alerts сломаны выглядят исправными.
 
 Ошибки оценки видны и в логах:
 
