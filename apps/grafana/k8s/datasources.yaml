@@ -1,0 +1,124 @@
+# Datasource'ы Grafana как CR оператора. Каждый CR отвечает ровно за один
+# datasource и синхронизируется с Grafana через API — провижининг datasources
+# больше не участвует.
+#
+# Имена CR совпадают с uid datasource'а. Это не требование оператора (uid берётся
+# из spec.datasource.uid), а чтобы в `kubectl get grafanadatasource` было видно
+# то же имя, что и в Grafana.
+#
+# Секретов здесь нет: все четыре источника анонимные, доступ по сети. Если
+# появится источник с паролем — он идёт через `secureJsonData` (оператор пишет
+# его в `secure_json_data`, Grafana шифрует) или через `spec.valuesFrom` на
+# Secret.
+#
+# ВНИМАНИЕ, `editable` здесь не задаётся намеренно. У Grafana read-only у
+# провижиненных datasource'ов, но в `UpdateDataSourceCommand` поля `editable`
+# нет, а `ReadOnly` помечен `json:"-"` — то есть через API read-only не
+# выставляется в принципе. Поле `editable` в CR было бы молчаливым
+# бездействующим обещанием. Практическое следствие: datasource'ы редактируемы
+# в UI, и ручная правка переживёт до ресинка оператора (10m).
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDatasource
+metadata:
+  name: victoriametrics
+  namespace: monitoring
+spec:
+  instanceSelector:
+    matchLabels:
+      app: grafana
+  datasource:
+    name: VictoriaMetrics
+    # uid зафиксирован: на него ссылаются панели дашбордов из config/dashboards/.
+    # Смена uid удалила бы старый datasource и создала новый — дашборды остались
+    # бы без источника.
+    uid: victoriametrics
+    type: prometheus
+    access: proxy
+    url: http://victoriametrics:8428
+    isDefault: true
+    jsonData:
+      timeInterval: 15s
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDatasource
+metadata:
+  name: tempo
+  namespace: monitoring
+spec:
+  instanceSelector:
+    matchLabels:
+      app: grafana
+  datasource:
+    name: Tempo
+    uid: tempo
+    type: tempo
+    access: proxy
+    url: http://tempo:3200
+    jsonData:
+      # Ссылка trace → logs: в Loki ищем строки с этим trace id за окно вокруг
+      # спана. Значение уходит в Grafana как есть — подстановки переменных
+      # провижининга на этом пути уже нет, поэтому `$$`, которым экранировалось
+      # значение в файле провижининга, здесь не нужен и был бы лишним символом.
+      tracesToLogsV2:
+        datasourceUid: loki
+        spanStartTimeShift: -5m
+        spanEndTimeShift: 5m
+        filterByTraceID: true
+        filterBySpanID: false
+        customQuery: true
+        query: '{namespace=~".+"} |= "${__trace.traceId}"'
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDatasource
+metadata:
+  name: loki
+  namespace: monitoring
+spec:
+  instanceSelector:
+    matchLabels:
+      app: grafana
+  datasource:
+    name: Loki
+    uid: loki
+    type: loki
+    access: proxy
+    url: http://loki:3100
+    jsonData:
+      maxLines: 1000
+      # Ссылка log → trace: находим trace_id в строке лога и открываем трейс.
+      # У Traefik включены JSON access-логи, и в них есть поле trace_id, поэтому
+      # логи Traefik попадают в Loki через Alloy и разыскиваются здесь.
+      derivedFields:
+        - name: TraceID
+          matcherRegex: '(?:trace_id|traceId|traceID|TraceId|TraceID)[^A-Za-z0-9]{0,5}([0-9a-fA-F]{16,})'
+          url: "${__value.raw}"
+          datasourceUid: tempo
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDatasource
+metadata:
+  name: pyroscope
+  namespace: monitoring
+spec:
+  instanceSelector:
+    matchLabels:
+      app: grafana
+  datasource:
+    name: Pyroscope
+    uid: pyroscope
+    type: grafana-pyroscope-datasource
+    access: proxy
+    url: http://pyroscope:4040
+    jsonData:
+      # Связь профиль → трайсы: Grafana ищет спаны по service.name профиля.
+      # Работает вместе с datasource Tempo.
+      #
+      # Здесь была ошибка, которую видно только в БД: в файле провижининга стояло
+      # '${__field.labels.service_name}' без экранирования, Grafana применил свою
+      # подстановку переменных провижининга и записал пустую строку — связь
+      # профиль → трайсы не работала, а в UI это выглядело как «настроено».
+      # Значение Tempo и Loki экранировались как `$$`, здесь — нет. Через API
+      # подстановки не происходит, и шаблон доезжает до Grafana как есть.
+      tracesToProfiles:
+        datasourceUid: tempo
+        serviceName: '${__field.labels.service_name}'

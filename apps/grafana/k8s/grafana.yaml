@@ -3,6 +3,11 @@ kind: Grafana
 metadata:
   name: grafana
   namespace: monitoring
+  # Лейбл, по которому datasource'ы и остальные CR находят этот инстанс через
+  # instanceSelector. Оператор наследует лейблы CR на созданные им Deployment и
+  # Service (но не на pod template — там своя метка app: <имя CR>).
+  labels:
+    app: grafana
 spec:
   # Полная ссылка с digest: оператор подставляет её как есть, если в строке есть
   # «:/@». Это единственное место, где закреплена версия Grafana.
@@ -135,14 +140,12 @@ spec:
                   cpu: "1"
                   memory: 1Gi
               volumeMounts:
-                # Провижининг остаётся на ConfigMap'ах: datasource'ы, дашборды и
-                # правила алертинга переезжают в CR оператора следующими
-                # подзадачами #645. Имена ConfigMap'ов стабильны, потому что
-                # kustomization.yaml отключает суффикс-хэш, а рестарт при
-                # изменении файлов делает оператор (аннотация checksum/secrets).
-                - name: datasources
-                  mountPath: /etc/grafana/provisioning/datasources
-                  readOnly: true
+                # Провижининг дашбордов и алертинга остаётся на ConfigMap'ах и
+                # переезжает в CR следующими подзадачами #645. Datasource'ы уже
+                # в CR (k8s/datasources.yaml), поэтому тома с ними нет. Имена
+                # ConfigMap'ов стабильны, потому что kustomization.yaml
+                # отключает суффикс-хэш, а рестарт при изменении файлов делает
+                # оператор (аннотация checksum/secrets).
                 - name: dashboards-provisioning
                   mountPath: /etc/grafana/provisioning/dashboards
                   readOnly: true
@@ -155,9 +158,6 @@ spec:
           # /var/lib/grafana остаётся writable-скретчем (кэш плагинов, индекс
           # поиска): данные в Postgres, поэтому том не нужен.
           volumes:
-            - name: datasources
-              configMap:
-                name: grafana-datasources
             - name: dashboards-provisioning
               configMap:
                 name: grafana-dashboards-provisioning

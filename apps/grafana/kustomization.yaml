@@ -3,14 +3,17 @@ kind: Kustomization
 namespace: monitoring
 resources:
   - k8s/grafana.yaml
+  - k8s/datasources.yaml
   - k8s/vaultauth.yaml
   - k8s/vaultstaticsecret.yaml
 configMapGenerator:
-  # Провижининг datasources и dashboards + сами дашборды собираются из файлов
-  # configMapGenerator'ом. Суффикс-хэш отключён: имена ConfigMap'ов должны быть
-  # стабильными, иначе на них нельзя сослаться из Grafana CR. Рестарт при
-  # изменении файлов делает оператор — аннотация checksum/secrets в pod template
-  # это SHA от содержимого всех Secret и ConfigMap, упомянутых в CR.
+  # Провижининг dashboards и алертинга + сами дашборды собираются из файлов
+  # configMapGenerator'ом. Datasource'ы вынесены в k8s/datasources.yaml: ими
+  # управляет оператор, в провижининге им больше не место.
+  # Суффикс-хэш отключён: имена ConfigMap'ов должны быть стабильными, иначе на
+  # них нельзя сослаться из Grafana CR. Рестарт при изменении файлов делает
+  # оператор — аннотация checksum/secrets в pod template это SHA от содержимого
+  # всех Secret и ConfigMap, упомянутых в CR.
   #
   # Лейбл app.kubernetes.io/managed-by обязателен и не декоративен: информер
   # оператора фильтрует ConfigMap'ы и Secret'ы по нему
@@ -19,12 +22,6 @@ configMapGenerator:
   # правка ConfigMap не вызывает реконсиль и не перезапускает под: изменение
   # молча не применяется. Проверено на стенде — ноль реконсилей за 30 секунд
   # после правки ConfigMap без лейбла.
-  - name: grafana-datasources
-    options:
-      labels:
-        app.kubernetes.io/managed-by: grafana-operator
-    files:
-      - config/datasources.yaml
   - name: grafana-dashboards-provisioning
     options:
       labels:

@@ -87,19 +87,50 @@ kubectl -n monitoring exec deploy/grafana-deployment -c grafana -- sh -c \
 Ожидаются все пять `*-app`. Пусто — меню Drilldown будет пустым, и алертинг
 при этом выглядит исправным.
 
+## Datasource'ы
+
+Четыре источника описаны CR `GrafanaDatasource` в `k8s/datasources.yaml`, ими
+управляет оператор: `victoriametrics` (`http://victoriametrics:8428`, default),
+`tempo` (`http://tempo:3200`), `loki` (`http://loki:3100`),
+`pyroscope` (`http://pyroscope:4040`). Секретов нет — все четыре анонимные.
+
+uid зафиксированы в `spec.datasource.uid`: на них ссылаются панели дашбордов из
+`config/dashboards/`, и смена uid удалила бы старый datasource и создала новый —
+дашборды остались бы без источника.
+
+Связи между источниками: из трейса можно уйти в логи (`tracesToLogsV2` у Tempo),
+из лога — в трейс (`derivedFields` по `trace_id` у Loki), из профиля — в трейс
+(`tracesToProfiles` у Pyroscope). У Traefik включены JSON access-логи
+(`accessLog` в `argocd/applications/traefik.yaml`), и в них есть поле
+`trace_id`, поэтому переходы trace↔log находят результат: логи Traefik попадают
+в Loki через Alloy.
+
+Значения `${...}` уходят в Grafana как есть — подстановки переменных
+провижининга на этом пути больше нет. Это чинит ошибку, которая была не видна
+в конфиге: у `tracesToProfiles.serviceName` в файле провижининга стояло
+`'${__field.labels.service_name}'` без экранирования, Grafana применил свою
+подстановку и записал в БД пустую строку, то есть связь профиль→трейс не
+работала. Значения Tempo и Loki экранировались как `$$`, это — нет.
+
+**Datasource'ы редактируемы в UI, и это необратимо.** Раньше их делал
+провижининг с `editable: false`, и Grafana отдавал их как read-only: правка через
+API отвечала 403. У `UpdateDataSourceCommand` поля `editable` нет, а `ReadOnly`
+помечен `json:"-"` — read-only не выставляется через API в принципе. Практически:
+правка в UI переживёт до ресинка оператора (`defaultResyncPeriod`, 10m) и будет
+перезаписана. Для дашбордов защита сохранилась — там `allowUiUpdates: false`.
+
+Проверка после правки CR:
+
+```sh
+kubectl -n monitoring get grafanadatasource
+kubectl -n monitoring exec deploy/grafana-deployment -c grafana -- sh -c \
+  'curl -s -u "admin:$GF_SECURITY_ADMIN_PASSWORD" \
+     "http://127.0.0.1:3000/api/datasources/uid/victoriametrics/health"'
+```
+
 ## Провижининг
 
-Datasource VictoriaMetrics описан декларативно в `config/datasources.yaml`
-(uid `victoriametrics` зафиксирован — на него ссылаются панели дашбордов).
-Там же заведены datasource Tempo (uid `tempo`, `http://tempo:3200`) и Loki
-(uid `loki`, `http://loki:3100`) — поверх них работает Explore с трейсами
-(`apps/tempo/`) и логами (`apps/loki/`). Tempo и Loki связаны: из трейса можно
-уйти в логи (`tracesToLogsV2`), из лога — в трейс (`derivedFields` по
-`trace_id`). У Traefik включены JSON access-логи (`accessLog` в
-`argocd/applications/traefik.yaml`), и в них есть поле `trace_id`, поэтому
-переходы trace↔log находят результат: логи Traefik попадают в Loki через Alloy.
-
-Дашборды тоже код: JSON-файлы в `config/dashboards/`, провайдер — в
+Дашборды — код: JSON-файлы в `config/dashboards/`, провайдер — в
 `config/dashboards.yaml`. Провайдер собирается с `allowUiUpdates: false`:
 источник правды — git, правки в UI не сохраняются. Оба файла и сами дашборды
 монтируются в под через `configMapGenerator` (см. `kustomization.yaml`).
