@@ -15,11 +15,24 @@
 # репозитории и Secret в кластере. Синхронизации нет намеренно — CA живёт 10 лет,
 # а листья обновляются сами.
 
+# argv, а не cmd: модуль command режет строку cmd через shlex.split, а в shlex
+# обратный слэш — экранирующий символ. `jsonpath={.data.ca\.crt}` после shlex
+# становится `jsonpath={.data.ca.crt}`, и kubectl на такой строке не падает:
+# код выхода 0 и пустой stdout. Молчаливая пустота выглядит как «сертификата
+# нет», хотя он есть. argv передаётся как есть, без shlex.
 - name: Прочитать публичный сертификат CA из Secret кластера
   ansible.builtin.command:
-    cmd: >-
-      kubectl -n {{ internal_ca_namespace }} get secret {{ internal_ca_secret }}
-      -o jsonpath={.data.ca\.crt}
+    argv:
+      - kubectl
+      - -n
+      - "{{ internal_ca_namespace }}"
+      - get
+      - secret
+      - "{{ internal_ca_secret }}"
+      - -o
+      # Одинарные кавычки: в YAML двойные кавычки считают `\.` невалидным
+      # escape, а одинарные не экранируют ничего, кроме `''`.
+      - 'jsonpath={.data.ca\.crt}'
   environment:
     KUBECONFIG: "{{ internal_ca_kubeconfig }}"
   become: true
