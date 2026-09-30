@@ -50,16 +50,18 @@ $values/argocd/<app>.yaml`.
 | Внутреннее | приватный репозиторий `homelab-values` | Argo как values-файл, `spec.sources` + `repoCreds` |
 | Секретное | Vault | `VaultStaticSecret` (VSO), в манифестах ссылки `existingSecret`/`secretKeyRef` |
 
-Транспорт — SSH, не http. Приватная половина deploy key'а лежит в Vault по пути
+Транспорт — SSH, не http. Подключение Argo к репозиторию лежит в Vault по пути
 `kv/forgejo/@argocd/ssh/homelab-values` (сегмент `@argocd` — правило 3 ADR 0006:
 кред выдан отдельному принципалу и отзывается независимо) и доставляется в
-кластер `VaultStaticSecret` в namespace `argocd`. Host key Forgejo лежит в
-`argocd-ssh-known-hosts-cm` — именно там Argo хранит SSH host key'ы, а в
-`argocd-tls-certs-cm` лежат TLS-сертификаты для https-репозиториев, и для SSH он
-не читается. Адрес репозитория — service-DNS, потому что читает его repo-server,
-то есть потребитель внутри кластера; `kubelet` на узле такой адрес не резолвит,
-поэтому для образов из внутреннего реестра нужен отдельный hostname в зоне
-`homelab.internal`.
+кластер `VaultStaticSecret` в namespace `argocd` как Secret с меткой
+`argocd.argoproj.io/secret-type: repository`. Ключи в Vault названы как их читает
+Argo: `sshPrivateKey`, `type`, `url`. Host key Forgejo лежит в
+`argocd-ssh-known-hosts-cm` под единственным ключом `ssh_known_hosts` — именно
+там Argo хранит SSH host key'ы, а в `argocd-tls-certs-cm` лежат TLS-сертификаты
+для https-репозиториев, и для SSH он не читается. Адрес репозитория — service-DNS,
+потому что читает его repo-server, то есть потребитель внутри кластера; `kubelet`
+на узле такой адрес не резолвит, поэтому для образов из внутреннего реестра нужен
+отдельный hostname в зоне `homelab.internal`.
 
 Правила:
 

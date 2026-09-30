@@ -166,19 +166,26 @@ kubectl -n argocd patch application forgejo --type=merge \
 
 Транспорт — SSH по service-DNS, потому что читает repo-server, то есть потребитель
 внутри кластера. Наружу ничего открывать не нужно: `forgejo-ssh` — ClusterIP.
-Кред доставляется штатно, через Vault и VSO, как все остальные секреты:
-`argocd/vso-argocd.*` и `argocd/homelab-values-repo.vaultstaticsecret.yaml`.
+Argo узнаёт репозиторий по `url` из Secret с меткой
+`argocd.argoproj.io/secret-type: repository`. Ссылаться на этот Secret в
+Application не нужно: `repoCreds` существует только у одиночного `spec.source`,
+в `spec.sources[]` такого поля нет, и попытка его указать даёт
+`strict decoding error`. Поэтому в Vault лежат три ключа с именами, которые
+Argo ожидает, — `sshPrivateKey`, `type` и `url`, — и шаблон трансформации не
+нужен: VSO переносит ключи в Secret как есть.
 
 ```sh
 # 1. Пара ключей на узле. Публичная половина становится deploy key'ом в Forgejo
 #    (Settings → Deploy keys, без галочки Allow Write access).
 ssh-keygen -t ed25519 -N '' -C 'argocd@homelab-values' -f ~/.ssh/argocd_homelab_values
 
-# 2. Приватная половина в Vault, как есть. Публичная кладётся рядом — она нужна
-#    только для регистрации deploy key'а и в кластер не попадает.
+# 2. Значения в Vault. Имена ключей — как их читает Argo: `sshPrivateKey`
+#    приватная половина, `type` и `url` для подключения. Значение обязано
+#    заканчиваться переводом строки, иначе OpenSSH такой ключ не разбирает.
 vault kv put kv/forgejo/@argocd/ssh/homelab-values \
-  public=@$HOME/.ssh/argocd_homelab_values.pub \
-  private=@$HOME/.ssh/argocd_homelab_values
+  sshPrivateKey=@$HOME/.ssh/argocd_homelab_values \
+  type=git \
+  url=ssh://git@forgejo-ssh.forgejo.svc.cluster.local:2222/artemiy/homelab-values
 
 # 3. Роль и политика в Vault — через terraform, иначе ServiceAccount не получит
 #    доступ на чтение пути. Сначала plan, потом apply: правило и роль на Argo
@@ -192,21 +199,25 @@ kubectl apply -f argocd/vso-argocd.serviceaccount.yaml \
   -f argocd/vso-argocd.vaultauth.yaml \
   -f argocd/homelab-values-repo.vaultstaticsecret.yaml
 
-# 5. Проверить, что Secret собрался и в нём есть ключ, не печатая значение.
+# 5. Проверить, что Secret собрался, ключи на месте и метка проставлена. Значение
+#    приватного ключа не печатаем.
 kubectl -n argocd get vaultstaticsecret homelab-values-repo \
   -o json | jq -r '.status.conditions[0].status'
-kubectl -n argocd get secret homelab-values-repo -o json | jq -r '.data | keys'
+kubectl -n argocd get secret homelab-values-repo \
+  -o json | jq -r '[.data | keys, .metadata.labels["argocd.argoproj.io/secret-type"]]'
 
 # 6. Host key Forgejo. С узла service-DNS не резолвится, поэтому сканируем из
-#    пода, иначе git не сможет сверить ключ хоста.
+#    пода, иначе git не сможет сверить ключ хоста. При нестандартном порте запись
+#    имеет вид [host]:2222.
 kubectl -n argocd run keyscan --rm -i --restart=Never --image=alpine:3 -- \
   sh -c 'apk add -q openssh-client && ssh-keyscan -p 2222 forgejo-ssh.forgejo.svc.cluster.local'
 
-# 7. Отдать host key Argo. Через CLI, а не патчем ConfigMap: Argo сама разложит
-#    запись по правильному ключу, иначе нестандартный порт (запись вида
-#    [host]:2222) не переживёт ограничения ConfigMap на символы в имени ключа.
-#    CLI нужен залогиненный: см. «Вход» выше, вариант 2 с port-forward.
-ssh-keyscan -p 2222 forgejo-ssh.forgejo.svc.cluster.local | argocd cert add-ssh --batch
+# 7. Отдать host key Argo. В ConfigMap один ключ `ssh_known_hosts` на все
+#    репозитории, так что дописываем запись к существующему содержимому.
+kubectl -n argocd patch cm argocd-ssh-known-hosts-cm --type merge \
+  -p "$(jq -rn --arg v "$(kubectl -n argocd get cm argocd-ssh-known-hosts-cm \
+      -o jsonpath='{.data.ssh_known_hosts}')
+<вывод keyscan>" '{data:{"ssh_known_hosts":$v}}')"
 
 # 8. Убрать приватную половину с узла — только после шага 5, когда Secret уже
 #    собран из Vault. До этого шага файл единственная копия ключа.

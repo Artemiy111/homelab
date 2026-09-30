@@ -17,9 +17,11 @@ spec:
         releaseName: headlamp
         valueFiles:
           - $values/argocd/headlamp/values.yaml
-        # Secret с приватной половиной read-only deploy key, namespace argocd.
-        repoCreds:
-          - homelab-values-repo
+        # Учётные данные не указываем: Argo находит их сам по URL второго
+        # источника — в Secret с меткой argocd.argoproj.io/secret-type:
+        # repository (argocd/homelab-values-repo.vaultstaticsecret.yaml).
+        # Поле repoCreds существует только у одиночного spec.source и в
+        # spec.sources[] не поддерживается.
     # Второй источник — репозиторий внутренних значений, ref: values
     # сопоставляется с $values. Без ref Argo попытался бы применять манифесты
     # оттуда, а не только читать values. service-DNS, потому что читает
