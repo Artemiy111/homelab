@@ -1,5 +1,18 @@
 apiVersion: 1
 
+# ВРЕМЕННО: editable: true вместо false.
+#
+# Grafana держит provisioned-datasource как read_only, и тогда оператор не может
+# ими управлять: PUT /api/datasources/uid/<uid> отвечает 403 "Cannot update
+# read-only data source", DELETE — 403 "Cannot delete read-only data source"
+# (pkg/api/datasources.go). Провижиниг снимает флаг сам — ReadOnly = !Editable
+# в createUpdateCommand — поэтому переезд на GrafanaDatasource CR идёт в два
+# шага: сначала этот файл с editable: true, потом CR и удаление файла.
+#
+# Обратно read_only через API не вернуть: в UpdateDataSourceCommand поля
+# editable нет, а ReadOnly помечен json:"-". Поэтому после переезда datasource'ы
+# будут редактируемы в UI, и правка руками переживёт до следующего ресинка
+# оператора (defaultResyncPeriod, 10m).
 datasources:
   # uid зафиксирован вручную: на него ссылаются панели провижинящихся дашбордов
   # (`config/dashboards/`). Без него Grafana сгенерировала бы uid заново и
@@ -10,7 +23,7 @@ datasources:
     access: proxy
     url: http://victoriametrics:8428
     isDefault: true
-    editable: false
+    editable: true
     jsonData:
       timeInterval: 15s
   - name: Tempo
@@ -18,7 +31,7 @@ datasources:
     type: tempo
     access: proxy
     url: http://tempo:3200
-    editable: false
+    editable: true
     jsonData:
       # Ссылка trace → logs: в Loki ищем строки с этим trace id за окно вокруг
       # спана. `$$` экранирует `$`, чтобы Grafana не подставила свою переменную
@@ -36,7 +49,7 @@ datasources:
     type: loki
     access: proxy
     url: http://loki:3100
-    editable: false
+    editable: true
     jsonData:
       maxLines: 1000
       # Ссылка log → trace: находим trace_id в строке лога и открываем трейс.
@@ -50,7 +63,7 @@ datasources:
     type: grafana-pyroscope-datasource
     access: proxy
     url: http://pyroscope:4040
-    editable: false
+    editable: true
     jsonData:
       # Связь профиль → трайсы: Grafana умеет искать спаны по service.name
       # профиля. Работает вместе с datasource Tempo.
