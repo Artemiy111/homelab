@@ -10,17 +10,34 @@ configMapGenerator:
   # configMapGenerator'ом. Суффикс-хэш отключён: имена ConfigMap'ов должны быть
   # стабильными, иначе на них нельзя сослаться из Grafana CR. Рестарт при
   # изменении файлов делает оператор — аннотация checksum/secrets в pod template
-  # это SHA от ResourceVersion всех Secret и ConfigMap, упомянутых в CR.
+  # это SHA от содержимого всех Secret и ConfigMap, упомянутых в CR.
+  #
+  # Лейбл app.kubernetes.io/managed-by обязателен и не декоративен: информер
+  # оператора фильтрует ConfigMap'ы и Secret'ы по нему
+  # (main.go, mgrOptions.Cache.ByObject), а watch по остальным не срабатывает.
+  # Чтение идёт напрямую через DisableFor, поэтому хэш считается верно, но
+  # правка ConfigMap не вызывает реконсиль и не перезапускает под: изменение
+  # молча не применяется. Проверено на стенде — ноль реконсилей за 30 секунд
+  # после правки ConfigMap без лейбла.
   - name: grafana-datasources
+    options:
+      labels:
+        app.kubernetes.io/managed-by: grafana-operator
     files:
       - config/datasources.yaml
   - name: grafana-dashboards-provisioning
+    options:
+      labels:
+        app.kubernetes.io/managed-by: grafana-operator
     files:
       - config/dashboards.yaml
   # Провижининг алертинга: contact points, дерево политик и правила. Grafana
   # перечитывает provisioning только на старте, поэтому пересборка этого
   # ConfigMap должна приводить к рестарту пода — это делает оператор.
   - name: grafana-alerting
+    options:
+      labels:
+        app.kubernetes.io/managed-by: grafana-operator
     files:
       - config/alerting/contact-points.yaml
       - config/alerting/notification-policies.yaml
@@ -31,6 +48,9 @@ configMapGenerator:
       - config/alerting/storage.yaml
       - config/alerting/certificates.yaml
   - name: grafana-dashboards
+    options:
+      labels:
+        app.kubernetes.io/managed-by: grafana-operator
     files:
       # Суммарный размер ConfigMap — 337946 Б, он больше лимита аннотации
       # kubectl.kubernetes.io/last-applied-configuration (262144 Б), поэтому

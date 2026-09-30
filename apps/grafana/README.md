@@ -108,17 +108,37 @@ Datasource VictoriaMetrics описан декларативно в `config/data
 правила), монтируется в `/etc/grafana/provisioning/alerting` тем же
 `configMapGenerator`. Grafana перечитывает провижининг **только на старте**,
 поэтому рестарт при правке конфига обязателен. Его делает оператор: в pod
-template есть аннотация `checksum/secrets` — SHA от ResourceVersion всех
-Secret и ConfigMap, упомянутых в CR. Отсюда следует, что суффикс-хэш у
-ConfigMap'ов отключён (`generatorOptions.disableNameSuffixHash`) — иначе имя
-менялось бы при каждой правке и ссылаться на него из CR было бы нельзя.
+template есть аннотация `checksum/secrets` — SHA от содержимого всех Secret и
+ConfigMap, упомянутых в CR. Отсюда следует, что суффикс-хэш у ConfigMap'ов
+отключён (`generatorOptions.disableNameSuffixHash`) — иначе имя менялось бы при
+каждой правке и ссылаться на него из CR было бы нельзя.
+
+### Лейбл managed-by на ConfigMap'ах — не украшение
+
+Информер оператора фильтрует ConfigMap'ы и Secret'ы по лейблу
+`app.kubernetes.io/managed-by: grafana-operator` (`main.go`,
+`mgrOptions.Cache.ByObject`). На ConfigMap'ы без этого лейбла watch не
+срабатывает: чтение идёт напрямую через `DisableFor`, поэтому `checksum/secrets`
+считается верно, но правка ConfigMap **не вызывает реконсиль и не перезапускает
+под** — изменение молча не применяется, и это выглядит как «опять сломалось».
+
+Поэтому лейбл задан в `options.labels` каждого `configMapGenerator` в
+`kustomization.yaml`, и снимать его нельзя. Проверяется так:
+
+```sh
+kubectl -n monitoring get cm grafana-alerting \
+  -o jsonpath='{.metadata.labels}' | grep managed-by
+kubectl -n grafana-operator logs deploy/grafana-operator --since=30s | grep -c GrafanaReconciler
+```
+
+После `kubectl apply -k apps/grafana/` второй счётчик обязан быть больше нуля.
 
 Побочный эффект того же механизма: **ротация секретов применяется сама**.
 `grafana-admin`, `grafana-db` и `grafana-ntfy` обновляются VSO на месте, `env`
 перечитывается только при рестарте, а `checksum/secrets` меняется вместе с
-ResourceVersion Secret'а — под перезапускается без `rollout restart`. До
-переезда на оператора это было главным дефектом схемы (ротация пароля БД не
-применялась до рестарта).
+содержимым Secret'а — под перезапускается без `rollout restart`. До переезда на
+оператора это было главным дефектом схемы (ротация пароля БД не применялась до
+рестарта).
 
 JSON-файлы хранятся в читаемом виде (`indent=2`), суммарно 337946 Б. Это больше
 лимита аннотации `kubectl.kubernetes.io/last-applied-configuration` (262144 Б),
