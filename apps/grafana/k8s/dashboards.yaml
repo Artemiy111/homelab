@@ -1,0 +1,117 @@
+# Папка дашбордов. Отдельный CR, а не `spec.folder` в каждом дашборде, потому
+# что на неё же ссылаются правила алертинга в GrafanaAlertRuleGroup — там
+# CEL-валидация требует именно folderRef или folderUID.
+#
+# Пока дашборды лежали в General, папки не существовало. Оператор без
+# folderRef/folderUID создаёт папку с именем namespace, то есть «monitoring», —
+# имя вышло бы случайным, поэтому папка объявлена явно.
+#
+# Права не заданы: `spec.permissions` пустой, оператор отдаёт значение по
+# умолчанию от Grafana. В homelab других пользователей нет, доступ к UI целиком
+# контролирует oauth2-proxy.
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaFolder
+metadata:
+  name: homelab
+  namespace: monitoring
+spec:
+  instanceSelector:
+    matchLabels:
+      app: grafana
+  title: homelab
+---
+# Шесть дашбордов. JSON лежит в ConfigMap `grafana-dashboards` (ключ — имя
+# файла из config/dashboards/), CR на него ссылается через configMapRef.
+# Так JSON не дублируется в CR: 249 КБ в CR — это CR на четверть мегабайта,
+# который нечитаем в diff и упирается в лимит размера объекта.
+#
+# Сам провижининг дашбордов удалён: файлы из config/dashboards/ теперь
+# забирает оператор и пишет через API.
+#
+# `spec.uid` не задаётся намеренно. Оператор берёт uid из самого JSON
+# (`dashboardModel["uid"]`), а `spec.uid` был бы вторым местом, где он живёт, и
+# они разъехались бы при правке одного из двух. Проверка, что uid не сменился,
+# оператор делает сам поиском по title и папке.
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: cloudnative-pg
+  namespace: monitoring
+spec:
+  instanceSelector:
+    matchLabels:
+      app: grafana
+  folderRef: homelab
+  configMapRef:
+    name: grafana-dashboards
+    key: cloudnative-pg.json
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: postgresql-database
+  namespace: monitoring
+spec:
+  instanceSelector:
+    matchLabels:
+      app: grafana
+  folderRef: homelab
+  configMapRef:
+    name: grafana-dashboards
+    key: postgresql-database.json
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: storage-capacity
+  namespace: monitoring
+spec:
+  instanceSelector:
+    matchLabels:
+      app: grafana
+  folderRef: homelab
+  configMapRef:
+    name: grafana-dashboards
+    key: storage-capacity.json
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: traefik
+  namespace: monitoring
+spec:
+  instanceSelector:
+    matchLabels:
+      app: grafana
+  folderRef: homelab
+  configMapRef:
+    name: grafana-dashboards
+    key: traefik.json
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: traefik-official
+  namespace: monitoring
+spec:
+  instanceSelector:
+    matchLabels:
+      app: grafana
+  folderRef: homelab
+  configMapRef:
+    name: grafana-dashboards
+    key: traefik-official.json
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: logs-overview
+  namespace: monitoring
+spec:
+  instanceSelector:
+    matchLabels:
+      app: grafana
+  folderRef: homelab
+  configMapRef:
+    name: grafana-dashboards
+    key: logs-overview.json

@@ -140,30 +140,18 @@ spec:
                   cpu: "1"
                   memory: 1Gi
               volumeMounts:
-                # Провижининг дашбордов и алертинга остаётся на ConfigMap'ах и
-                # переезжает в CR следующими подзадачами #645. Datasource'ы уже
-                # в CR (k8s/datasources.yaml), поэтому тома с ними нет. Имена
-                # ConfigMap'ов стабильны, потому что kustomization.yaml
-                # отключает суффикс-хэш, а рестарт при изменении файлов делает
-                # оператор (аннотация checksum/secrets).
-                - name: dashboards-provisioning
-                  mountPath: /etc/grafana/provisioning/dashboards
-                  readOnly: true
+                # Провижининг алертинга остаётся на ConfigMap'е и переезжает в
+                # CR последним шагом (#645). Datasource'ы и дашборды уже в CR
+                # (k8s/datasources.yaml, k8s/dashboards.yaml), поэтому томов с
+                # ними нет. Дашборды оператор читает через configMapRef и сам
+                # монтировать их в под не нужно — JSON уходит в Grafana через
+                # API, а не через файловую систему.
                 - name: alerting
                   mountPath: /etc/grafana/provisioning/alerting
-                  readOnly: true
-                - name: dashboards
-                  mountPath: /var/lib/grafana/dashboards
                   readOnly: true
           # /var/lib/grafana остаётся writable-скретчем (кэш плагинов, индекс
           # поиска): данные в Postgres, поэтому том не нужен.
           volumes:
-            - name: dashboards-provisioning
-              configMap:
-                name: grafana-dashboards-provisioning
             - name: alerting
               configMap:
                 name: grafana-alerting
-            - name: dashboards
-              configMap:
-                name: grafana-dashboards

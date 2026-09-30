@@ -4,6 +4,7 @@ namespace: monitoring
 resources:
   - k8s/grafana.yaml
   - k8s/datasources.yaml
+  - k8s/dashboards.yaml
   - k8s/vaultauth.yaml
   - k8s/vaultstaticsecret.yaml
 configMapGenerator:
@@ -22,12 +23,6 @@ configMapGenerator:
   # правка ConfigMap не вызывает реконсиль и не перезапускает под: изменение
   # молча не применяется. Проверено на стенде — ноль реконсилей за 30 секунд
   # после правки ConfigMap без лейбла.
-  - name: grafana-dashboards-provisioning
-    options:
-      labels:
-        app.kubernetes.io/managed-by: grafana-operator
-    files:
-      - config/dashboards.yaml
   # Провижининг алертинга: contact points, дерево политик и правила. Grafana
   # перечитывает provisioning только на старте, поэтому пересборка этого
   # ConfigMap должна приводить к рестарту пода — это делает оператор.
@@ -44,6 +39,8 @@ configMapGenerator:
       # и контроль срока действия сертификатов.
       - config/alerting/storage.yaml
       - config/alerting/certificates.yaml
+  # Дашборды остаются в ConfigMap: JSON велик (249 КБ на cloudnative-pg), и CR
+  # оператора ссылается на него через configMapRef, а не хранит JSON внутри себя.
   - name: grafana-dashboards
     options:
       labels:

@@ -117,7 +117,8 @@ uid зафиксированы в `spec.datasource.uid`: на них ссыла�
 API отвечала 403. У `UpdateDataSourceCommand` поля `editable` нет, а `ReadOnly`
 помечен `json:"-"` — read-only не выставляется через API в принципе. Практически:
 правка в UI переживёт до ресинка оператора (`defaultResyncPeriod`, 10m) и будет
-перезаписана. Для дашбордов защита сохранилась — там `allowUiUpdates: false`.
+перезаписана. Для дашбордов защита не потеряна, см. раздел «Дашборды»: там
+реконсилей не пропускает хэш, и ручная правка откатывается за 10 минут.
 
 Проверка после правки CR:
 
@@ -128,12 +129,45 @@ kubectl -n monitoring exec deploy/grafana-deployment -c grafana -- sh -c \
      "http://127.0.0.1:3000/api/datasources/uid/victoriametrics/health"'
 ```
 
-## Провижининг
+## Дашборды
 
-Дашборды — код: JSON-файлы в `config/dashboards/`, провайдер — в
-`config/dashboards.yaml`. Провайдер собирается с `allowUiUpdates: false`:
-источник правды — git, правки в UI не сохраняются. Оба файла и сами дашборды
-монтируются в под через `configMapGenerator` (см. `kustomization.yaml`).
+Шесть дашбордов описаны CR `GrafanaDashboard` в `k8s/dashboards.yaml`, все в
+папке `homelab` (`GrafanaFolder`, та же CR — на неё ссылаются и правила
+алертинга). JSON лежит в `config/dashboards/`, собирается в ConfigMap
+`grafana-dashboards` и подтягивается оператором через `spec.configMapRef` — JSON
+не дублируется в CR: 249 КБ на `cloudnative-pg` в CR были бы нечитаемым
+объектом на четверть мегабайта.
+
+Дашборды: `cloudnative-pg.json` и `postgresql-database.json` — экспорт из UI
+Grafana; `traefik.json` — написан руками под метрики Traefik;
+`traefik-official.json` — официальный дашборд Traefik с grafana.com, вендорен с
+правками под наш datasource (см. ниже); `storage-capacity.json` — обзор
+заполняемости томов: PVC по `kubelet_volume_stats_*`, тома и узлы Longhorn по
+`longhorn_*`, файловые системы узла.
+
+`traefik.json` и `traefik-official.json` не дублируют друг друга: официальный
+не содержит ни одного запроса `traefik_router_*` (все 14 панелей смотрят на
+service/entrypoint), per-router панели есть только в самописном. Per-router
+метрики появляются с `metrics.prometheus.addRoutersLabels=true` в
+`argocd/applications/traefik.yaml` (#284).
+
+**Правки в UI откатываются сами.** У реконсиля `GrafanaDashboard` нет пропуска
+реконсиля по хэшу, он перезаписывает дашборд на каждом проходе, а период
+ресинка 10m. То есть ручная правка живёт не дольше десяти минут — это даже
+строже, чем было при провижининге с `allowUiUpdates: false`, где откат
+происходил только при рестарте Grafana. (У datasource'ов наоборот: там пропуск
+по хэшу есть, см. раздел выше.)
+
+Проверка после правки JSON:
+
+```sh
+kubectl -n monitoring get grafanadashboard
+kubectl -n monitoring logs deploy/grafana-operator --since=30s | grep -c DashboardReconciler
+```
+
+Второй счётчик обязан быть больше нуля: без лейбла
+`app.kubernetes.io/managed-by` на ConfigMap'е watch не срабатывает и правка
+молча не применяется.
 
 Провижининг алертинга — `config/alerting/` (contact points, дерево политик,
 правила), монтируется в `/etc/grafana/provisioning/alerting` тем же
