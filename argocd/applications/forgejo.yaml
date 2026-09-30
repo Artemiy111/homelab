@@ -51,10 +51,10 @@ spec:
             # резервирует это имя («name is reserved»). Пароль приходит из
             # Secret'а forgejo-admin в values не попадает.
             # keepUpdated перетирал бы пароль при каждом рестарте пода, поэтому
-          # initialOnlyNoReset: выставляем один раз, дальше правит человек.
-          email: admin@biplane.v6.rocks
-          existingSecret: forgejo-admin
-          passwordMode: initialOnlyNoReset
+            # initialOnlyNoReset: выставляем один раз, дальше правит человек.
+            email: admin@biplane.v6.rocks
+            existingSecret: forgejo-admin
+            passwordMode: initialOnlyNoReset
           # OIDC-источник входа через Zitadel. Init-контейнер чарта идемпотентно
           # создаёт источник (`forgejo admin auth add-oauth`), а если он уже
           # есть — обновляет (`update-oauth`), поэтому значения живут в
@@ -207,14 +207,14 @@ spec:
             cpu: 20m
             memory: 256Mi
           limits:
-              cpu: "1"
-              memory: 768Mi
-          containerSecurityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: ["ALL"]
-            seccompProfile:
-              type: RuntimeDefault
+            cpu: "1"
+            memory: 768Mi
+        containerSecurityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+          seccompProfile:
+            type: RuntimeDefault
   destination:
     server: https://kubernetes.default.svc
     namespace: forgejo
