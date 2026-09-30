@@ -35,6 +35,44 @@ VictoriaMetrics как datasource.
   один путь `kv/ntfy/topic` читают два `VaultStaticSecret` — `grafana-ntfy` и
   `gatus-ntfy`, значение хранится один раз.
 
+### Плагины
+
+Все четыре datasource-плагина (`prometheus`, `loki`, `tempo`,
+`grafana-pyroscope-datasource`) встроены в образ Grafana. Собственных плагинов
+нет, и устанавливать их нечем.
+
+Фоновый установщик плагинов выключен через `GF_PLUGINS_PREINSTALL_DISABLED` —
+это обязательно, а не перестраховка. Без него Grafana при старте сверяет
+bundled-плагины с каталогом grafana.com и, если каталог свежее, обновляет их на
+месте в `/usr/share/grafana/data/plugins-bundled`. Каталог не влезает в
+`readOnlyRootFilesystem`, и происходит следующее:
+
+1. `Unload` плагина из реестра — выполняется;
+2. удаление файлов — падает с `read-only file system`;
+3. плагин остаётся на диске, но больше не в реестре.
+
+Дальше datasource'и не отвечают (`plugin.notRegistered` в
+`/api/datasources/uid/<uid>/health`), панели дашбордов пустые, а **ни одно
+правило алертинга не вычисляется** — `alert_instance` пуста, и алертинг при
+этом выглядит живым: Grafana на месте, правила в UI есть, `GrafanaReady=True`.
+
+Версии плагинов приезжают с образом: обновляем `spec.version` — получаем новые
+bundled-плагины. Плата — не работает доставка плагинов через
+`GF_INSTALL_PLUGINS`, то есть через ConfigMap `grafana-plugins`, который умеет
+наполнять оператор. Сторонний плагин без флага поставить нельзя; появится
+потребность — снять флаг и пересмотреть `readOnlyRootFilesystem`.
+
+Проверять после любой смены версии образа (правило неочевидно и уже срабатывало):
+
+```sh
+kubectl -n monitoring exec deploy/grafana-deployment -c grafana -- sh -c \
+  'curl -s -u "admin:$GF_SECURITY_ADMIN_PASSWORD" \
+     "http://127.0.0.1:3000/api/datasources/uid/victoriametrics/health"'
+```
+
+Ожидается `{"status":"OK",...}`. Ответ `plugin.notRegistered` означает, что
+плагины выпали из реестра, и алертинг молча слепой.
+
 ## Провижининг
 
 Datasource VictoriaMetrics описан декларативно в `config/datasources.yaml`
@@ -315,9 +353,10 @@ kubectl exec -i shared-1 -n databases -c postgres -- \
   'SELECT rule_uid, current_state, last_eval_time, last_error FROM alert_instance ORDER BY rule_uid;'
 ```
 
-Ожидается 5 строк, `current_state` = `Normal` (или `no_data` до первого
-заполнения), `last_error` пустой. **Ноль строк означает, что ни одно правило не
-вычислилось** — при этом `alert_rule` в базе будет полной, а UI покажет
+Ожидается 19 строк (по числу правил в `config/alerting/`), `current_state` =
+`Normal` (или `no_data` до первого заполнения), `last_error` пустой. **Ноль строк
+означает, что ни одно правило не вычислилось** — при этом `alert_rule` в базе
+будет полной, а UI покажет
 созданные правила. Так выглядел баг с отсутствующим вложенным `datasource` в
 `model`.
 
