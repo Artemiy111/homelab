@@ -57,6 +57,23 @@ server:
       memory: 512Mi
 
 repoServer:
+  # Внутренний CA нужен `helm pull`, а не только самому Argo.
+  #
+  # `argocd-tls-certs-cm` (его монтирует том tls-certs в /app/config/tls)
+  # кормит корнями собственный HTTPS-клиент Argo. Но OCI-чарт тянет внешний
+  # процесс `helm`, и он берёт системное хранилище образа, а не bundle Argo.
+  # Наблюдалось ровно это: CA в ConfigMap есть, restart repo-server сделан,
+  # а pull падает с `x509: certificate signed by unknown authority`.
+  #
+  # Go читает SSL_CERT_DIR через двоеточие и берёт все парсимые файлы из
+  # указанных каталогов, поэтому системный bundle остаётся в силе, а наш CA
+  # добавляется вторым. Тома не добавляем: /app/config/tls уже смонтирован
+  # чартом, а лишний ConfigMap-том сделал бы под зависимым от порядка
+  # применения (создали ConfigMap — под стартует).
+  env:
+    - name: SSL_CERT_DIR
+      value: /etc/ssl/certs:/app/config/tls
+
   resources:
     requests:
       cpu: 100m
