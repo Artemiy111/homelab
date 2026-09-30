@@ -127,37 +127,54 @@ argocd app sync local-path-provisioner                    # или ручной 
 ### Приватные values (домен, externalIPs)
 
 Часть values — environment-specific и не должна лежать в публичном git: адрес
-узла в `traefik`, домен и `ssh.externalIPs` в `forgejo`, issuer и redirect URL в
-`headlamp` и `radar`, хост реестра в `dns01-webhook`. Секретов среди них нет:
-реальные credentials приходят из Vault через VSO, в Application лежат ссылки
-`existingSecret`.
+узла в `traefik`, хост реестра в `dns01-webhook`, и раньше домен с
+`ssh.externalIPs` в `forgejo`, issuer с redirect URL в `headlamp` и `radar`.
+Секретов среди них нет: реальные credentials приходят из Vault через VSO, в
+Application лежат ссылки `existingSecret`.
 
-**Целевая схема** — отдельный приватный репозиторий (`docs/adr/0008`, #641):
-Argo читает values оттуда сам, через `spec.sources` + `repoCreds` +
-`helm.valueFiles: $values/<app>.yaml`. Файлов на узле в этой схеме нет, а правка
-внутреннего значения идёт через PR приватного репозитория.
+**Схема** — отдельный приватный репозиторий `homelab-values` (`docs/adr/0008`,
+#641). Argo читает values оттуда сам: у Application два источника, второй с
+`ref: values`, а в первом `helm.valueFiles: $values/argocd/<app>-values.yaml`.
+Файлов на узле нет, а правка внутреннего значения идёт через PR приватного
+репозитория.
 
-Пока перевод не сделан, работает прежняя конвенция: файл в
-`argocd/applications/` — это шаблон (плейсхолдеры или опущенные ключи), а
-реальные значения — в untracked `<name>.private.yaml` (merge-patch), который
-применяется сразу после шаблона:
+| Application | Приватный файл | Что в нём |
+|---|---|---|
+| `headlamp` | `argocd/headlamp/values.yaml` | весь values: приватным оказался каждый ключ с адресом |
+| `radar` | `argocd/radar-values.yaml` | `auth.oidc.{issuerURL,clientID,redirectURL,postLogoutRedirectURL}` |
+| `forgejo` | `argocd/forgejo-values.yaml` | `config.server.{DOMAIN,ROOT_URL,SSH_DOMAIN}`, `admin.email`, `ssh.externalIPs`, список `oauth` целиком |
+
+**Приватных ключей в публичном Application нет вовсе** — не плейсхолдеров. Это
+обязательное условие, а не стиль: у Argo приоритет значений
+`parameters > valuesObject > values > valueFiles`, то есть приватный файл не
+может перекрыть ключ, который уже стоит в `valuesObject`. С плейсхолдером
+`example.com` приватное значение просто не применилось бы. Разница между тремя
+приложениями в том, сколько ключей содержит адреса: у `headlamp` таких
+оказалось много и они размазаны по структуре, поэтому приватным ушёл весь
+values; у `radar` и `forgejo` — несколько строк.
+
+Список `gitea.oauth` уезжает целиком: `--type=merge` и merge-patch заменяют
+массивы целиком, частично перекрыть список нельзя, поэтому приватный файл
+повторяет все пять полей элемента, а не только `autoDiscoverUrl`.
+
+Пока приложение не переведено, работает прежняя конвенция: файл в
+`argocd/applications/` — это шаблон, а реальные значения — в untracked
+`<name>.private.yaml` (merge-patch), который применяется сразу после шаблона:
 
 ```sh
-kubectl apply -f argocd/applications/forgejo.yaml
-kubectl -n argocd patch application forgejo --type=merge \
-  --patch-file argocd/applications/forgejo.private.yaml
+kubectl apply -f argocd/applications/traefik.yaml
+kubectl -n argocd patch application traefik --type=merge \
+  --patch-file argocd/applications/traefik.private.yaml
 ```
 
-Два свойства этого способа, о которых нужно помнить:
+Свойства этого способа, о которых нужно помнить:
 
 - **Ручной `helm upgrade --set` не подходит**: релизом владеет Argo, и selfHeal
-  откатит. Применять один шаблон тоже нельзя — приватные значения затрутся (домен
-  станет `example.com`, `externalIPs` пропадут).
-- **`--type=merge` заменяет массивы целиком**, поэлементного слияния нет.
-  Поэтому приватный файл обязан повторять весь список — так он и повторяет
-  `gitea.oauth` в `forgejo.private.yaml` — и любое новое поле внутри этого списка
-  патч затирает молча. Это ещё один довод за целевую схему, где values
-  приезжают целиком, а не оверлеем.
+  откатит. Применять один шаблон тоже нельзя — приватные значения затрутся.
+- **`--type=merge` заменяет массивы целиком**, поэлементного слияния нет, и
+  любое новое поле внутри списка патч затирает молча. Именно так был устроен
+  инцидент `docs/incidents/0005-forgejo-oidc-wrong-issuer.md`: приватный слой не
+  в git, CI его не видел, неверный issuer доехал до кластера.
 
 `.gitignore` исключает `argocd/applications/*.private.yaml`; правило снимается
 только после того, как файлов не останется (#641).
@@ -330,9 +347,9 @@ Application больше нет. Маршрут
   при удалении приложения снесли бы все `IngressRoute`/`Middleware` кластера.
 - values продублированы из `platform/traefik/values.yaml` инлайном. При правке
   values менять оба места, иначе кластер уедет от файла.
-- `service.spec.externalIPs` приезжает из `traefik.private.yaml`, и это
-  нагрузочное значение: без него   Traefik не принимает трафик на адрес узла. Домен
-  здесь не нужен — он живёт в маршрутах `platform/homelab`, а не в values
+- `service.spec.externalIPs` — адрес узла, он в `traefik.private.yaml` и это
+  нагрузочное значение: без него Traefik не принимает трафик на адрес узла.
+  Домен здесь не нужен — он живёт в маршрутах `platform/homelab`, а не в values
   Traefik.
 - Обе строки выше снимаются вместе с переводом на values из приватного
   репозитория: и дублирование, и файл (`docs/adr/0008`, #641).
