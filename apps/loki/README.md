@@ -34,13 +34,13 @@ kubectl apply -k apps/loki/
 
 ```sh
 kubectl -n monitoring get pods -l app=loki
-kubectl -n monitoring exec deploy/grafana -- curl -s http://loki:3100/ready
+kubectl -n monitoring exec deploy/grafana-deployment -- curl -s http://loki:3100/ready
 ```
 
 Есть ли потоки (например, `namespace="monitoring"`):
 
 ```sh
-kubectl -n monitoring exec deploy/grafana -- \
+kubectl -n monitoring exec deploy/grafana-deployment -- \
   curl -s 'http://loki:3100/loki/api/v1/label/namespace/values'
 ```
 

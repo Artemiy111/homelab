@@ -135,7 +135,7 @@ scrape_configs:
   - job_name: grafana
     static_configs:
       - targets:
-          - grafana.monitoring.svc.cluster.local
+          - grafana-service.monitoring.svc.cluster.local:3000
 
   - job_name: tempo
     static_configs:

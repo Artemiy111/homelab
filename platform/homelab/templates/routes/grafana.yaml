@@ -17,5 +17,7 @@ spec:
         - name: ratelimit-default
           namespace: traefik
       services:
-        - name: grafana
-          port: 80
+        # Service создаёт grafana-operator из Grafana CR, поэтому имя с
+        # суффиксом и порт 3000, а не 80 как у ручного Service.
+        - name: grafana-service
+          port: 3000

@@ -10,7 +10,10 @@ VictoriaMetrics как datasource.
 
 ## Данные и доступ
 
-- Образ `grafana/grafana:13.2.0` (зафиксирован по digest), uid/gid `1000`.
+- Инстанс описан CR `Grafana` в `k8s/grafana.yaml`; им управляет
+  `grafana-operator` (`argocd/applications/grafana-operator.yaml`).
+- Образ `grafana/grafana:13.2.0` (зафиксирован по digest) — в `spec.version`
+  единственного CR, это единственное место, где закреплена версия.
 - Данные (пользователи, дашборды, алерты, аннотации) — PostgreSQL в общем
   кластере CNPG `shared` (namespace `databases`, эндпоинт
   `shared-rw.databases.svc.cluster.local:5432`). Роль `grafana`, база `grafana`
@@ -18,11 +21,13 @@ VictoriaMetrics как datasource.
   Secret'а `grafana-db` (ключ `GRAFANA_DB_PASSWORD`).
 - Локальный диск под `/var/lib/grafana` — `emptyDir`: это только скретч (кэш
   плагинов, индекс поиска), сами данные в Postgres, поэтому том не нужен.
+  Тома монтирует оператор, uid/gid и `readOnlyRootFilesystem` — его дефолты.
 - Логин администратора — `admin`, пароль — в кластерном Secret `grafana-admin`
   (`GRAFANA_ADMIN_PASSWORD`), синхронизируется из Vault по
   `k8s/vaultstaticsecret.yaml`. Регистрация новых пользователей
   отключена; доступ к UI контролирует `oauth2-proxy`, локальный вход нужен для
-  правок datasource и диагностики.
+  правок datasource и диагностики. Свой admin-секрет оператора отключён
+  (`disableDefaultAdminSecret: true`), пароль в нём не дублируется.
 - Пароли `GRAFANA_ADMIN_PASSWORD` и `GRAFANA_DB_PASSWORD` лежат в Vault
   (`kv/grafana/admin` и `kv/grafana/@grafana/db`, второй — выданный CNPG).
 - `NTFY_TOPIC` для метрических алертов — в отдельном Secret'е `grafana-ntfy`
@@ -45,14 +50,23 @@ Datasource VictoriaMetrics описан декларативно в `config/data
 Дашборды тоже код: JSON-файлы в `config/dashboards/`, провайдер — в
 `config/dashboards.yaml`. Провайдер собирается с `allowUiUpdates: false`:
 источник правды — git, правки в UI не сохраняются. Оба файла и сами дашборды
-монтируются в под через `configMapGenerator` (см. `kustomization.yaml`), поэтому
-правка конфига сама запускает rollout.
+монтируются в под через `configMapGenerator` (см. `kustomization.yaml`).
 
 Провижининг алертинга — `config/alerting/` (contact points, дерево политик,
 правила), монтируется в `/etc/grafana/provisioning/alerting` тем же
-`configMapGenerator`. Отдельный ConfigMap `grafana-alerting` нужен ещё и
-потому, что Grafana перечитывает провижининг **только на старте**: без хэша в
-имени правка правила применилась бы в ConfigMap, но не в Grafana.
+`configMapGenerator`. Grafana перечитывает провижининг **только на старте**,
+поэтому рестарт при правке конфига обязателен. Его делает оператор: в pod
+template есть аннотация `checksum/secrets` — SHA от ResourceVersion всех
+Secret и ConfigMap, упомянутых в CR. Отсюда следует, что суффикс-хэш у
+ConfigMap'ов отключён (`generatorOptions.disableNameSuffixHash`) — иначе имя
+менялось бы при каждой правке и ссылаться на него из CR было бы нельзя.
+
+Побочный эффект того же механизма: **ротация секретов применяется сама**.
+`grafana-admin`, `grafana-db` и `grafana-ntfy` обновляются VSO на месте, `env`
+перечитывается только при рестарте, а `checksum/secrets` меняется вместе с
+ResourceVersion Secret'а — под перезапускается без `rollout restart`. До
+переезда на оператора это было главным дефектом схемы (ротация пароля БД не
+применялась до рестарта).
 
 JSON-файлы хранятся в читаемом виде (`indent=2`), суммарно 337946 Б. Это больше
 лимита аннотации `kubectl.kubernetes.io/last-applied-configuration` (262144 Б),
@@ -125,7 +139,7 @@ curl -s -o apps/grafana/config/dashboards/traefik-official.json \
 После применения **проверять логи**, а не только состояние Grafana:
 
 ```sh
-kubectl logs deploy/grafana -n monitoring --tail=200 | grep provisioning.dashboard
+kubectl logs deploy/grafana-deployment -n monitoring --tail=200 | grep provisioning.dashboard
 ```
 
 Ожидается `finished to provision dashboards` без записей `level=error`.
@@ -262,7 +276,7 @@ Telegram сознательно не подключён: из кластера *
 Правила загружены — по логам провижининга:
 
 ```sh
-kubectl logs deploy/grafana -n monitoring --tail=200 | grep -i provisioning.alerting
+kubectl logs deploy/grafana-deployment -n monitoring --tail=200 | grep -i provisioning.alerting
 ```
 
 Ожидается `finished to provision alerting` без записей `level=error`. Две
@@ -310,7 +324,7 @@ kubectl exec -i shared-1 -n databases -c postgres -- \
 Ошибки оценки видны и в логах:
 
 ```sh
-kubectl logs deploy/grafana -n monitoring --since=10m | grep "Failed to evaluate rule"
+kubectl logs deploy/grafana-deployment -n monitoring --since=10m | grep "Failed to evaluate rule"
 ```
 
 Правила внутри одной группы вычисляются последовательно, поэтому одно сломанное
@@ -323,25 +337,41 @@ kubectl logs deploy/grafana -n monitoring --since=10m | grep "Failed to evaluate
 не должно попасть в main.
 
 Обновления правил доезжают обычным путём — `kubectl apply` пересобирает
-ConfigMap, хэш в его имени меняется, и rollout происходит сам. Отдельный
-`rollout restart` не нужен. Перечитывание провижининга без рестарта через
-Admin API у Grafana есть, но не документировано здесь непроверенным: перед тем
-как на него ссылаться, его надо открыть с сервис-аккаунтом и убедиться, что он
-отвечает.
+ConfigMap, меняется его ResourceVersion, оператор пересчитывает
+`checksum/secrets` и под перезапускается сам. Отдельный `rollout restart` не
+нужен. Перечитывание провижининга без рестарта через Admin API у Grafana есть,
+но не документировано здесь непроверенным: перед тем как на него ссылаться, его
+надо открыть с сервис-аккаунтом и убедиться, что он отвечает.
 
 ## Развёртывание в Kubernetes
 
 Разворачивается kustomize-набором:
 
 ```sh
-kubectl apply -k apps/grafana/
+kubectl apply --server-side --field-manager=homelab -k apps/grafana/
 ```
 
-`k8s/grafana.deployment.yaml` — Deployment (uid/gid 1000, probes, ресурсы,
-`GF_DATABASE_*`), `k8s/grafana.service.yaml` — ClusterIP (порт 80 → 3000, Gatus и
-Traefik ходят по `http://grafana/`), маршрут —
-`platform/homelab/templates/routes/grafana.yaml` (`Host(grafana…)` за
-`oauth2-proxy` + `secure-headers` + `ratelimit-default`).
+`k8s/grafana.yaml` — CR `Grafana`: версия образа, `GF_DATABASE_*`, креды через
+`secretKeyRef`, probes, ресурсы и тома провижининга. Deployment, Service,
+ServiceAccount, ConfigMap с `grafana.ini` и headless-Service для алертинга
+создаёт `grafana-operator`; в репозитории их нет.
+
+Ресурсы оператора получают суффикс к имени CR: `grafana-deployment`,
+`grafana-service` (порт 3000), `grafana-alerting`, `grafana-sa`. Лейбл подов
+оператор ставит `app: grafana` — поэтому NetworkPolicy в `platform/cnpg/`,
+выпускающий доступ к Postgres, продолжает работать без правок.
+
+Маршрут — `platform/homelab/templates/routes/grafana.yaml` (`Host(grafana…)` за
+`oauth2-proxy` + `secure-headers` + `ratelimit-default`) на
+`grafana-service:3000`; Gatus и vmagent ходят на тот же адрес.
+
+CR применяется **после** установки `grafana-operator`: без CRD `Grafana`
+невалиден, и Argo не ставит оператор и CR в одном приложении (см. комментарий
+в `argocd/applications/cloudnative-pg.yaml`).
+
+Откат: убрать CR и вернуть `k8s/grafana.deployment.yaml` и
+`k8s/grafana.service.yaml` из истории git. Данные в Postgres не теряются —
+они переживают оба Deployment.
 
 ## Проверка
 
@@ -354,8 +384,19 @@ curl --resolve grafana.${DOMAIN}:443:<node1-ip> \
 Ожидаемый ответ: `302` (redirect на oauth2-proxy). Health API напрямую:
 
 ```sh
-kubectl exec deploy/grafana -- curl -fsS http://127.0.0.1:3000/api/health
+kubectl exec deploy/grafana-deployment -- curl -fsS http://127.0.0.1:3000/api/health
 ```
 
 Что Grafana подключена к Postgres, видно по логу старта (`database: postgres`)
 и по отсутствию `grafana.db` в поде.
+
+Ротация секрета проверяется так: сменить значение в Vault, дождаться синка VSO и
+убедиться, что под перезапустился сам —
+
+```sh
+kubectl -n monitoring get pod -l app=grafana \
+  -o jsonpath='{.items[0].metadata.annotations.checksum/secrets}'
+```
+
+Пока значение не меняли, аннотация содержит SHA ресурсов; после ротации она
+меняется, и это признак рестарта без `rollout restart`.

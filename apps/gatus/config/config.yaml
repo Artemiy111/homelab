@@ -163,7 +163,7 @@ endpoints:
     group: Monitoring
     # Публичный маршрут закрыт forward auth (302 без авторизации), поэтому
     # проверяем health API напрямую; доступ по имени — через мост из k8s.
-    url: http://grafana.monitoring.svc.cluster.local/api/health
+    url: http://grafana-service.monitoring.svc.cluster.local:3000/api/health
     interval: 60s
     client: *docker-client
     conditions:

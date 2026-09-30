@@ -1,0 +1,149 @@
+apiVersion: grafana.integreatly.org/v1beta1
+kind: Grafana
+metadata:
+  name: grafana
+  namespace: monitoring
+spec:
+  # Полная ссылка с digest: оператор подставляет её как есть, если в строке есть
+  # «:/@». Это единственное место, где закреплена версия Grafana.
+  version: grafana/grafana:13.2.0@sha256:3fd54ae1214669f8355f065ec9f6445d5279a3d77095ab048ca045685272429b
+  # Свой admin-секрет оператора не создаём: пароль администратора живёт в
+  # Vault и приезжает в кластер как Secret `grafana-admin`. Оператор читает
+  # GF_SECURITY_ADMIN_* из живого Deployment (controllers/client/auth.go:130),
+  # поэтому секрет ниже — единственный источник кредов и для UI, и для оператора.
+  disableDefaultAdminSecret: true
+  deployment:
+    spec:
+      replicas: 1
+      revisionHistoryLimit: 2
+      template:
+        spec:
+          enableServiceLinks: false
+          # Дефолты безопасности оператора оставлены как есть: uid/gid 10001,
+          # readOnlyRootFilesystem, drop ALL, seccomp RuntimeDefault. Скретчей
+          # хватает — пустые тома оператор монтирует сам в /var/lib/grafana,
+          # /var/log/grafana и /tmp, а данные лежат в Postgres.
+          containers:
+            # Имя контейнера обязано совпадать с тем, что создаёт оператор:
+            # списки в CR мержатся по ключу `name`.
+            - name: grafana
+              env:
+                - name: DOMAIN
+                  valueFrom:
+                    configMapKeyRef:
+                      name: homelab-config
+                      key: DOMAIN
+                - name: TZ
+                  valueFrom:
+                    configMapKeyRef:
+                      name: homelab-config
+                      key: TZ
+                - name: GF_SECURITY_ADMIN_USER
+                  value: admin
+                - name: GF_SECURITY_ADMIN_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: grafana-admin
+                      key: GRAFANA_ADMIN_PASSWORD
+                - name: GF_USERS_ALLOW_SIGN_UP
+                  value: "false"
+                - name: GF_ANALYTICS_REPORTING_ENABLED
+                  value: "false"
+                # Эквивалент [feature_toggles] enable=... в grafana.ini.
+                - name: GF_FEATURE_TOGGLES_ENABLE
+                  value: grafanaAdvisor
+                # Тема ntfy для метрических алертов. Провижининг подставляет
+                # $NTFY_TOPIC в URL contact point'а, см.
+                # config/alerting/contact-points.yaml; значение лежит в Secret'е
+                # grafana-ntfy.
+                - name: NTFY_TOPIC
+                  valueFrom:
+                    secretKeyRef:
+                      name: grafana-ntfy
+                      key: NTFY_TOPIC
+                # Порядок важен: kubestore разворачивает $(DOMAIN), только если
+                # переменная объявлена выше в этом же списке.
+                - name: GF_SERVER_ROOT_URL
+                  value: "https://grafana.$(DOMAIN)"
+                # Данные (пользователи, дашборды, аннотации) — в общем кластере
+                # CNPG shared, а не в SQLite. Роль grafana и база grafana
+                # объявлены в platform/cnpg/; пароль — из Secret'а grafana-db
+                # (см. k8s/vaultstaticsecret.yaml).
+                - name: GF_DATABASE_TYPE
+                  value: postgres
+                - name: GF_DATABASE_HOST
+                  value: shared-rw.databases.svc.cluster.local:5432
+                - name: GF_DATABASE_NAME
+                  value: grafana
+                - name: GF_DATABASE_USER
+                  value: grafana
+                - name: GF_DATABASE_SSL_MODE
+                  value: disable
+                - name: GF_DATABASE_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: grafana-db
+                      key: password
+              # Порт указан числом, а не именем `http`: оператор называет свой
+              # порт `grafana-http`, и имя `http` в probe не разрешится.
+              startupProbe:
+                httpGet:
+                  path: /api/health
+                  port: 3000
+                initialDelaySeconds: 20
+                periodSeconds: 10
+                failureThreshold: 30
+              livenessProbe:
+                httpGet:
+                  path: /api/health
+                  port: 3000
+                periodSeconds: 60
+                timeoutSeconds: 10
+                failureThreshold: 3
+              readinessProbe:
+                httpGet:
+                  path: /api/health
+                  port: 3000
+                periodSeconds: 30
+                timeoutSeconds: 10
+                failureThreshold: 3
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                limits:
+                  cpu: "1"
+                  memory: 1Gi
+              volumeMounts:
+                # Провижининг остаётся на ConfigMap'ах: datasource'ы, дашборды и
+                # правила алертинга переезжают в CR оператора следующими
+                # подзадачами #645. Имена ConfigMap'ов стабильны, потому что
+                # kustomization.yaml отключает суффикс-хэш, а рестарт при
+                # изменении файлов делает оператор (аннотация checksum/secrets).
+                - name: datasources
+                  mountPath: /etc/grafana/provisioning/datasources
+                  readOnly: true
+                - name: dashboards-provisioning
+                  mountPath: /etc/grafana/provisioning/dashboards
+                  readOnly: true
+                - name: alerting
+                  mountPath: /etc/grafana/provisioning/alerting
+                  readOnly: true
+                - name: dashboards
+                  mountPath: /var/lib/grafana/dashboards
+                  readOnly: true
+          # /var/lib/grafana остаётся writable-скретчем (кэш плагинов, индекс
+          # поиска): данные в Postgres, поэтому том не нужен.
+          volumes:
+            - name: datasources
+              configMap:
+                name: grafana-datasources
+            - name: dashboards-provisioning
+              configMap:
+                name: grafana-dashboards-provisioning
+            - name: alerting
+              configMap:
+                name: grafana-alerting
+            - name: dashboards
+              configMap:
+                name: grafana-dashboards

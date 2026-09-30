@@ -2,10 +2,10 @@
   "schema": 1,
   "source": "scripts/status-badges.sh",
   "services": 55,
-  "manifests": 391,
+  "manifests": 390,
   "images": {
-    "pinned": 132,
-    "total": 133,
+    "pinned": 131,
+    "total": 132,
     "percent": 99,
     "exceptions": ["apps/structurizr/k8s/deployment.yaml"]
   },

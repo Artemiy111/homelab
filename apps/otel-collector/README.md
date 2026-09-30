@@ -57,6 +57,6 @@ kubectl exec deploy/victoriametrics -- wget -qO- \
 Принятые трейсы (растёт при запросах через Traefik) видны в Tempo:
 
 ```sh
-kubectl -n monitoring exec deploy/grafana -- \
+kubectl -n monitoring exec deploy/grafana-deployment -- \
   curl -s 'http://tempo:3200/api/search?limit=5'
 ```

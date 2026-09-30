@@ -13,7 +13,7 @@ Loki распознал в строках, и **не отдаёт содержи
 отсутствие структуры.
 
 ```sh
-kubectl -n monitoring exec deploy/grafana -- curl -sG \
+kubectl -n monitoring exec deploy/grafana-deployment -- curl -sG \
   http://loki:3100/loki/api/v1/detected_fields \
   --data-urlencode 'query={container="<name>"}' \
   --data-urlencode "start=<unix_ns>" --data-urlencode "end=<unix_ns>"

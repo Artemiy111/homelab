@@ -2,15 +2,15 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: monitoring
 resources:
-  - k8s/grafana.deployment.yaml
-  - k8s/grafana.service.yaml
+  - k8s/grafana.yaml
   - k8s/vaultauth.yaml
   - k8s/vaultstaticsecret.yaml
 configMapGenerator:
   # Провижининг datasources и dashboards + сами дашборды собираются из файлов
-  # configMapGenerator'ом: kustomize добавляет хэш содержимого к имени и
-  # переписывает ссылки в Deployment, поэтому правка конфига сама запускает
-  # rollout.
+  # configMapGenerator'ом. Суффикс-хэш отключён: имена ConfigMap'ов должны быть
+  # стабильными, иначе на них нельзя сослаться из Grafana CR. Рестарт при
+  # изменении файлов делает оператор — аннотация checksum/secrets в pod template
+  # это SHA от ResourceVersion всех Secret и ConfigMap, упомянутых в CR.
   - name: grafana-datasources
     files:
       - config/datasources.yaml
@@ -18,9 +18,8 @@ configMapGenerator:
     files:
       - config/dashboards.yaml
   # Провижининг алертинга: contact points, дерево политик и правила. Grafana
-  # перечитывает provisioning только на старте, поэтому хэш в имени ConfigMap
-  # здесь работает как триггер rollout — иначе правка правила молча не
-  # применилась бы.
+  # перечитывает provisioning только на старте, поэтому пересборка этого
+  # ConfigMap должна приводить к рестарту пода — это делает оператор.
   - name: grafana-alerting
     files:
       - config/alerting/contact-points.yaml
@@ -36,7 +35,7 @@ configMapGenerator:
       # Суммарный размер ConfigMap — 337946 Б, он больше лимита аннотации
       # kubectl.kubernetes.io/last-applied-configuration (262144 Б), поэтому
       # client-side apply на этом наборе падает с metadata.annotations: Too long.
-      # Из-за этого дашборды держались в minified-виде и их нельзя было читать в
+      # Из-за этого дашборды держатся в minified-виде и их нельзя было читать в
       # diff. Применение Grafana — server-side apply (см. README.md): он не пишет
       # эту аннотацию, и JSON можно хранить в читаемом виде.
       - config/dashboards/cloudnative-pg.json
@@ -45,3 +44,5 @@ configMapGenerator:
       - config/dashboards/traefik.json
       - config/dashboards/traefik-official.json
       - config/dashboards/logs-overview.json
+generatorOptions:
+  disableNameSuffixHash: true

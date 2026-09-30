@@ -238,5 +238,5 @@ ssh homelab-agent 'curl -sk --resolve uptime.example.com:443:<node1-ip> \
 Проверка свежих ошибок выполняется отдельно для затронутого сервиса:
 
 ```sh
-ssh homelab-agent 'sudo -u artlab bash -lc "kubectl logs deploy/grafana --since=5m"'
+ssh homelab-agent 'sudo -u artlab bash -lc "kubectl logs deploy/grafana-deployment --since=5m"'
 ```
