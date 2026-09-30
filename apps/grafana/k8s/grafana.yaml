@@ -12,6 +12,16 @@ spec:
   # GF_SECURITY_ADMIN_* из живого Deployment (controllers/client/auth.go:130),
   # поэтому секрет ниже — единственный источник кредов и для UI, и для оператора.
   disableDefaultAdminSecret: true
+  # Дефолт оператора ставит readOnlyRootFilesystem, и с ним Grafana не
+  # запускается рабочей: при старте фоновый установщик сверяет bundled-плагины с
+  # каталогом grafana.com и обновляет их на месте в
+  # /usr/share/grafana/data/plugins-bundled. На read-only ФС удаление падает, а
+  # плагин к этому моменту уже выгружен из реестра — datasource'и перестают
+  # отвечать (plugin.notRegistered) и не вычисляется ни одно правило алертинга.
+  # Поэтому берём дефолт оператора, кроме readOnlyRootFilesystem: остальное
+  # (non-root, drop ALL, seccomp) на месте. Pod-level seccomp оператор при этом
+  # сохраняет — "Container" отключает только контейнерный securityContext.
+  disableDefaultSecurityContext: "Container"
   deployment:
     spec:
       replicas: 1
@@ -27,6 +37,16 @@ spec:
             # Имя контейнера обязано совпадать с тем, что создаёт оператор:
             # списки в CR мержатся по ключу `name`.
             - name: grafana
+              securityContext:
+                runAsUser: 10001
+                runAsGroup: 10001
+                runAsNonRoot: true
+                allowPrivilegeEscalation: false
+                privileged: false
+                seccompProfile:
+                  type: RuntimeDefault
+                capabilities:
+                  drop: ["ALL"]
               env:
                 - name: DOMAIN
                   valueFrom:
@@ -52,19 +72,6 @@ spec:
                 # Эквивалент [feature_toggles] enable=... в grafana.ini.
                 - name: GF_FEATURE_TOGGLES_ENABLE
                   value: grafanaAdvisor
-                # Фоновый установщик плагинов выключен. Без этого флага Grafana
-                # при старте сверяет bundled-плагины с каталогом grafana.com и
-                # обновляет их на месте — в /usr/share/grafana/data/plugins-bundled,
-                # который при readOnlyRootFilesystem не записываем. Удаление
-                # проваливается, а плагин к этому моменту уже выгружен из
-                # реестра: datasource'и перестают отвечать (plugin.notRegistered)
-                # и не вычисляется ни одно правило алертинга.
-                # Версии плагинов приезжают с образом — обновляем spec.version.
-                # Цена: не работает доставка плагинов через GF_INSTALL_PLUGINS,
-                # то есть ConfigMap grafana-plugins оператора. Сторонний плагин
-                # без этого не поставить.
-                - name: GF_PLUGINS_PREINSTALL_DISABLED
-                  value: "true"
                 # Тема ntfy для метрических алертов. Провижининг подставляет
                 # $NTFY_TOPIC в URL contact point'а, см.
                 # config/alerting/contact-points.yaml; значение лежит в Secret'е

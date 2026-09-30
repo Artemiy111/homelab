@@ -38,31 +38,34 @@ VictoriaMetrics как datasource.
 ### Плагины
 
 Все четыре datasource-плагина (`prometheus`, `loki`, `tempo`,
-`grafana-pyroscope-datasource`) встроены в образ Grafana. Собственных плагинов
-нет, и устанавливать их нечем.
+`grafana-pyroscope-datasource`) встроены в образ Grafana. Плюс на старте
+скачиваются пять observability-приложений — `grafana-lokiexplore-app`,
+`grafana-pyroscope-app`, `grafana-metricsdrilldown-app`,
+`grafana-exploretraces-app`, `grafana-advisor-app`. Именно последние дают меню
+Drilldown (Logs / Metrics / Traces / Profiles) в дашбордах.
 
-Фоновый установщик плагинов выключен через `GF_PLUGINS_PREINSTALL_DISABLED` —
-это обязательно, а не перестраховка. Без него Grafana при старте сверяет
-bundled-плагины с каталогом grafana.com и, если каталог свежее, обновляет их на
-месте в `/usr/share/grafana/data/plugins-bundled`. Каталог не влезает в
-`readOnlyRootFilesystem`, и происходит следующее:
+**Корень файловой системы должен быть writable** (`readOnlyRootFilesystem` не
+задан), иначе Grafana не запускается рабочим. При старте фоновый установщик
+сверяет встроенные плагины с каталогом grafana.com и обновляет их на месте в
+`/usr/share/grafana/data/plugins-bundled`. На read-only ФС происходит:
 
 1. `Unload` плагина из реестра — выполняется;
 2. удаление файлов — падает с `read-only file system`;
 3. плагин остаётся на диске, но больше не в реестре.
 
 Дальше datasource'и не отвечают (`plugin.notRegistered` в
-`/api/datasources/uid/<uid>/health`), панели дашбордов пустые, а **ни одно
-правило алертинга не вычисляется** — `alert_instance` пуста, и алертинг при
-этом выглядит живым: Grafana на месте, правила в UI есть, `GrafanaReady=True`.
+`/api/datasources/uid/<uid>/health`), панели пустые, а **ни одно правило
+алертинга не вычисляется** — `alert_instance` пуста. При этом Grafana выглядит
+живой: под `Running`, `GrafanaReady=True`, правила в UI есть.
 
-Версии плагинов приезжают с образом: обновляем `spec.version` — получаем новые
-bundled-плагины. Плата — не работает доставка плагинов через
-`GF_INSTALL_PLUGINS`, то есть через ConfigMap `grafana-plugins`, который умеет
-наполнять оператор. Сторонний плагин без флага поставить нельзя; появится
-потребность — снять флаг и пересмотреть `readOnlyRootFilesystem`.
+Поэтому в CR стоит `disableDefaultSecurityContext: "Container"` — оператор
+перестаёт навешивать свой `readOnlyRootFilesystem`, а `securityContext`
+контейнера описан явно (non-root, drop ALL, seccomp). Отключать preinstall
+(`GF_PLUGINS_PREINSTALL_DISABLED`) нельзя: вместе с автообновлением это
+гасит и установку observability-приложений, а они не встроены в образ и
+качаются с grafana.com — Drilldown пропадает навсегда.
 
-Проверять после любой смены версии образа (правило неочевидно и уже срабатывало):
+Проверять после смены версии образа и после любой смены образа вообще:
 
 ```sh
 kubectl -n monitoring exec deploy/grafana-deployment -c grafana -- sh -c \
@@ -72,6 +75,17 @@ kubectl -n monitoring exec deploy/grafana-deployment -c grafana -- sh -c \
 
 Ожидается `{"status":"OK",...}`. Ответ `plugin.notRegistered` означает, что
 плагины выпали из реестра, и алертинг молча слепой.
+
+Drilldown проверяется отдельно — наличием приложений в реестре:
+
+```sh
+kubectl -n monitoring exec deploy/grafana-deployment -c grafana -- sh -c \
+  'curl -s -u "admin:$GF_SECURITY_ADMIN_PASSWORD" \
+     "http://127.0.0.1:3000/api/plugins?embedded=0"' | jq -r '.[].id' | grep app
+```
+
+Ожидаются все пять `*-app`. Пусто — меню Drilldown будет пустым, и алертинг
+при этом выглядит исправным.
 
 ## Провижининг
 
