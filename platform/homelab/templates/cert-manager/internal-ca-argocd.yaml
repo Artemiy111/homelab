@@ -1,0 +1,25 @@
+{{- if .Values.certManager.internalCA.enabled }}
+# CA internal в ConfigMap, который Argo читает как доверенные корни.
+#
+# Файл files/internal-ca.crt — публичная часть CA, ключа в репозитории нет и
+# не бывает: он лежит в Secret homelab-internal-ca в namespace cert-manager.
+# Публичность здесь не проблема, а смысл: корневой сертификат по определению
+# предназначен для распространения, иначе он не выполнил бы свою функцию.
+#
+# Копия нужна потому, что VSO умеет создавать только Secret, а Argo читает
+# именно ConfigMap с именем argocd-tls-certs-cm. Альтернатива — контроллер,
+# который копирует Secret в ConfigMap: лишняя сущность ради одного файла.
+#
+# Плата за копию: если CA перегенерировать, файл в репозитории и Secret в
+# кластере разойдутся, и синхронизировать придётся вручную. CA живёт 10 лет,
+# а листья на нём обновляются сами, поэтому на практике расхождения не будет.
+# Перегенерация CA — осознанное событие, а не фоновая процедура.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-tls-certs-cm
+  namespace: argocd
+data:
+  tls.crt: |
+{{ .Files.Get "files/internal-ca.crt" | indent 4 }}
+{{- end }}

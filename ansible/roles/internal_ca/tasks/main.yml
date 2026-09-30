@@ -1,0 +1,72 @@
+---
+# Внутренний CA homelab в системное хранилище доверенных сертификатов.
+#
+# Зачем: containerd на узле тянет образы по HTTPS и проверяет цепочку. Для
+# внутреннего имени реестра сертификат выпущен нашим CA, а не Let's Encrypt,
+# поэтому без этого якоря доверия pull падает с
+# `x509: certificate signed by unknown authority`.
+#
+# Почему CA берётся из Secret кластера, а не из файла репозитория: так ключ CA
+# вообще не покидает кластер, а в репозитории лежит только публичная часть.
+# Публичная копия тоже есть (platform/homelab/files/internal-ca.crt) — из неё
+# Argo получает доверенный корень в argocd-tls-certs-cm.
+#
+# Если CA когда-нибудь перегенерируют, нужно обновить обе копии: файл в
+# репозитории и Secret в кластере. Синхронизации нет намеренно — CA живёт 10 лет,
+# а листья обновляются сами.
+
+- name: Прочитать публичный сертификат CA из Secret кластера
+  ansible.builtin.command:
+    cmd: >-
+      kubectl -n {{ internal_ca_namespace }} get secret {{ internal_ca_secret }}
+      -o jsonpath={.data.ca\.crt}
+  environment:
+    KUBECONFIG: "{{ internal_ca_kubeconfig }}"
+  become: true
+  become_user: "{{ internal_ca_kube_user }}"
+  register: internal_ca_b64
+  changed_when: false
+
+- name: Декодировать сертификат CA
+  ansible.builtin.set_fact:
+    internal_ca_pem: "{{ internal_ca_b64.stdout | b64decode }}"
+
+- name: Убедиться, что получен сертификат, а не ключ
+  ansible.builtin.assert:
+    that:
+      - "'BEGIN CERTIFICATE' in internal_ca_pem"
+      - "'PRIVATE KEY' not in internal_ca_pem"
+    fail_msg: >-
+      Secret {{ internal_ca_namespace }}/{{ internal_ca_secret }} не отдал
+      сертификат CA. Проверь, что Certificate homelab-internal-ca в состоянии
+      Ready, иначе node trust будет поставлен битым.
+
+# Fedora кладёт корни в /etc/pki/ca-trust/source/anchors, а update-ca-trust
+# пересобирает из них общий bundle. Кладём якорь, а не правим bundle руками:
+# bundle перезаписывается при обновлении пакета ca-certificates.
+- name: Установить якорь доверия к внутреннему CA
+  ansible.builtin.copy:
+    content: "{{ internal_ca_pem }}"
+    dest: "{{ internal_ca_anchor }}"
+    owner: root
+    group: root
+    mode: "0644"
+  register: internal_ca_anchor_result
+  notify: Пересобрать bundle доверенных сертификатов
+
+# Пересборка bundle — в handlers/main.yml: срабатывает только при изменении
+# якоря и до следующей задачи, которая bundle проверяет.
+
+- name: Проверить, что CA попал в bundle
+  ansible.builtin.command:
+    cmd: "openssl verify -CAfile /etc/pki/tls/certs/ca-bundle.crt {{ internal_ca_anchor }}"
+  changed_when: false
+  register: internal_ca_bundle_check
+  failed_when: false
+
+- name: Сообщить, если CA не оказался в bundle
+  ansible.builtin.debug:
+    msg: >-
+      Bundle не подтвердил наш CA: {{ internal_ca_bundle_check.stderr }}
+      containerd не сможет тянуть образы по внутреннему имени.
+  when: internal_ca_bundle_check.rc != 0
