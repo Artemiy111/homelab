@@ -6,9 +6,12 @@
 #
 # repoURL для OCI указывается БЕЗ префикса `oci://` — так его ждёт Argo.
 #
-# Хост реестра — environment-specific: в этом шаблоне плейсхолдер, реальное
-# значение — в untracked dns01-webhook.private.yaml (merge-patch), см.
-# argocd/README.md.
+# Хост реестра — внутренний, из зоны homelab.internal (terraform/technitium).
+# В отличие от публичного домена имя нечувствительное, поэтому в git живёт
+# открытым текстом, и private-файл приложению больше не нужен.
+#
+# Схему с HTTPS обязывает сам Argo: OCI-клиент не ходит по http, а LE внутреннее
+# имя не выдаёт. Сертификат выпускает наш CA (platform/homelab, internal-ca.yaml).
 #
 # groupName обязан совпадать с webhookGroupName в platform/homelab/values.yaml
 # (оттуда его берёт ClusterIssuer).
@@ -22,7 +25,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: forgejo.example.com/artemiy/charts
+    repoURL: forgejo.homelab.internal/artemiy/charts
     chart: cert-manager-webhook-dns01
     targetRevision: 0.1.1
     helm:
@@ -35,7 +38,7 @@ spec:
           limits:
             memory: 160Mi
         image:
-          repository: forgejo.example.com/artemiy/cert-manager-webhook-dns01
+          repository: forgejo.homelab.internal/artemiy/cert-manager-webhook-dns01
           tag: 0.1.1
         provider:
           existingSecret: dns01-webhook-token
