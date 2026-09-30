@@ -298,7 +298,8 @@ docs/                    ADR, исследования, инциденты, ра
 ```
 
 Почему слои такие: [`docs/adr/0004-repository-layout.md`](docs/adr/0004-repository-layout.md).
-Настоящий домен и адрес сервера лежат в неотслеживаемом `values.private.yaml`.
+Настоящий домен и адрес сервера лежат в `platform/homelab/values.yaml`, credentials — в Vault
+([`docs/adr/0009`](docs/adr/0009-internal-values-in-repo.md)).
 
 ## Доставка изменений
 
@@ -308,7 +309,7 @@ docs/                    ADR, исследования, инциденты, ра
 1. Изменить манифесты локально, закоммитить, открыть PR со ссылкой на issue.
 2. На сервере забрать изменения и применить только затронутое:
    - `kubectl apply -f apps/<сервис>/k8s/`
-   - `helm template platform/homelab -f platform/homelab/values.private.yaml | kubectl apply -f -`
+   - `helm template platform/homelab | kubectl apply -f -`
 3. Проверить health, DNS и HTTP-маршрут. Только потом закрыть issue.
 
 GitOps проверяется через Argo CD с `selfHeal: true`, который уже ловил и откатывал дрейф.

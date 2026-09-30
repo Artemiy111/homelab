@@ -193,21 +193,12 @@ ssh homelab-agent 'sudo -u artlab bash -lc "cd /home/artlab/projects/homelab && 
 ```
 
 Общая конфигурация (`homelab-config`) и все HTTP-маршруты живут в Helm-чарте
-`platform/homelab` и применяются одной командой. Реальные домен и адрес сервера
-берутся из untracked `platform/homelab/values.private.yaml`; в git лежит только
-`values.yaml` с плейсхолдерами:
+`platform/homelab` и применяются одной командой. Домен и адрес сервера берутся
+из `platform/homelab/values.yaml`, который лежит в репозитории
+(`docs/adr/0009`) — отдельного приватного values-файла нет:
 
 ```sh
-ssh homelab-agent 'sudo -u artlab bash -lc "cd /home/artlab/projects/homelab && helm template platform/homelab -f platform/homelab/values.private.yaml | kubectl apply -f -"'
-```
-
-`values.private.yaml` существует только на сервере и не коммитится (см.
-`.gitignore`). Формат:
-
-```yaml
-config:
-  domain: <реальный домен>
-  serverIp: <адрес сервера>
+ssh homelab-agent 'sudo -u artlab bash -lc "cd /home/artlab/projects/homelab && helm template platform/homelab | kubectl apply -f -"'
 ```
 
 Не перезапускать все сервисы, если изменение касается только одного. После

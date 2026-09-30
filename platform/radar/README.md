@@ -22,8 +22,7 @@ TLS-сертификаты и встроенный MCP-сервер для AI-а
 
 | Файл | Что делает |
 |---|---|
-| `argocd/applications/radar.yaml` | Argo Application: официальный чарт `skyhook/radar`, `auth.mode=oidc` |
-| `argocd/applications/radar.private.yaml` | Реальные issuer, clientID и redirectURL (untracked) |
+| `argocd/applications/radar.yaml` | Argo Application: официальный чарт `skyhook/radar`, `auth.mode=oidc`; issuer, clientID и redirectURL заданы в `valuesObject` |
 | `platform/homelab/templates/routes/radar.yaml` | Маршрут: secure-headers + ratelimit, без oauth2-proxy |
 | `platform/radar/vso-radar.serviceaccount.yaml` | ServiceAccount для External Secrets Operator |
 | `platform/radar/vso-radar.vaultauth.yaml` | `VaultAuth` с ролью `radar` из Vault |
@@ -44,8 +43,9 @@ ServiceAccount. Схема по шагам:
 | Приложение OIDC в Zitadel | `terraform/zitadel/applications.tf` (`zitadel_application_v2.radar`) |
 | Claim `role` (`admin`/`user`) | `terraform/zitadel/actions.tf` |
 | `cluster-admin` для группы `oidc:admin` | `platform/headlamp/headlamp-admins.clusterrolebinding.yaml` |
-| clientID, clientSecret, redirectURL, issuer | Vault `kv/radar/oidc` + `radar.private.yaml` |
-| Отдельный HMAC-ключ сессий | то же место, ключ `auth-secret` |
+| clientSecret, redirectURL | Vault `kv/radar/oidc` |
+| clientID, issuer | `valuesObject` в `argocd/applications/radar.yaml` |
+| Отдельный HMAC-ключ сессий | Vault `kv/radar/oidc`, ключ `auth-secret` |
 
 Группы приходят из claim `role` с префиксом `oidc:` — получается ровно та же
 группа `oidc:admin`, что у Headlamp, поэтому один `ClusterRoleBinding` покрывает
@@ -109,27 +109,25 @@ ClientSecret нового приложения в state не попадает �
 приходят в один Secret `radar-auth`.
 
 `clientID` в Vault не нужен: Radar берёт его из `--auth-oidc-client-id`, то
-есть из `argocd/applications/radar.private.yaml`. В Helm release он попадает
-открытым текстом, но clientID — публичный идентификатор, не секрет; секретом
-является только `client-secret`.
+есть из `valuesObject` в `argocd/applications/radar.yaml`. В Helm release он
+попадает открытым текстом, но clientID — публичный идентификатор, не секрет;
+секретом является только `client-secret`.
 
 `client-secret` и `auth-secret` читаются Radar'ом только при старте, поэтому при
 ротации в Vault под пересоздаётся — за это отвечает `rolloutRestartTargets` в
 `radar-oidc.vaultstaticsecret.yaml`.
 
-Затем приватный оверлей Application и сам кластер:
+Затем Application и остальное:
 
 ```sh
 kubectl apply -f argocd/applications/radar.yaml
-kubectl -n argocd patch application radar --type=merge \
-  --patch-file argocd/applications/radar.private.yaml
 
 # Дождаться, пока Argo создаст namespace, под и слой RBAC.
 kubectl -n radar get pods
 argocd app get radar
 
 kubectl apply -f platform/radar/
-helm template platform/homelab -f platform/homelab/values.private.yaml | kubectl apply -f -
+helm template platform/homelab | kubectl apply -f -
 ```
 
 Порядок важен: Application создаёт namespace `radar` (`CreateNamespace=true`),

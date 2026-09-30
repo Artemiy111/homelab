@@ -294,7 +294,8 @@ docs/                    ADR, research, incidents, troubleshoot, agent docs
 ```
 
 Layering rationale: [`docs/adr/0004-repository-layout.md`](docs/adr/0004-repository-layout.md).
-The real domain and server address live in an untracked `values.private.yaml`.
+The real domain and server address live in `platform/homelab/values.yaml`; credentials stay in
+Vault ([`docs/adr/0009`](docs/adr/0009-internal-values-in-repo.md)).
 
 ## Delivery workflow
 
@@ -304,7 +305,7 @@ before the issue closes.
 1. Change manifests locally, commit, open a PR referencing the issue.
 2. On the server, pull and apply only what changed:
    - `kubectl apply -f apps/<service>/k8s/`
-   - `helm template platform/homelab -f platform/homelab/values.private.yaml | kubectl apply -f -`
+   - `helm template platform/homelab | kubectl apply -f -`
 3. Verify health, DNS, and the HTTP route. Only then close the issue.
 
 GitOps is exercised through Argo CD with `selfHeal: true`, which has already caught and reverted

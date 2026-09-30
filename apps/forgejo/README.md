@@ -16,11 +16,10 @@ Forgejo — лёгкая self-hosted Git-платформа (форк Gitea), к
 
 Самостоятельная регистрация выключена, новые репозитории и профили приватны.
 
-Домен, `service.ssh.externalIPs` и discovery URL Zitadel в
-`argocd/applications/forgejo.yaml` — плейсхолдеры
-и опущенные ключи: реальные значения приезжают из untracked
-`argocd/applications/forgejo.private.yaml` (см. `argocd/README.md`). Применять один
-шаблон нельзя — значения затрутся.
+Домен, `service.ssh.externalIPs` и discovery URL Zitadel заданы прямо в
+`argocd/applications/forgejo.yaml` в `valuesObject` (см. `docs/adr/0009`).
+Credentials — пароль админа, `client-secret` — приходят из Vault и в values не
+попадают: в Application лежат ссылки `existingSecret`.
 
 ## Как развёрнуто
 

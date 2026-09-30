@@ -26,7 +26,7 @@ postgres, ...) и ~10 Gi RAM. Если понадобится «как в про
 
 ```sh
 kubectl apply -f apps/gitlab/k8s/
-helm template platform/homelab -f platform/homelab/values.private.yaml | kubectl apply -f -
+helm template platform/homelab | kubectl apply -f -
 ```
 
 `platform/homelab-config/configmap.yaml` содержит документ для namespace
@@ -112,7 +112,7 @@ kubectl -n gitlab exec deploy/gitlab -- gitlab-rake gitlab:check
 ## Удаление
 
 ```sh
-helm template platform/homelab -f platform/homelab/values.private.yaml | kubectl delete -f -
+helm template platform/homelab | kubectl delete -f -
 kubectl delete -f apps/gitlab/k8s/
 ```
 

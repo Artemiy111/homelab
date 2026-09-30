@@ -72,7 +72,7 @@ kubectl apply -f argocd/applications/dns01-webhook.yaml
 kubectl -n cert-manager get pods    # dns01-webhook-...
 
 # 3. Эмитенты и Certificate — из чарта (домен, email из values)
-helm template platform/homelab -f platform/homelab/values.private.yaml | kubectl apply -f -
+helm template platform/homelab | kubectl apply -f -
 ```
 
 ## Секреты

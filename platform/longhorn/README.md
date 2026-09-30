@@ -82,7 +82,7 @@ kubectl apply -f platform/longhorn/volumesnapshotclass.yaml
 kubectl apply -f platform/longhorn/networkpolicy-metrics.yaml
 
 # 6. UI за oauth2-proxy
-helm template platform/homelab -f platform/homelab/values.private.yaml | kubectl apply -f -
+helm template platform/homelab | kubectl apply -f -
 ```
 
 DNS трогать не нужно: в зоне есть wildcard `*.example.com`.
@@ -296,7 +296,7 @@ Longhorn — thin provisioning: он *выделяет* больше, чем з�
 kubectl -n argocd delete application longhorn
 kubectl -n argocd delete application snapshot-controller
 kubectl delete -f platform/longhorn/storageclasses.yaml -f platform/longhorn/volumesnapshotclass.yaml
-helm template platform/homelab -f platform/homelab/values.private.yaml | kubectl delete -f -
+helm template platform/homelab | kubectl delete -f -
 
 # 2. Данные: удалить PVC/PV (в `longhorn-retain` PV остаётся Released — убирать вручную),
 #    тома в UI, потом ноды Longhorn.
