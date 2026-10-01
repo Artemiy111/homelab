@@ -32,7 +32,8 @@ Longhorn подключается явным `storageClassName` в PVC. Тома
 | `platform/longhorn/storageclasses.yaml` | StorageClass `longhorn` (Delete) и `longhorn-retain` (Retain) |
 | `platform/longhorn/volumesnapshotclass.yaml` | VolumeSnapshotClass: `longhorn-snapshot` (default, `type: snap`) и `longhorn-backup` (`type: bak`) |
 | `platform/longhorn/networkpolicy-metrics.yaml` | Доступ vmagent к метрикам менеджера (порт 9500) для job `longhorn` |
-| `platform/homelab/templates/routes/longhorn.yaml` | UI за oauth2-proxy |
+| `platform/longhorn/route.yaml` | `HTTPRoute` UI за oauth2-proxy |
+| `platform/longhorn/oauth2-proxy.middleware.yaml`, `secure-headers.middleware.yaml` | копии общих middleware в `longhorn-system`: `ExtensionRef` ищет их рядом с маршрутом |
 | `ansible/host.yml` (роль `longhorn_prereqs`), `etc/selinux/local_longhorn.cil` | Подготовка узла: `iscsid`, NFSv4-клиент, каталог данных, SELinux-модуль |
 
 Исследование по теме: [docs/research/k8s/storage-classes-and-csi-provisioners.md](../../docs/research/k8s/storage-classes-and-csi-provisioners.md).

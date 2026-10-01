@@ -6,9 +6,15 @@ HTTPS-точку входа `websecure`, а `web` перенаправляет H
 интернет-роутере.
 
 Чарт Traefik разворачивается через `argocd/applications/traefik.yaml`. В этом
-каталоге — `values.yaml`, `tlsstore.yaml` и общие middleware
-(`oauth2-proxy.middleware.yaml`). Маршруты, включая дашборд, живут в Helm-чарте
-`platform/homelab`.
+каталоге — `values.yaml`, `tlsstore.yaml`, общие middleware
+(`oauth2-proxy.middleware.yaml`, `secure-headers.middleware.yaml`) и маршрут
+дашборда (`dashboard.route.yaml`). Остальные маршруты живут рядом с
+приложениями, в `apps/<сервис>/k8s/route.yaml`.
+
+`Gateway` и `GatewayClass` описаны в `platform/homelab/templates/gateway/`, а не
+здесь: hostname слушателя и `certificateRef` требуют домена из values чарта
+`platform/homelab`. В values Traefik выключены `gateway.enabled`
+и `gatewayClass.enabled`, иначе чарт создал бы второй Gateway без сертификата.
 
 Адрес узла для `externalIPs` в Git не хранится — он environment-specific и
 задаётся при деплое:
@@ -20,12 +26,19 @@ helm upgrade --install traefik <чарт> -f values.yaml \
 
 ## TLS
 
-TLS терминируется на entrypoint `websecure`; маршруты не задают `tls`.
-Сертификат по умолчанию отдаёт TLSStore `default` (`tlsstore.yaml`) — это
-wildcard-секрет `wildcard-tls` в namespace `traefik`. Общие middleware (forward
-auth `oauth2-proxy`, `secure-headers`, `ratelimit-default`) объявлены в
-`oauth2-proxy.middleware.yaml` в namespace `traefik`; маршруты ссылаются на них
-cross-namespace (`allowCrossNamespace: true`).
+TLS терминируется на entrypoint `websecure`. Сертификат отдаёт `Gateway`
+`homelab` — `certificateRef` на секрет `wildcard-tls` в namespace `traefik`
+(`platform/homelab/templates/gateway/gateway.yaml`). TLSStore `default`
+(`tlsstore.yaml`) остался для маршрутов, которые ещё не переведены на
+Gateway API.
+
+Общие middleware (forward auth `oauth2-proxy`, `secure-headers`,
+`ratelimit-default`) объявлены в `oauth2-proxy.middleware.yaml` в namespace
+`traefik`. `HTTPRoute` ссылается на них через `ExtensionRef`, а он ищет
+`Middleware` **в namespace самого маршрута**: `extensionRef` это
+`LocalObjectReference` без поля `namespace`. Поэтому в namespace каждого
+потребителя лежит своя копия, а `allowCrossNamespace: true` на маршруты
+`IngressRoute` больше не распространяется.
 
 ## Панель
 
