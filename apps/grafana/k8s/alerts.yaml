@@ -10,6 +10,13 @@
 # Форма правила и почему обе части A -> B -> C обязательны — в шапке каждой
 # группы ниже, проза перенесена из исходных файлов провижининга.
 ---
+# spec.uid закреплён намеренно. Оператор ищет папку по uid, а если не нашёл —
+# по title, и тогда GetGrafanaUID() возвращает metadata.uid объекта Kubernetes,
+# а не uid папки в Grafana (в коде оператора на это есть TODO). Для папки,
+# созданной оператором, uid совпадает с metadata.uid, поэтому баг не виден; для
+# папки, унаследованной от провижининга, — проявляется сразу, и GrafanaAlertRuleGroup
+# с folderRef получает «folder with uid ... not found». Закреплённый uid решает
+# это и заодно делает набор папок воспроизводимым из git.
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaFolder
 metadata:
@@ -19,6 +26,7 @@ spec:
     matchLabels:
       app: grafana
   title: VictoriaMetrics
+  uid: afzeqhxdxlkhse
 ---
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaFolder
@@ -29,6 +37,7 @@ spec:
     matchLabels:
       app: grafana
   title: Logs
+  uid: dfzmtnvaln6yoe
 ---
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaFolder
@@ -39,6 +48,7 @@ spec:
     matchLabels:
       app: grafana
   title: Хранилище
+  uid: dfzpwv6hjq1a8c
 ---
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaFolder
@@ -49,6 +59,7 @@ spec:
     matchLabels:
       app: grafana
   title: Сертификаты
+  uid: cfzpwv60mesxsb
 ---
 # --- перенесено без изменений из config/alerting/victoria-metrics.yaml ---
 #
