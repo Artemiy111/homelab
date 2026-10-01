@@ -33,7 +33,7 @@ Rather than a list of tools, a set of practices I can defend and explain:
 
 | Area | What is here |
 |---|---|
-| **Kubernetes** | Single-node k0s (embedded etcd, Calico vxlan), Longhorn CSI, CloudNativePG, MariaDB Operator, Traefik ingress, a few dozen NetworkPolicies |
+| **Kubernetes** | Single-node k0s (embedded etcd, Calico vxlan), Longhorn CSI, CloudNativePG, MariaDB Operator, Traefik with Gateway API, a few dozen NetworkPolicies |
 | **GitOps** | Argo CD with self-heal, repo-vs-cluster reconciliation, prune rules decided per component |
 | **Supply chain** | Virtually every image pinned by `@sha256` digest, gitleaks on every push and PR, air-gapped runners with a checksum-verified toolchain |
 | **Secrets** | HashiCorp Vault and Vault Secrets Operator as the primary path, a few dozen `VaultStaticSecret` objects, SOPS and SealedSecrets as legacy |
@@ -46,62 +46,28 @@ Rather than a list of tools, a set of practices I can defend and explain:
 
 ```mermaid
 flowchart TB
-    LAN["LAN devices"]
-    TS["Remote devices<br/>via Tailscale"]
+    CLIENTS["LAN devices<br/>Tailscale peers"]
 
-    subgraph host["Homelab server — Fedora Server 44"]
-        TR["Traefik<br/>ingress :80 / :443<br/>wildcard TLS"]
+    subgraph host["Homelab server — Fedora Server 44<br/>k0s, single node"]
+        EDGE["Traefik<br/>Gateway API :80 / :443<br/>wildcard TLS"]
+        AUTH["oauth2-proxy<br/>forward auth<br/>Zitadel — OIDC"]
+        APPS["~50 services<br/>apps/"]
+        OPS["Argo CD — GitOps<br/>cert-manager<br/>ACME DNS-01<br/>Vault Operator<br/>Longhorn CSI"]
+        DATA["CloudNativePG<br/>PostgreSQL<br/>MariaDB Operator"]
+        OBS["OTel Collector<br/>Beyla · Alloy<br/>VictoriaMetrics · Loki<br/>Tempo · Pyroscope"]
+        CACHE["RustFS · ATS · Athens<br/>Verdaccio · Zot<br/>air-gapped CI mirrors"]
         DNS["Technitium DNS<br/>:53 + ad blocking"]
-
-        subgraph k8s["k0s — single node, embedded etcd, Calico vxlan"]
-            ACME["cert-manager<br/>ACME DNS-01"]
-            VSO["Vault Secrets Operator"]
-            CSI["Longhorn CSI<br/>snapshots, clones, RWX"]
-            ARGO["Argo CD<br/>self-heal"]
-            PG["CloudNativePG<br/>PostgreSQL"]
-            MDB["MariaDB Operator"]
-
-            ZIT["Zitadel — OIDC"]
-            O2P["oauth2-proxy<br/>forward auth"]
-
-            APPS["~50 services<br/>apps/"]
-
-            VM["VictoriaMetrics"]
-            LOKI["Loki"]
-            TEMPO["Tempo"]
-            PYRO["Pyroscope"]
-            ALLOY["Alloy — logs + eBPF profiles"]
-            BEYLA["Beyla — eBPF instrumentation"]
-            OTEL["OTel Collector"]
-
-            RUSTFS["RustFS — S3"]
-            ATS["ATS — HTTP cache"]
-            ATHENS["Athens — Go proxy"]
-            VERDACCIO["Verdaccio — npm"]
-            ZOT["Zot — OCI registry"]
-        end
     end
 
-    LAN --> TR
-    TS --> TR
-    LAN --> DNS
-    TR --> ACME
-    TR --> O2P
-    O2P --> ZIT
-    TR --> APPS
-    ACME -.->|DNS-01| DNS
-    VSO --> APPS
-    APPS --> PG
-    APPS --> MDB
-    APPS --> CSI
-    ARGO -.->|reconciles| ACME
-    APPS -.-> OTEL
-    OTEL --> TEMPO
-    OTEL --> VM
-    BEYLA --> TEMPO
-    ALLOY --> LOKI
-    ALLOY --> PYRO
-    RUSTFS -.->|CI pulls| ARGO
+    CLIENTS --> EDGE
+    EDGE --> AUTH
+    AUTH --> APPS
+    CACHE -.->|CI pulls| OPS
+    OPS -.->|deploys| APPS
+    OPS -.->|ACME DNS-01| DNS
+    APPS --> DATA
+    APPS -.-> OBS
+    APPS -.->|resolves| DNS
 ```
 
 Architecture model source: [`apps/structurizr/homelab.dsl`](apps/structurizr/homelab.dsl) — a
@@ -179,7 +145,7 @@ and [`docs/research/observability-pitfalls.md`](docs/research/observability-pitf
 ## Identity
 
 Zitadel is the primary OIDC provider. Services without native OIDC sit behind oauth2-proxy in
-forward-auth mode, so access control is enforced at the ingress rather than per application.
+forward-auth mode, so access control is enforced at the edge rather than per application.
 
 ## CI
 
@@ -226,7 +192,6 @@ trackers, and CI.
 | Service | Purpose |
 |---|---|
 | [Zitadel](apps/zitadel/) | Identity provider and SSO (primary) |
-| [Authentik](apps/authentik/) | Identity provider, test stand |
 | [oauth2-proxy](apps/oauth2-proxy/) | Forward auth for services without their own login |
 | [Technitium](apps/technitium/) | DNS server and ad blocking |
 | [Homepage](apps/homepage/) | Start page |

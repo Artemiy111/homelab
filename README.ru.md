@@ -34,7 +34,7 @@ blameless-постмортемам, а ADR объясняют, почему ка
 
 | Область | Что здесь есть |
 |---|---|
-| **Kubernetes** | Одноузловой k0s (встроенный etcd, Calico vxlan), Longhorn CSI, CloudNativePG, MariaDB Operator, Traefik, несколько десятков NetworkPolicy |
+| **Kubernetes** | Одноузловой k0s (встроенный etcd, Calico vxlan), Longhorn CSI, CloudNativePG, MariaDB Operator, Traefik с Gateway API, несколько десятков NetworkPolicy |
 | **GitOps** | Argo CD с selfHeal, сверка Git и кластера, правила prune, выбранные отдельно для каждого компонента |
 | **Supply chain** | Практически все образы закреплены по `@sha256`, gitleaks на каждом push и PR, раннеры без интернета с проверяемым по контрольным суммам тулчейном |
 | **Секреты** | HashiCorp Vault и Vault Secrets Operator как основной путь, несколько десятков `VaultStaticSecret`, SOPS и SealedSecrets как легаси |
@@ -47,62 +47,28 @@ blameless-постмортемам, а ADR объясняют, почему ка
 
 ```mermaid
 flowchart TB
-    LAN["Устройства в локальной сети"]
-    TS["Удалённые устройства<br/>через Tailscale"]
+    CLIENTS["Локальная сеть<br/>и узлы Tailscale"]
 
-    subgraph host["Домашний сервер — Fedora Server 44"]
-        TR["Traefik<br/>ingress :80 / :443<br/>wildcard-сертификат"]
-        DNS["Technitium DNS<br/>:53 + блокировка рекламы"]
-
-        subgraph k8s["k0s — один узел, встроенный etcd, Calico vxlan"]
-            ACME["cert-manager<br/>ACME DNS-01"]
-            VSO["Vault Secrets Operator"]
-            CSI["Longhorn CSI<br/>снапшоты, клоны, RWX"]
-            ARGO["Argo CD<br/>self-heal"]
-            PG["CloudNativePG<br/>PostgreSQL"]
-            MDB["MariaDB Operator"]
-
-            ZIT["Zitadel — OIDC"]
-            O2P["oauth2-proxy<br/>forward auth"]
-
-            APPS["~50 сервисов<br/>apps/"]
-
-            VM["VictoriaMetrics"]
-            LOKI["Loki"]
-            TEMPO["Tempo"]
-            PYRO["Pyroscope"]
-            ALLOY["Alloy — логи + eBPF-профили"]
-            BEYLA["Beyla — eBPF-инструментация"]
-            OTEL["OTel Collector"]
-
-            RUSTFS["RustFS — S3"]
-            ATS["ATS — HTTP-кэш"]
-            ATHENS["Athens — Go-прокси"]
-            VERDACCIO["Verdaccio — npm"]
-            ZOT["Zot — OCI-реестр"]
-        end
+    subgraph host["Домашний сервер — Fedora Server 44<br/>k0s, один узел"]
+        EDGE["Traefik<br/>Gateway API :80 / :443<br/>wildcard-сертификат"]
+        AUTH["oauth2-proxy<br/>forward auth<br/>Zitadel — OIDC"]
+        APPS["~50 сервисов<br/>apps/"]
+        OPS["Argo CD — GitOps<br/>cert-manager<br/>ACME DNS-01<br/>Vault Operator<br/>Longhorn CSI"]
+        DATA["CloudNativePG<br/>PostgreSQL<br/>MariaDB Operator"]
+        OBS["OTel Collector<br/>Beyla · Alloy<br/>VictoriaMetrics · Loki<br/>Tempo · Pyroscope"]
+        CACHE["RustFS · ATS · Athens<br/>Verdaccio · Zot<br>/еркала для CI без сети"]
+        DNS["Technitium DNS<br/>:53 + блокировка"]
     end
 
-    LAN --> TR
-    TS --> TR
-    LAN --> DNS
-    TR --> ACME
-    TR --> O2P
-    O2P --> ZIT
-    TR --> APPS
-    ACME -.->|DNS-01| DNS
-    VSO --> APPS
-    APPS --> PG
-    APPS --> MDB
-    APPS --> CSI
-    ARGO -.->|сверяет| ACME
-    APPS -.-> OTEL
-    OTEL --> TEMPO
-    OTEL --> VM
-    BEYLA --> TEMPO
-    ALLOY --> LOKI
-    ALLOY --> PYRO
-    RUSTFS -.->|CI тянет| ARGO
+    CLIENTS --> EDGE
+    EDGE --> AUTH
+    AUTH --> APPS
+    CACHE -.->|CI тянет| OPS
+    OPS -.->|деплоит| APPS
+    OPS -.->|ACME DNS-01| DNS
+    APPS --> DATA
+    APPS -.-> OBS
+    APPS -.->|резолвит| DNS
 ```
 
 Источник модели архитектуры: [`apps/structurizr/homelab.dsl`](apps/structurizr/homelab.dsl) —
@@ -181,7 +147,7 @@ Grafana связывает сигналы между собой: `tracesToLogsV2
 
 ## Идентификация
 
-Zitadel — основной OIDC-провайдер. Сервисы без нативного OIDC стоят за oauth2-proxy в режиме forward auth, поэтому контроль доступа обеспечивается на ingress, а не в каждом приложении.
+Zitadel — основной OIDC-провайдер. Сервисы без нативного OIDC стоят за oauth2-proxy в режиме forward auth, поэтому контроль доступа обеспечивается на периметре, а не в каждом приложении.
 
 ## CI
 
@@ -229,7 +195,6 @@ DNS-01 для провайдера, который резервирует имя
 | Сервис | Назначение |
 |---|---|
 | [Zitadel](apps/zitadel/) | Identity provider и SSO (основной) |
-| [Authentik](apps/authentik/) | Identity provider и SSO (тестовый стенд) |
 | [oauth2-proxy](apps/oauth2-proxy/) | Forward auth для сервисов без своего входа |
 | [Technitium](apps/technitium/) | DNS-сервер и блокировка рекламы |
 | [Homepage](apps/homepage/) | Стартовая страница |
