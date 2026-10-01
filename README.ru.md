@@ -113,7 +113,7 @@ flowchart TB
 | Компонент | Роль | Каталог |
 |---|---|---|
 | k0s | Одноузловой Kubernetes: Calico CNI, встроенный etcd, CoreDNS | [`platform/k0s/`](platform/k0s/) |
-| Traefik | Единый ingress на :80/:443 через `externalIPs`, wildcard-сертификат | [`platform/traefik/`](platform/traefik/) |
+| Gateway + Traefik | Gateway API на :80/:443 через `externalIPs`, wildcard-сертификат | [`platform/traefik/`](platform/traefik/) |
 | Technitium DNS | Локальный DNS, wildcard-зона, блокировка рекламы | [`apps/technitium/`](apps/technitium/) |
 | cert-manager | TLS через ACME DNS-01 | [`platform/cert-manager/`](platform/cert-manager/) |
 | Longhorn | CSI-хранилище: снапшоты, клоны, RWX | [`platform/longhorn/`](platform/longhorn/) |
@@ -311,6 +311,13 @@ docs/                    ADR, исследования, инциденты, ра
    - `kubectl apply -f apps/<сервис>/k8s/`
    - `helm template platform/homelab | kubectl apply -f -`
 3. Проверить health, DNS и HTTP-маршрут. Только потом закрыть issue.
+
+`helm template … | kubectl apply -f -` ничего не удаляет: объект, убранный из чарта,
+остаётся в кластере, продолжает обслуживать трафик и выглядит как успешное изменение.
+`helm template … | kubectl delete -f -` хуже — сносит все объекты, которые рендерит чарт,
+включая те, к которым изменение отношения не имеет. Удалять поимённо
+(`kubectl delete httproute -n <ns> <name> -n <ns> <name>`) и проверять `kubectl get`,
+что старый объект исчез.
 
 GitOps проверяется через Argo CD с `selfHeal: true`, который уже ловил и откатывал дрейф.
 Prune намеренно отключён там, где задействованы CRD или StatefulSet: неверный prune на

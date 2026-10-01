@@ -112,7 +112,7 @@ Structurizr DSL workspace, rendered by the deployed Structurizr instance.
 | Component | Role | Directory |
 |---|---|---|
 | k0s | Single-node Kubernetes: Calico CNI, embedded etcd, CoreDNS | [`platform/k0s/`](platform/k0s/) |
-| Traefik | Single ingress on :80/:443 via `externalIPs`, wildcard TLS | [`platform/traefik/`](platform/traefik/) |
+| Gateway + Traefik | Gateway API on :80/:443 via `externalIPs`, wildcard TLS | [`platform/traefik/`](platform/traefik/) |
 | Technitium DNS | Local DNS, wildcard zone, ad blocking | [`apps/technitium/`](apps/technitium/) |
 | cert-manager | TLS via ACME DNS-01 | [`platform/cert-manager/`](platform/cert-manager/) |
 | Longhorn | CSI storage: snapshots, clones, RWX | [`platform/longhorn/`](platform/longhorn/) |
@@ -307,6 +307,13 @@ before the issue closes.
    - `kubectl apply -f apps/<service>/k8s/`
    - `helm template platform/homelab | kubectl apply -f -`
 3. Verify health, DNS, and the HTTP route. Only then close the issue.
+
+`helm template … | kubectl apply -f -` never deletes anything: an object removed from
+the chart stays in the cluster, keeps serving traffic, and looks like a successful
+change. `helm template … | kubectl delete -f -` is worse — it removes every object
+the chart renders, including ones the change was not about. Delete by name
+(`kubectl delete httproute -n <ns> <name> -n <ns> <name>`) and confirm with
+`kubectl get` that the old object is gone.
 
 GitOps is exercised through Argo CD with `selfHeal: true`, which has already caught and reverted
 drift. Pruning is deliberately disabled where CRDs or StatefulSets are involved: an incorrect prune

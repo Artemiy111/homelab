@@ -51,10 +51,14 @@ status: accepted
   не действует. Обратная сторона: `kubernetesCRD` нельзя выключить, пока
   жив forward auth, даже если остальные маршруты переведены на нативные
   фильтры.
-- **`nativeLB` не потребовался.** В Gateway API его нет, и казалось, что три
-  маршрута к hostNetwork-подам (home-assistant, talk-hpb, livekit) придётся
-  оставить. Проверено пробой: `HTTPRoute` без `nativeLB` отвечает 200 — у
-  hostNetwork-подов endpoint сервиса и так адрес узла.
+- **`nativeLB` переносится аннотацией на Service.** В `HTTPRoute` опции
+  per-backend нет, и `nativeLBByDefault` включать глобально нельзя. Для
+  hostNetwork-подов это не косметика: endpoint сервиса — адрес узла, и без
+  nativeLB Traefik при dial-е попадает сам в себя (`node:80` отдаёт 404 от
+  Traefik, `clusterIP:80` — 200 от приложения). Решение —
+  `traefik.io/service.nativelb: "true"` на Service, что в
+  `pkg/provider/kubernetes/gateway/kubernetes.go:1038` перекрывает
+  `NativeLBByDefault`. Затрагивает home-assistant, talk-hpb и livekit.
 - **Apex-домен требует отдельного слушателя.** `*.example.com` не
   пересекается с `example.com` (`findMatchingHostname` проверяет `HasSuffix`
   по `*.example.com`), поэтому для `/.well-known/matrix/*` добавлен слушатель
@@ -62,5 +66,11 @@ status: accepted
 - **Потеря шаблонизации домена.** Сейчас 49 маршрутов берут
   `{{ .Values.config.domain }}`; в `apps/` шаблонов нет. Смена домена (#672)
   становится правкой N файлов, а не одного `values.yaml`.
+- **Две вещи не перенесены, потому что нечего переносить.** `elk` выведен из
+  эксплуатации (#617), его `ServersTransport kibana-insecure` удалён вместе с
+  маршрутом, а не потерян при миграции. `scheme: h2c` у zitadel: в
+  Traefik-Gateway API схемы для `backendRef` нет вообще, но и не понадобилось —
+  HTTPRoute определяет протокол по Upgrade-заголовкам, и gRPC-шлюз zitadel
+  работает через обычный `HTTP`.
 - **Не покрыто миграцией:** публикация адреса через `externalIPs` (deprecated в
   Kubernetes 1.36, CVE-2020-8554) — отдельная задача с возвратом MetalLB.

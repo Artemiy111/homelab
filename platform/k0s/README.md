@@ -174,7 +174,7 @@ etc/k0s/
 
 | Слой | Где |
 |---|---|
-| Ingress | Traefik — единый вход на `<node1-ip>` (`platform/traefik/`) |
+| Gateway | Traefik — единый вход на `<node1-ip>`, Gateway API (`platform/traefik/`) |
 | UI кластера | Headlamp (`platform/headlamp/`) |
 | Секреты | sealed-secrets (`argocd/applications/sealed-secrets.yaml`) |
 | GitOps | Argo CD — пробный стенд (`argocd/README.md`); целевое решение — Flux |
