@@ -6,8 +6,8 @@ resource "forgejo_branch_protection" "main" {
 
   enable_status_check = true
   status_check_contexts = [
-    "commitlint / commitlint (pull_request)",
-    "secrets / gitleaks (pull_request)",
+    "meta / commitlint (pull_request)",
+    "security / gitleaks (pull_request)",
   ]
 
   required_approvals = 0

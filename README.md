@@ -179,34 +179,29 @@ and [`docs/research/observability-pitfalls.md`](docs/research/observability-pitf
 ## Identity
 
 Zitadel is the primary OIDC provider. Services without native OIDC sit behind oauth2-proxy in
-forward-auth mode, so access control is enforced at the ingress rather than per application. Since
-Traefik already emits traces and metrics, auth failures surface in the same dashboards as
-everything else.
+forward-auth mode, so access control is enforced at the ingress rather than per application.
 
 ## CI
 
-A set of Forgejo Actions workflows, path-filtered so a change to a shell script does not trigger a
-manifest lint. A couple of them are required status checks.
+A set of Forgejo Actions workflows
 
-| Workflow | Tool | Scope |
+| Check | Tool | Scope |
 |---|---|---|
-| `commitlint` | commitlint | Conventional Commits, header length cap |
-| `secrets` | gitleaks | Secrets in commits and PR diffs |
-| `kubeconform` | kubeconform | Manifests against real Kubernetes schemas |
-| `kube-linter` | kube-linter | Security checks, explicit allow-list |
-| `actionlint` | actionlint | The workflows themselves |
-| `ansible` | ansible-lint | `production` profile |
-| `shellcheck` | shellcheck | All shell scripts |
-| `tflint` | tflint | Terraform HCL, bundled ruleset |
+| `meta / commitlint` | commitlint | Conventional Commits, header length cap |
+| `meta / actionlint` | actionlint | The workflows themselves |
+| `meta / status` | status-badges.sh | Badge numbers match the repository |
+| `security / gitleaks` | gitleaks | Secrets in commits and PR diffs |
+| `lint / shellcheck` | shellcheck | All shell scripts |
+| `lint / ansible-lint` | ansible-lint | `production` profile |
+| `lint / tflint` | tflint | Terraform HCL, bundled ruleset |
+| `manifests / kubeconform` | kubeconform | Manifests against real Kubernetes schemas |
+| `manifests / kube-linter` | kube-linter | Security checks, explicit allow-list |
 
 Every tool is fetched from an in-cluster mirror and verified against a pinned checksum, because
 the runners have no internet access. Details in [Supply chain](#supply-chain).
 
 Local hooks run the same checks before a commit leaves the machine
 ([`.githooks/`](.githooks/)), so CI failures should be the exception rather than the routine.
-The hooks are tracked in the repository and enabled per clone with
-`git config core.hooksPath .githooks`, so they work in a `git worktree` with no
-extra setup — and `./scripts/check.sh` runs the same steps by hand.
 
 ## Custom tooling
 

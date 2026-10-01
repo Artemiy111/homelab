@@ -181,26 +181,23 @@ Grafana связывает сигналы между собой: `tracesToLogsV2
 
 ## Идентификация
 
-Zitadel — основной OIDC-провайдер. Сервисы без нативного OIDC стоят за oauth2-proxy в режиме
-forward auth, поэтому контроль доступа обеспечивается на ingress, а не в каждом приложении.
-Так как Traefik уже шлёт трейсы и метрики, отказы авторизации видны в тех же дашбордах, что
-и всё остальное.
+Zitadel — основной OIDC-провайдер. Сервисы без нативного OIDC стоят за oauth2-proxy в режиме forward auth, поэтому контроль доступа обеспечивается на ingress, а не в каждом приложении.
 
 ## CI
 
-Набор workflow на Forgejo Actions, отфильтрованных по путям: правка shell-скрипта не
-запускает линтер манифестов. Обязательными статусными проверками сделаны два из них.
+Набор workflow на Forgejo Actions.
 
-| Workflow | Инструмент | Что проверяет |
+| Проверка | Инструмент | Что проверяет |
 |---|---|---|
-| `commitlint` | commitlint | Conventional Commits, ограничение длины заголовка |
-| `secrets` | gitleaks | Секреты в коммитах и диффах PR |
-| `kubeconform` | kubeconform | Манифесты по настоящим схемам Kubernetes |
-| `kube-linter` | kube-linter | Проверки безопасности, явный allow-list |
-| `actionlint` | actionlint | Сами workflow |
-| `ansible` | ansible-lint | Профиль `production` |
-| `shellcheck` | shellcheck | Все shell-скрипты |
-| `tflint` | tflint | HCL Terraform, встроенный ruleset |
+| `meta / commitlint` | commitlint | Conventional Commits, ограничение длины заголовка |
+| `meta / actionlint` | actionlint | Сами workflow |
+| `meta / status` | status-badges.sh | Числа бейджей соответствуют репозиторию |
+| `security / gitleaks` | gitleaks | Секреты в коммитах и диффах PR |
+| `lint / shellcheck` | shellcheck | Все shell-скрипты |
+| `lint / ansible-lint` | ansible-lint | Профиль `production` |
+| `lint / tflint` | tflint | HCL Terraform, встроенный ruleset |
+| `manifests / kubeconform` | kubeconform | Манифесты по настоящим схемам Kubernetes |
+| `manifests / kube-linter` | kube-linter | Проверки безопасности, явный allow-list |
 
 Каждый инструмент скачивается из внутрикластерного зеркала и сверяется с закреплённой
 контрольной суммой, потому что у раннеров нет доступа в интернет. Подробности в разделе
@@ -208,9 +205,6 @@ forward auth, поэтому контроль доступа обеспечив�
 
 Локальные хуки прогоняют те же проверки до того, как коммит покинет машину
 ([`.githooks/`](.githooks/)), так что падения в CI — исключение, а не норма.
-Хуки лежат в репозитории и включаются один раз на клон командой
-`git config core.hooksPath .githooks`, поэтому работают и в `git worktree` без
-дополнительной настройки, а `./scripts/check.sh` прогоняет те же шаги вручную.
 
 ## Свои инструменты
 
