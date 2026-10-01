@@ -3,6 +3,7 @@ kind: Kustomization
 namespace: uptime-kuma
 resources:
   - k8s/namespace.yaml
+  - k8s/route.yaml
   - k8s/vaultauth.yaml
   - k8s/vaultstaticsecret-mariadb.yaml
   - k8s/service.yaml

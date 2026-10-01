@@ -3,6 +3,9 @@ kind: Kustomization
 namespace: seafile
 resources:
   - k8s/namespace.yaml
+  - k8s/onlyoffice.middleware.yaml
+  - k8s/onlyoffice.route.yaml
+  - k8s/route.yaml
   - k8s/networkpolicy.yaml
   - k8s/onlyoffice.deployment.yaml
   - k8s/onlyoffice.service.yaml

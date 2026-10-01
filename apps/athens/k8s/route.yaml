@@ -1,0 +1,16 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: athens
+  namespace: athens
+spec:
+  parentRefs:
+    - name: homelab
+      namespace: traefik
+      sectionName: https
+  hostnames:
+    - goproxy.biplane.v6.rocks
+  rules:
+    - backendRefs:
+        - name: athens
+          port: 80

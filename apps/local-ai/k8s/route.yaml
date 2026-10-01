@@ -1,0 +1,16 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: local-ai
+  namespace: local-ai
+spec:
+  parentRefs:
+    - name: homelab
+      namespace: traefik
+      sectionName: https
+  hostnames:
+    - localai.biplane.v6.rocks
+  rules:
+    - backendRefs:
+        - name: local-ai
+          port: 80

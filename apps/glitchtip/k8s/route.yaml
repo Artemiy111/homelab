@@ -1,0 +1,16 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: glitchtip
+  namespace: glitchtip
+spec:
+  parentRefs:
+    - name: homelab
+      namespace: traefik
+      sectionName: https
+  hostnames:
+    - glitchtip.biplane.v6.rocks
+  rules:
+    - backendRefs:
+        - name: glitchtip
+          port: 80

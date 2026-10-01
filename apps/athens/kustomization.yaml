@@ -3,6 +3,7 @@ kind: Kustomization
 namespace: athens
 resources:
   - k8s/namespace.yaml
+  - k8s/route.yaml
   - k8s/service.yaml
   - k8s/deployment.yaml
   - k8s/data.pvc.yaml

@@ -3,6 +3,7 @@ kind: Kustomization
 namespace: homepage
 resources:
   - k8s/namespace.yaml
+  - k8s/route.yaml
   - k8s/rbac.yaml
   - k8s/service.yaml
   - k8s/deployment.yaml
