@@ -6,6 +6,29 @@ providers:
   kubernetesCRD:
     # Middlewares живут в traefik, а IngressRoute — в namespace приложения.
     allowCrossNamespace: true
+  kubernetesGateway:
+    # HTTPRoute обслуживает тот же Traefik. CRD Gateway API ставит отдельное
+    # приложение argocd/applications/gateway-api.yaml: чарт Traefik их не везёт
+    # с версии 40.2.0, а skipCrds на них не действует.
+    enabled: true
+    # TCPRoute смотрится на v1alpha2, которого нет в standard CRD v1.6.
+    # Экспериментальный канал не включаем: вместе с отсутствующими
+    # экспериментальными CRD это приводит к тому, что провайдер молча не
+    # стартует, а остальные провайдеры продолжают работать.
+    experimentalChannel: false
+    # nativeLBByDefault включать нельзя: per-backend настройки в Gateway API
+    # нет, а три маршрута (home-assistant, talk-hpb, livekit) идут к
+    # hostNetwork-подам. Включение глобально изменит все 49 маршрутов.
+    nativeLBByDefault: false
+
+# Gateway и GatewayClass описаны в templates/gateway/ чарта platform/homelab:
+# hostname слушателя и certificateRef требуют домена из values, которого в
+# values чарта Traefik нет. Дефолт чарта (gateway.enabled) выключаем, иначе
+# появится второй Gateway без сертификата.
+gateway:
+  enabled: false
+gatewayClass:
+  enabled: false
 
 service:
   spec:

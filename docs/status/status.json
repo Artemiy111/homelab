@@ -2,7 +2,7 @@
   "schema": 1,
   "source": "scripts/status-badges.sh",
   "services": 55,
-  "manifests": 393,
+  "manifests": 395,
   "images": {
     "pinned": 131,
     "total": 132,
@@ -21,7 +21,7 @@
     "sealed_secret": 5
   },
   "docs": {
-    "adr": 9,
+    "adr": 10,
     "postmortems": 5,
     "research": 48
   }

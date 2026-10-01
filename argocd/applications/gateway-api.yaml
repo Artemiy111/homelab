@@ -1,0 +1,44 @@
+# Gateway API CRD — без них в кластере нет ни Gateway, ни HTTPRoute.
+#
+# Ставим CRD из репозитория самого проекта, а не из чарта Traefik: чарт 41.4.0
+# их больше не везёт (убрали в 40.2.0, CRD не принадлежат Traefik), и
+# `skipCrds: true` в Application traefik на них не действует. Официального
+# Helm-чарта gateway-api нет, OCI-репозиторий недоступен, поэтому Argo берёт
+# каталог `config/crd/standard` из репозитория проекта по тегу.
+#
+# Канал standard, версия v1.6.2 — это то, что поддерживает Traefik v3.7.12
+# (chart 41.4.0). README чарта Traefik указывает v1.5.1, доки Traefik — v1.6.2;
+# версии 1.5.x и 1.6.x обратно совместимы, но для свежей установки верным
+# источником считаем доки.
+#
+# Экспериментальный канал не нужен: Traefik v3.7 смотрит TCPRoute на v1alpha2,
+# которого в standard CRD v1.6 уже нет. Включение `experimentalChannel=true`
+# без экспериментальных CRD приводит к тому, что провайдер молча не стартует.
+#
+# В каталогеstandard лежит не только CRD: там же ValidatingAdmissionPolicy
+# safe-upgrades, которая запрещает ставить experimental-канал поверх standard и
+# CRD старше v1.5. Если когда-нибудь понадобится experimental, её придётся
+# снять отдельно — осознанно, а не молча.
+#
+# Prune=false по той же причине, что у cert-manager: CRD кластерные, и prune
+# вместе с приложением снёс бы все HTTPRoute/Gateway кластера.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: gateway-api
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/kubernetes-sigs/gateway-api.git
+    targetRevision: v1.6.2
+    path: config/crd/standard
+  destination:
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    syncOptions:
+      - ServerSideApply=true
+      - Prune=false
+      - CreateNamespace=false
+    automated:
+      selfHeal: true

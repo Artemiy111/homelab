@@ -1,0 +1,52 @@
+{{- $domain := .Values.config.domain }}
+# GatewayClass, которым обслуживает Traefik. Имя и controllerName совпадают с
+# теми, что создаёт чарт Traefik (templates/gatewayclass.yaml), поэтому наш
+# объект и объект чарта — один и тот же: применяется ровно один. При
+# `gatewayClass.enabled: false` в values чарт свой GatewayClass не создаёт, и
+# владение объектом целиком здесь.
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: traefik
+spec:
+  controllerName: traefik.io/gateway-controller
+---
+# Единственная точка входа в кластер. HTTPS-слушатель Terminate с
+# certificateRef на wildcard-секрет, который выпускает cert-manager
+# (templates/cert-manager/certificate.yaml).
+#
+# Секрет лежит в этом же namespace, поэтому ReferenceGrant не нужен: без него
+# Traefik отклонит ссылку как cross-namespace.
+#
+# hostname — wildcard: слушатель принимает любой поддомен, конкретные имена
+# задаёт HTTPRoute. Так же работала схема с TLSStore default — раньше
+# сертификат выдавался любому SNI одним стора, теперь то же делает слушатель.
+# Apex-домен сюда не входит намеренно: он обслуживается через IngressRoute
+# element-well-known (routes/element.yaml), иначе два объекта claim-ят один
+# хост, и Gateway молча перебьёт IngressRoute по приоритету.
+#
+# allowedRoutes.namespaces.from: All — HTTPRoute лежат в namespace приложений
+# (apps/<сервис>/k8s/), а Gateway здесь, в traefik. from: Same не прикрепил бы
+# ни одного маршрута, Selector потребовал бы метки на каждом namespace. All —
+# сознательный размен: целостность обеспечивает то, что HTTPRoute всё равно
+# нужно положить в репозиторий.
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: homelab
+  namespace: traefik
+spec:
+  gatewayClassName: traefik
+  listeners:
+    - name: https
+      protocol: HTTPS
+      port: 8443
+      hostname: "*.{{ $domain }}"
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            name: wildcard-tls
+      allowedRoutes:
+        namespaces:
+          from: All
