@@ -1,4 +1,4 @@
-name: status
+name: meta
 
 on:
   push:
@@ -22,7 +22,6 @@ on:
 # apps/rustfs/artifacts.tsv.
 jobs:
   status:
-    name: status
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:

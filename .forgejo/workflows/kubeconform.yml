@@ -1,4 +1,4 @@
-name: kubeconform
+name: manifests
 
 on:
   push:
@@ -13,7 +13,6 @@ on:
 
 jobs:
   kubeconform:
-    name: kubeconform
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

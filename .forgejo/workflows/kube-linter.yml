@@ -1,4 +1,4 @@
-name: kube-linter
+name: manifests
 
 on:
   push:
@@ -14,7 +14,6 @@ on:
 
 jobs:
   kube-linter:
-    name: kube-linter
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
