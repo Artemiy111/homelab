@@ -75,7 +75,8 @@ cert-manager скрейпится тремя отдельными job'ами (`c
 
 ## Алёрты
 
-Правила живут в Grafana (`apps/grafana/config/alerting/victoria-metrics.yaml`),
+Правила живут в Grafana (`apps/grafana/k8s/alerts.yaml`, группа
+`victoria-metrics`),
 доставляются в ntfy. Пороги и обоснование — в `apps/grafana/README.md`,
 раздел «Алёрты». Ниже — что делать, когда алерт уже сработал.
 

@@ -5,12 +5,13 @@ resources:
   - k8s/grafana.yaml
   - k8s/datasources.yaml
   - k8s/dashboards.yaml
+  - k8s/alerts.yaml
   - k8s/vaultauth.yaml
   - k8s/vaultstaticsecret.yaml
 configMapGenerator:
-  # Провижининг dashboards и алертинга + сами дашборды собираются из файлов
-  # configMapGenerator'ом. Datasource'ы вынесены в k8s/datasources.yaml: ими
-  # управляет оператор, в провижининге им больше не место.
+  # Дашборды и contact point собираются из файлов configMapGenerator'ом.
+  # Datasource'ы, правила алертинга и дерево политик ими управляет оператор
+  # (k8s/datasources.yaml, k8s/alerts.yaml), в провижининге им больше не место.
   # Суффикс-хэш отключён: имена ConfigMap'ов должны быть стабильными, иначе на
   # них нельзя сослаться из Grafana CR. Рестарт при изменении файлов делает
   # оператор — аннотация checksum/secrets в pod template это SHA от содержимого
@@ -23,22 +24,17 @@ configMapGenerator:
   # правка ConfigMap не вызывает реконсиль и не перезапускает под: изменение
   # молча не применяется. Проверено на стенде — ноль реконсилей за 30 секунд
   # после правки ConfigMap без лейбла.
-  # Провижининг алертинга: contact points, дерево политик и правила. Grafana
-  # перечитывает provisioning только на старте, поэтому пересборка этого
-  # ConfigMap должна приводить к рестарту пода — это делает оператор.
+  # Провижининг ConfigMap'а остался только ради contact point: URL вебхука
+  # содержит тему ntfy, а valuesFrom оператора заменяет поле целиком, поэтому в
+  # секрете должен лежать весь URL, а в Vault лежит только тема (ntfy/topic).
+  # Альтернатива — valuesFrom плюс путь ntfy/url в Vault, см. README.
+  # Правила и дерево политик переехали в k8s/alerts.yaml.
   - name: grafana-alerting
     options:
       labels:
         app.kubernetes.io/managed-by: grafana-operator
     files:
       - config/alerting/contact-points.yaml
-      - config/alerting/notification-policies.yaml
-      - config/alerting/victoria-metrics.yaml
-      - config/alerting/logs.yaml
-      # Один механизм на все PVC вместо ручного перечисления томов стенки,
-      # и контроль срока действия сертификатов.
-      - config/alerting/storage.yaml
-      - config/alerting/certificates.yaml
   # Дашборды остаются в ConfigMap: JSON велик (249 КБ на cloudnative-pg), и CR
   # оператора ссылается на него через configMapRef, а не хранит JSON внутри себя.
   - name: grafana-dashboards
