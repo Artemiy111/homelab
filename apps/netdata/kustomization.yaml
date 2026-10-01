@@ -3,6 +3,10 @@ kind: Kustomization
 namespace: monitoring
 resources:
   - k8s/deployment.yaml
+  - k8s/secure-headers.middleware.yaml
+  - k8s/ratelimit-default.middleware.yaml
+  - k8s/oauth2-proxy.middleware.yaml
+  - k8s/route.yaml
   - k8s/lib.pvc.yaml
   - k8s/service.yaml
 configMapGenerator:
