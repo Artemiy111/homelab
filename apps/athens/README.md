@@ -58,7 +58,7 @@ sumdb-прокси Athens. Если проверка сумм не нужна (�
 (`@vX.Y.Z`) или собирать из `go.mod`.
 
 С хоста (Ansible-сборка `vals` из `cli_tools`) Athens доступен по внешнему
-маршруту Traefik (`platform/homelab/templates/routes/athens.yaml`):
+маршруту Traefik (`apps/athens/k8s/route.yaml`):
 
 ```
 GOPROXY=https://goproxy.<домен>

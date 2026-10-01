@@ -10,7 +10,7 @@ resources:
   - k8s/networkpolicy.yaml
   - k8s/zitadel.deployment.yaml
   - k8s/zitadel.service.yaml
-  - middleware.yaml
+  - k8s/route.yaml
 configMapGenerator:
   # config/zitadel.yaml собирается в ConfigMap `zitadel-config`; kustomize
   # добавляет хэш содержимого к имени и переписывает ссылку в Deployment,

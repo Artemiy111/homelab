@@ -16,7 +16,7 @@
 
 VM и vmagent наружу не публикуются: их UI нужен только для отладки, запросы
 идут через Grafana. VMUI доступен по адресу `https://vm.example.com/` за
-`oauth2-proxy` (см. `platform/homelab/templates/routes/victoria-metrics.yaml`).
+`oauth2-proxy` (см. `apps/victoria-metrics/k8s/route.yaml`).
 
 ## Поток метрик
 

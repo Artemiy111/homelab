@@ -21,9 +21,12 @@ spec:
 # hostname — wildcard: слушатель принимает любой поддомен, конкретные имена
 # задаёт HTTPRoute. Так же работала схема с TLSStore default — раньше
 # сертификат выдавался любому SNI одним стора, теперь то же делает слушатель.
-# Apex-домен сюда не входит намеренно: он обслуживается через IngressRoute
-# element-well-known (routes/element.yaml), иначе два объекта claim-ят один
-# хост, и Gateway молча перебьёт IngressRoute по приоритету.
+#
+# Apex-домен требует отдельного слушателя: `*.example.com` не пересекается с
+# `example.com` (findMatchingHostname проверяет HasSuffix по `*.example.com`,
+# поэтому apex не матчится). Слушатель `apex` нужен ради
+# `/.well-known/matrix/*`, который отдаёт synapse: без него Matrix-клиент не
+# получает homeserver.
 #
 # allowedRoutes.namespaces.from: All — HTTPRoute лежат в namespace приложений
 # (apps/<сервис>/k8s/), а Gateway здесь, в traefik. from: Same не прикрепил бы
@@ -42,6 +45,18 @@ spec:
       protocol: HTTPS
       port: 8443
       hostname: "*.{{ $domain }}"
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            name: wildcard-tls
+      allowedRoutes:
+        namespaces:
+          from: All
+    - name: apex
+      protocol: HTTPS
+      port: 8443
+      hostname: "{{ $domain }}"
       tls:
         mode: Terminate
         certificateRefs:

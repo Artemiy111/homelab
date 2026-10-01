@@ -1,0 +1,26 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: talk-hpb
+  namespace: talk-hpb
+spec:
+  parentRefs:
+    - name: homelab
+      namespace: traefik
+      sectionName: https
+  hostnames:
+    - talk-signaling.biplane.v6.rocks
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /standalone-signaling
+      filters:
+        - type: URLRewrite
+          urlRewrite:
+            path:
+              type: ReplacePrefixMatch
+              replacePrefixMatch: /
+      backendRefs:
+        - name: talk-hpb
+          port: 80

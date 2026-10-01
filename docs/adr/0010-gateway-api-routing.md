@@ -7,8 +7,10 @@ status: accepted
 Маршрутизацию переводим с `Ingress`/`IngressRoute` на Gateway API (`HTTPRoute`).
 Реализацией остаётся **тот же Traefik** — включается его dormant-провайдер
 `kubernetesGateway`. Gateway и его слушатели — платформенный компонент в
-`platform/gateway/`, а `HTTPRoute` уезжает в `apps/<сервис>/k8s/` рядом с
-приложением, и `platform/homelab/templates/routes/` исчезает.
+`platform/homelab/templates/gateway/` (в чарте, потому что hostname слушателя
+и `certificateRef` требуют домена из его `values.yaml`), а `HTTPRoute` уезжает в
+`apps/<сервис>/k8s/` рядом с приложением, и
+`platform/homelab/templates/routes/` исчезает.
 
 ## Considered Options
 
@@ -39,11 +41,24 @@ status: accepted
   одном хосте Gateway молча перебивает CRD без warning'а. Поэтому `HTTPRoute`
   нельзя применять раньше, чем удалён `IngressRoute`: иначе старый маршрут не
   «продолжит работать», а будет незаметно вытеснен.
-- **Часть возможностей через Gateway API недоступна** в v3.7.12: `HTTPRouteRetry`,
-  `HTTPRouteTimeout`, `HTTPRouteCORS`, `HTTPRouteRequestMirror`, `ListenerSet`,
-  frontend mTLS. `TCPRoute` смотрится на `v1alpha2`, которого нет в standard
-  CRD v1.6 — включать `experimentalChannel` только ради него нельзя: провайдер
-  тогда молча не стартует.
+- **`Middleware` в `HTTPRoute` ищется в namespace маршрута, а не в `traefik`.**
+  `extensionRef` — это `LocalObjectReference` без поля `namespace`, а
+  `loadHTTPRouteFilterExtensionRef` передаёт в колбэк namespace самого
+  `HTTPRoute`. Проверено на стенде: ссылка из `monitoring` на `secure-headers`
+  даёт `middleware "monitoring-secure-headers@kubernetescrd" does not exist`.
+  Поэтому `oauth2-proxy`, `secure-headers` и `ratelimit-default` размножены по
+  namespace'ам потребителей, а `allowCrossNamespace: true` на `HTTPRoute`
+  не действует. Обратная сторона: `kubernetesCRD` нельзя выключить, пока
+  жив forward auth, даже если остальные маршруты переведены на нативные
+  фильтры.
+- **`nativeLB` не потребовался.** В Gateway API его нет, и казалось, что три
+  маршрута к hostNetwork-подам (home-assistant, talk-hpb, livekit) придётся
+  оставить. Проверено пробой: `HTTPRoute` без `nativeLB` отвечает 200 — у
+  hostNetwork-подов endpoint сервиса и так адрес узла.
+- **Apex-домен требует отдельного слушателя.** `*.example.com` не
+  пересекается с `example.com` (`findMatchingHostname` проверяет `HasSuffix`
+  по `*.example.com`), поэтому для `/.well-known/matrix/*` добавлен слушатель
+  `apex`.
 - **Потеря шаблонизации домена.** Сейчас 49 маршрутов берут
   `{{ .Values.config.domain }}`; в `apps/` шаблонов нет. Смена домена (#672)
   становится правкой N файлов, а не одного `values.yaml`.

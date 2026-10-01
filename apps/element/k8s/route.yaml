@@ -1,0 +1,93 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: element
+  namespace: element
+spec:
+  parentRefs:
+    - name: homelab
+      namespace: traefik
+      sectionName: https
+  hostnames:
+    - element.biplane.v6.rocks
+  rules:
+    # Element Call: SFU signaling. Порядок правил заменяет priority: Traefik
+    # считает приоритет по длине правила, Gateway API — по порядку, и точное
+    # совпадение всегда выигрывает у префикса.
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /livekit/sfu
+      filters:
+        - type: URLRewrite
+          urlRewrite:
+            path:
+              type: ReplacePrefixMatch
+              replacePrefixMatch: /
+      backendRefs:
+        - name: livekit
+          port: 80
+    # MatrixRTC authorization service.
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /livekit/jwt
+      filters:
+        - type: URLRewrite
+          urlRewrite:
+            path:
+              type: ReplacePrefixMatch
+              replacePrefixMatch: /
+      backendRefs:
+        - name: matrix-rtc-auth
+          port: 80
+    # Matrix client/federation API.
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /_matrix
+      backendRefs:
+        - name: synapse
+          port: 80
+    # Synapse endpoints: OIDC callback и пр.
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /_synapse
+      backendRefs:
+        - name: synapse
+          port: 80
+    # Сам web-клиент Element: без match ловит всё, что не разобрали выше.
+    - backendRefs:
+        - name: element-web
+          port: 80
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: element-well-known
+  namespace: element
+spec:
+  parentRefs:
+    - name: homelab
+      namespace: traefik
+      sectionName: apex
+  hostnames:
+    - biplane.v6.rocks
+  rules:
+    # Apex-домен обслуживает только well-known: Gateway-слушатель отдаёт
+    # wildcard, и без этих точных правил хост ушёл бы в catch-all.
+    - matches:
+        - path:
+            type: Exact
+            value: /.well-known/matrix/client
+      backendRefs:
+        - name: synapse
+          port: 80
+    - matches:
+        - path:
+            type: Exact
+            value: /.well-known/matrix/server
+      backendRefs:
+        - name: synapse
+          port: 80

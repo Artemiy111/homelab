@@ -1,0 +1,53 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: zitadel
+  namespace: zitadel
+spec:
+  parentRefs:
+    - name: homelab
+      namespace: traefik
+      sectionName: https
+  hostnames:
+    - id.biplane.v6.rocks
+  rules:
+    # Корень хоста → login UI.
+    - matches:
+        - path:
+            type: Exact
+            value: /
+      filters:
+        - type: URLRewrite
+          urlRewrite:
+            path:
+              type: ReplaceFullPath
+              replaceFullPath: /ui/v2/login/
+      backendRefs:
+        - name: zitadel-login
+          port: 80
+    # Login UI (v2).
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /ui/v2/login
+      backendRefs:
+        - name: zitadel-login
+          port: 80
+    # API/gRPC-шлюз: strip /api.
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api
+      filters:
+        - type: URLRewrite
+          urlRewrite:
+            path:
+              type: ReplacePrefixMatch
+              replacePrefixMatch: /
+      backendRefs:
+        - name: zitadel
+          port: 80
+    # Всё остальное → консоль ZITADEL.
+    - backendRefs:
+        - name: zitadel
+          port: 80

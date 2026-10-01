@@ -54,7 +54,7 @@ npm_config_registry=http://verdaccio.verdaccio.svc.cluster.local/
 (`registry=`) или `NPM_CONFIG_REGISTRY`.
 
 С машины разработчика тот же реестр доступен по маршруту Traefik
-(`platform/homelab/templates/routes/verdaccio.yaml`):
+(`apps/verdaccio/k8s/route.yaml`):
 
 ```
 npm_config_registry=https://npm.<домен>/ bun install

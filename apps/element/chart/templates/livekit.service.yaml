@@ -3,6 +3,10 @@ kind: Service
 metadata:
   name: livekit
   namespace: element
+  annotations:
+    # hostNetwork: без nativeLB Traefik dial-ит адрес узла и попадает в себя.
+    # Подробности в apps/home-assistant/k8s/service.yaml.
+    traefik.io/service.nativelb: "true"
 spec:
   type: ClusterIP
   selector:

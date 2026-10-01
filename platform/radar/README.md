@@ -23,7 +23,7 @@ TLS-сертификаты и встроенный MCP-сервер для AI-а
 | Файл | Что делает |
 |---|---|
 | `argocd/applications/radar.yaml` | Argo Application: официальный чарт `skyhook/radar`, `auth.mode=oidc`; issuer, clientID и redirectURL заданы в `valuesObject` |
-| `platform/homelab/templates/routes/radar.yaml` | Маршрут: secure-headers + ratelimit, без oauth2-proxy |
+| `platform/radar/route.yaml` | Маршрут: secure-headers + ratelimit, без oauth2-proxy |
 | `platform/radar/vso-radar.serviceaccount.yaml` | ServiceAccount для External Secrets Operator |
 | `platform/radar/vso-radar.vaultauth.yaml` | `VaultAuth` с ролью `radar` из Vault |
 | `platform/radar/radar-oidc.vaultstaticsecret.yaml` | `VaultStaticSecret` `kv/radar/oidc` |

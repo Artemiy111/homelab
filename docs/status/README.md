@@ -52,7 +52,7 @@ namespace'ов закрыто NetworkPolicy. Все они считаются и
   нет: тестовый стенд не применяется. Репозиторий считает её в знаменателе.
 - **`logging` — остаток выведенного из эксплуатации ELK.** Namespace и два
   NetworkPolicy в кластере есть, workloads нет; в репозитории namespace
-  объявлен в `apps/elk/` и `platform/homelab/templates/routes/elk.yaml`. Пока
+  объявлен в `apps/elk/`. Пока
   `apps/elk` не удалён (#617), репозиторий считает его как обычный namespace.
 - **`networkpolicy-vso.yaml` был объявлен, но не применён.** Манифест
   `apps/vault/k8s/networkpolicy-vso.yaml` лежал в репозитории, а в кластере

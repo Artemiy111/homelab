@@ -12,7 +12,7 @@ Argo CD поднимается на кластере как **проверка �
 | Namespace | `argocd` |
 | URL | https://argocd.example.com |
 | Параметры | `argocd/install/values.yaml` — только отклонения от дефолтов чарта |
-| Маршрут | `platform/homelab/templates/routes/argocd.yaml` |
+| Маршрут | `install/route.yaml` |
 
 Все команды ниже выполняются **на сервере** (там есть `helm` и kubeconfig),
 из корня репозитория.
@@ -223,7 +223,7 @@ kubectl -n headlamp delete secret -l owner=helm,name=headlamp
 (`platform/headlamp/headlamp-admins.clusterrolebinding.yaml`), поэтому он есть
 только у пользователей с ролью `admin` в Zitadel. `extraManifests` в этом
 Application больше нет. Маршрут
-(`platform/homelab/templates/routes/headlamp.yaml`) — вне Application.
+(`platform/headlamp/route.yaml`) — вне Application.
 
 ### Traefik
 

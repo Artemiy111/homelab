@@ -6,5 +6,5 @@ metadata:
 spec:
   redirectRegex:
     permanent: true
-    regex: ^https://rustfs\.{{ .Values.config.domain }}/$
-    replacement: https://rustfs.{{ .Values.config.domain }}/rustfs/console/
+    regex: ^https://rustfs\.biplane\.v6\.rocks/$
+    replacement: https://rustfs.biplane.v6.rocks/rustfs/console/

@@ -10,6 +10,8 @@ resources:
   - k8s/data.pvc.yaml
   - k8s/networkpolicy.yaml
   - k8s/mirror-sync.cronjob.yaml
+  - k8s/route.yaml
+  - k8s/rustfs-root-redirect.middleware.yaml
 configMapGenerator:
   # Скрипт синка и манифест артефактов. CronJob ссылается на имя `mirror-sync`,
   # kustomize подставляет хэш контента — правка файлов пересоздаёт ConfigMap и

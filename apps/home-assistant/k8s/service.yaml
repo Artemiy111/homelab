@@ -3,6 +3,14 @@ kind: Service
 metadata:
   name: home-assistant
   namespace: home-assistant
+  annotations:
+    # Под hostNetwork, поэтому endpoint сервиса — адрес узла, и Traefik при
+    # dial-е на него попадает сам в себя (node:80 отдаёт 404 от Traefik).
+    # nativeLB заставляет идти на clusterIP, где kube-proxy уводит на
+    # hostPort 8123. В IngressRoute это было полем `nativeLB: true`; в
+    # HTTPRoute per-backend опции нет, и аннотация на Service — единственный
+    # способ не включать nativeLBByDefault глобально.
+    traefik.io/service.nativelb: "true"
 spec:
   type: ClusterIP
   selector:

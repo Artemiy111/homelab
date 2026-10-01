@@ -602,7 +602,7 @@ ServiceAccount, ConfigMap с `grafana.ini` и headless-Service для алерт
 оператор ставит `app: grafana` — поэтому NetworkPolicy в `platform/cnpg/`,
 выпускающий доступ к Postgres, продолжает работать без правок.
 
-Маршрут — `platform/homelab/templates/routes/grafana.yaml` (`Host(grafana…)` за
+Маршрут — `apps/grafana/k8s/route.yaml` (`Host(grafana…)` за
 `oauth2-proxy` + `secure-headers` + `ratelimit-default`) на
 `grafana-service:3000`; Gatus и vmagent ходят на тот же адрес.
 

@@ -11,7 +11,7 @@
 | `VaultAuth` и `VaultStaticSecret` приложения | `apps/<сервис>/k8s/` | `kubectl apply` вместе с приложением |
 | NetworkPolicy неймспейса Vault | `apps/vault/k8s/networkpolicy.yaml` | `kubectl apply` |
 | NetworkPolicy неймспейса VSO | `apps/vault/k8s/networkpolicy-vso.yaml` | `kubectl apply` |
-| Маршрут и UI | `platform/homelab/templates/routes/vault.yaml` | чарт `platform/homelab` |
+| Маршрут и UI | `apps/vault/k8s/route.yaml` | чарт `platform/homelab` |
 
 ## Применение
 

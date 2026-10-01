@@ -18,9 +18,9 @@ kubectl delete kibana elk -n logging
 kubectl -n logging get all
 ```
 
-Namespace `logging` после этого пуст; его использует маршрут
-`kibana.example.com` из `platform/homelab/templates/routes/elk.yaml`. Если
-маршрут больше не нужен — удалить его отдельной задачей вместе с namespace.
+Namespace `logging` после этого пуст. Маршрут `kibana.example.com` удалён
+вместе с `IngressRoute` — переносить его на `HTTPRoute` незачем, сервис
+выведен из эксплуатации. Namespace разбирается вместе с `apps/elk` в #617.
 
 ## Почему не оставили
 
