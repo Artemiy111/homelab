@@ -1,3 +1,13 @@
+# Headlamp — веб-UI для Kubernetes. Ставится официальным чартом
+# kubernetes-sigs/headlamp, Argo рендерит его сам.
+#
+# ВНИМАНИЕ: без clusterRoleBinding.create чарт создаёт ClusterRoleBinding
+# cluster-admin на SA ПОДА. Ниже он выключен: права приходят из OIDC-токена
+# пользователя, а границей сети остаётся NetworkPolicy в
+# platform/headlamp/networkpolicy.yaml.
+#
+# Маршрут и NetworkPolicy namespace headlamp живут вне Application
+# (platform/headlamp/route.yaml, platform/headlamp/networkpolicy.yaml).
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:

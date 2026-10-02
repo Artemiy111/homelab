@@ -32,6 +32,7 @@ Claim `role` кладёт action `addRole` в Zitadel: `admin`, если у по
 | `vso-headlamp.vaultauth.yaml` | `VaultAuth` с ролью `headlamp` из Vault |
 | `headlamp-oidc.vaultstaticsecret.yaml` | `VaultStaticSecret` `kv/headlamp/oidc` |
 | `headlamp-admins.clusterrolebinding.yaml` | `cluster-admin` для группы `oidc:admin` |
+| `networkpolicy.yaml` | default-deny ingress + вход из `traefik` |
 
 По одному ресурсу на файл: k8s-валидаторы редактора берут схему первого
 документа мультидокументного YAML и ругаются на остальные.
