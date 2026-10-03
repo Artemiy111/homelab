@@ -1,8 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="105" height="20" role="img" aria-label="postmortems: 6">
-  <title>postmortems: 6</title>
+<svg xmlns="http://www.w3.org/2000/svg" width="105" height="20" role="img" aria-label="postmortems: 7">
+  <title>postmortems: 7</title>
   <style>rect.label-bg{fill:#555}@media (prefers-color-scheme:dark){rect.label-bg{fill:#3f3f3f}}text{font-family:Verdana,DejaVu Sans,Geneva,sans-serif;font-size:11px;fill:#fff}</style>
   <rect class="label-bg" width="86" height="20"/>
   <rect x="86" width="19" height="20" fill="#007ec6"/>
   <text x="43" y="14" text-anchor="middle">postmortems</text>
-  <text x="95" y="14" text-anchor="middle">6</text>
+  <text x="95" y="14" text-anchor="middle">7</text>
 </svg>

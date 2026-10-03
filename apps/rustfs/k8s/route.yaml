@@ -46,3 +46,6 @@ spec:
       backendRefs:
         - name: rustfs
           port: 80
+    - backendRefs:
+        - name: rustfs
+          port: 80
