@@ -455,5 +455,12 @@ push-зеркало в GitHub — git распределённый, и код п
   Сейчас на Ingress стоит аннотация `argocd.argoproj.io/ignore-healthcheck`;
   когда Ingress'ов под Argo станет больше, чище завести
   `resource.customizations.health.networking.k8s.io_Ingress` в `argocd-cm`.
-- **`image.pullPolicy` и digest.** Образ пинится дайджестом, тег остаётся
-  человекочитаемым маркером версии.
+- **Пины образов: версия в теге, digest для воспроизводимости.** Свои образы и
+  образы с версионными тегами пинятся по digest. Для `docker:dind` тег
+  версионный только у апстрима: в зеркале `data.forgejo.org/oci/docker` есть
+  лишь плавающие `29-dind` и `29-cli`, и digest плавающего тега умирает, когда
+  апстрим перезаливает индекс — registry подчищает старый, и под уходит в
+  `ImagePullBackOff` (issue #716). Поэтому dind берётся из Docker Hub явным
+  patch-тегом с digest: `docker.io/library/docker:29.8.2-dind@sha256:7dcdfc4a…`.
+  Обновление — руками: новый тег, новый digest, тег в манифесте приводится в
+  соответствие.
