@@ -24,6 +24,16 @@ jobs:
   status:
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    # Шагу merge ниже нужна git-identity: сам merge-коммит не создаётся
+    # (--no-commit), но служебные операции git внутри (например, autostash при
+    # грязном дереве) создают commit-объекты и без неё падают с «Committer
+    # identity unknown». В контейнере джоба глобального user.name/user.email
+    # нет, поэтому задаём её явно.
+    env:
+      GIT_AUTHOR_NAME: forgejo-actions[bot]
+      GIT_AUTHOR_EMAIL: forgejo-actions[bot]@homelab.invalid
+      GIT_COMMITTER_NAME: forgejo-actions[bot]
+      GIT_COMMITTER_EMAIL: forgejo-actions[bot]@homelab.invalid
     steps:
       - uses: actions/checkout@v6
         with:
@@ -35,8 +45,11 @@ jobs:
       # PR считаем по merge-результату — расхождение видно автору до merge.
       # Конфликт при слиянии здесь не ложное срабатывание: он означает, что
       # артефакты и правка автора претендуют на одно и то же место.
-      - name: Merge base into branch
+      #
+      # --no-ff --no-commit: коммит не создаётся, merge-коммит в одноразовом
+      # дереве раннера сохранять некуда.
+      - name: Merge main into branch tree
         if: github.event_name == 'pull_request'
-        run: git merge --no-edit "origin/${{ github.event.pull_request.base.ref }}"
+        run: git merge --no-ff --no-commit "origin/${{ github.event.pull_request.base.ref }}"
       - name: Check status artifacts
         run: ./scripts/status-badges.sh --check

@@ -22,7 +22,7 @@
   },
   "docs": {
     "adr": 10,
-    "postmortems": 5,
+    "postmortems": 6,
     "research": 48
   }
 }
