@@ -28,6 +28,17 @@ resource "vault_policy" "app_beszel" {
   EOT
 }
 
+resource "vault_policy" "app_dns01_webhook" {
+  name = "app/dns01-webhook"
+
+  policy = <<-EOT
+    path "kv/data/dns01-webhook/dynv6"      { capabilities = ["read"] }
+    path "kv/metadata/dns01-webhook/dynv6"  { capabilities = ["read", "list"] }
+    path "kv/data/dns01-webhook/spaceship"  { capabilities = ["read"] }
+    path "kv/metadata/dns01-webhook/spaceship"  { capabilities = ["read", "list"] }
+  EOT
+}
+
 resource "vault_policy" "app_headlamp" {
   name = "app/headlamp"
 

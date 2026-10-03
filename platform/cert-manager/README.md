@@ -74,7 +74,8 @@ Webhook ставится отдельным Argo Application (`argocd/applicatio
 | `argocd/applications/dns01-webhook.yaml` | Argo Application: webhook-солвер |
 | `platform/homelab/templates/cert-manager/clusterissuers.yaml` | `ClusterIssuer` prod и staging для каждой зоны |
 | `platform/homelab/templates/cert-manager/certificate.yaml` | `Certificate` для каждого домена |
-| `platform/cert-manager/sealedsecret.yaml` | SealedSecret с credentials провайдера |
+| `platform/cert-manager/vaultauth.yaml` | ServiceAccount и `VaultAuth` для VSO |
+| `platform/cert-manager/vaultstaticsecret.yaml` | доставка credentials провайдеров из Vault |
 
 ## Установка
 
@@ -96,31 +97,55 @@ helm template platform/homelab | kubectl apply -f -
 Пакеты реестра Forgejo (образ и OCI-чарт) **публичные** — Argo и kubelet тянут их
 анонимно, ни repo-creds, ни imagePullSecret не нужны.
 
-Credentials DNS-провайдеров лежат в namespace `cert-manager` и читаются
-webhook'ом из переменных окружения. Имена Secret'ов заданы в
-`argocd/applications/dns01-webhook.yaml`. Значения запечатываются `kubeseal` на
-сервере — в Git уходит только шифротекст.
+Credentials DNS-провайдеров лежат в Vault и доставляются в кластер оператором
+VSO через `VaultStaticSecret`. Единственная копия значения — Vault, в
+репозитории секрета нет.
+
+| Путь в Vault | Ключи | Destination Secret |
+|---|---|---|
+| `kv/dns01-webhook/dynv6` | `token` | `dns01-webhook-token` |
+| `kv/dns01-webhook/spaceship` | `api-key`, `api-secret` | `dns01-webhook-spaceship` |
+
+Имена ключей совпадают с ключами destination Secret'а в чарте webhook'а —
+доставка не переименовывает ключи, поэтому при 다른 именах правится
+`platform/cert-manager/vaultstaticsecret.yaml`, а не Vault.
+
+Раскладка путей — ADR 0006, правило 1 «потребитель — владелец»: webhook
+единственный пользователь этих кредов. Два пути потому, что значения отзываются
+и ротируются независимо; внутри Spaceship ключ и секрет выдаются вместе и
+отзываются вместе, поэтому один путь с двумя ключами.
+
+Права (политика `app/dns01-webhook`, роль `dns01-webhook`) описаны в
+`terraform/vault` — явные пути, без wildcard. Значение в Vault заводит
+пользователь, руками и вне Git.
+
+Применение и проверка доставки:
 
 ```sh
-# dynv6
-kubectl -n cert-manager create secret generic dns01-webhook-token \
-  --from-literal=token='<HTTP-токен dynv6>' \
-  --dry-run=client -o yaml \
-  | kubeseal --format yaml > platform/cert-manager/sealedsecret.yaml
-
-# Spaceship: api key и secret из API Manager
-kubectl -n cert-manager create secret generic dns01-webhook-spaceship \
-  --from-literal=api-key='<ключ>' \
-  --from-literal=api-secret='<секрет>' \
-  --dry-run=client -o yaml \
-  | kubeseal --format yaml >> platform/cert-manager/sealedsecret.yaml
-
-kubectl apply -f platform/cert-manager/sealedsecret.yaml
+kubectl apply -f platform/cert-manager/
+kubectl -n cert-manager get vaultstaticsecret
+kubectl -n cert-manager get secret dns01-webhook-token dns01-webhook-spaceship
 ```
 
-Секреты необязательны: webhook поднимается без них, и падает только тот
-challenge, у чьего провайдера нет credentials. Поэтому заведённый `dynv6`
-Secret не мешает добавить зону на другом провайдере, и наоборот.
+Секреты необязательны для пода: webhook поднимается без них, и падает только тот
+challenge, у чьего провайдера нет credentials. Поэтому зона на dynv6 не мешает
+зоне на Spaceship, и наоборот. Обратная сторона: ошибка в имени ключа выглядит
+так же, как отсутствие секрета, — `SPACESHIP_API_KEY is not set` в логе webhook'а.
+Отличаются они списком ключей в destination Secret'е.
+
+Ротация: обновить значение в Vault, дальше VSO перезапишет Secret за
+`refreshAfter`. Форсировать без ожидания:
+
+```sh
+kubectl -n cert-manager annotate vaultstaticsecret dns01-webhook-spaceship \
+  vso.secrets.hashicorp.com/force-sync="$(date +%s)" --overwrite
+```
+
+Проверка прав без вывода значений:
+
+```sh
+vault read kv/dns01-webhook/spaceship -format=json | jq -r '.data.data | keys'
+```
 
 ## Порядок первого выпуска: staging → prod
 

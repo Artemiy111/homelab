@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: vso-dns01-webhook
+  namespace: cert-manager
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultAuth
+metadata:
+  name: vso-dns01-webhook
+  namespace: cert-manager
+spec:
+  vaultAuthGlobalRef:
+    name: vso-global
+    namespace: vault-secrets-operator
+  kubernetes:
+    role: dns01-webhook
+    serviceAccount: vso-dns01-webhook

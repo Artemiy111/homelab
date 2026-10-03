@@ -89,8 +89,9 @@ Structurizr DSL workspace, rendered by the deployed Structurizr instance.
 | Ansible | Host packages and preparation | [`ansible/`](ansible/) |
 | Terraform | Resources outside the cluster | [`terraform/`](terraform/) |
 
-ACME DNS-01 is served by a webhook I wrote, because the DNS provider reserves the
-`_acme-challenge.` name and its RFC2136 delete is broken: see `cert-manager-webhook-dns01` below.
+ACME DNS-01 is served by a webhook I wrote: neither DNS provider offers a working RFC2136
+for it, and dynv6 additionally reserves the `_acme-challenge.` name. See
+`cert-manager-webhook-dns01` below.
 
 ## Supply chain
 

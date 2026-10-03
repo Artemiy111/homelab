@@ -13,6 +13,7 @@ spec:
     - ats
     - authentik
     - beszel
+    - cert-manager
     - databases
     - dawarich
     - element

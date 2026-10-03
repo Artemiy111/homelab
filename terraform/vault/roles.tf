@@ -8,6 +8,7 @@ locals {
     "authentik"      = { namespace = "authentik", policy = "app/authentik" },
     "beszel"         = { namespace = "beszel", policy = "app/beszel" },
     "dawarich"       = { namespace = "dawarich", policy = "app/dawarich" },
+    "dns01-webhook"  = { namespace = "cert-manager", policy = "app/dns01-webhook" },
     "element"        = { namespace = "element", policy = "app/element" },
     "forgejo"        = { namespace = "forgejo", policy = "app/forgejo" },
     "gatus"          = { namespace = "monitoring", policy = "app/gatus" },

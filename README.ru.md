@@ -90,8 +90,9 @@ flowchart TB
 | Ansible | Пакеты и подготовка хоста | [`ansible/`](ansible/) |
 | Terraform | Ресурсы вне кластера | [`terraform/`](terraform/) |
 
-ACME DNS-01 обслуживает написанный мной вебхук: DNS-провайдер резервирует имя
-`_acme-challenge.` и сломан RFC2136-delete — см. `cert-manager-webhook-dns01` ниже.
+ACME DNS-01 обслуживает написанный мной вебхук: ни у одного DNS-провайдера нет
+рабочего RFC2136, а dynv6 вдобавок резервирует имя `_acme-challenge.` — см.
+`cert-manager-webhook-dns01` ниже.
 
 ## Supply chain
 
