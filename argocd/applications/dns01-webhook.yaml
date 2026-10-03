@@ -11,7 +11,11 @@
 # Argo: OCI-клиент не ходит по http.
 #
 # groupName обязан совпадать с webhookGroupName в platform/homelab/values.yaml
-# (оттуда его берёт ClusterIssuer).
+# (оттуда его берёт ClusterIssuer), а provider — с полем provider в
+# certManager.zones этого же файла.
+#
+# Секреты обоих провайдеров необязательны: webhook поднимается без них и падает
+# только тот challenge, у чьего провайдера нет credentials.
 #
 # Вебхук-чарт сам создаёт self-signed CA и serving-сертификат и APIService.
 apiVersion: argoproj.io/v1alpha1
@@ -24,7 +28,7 @@ spec:
   source:
     repoURL: forgejo.biplane.v6.rocks/artemiy/charts
     chart: cert-manager-webhook-dns01
-    targetRevision: 0.1.1
+    targetRevision: 0.2.0
     helm:
       releaseName: dns01-webhook
       valuesObject:
@@ -36,9 +40,12 @@ spec:
             memory: 160Mi
         image:
           repository: forgejo.biplane.v6.rocks/artemiy/cert-manager-webhook-dns01
-          tag: 0.1.1
+          tag: 0.2.0
         provider:
-          existingSecret: dns01-webhook-token
+          dynv6:
+            existingSecret: dns01-webhook-token
+          spaceship:
+            existingSecret: dns01-webhook-spaceship
   destination:
     server: https://kubernetes.default.svc
     namespace: cert-manager

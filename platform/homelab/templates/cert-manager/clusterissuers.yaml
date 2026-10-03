@@ -1,6 +1,5 @@
 {{- if .Values.certManager.enabled }}
 {{- $cm := .Values.certManager }}
-{{- $domain := .Values.config.domain }}
 # ACME-эмитент Let's Encrypt. Challenge — DNS-01 через собственный webhook
 # (packages/cert-manager-webhook-dns01): тот публикует TXT-запись через REST API
 # DNS-провайдера. Публичный IP и A/AAAA не нужны — валидация идёт через DNS.
@@ -9,32 +8,39 @@
 # удаление записей (`update delete` → SERVFAIL), а solver'у cert-manager удаление
 # нужно в Present и CleanUp. Webhook ходит в REST API, где удаление есть.
 #
-# Имя `_acme-challenge.<домен>` у провайдера зарезервировано под их собственный
-# выпуск, поэтому challenge-имя CNAME-ом делегировано на `acme.<домен>` — туда
-# webhook и пишет TXT (config.challengeRecord). CNAME создаётся один раз и вручную.
+# У dynv6 имя `_acme-challenge.<домен>` зарезервировано под их собственный выпуск,
+# поэтому challenge-имя CNAME-ом делегировано на `acme.<домен>` — туда webhook и
+# пишет TXT (challengeRecord). CNAME создаётся один раз и вручную. У Spaceship
+# ограничения нет, поэтому для него challengeRecord не задаётся.
 #
-# groupName/solverName совпадают с чартом webhook'а (см. argocd/applications/dns01-webhook.yaml).
+# Зоны перечислены в values (`certManager.zones`), на каждую — свой эмитент для
+# prod и staging. Почта берётся из acmeEmail зоны, иначе из общего acmeEmail.
 #
 # prod и staging — пара: staging нужен для отладки без жёстких rate limits прода.
 {{- range $env := list "prod" "staging" }}
+{{- range $zone := $cm.zones }}
 ---
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
-  name: letsencrypt-{{ $env }}
+  name: letsencrypt-{{ $env }}{{ with $zone.issuerSuffix }}-{{ . }}{{ end }}
 spec:
   acme:
     server: https://acme-{{ if eq $env "staging" }}staging-{{ end }}v02.api.letsencrypt.org/directory
-    email: {{ $cm.acmeEmail }}
+    email: {{ $zone.acmeEmail | default $cm.acmeEmail }}
     privateKeySecretRef:
-      name: letsencrypt-{{ $env }}-account-key
+      name: letsencrypt-{{ $env }}{{ with $zone.issuerSuffix }}-{{ . }}{{ end }}-account-key
     solvers:
       - dns01:
           webhook:
             groupName: {{ $cm.webhookGroupName }}
             solverName: dns01
             config:
-              zoneName: {{ $domain }}
-              challengeRecord: acme
+              provider: {{ $zone.provider }}
+              zoneName: {{ $zone.domain }}
+              {{- with $zone.challengeRecord }}
+              challengeRecord: {{ . }}
+              {{- end }}
+{{- end }}
 {{- end }}
 {{- end }}

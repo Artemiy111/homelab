@@ -4,19 +4,48 @@ config:
   timezone: Asia/Yekaterinburg
   locale: ru
 
-# cert-manager: выпуск wildcard-сертификата через ACME DNS-01.
+# cert-manager: выпуск wildcard-сертификатов через ACME DNS-01.
 #
-# acmeEmail — почта для регистрации в ACME-эмитент. Значение окружения, а не
-# секрет: по нему нельзя ни войти, ни получить доступ, и сам домен виден в
-# Certificate Transparency вместе с wildcard-сертификатом (docs/adr/0009).
+# acmeEmail — почта для регистрации в ACME-эмитент, значение по умолчанию для
+# всех зон. Значение окружения, а не секрет: по нему нельзя ни войти, ни
+# получить доступ, и сам домен виден в Certificate Transparency вместе с
+# wildcard-сертификатом (docs/adr/0009). У зоны своя почта — поле acmeEmail.
 #
 # webhookGroupName — группа API собственного webhook'а-солвера
 # (packages/cert-manager-webhook-dns01); должна совпадать с groupName в чарте
 # webhook'а (argocd/applications/dns01-webhook.yaml).
+#
+# zones — по ClusterIssuer на каждую зону, для каждой среды prod и staging.
+# Провайдер выбирается полем provider, зона указывается zoneName (иначе
+# cert-manager подставит ResolvedZone). issuerSuffix добавляется к имени
+# эмитента, чтобы у зон были разные имена; без суффикса — только первая зона.
+#
+# challengeRecord — имя TXT-записи внутри зоны, нужно там, где провайдер
+# зарезервировал `_acme-challenge` и challenge-имя делегировано CNAME-ом.
+# У Spaceship такого ограничения нет, поэтому поле не задаётся.
 certManager:
   enabled: true
   acmeEmail: letsencript@mailplane.v6.rocks
   webhookGroupName: acme.homelab.local
+  zones:
+    - domain: biplane.v6.rocks
+      provider: dynv6
+      challengeRecord: acme
+    - domain: biplane.casa
+      provider: spaceship
+      acmeEmail: letsencript@biplane.casa
+      issuerSuffix: casa
+  # По Certificate на домен. Отдельный Secret на каждый: подмена issuerRef на
+  # staging не должна переписывать боевой сертификат (docs/incidents/0002).
+  certificates:
+    - name: wildcard
+      secretName: wildcard-tls
+      domain: biplane.v6.rocks
+      issuer: letsencrypt-prod
+    - name: wildcard-casa
+      secretName: wildcard-casa-tls
+      domain: biplane.casa
+      issuer: letsencrypt-prod-casa
 
 namespaces:
   - 3x-ui
