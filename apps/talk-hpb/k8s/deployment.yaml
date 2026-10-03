@@ -96,7 +96,7 @@ spec:
             - name: TALK_RELAY_MAX_PORT
               value: "20499"
             - name: TALK_RELAY_NETWORK
-              value: "192.0.2.10/16"
+              value: "192.168.0.0/16"
             # mod_stats_prometheus у eturnal: дефолтный 8081 занят signaling,
             # поэтому метрики на отдельном порту.
             - name: TALK_METRICS_PORT

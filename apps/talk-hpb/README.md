@@ -76,7 +76,7 @@ curl --resolve talk-signaling.example.com:443:<node1-ip> \
   сужается до `TALK_RELAY_MIN_PORT..TALK_RELAY_MAX_PORT` (по умолчанию
   `20000..20499`; диапазон выбран ниже зоны эпифемеральных портов ядра
   `32768-60999`, чтобы избежать конфликта с исходящими соединениями) и в
-  `whitelist_peers` добавляется `TALK_RELAY_NETWORK` (`<node1-lan-cidr>`). Тот же
+  `whitelist_peers` добавляется `TALK_RELAY_NETWORK` (`192.168.0.0/16`). Тот же
   диапазон портов публикуется (udp+tcp) — без этого клиенты не смогут
   достучаться до relay-адреса.
 - Janus TURN: после генерации конфига `/start.sh` патчим `janus.jcfg`,

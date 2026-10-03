@@ -2,7 +2,8 @@
 # разрешения.
 # filebeat — DaemonSet с hostNetwork (ради host-метаданных), поэтому его
 # трафик приходит к Elasticsearch с IP узла, а не с pod IP: разрешаем ipBlock
-# узла. Если адрес узла изменится, правило нужно поправить.
+# локальной сети, в которой живёт узел. Адрес узла в манифест не дублируется,
+# поэтому переезд узла правило не ломает.
 # Оператор Elastic в elastic-system управляет Elasticsearch через API (9200).
 # Egress не ограничивается — см. apps/lute/k8s/networkpolicy.yaml.
 apiVersion: networking.k8s.io/v1
@@ -37,7 +38,7 @@ spec:
               kubernetes.io/metadata.name: elastic-system
     - from:
         - ipBlock:
-            cidr: 192.0.2.10/16
+            cidr: 192.168.0.0/16
       ports:
         - port: 9200
           protocol: TCP
