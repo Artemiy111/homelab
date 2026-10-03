@@ -42,6 +42,12 @@ Rather than a list of tools, a set of practices I can defend and explain:
 | **Testing** | A set of CI gates, a golden-file test suite for manifest formatting, Go unit tests |
 | **Incident response** | Several blameless postmortems with timelines, impact assessment, and tracked follow-ups |
 
+## Hardware
+
+| Node | Role | CPU | Memory | Storage |
+|---|---|---|---|---|
+| `homelab` | control plane + worker | Ryzen 7 6800H, 8C/16T, Radeon 680M iGPU | 32 GiB (≈27 GiB usable) | 512 GB NVMe |
+
 ## Architecture
 
 ```mermaid
