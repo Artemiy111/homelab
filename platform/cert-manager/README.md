@@ -103,7 +103,7 @@ VSO через `VaultStaticSecret`. Единственная копия знач
 
 | Путь в Vault | Ключи | Destination Secret |
 |---|---|---|
-| `kv/dns01-webhook/dynv6` | `token` | `dns01-webhook-token` |
+| `kv/dns01-webhook/dynv6` | `token` | `dns01-webhook-dynv6-token` |
 | `kv/dns01-webhook/spaceship` | `api-key`, `api-secret` | `dns01-webhook-spaceship` |
 
 Имена ключей совпадают с ключами destination Secret'а в чарте webhook'а —
@@ -124,7 +124,7 @@ VSO через `VaultStaticSecret`. Единственная копия знач
 ```sh
 kubectl apply -f platform/cert-manager/
 kubectl -n cert-manager get vaultstaticsecret
-kubectl -n cert-manager get secret dns01-webhook-token dns01-webhook-spaceship
+kubectl -n cert-manager get secret dns01-webhook-dynv6-token dns01-webhook-spaceship
 ```
 
 Секреты необязательны для пода: webhook поднимается без них, и падает только тот
