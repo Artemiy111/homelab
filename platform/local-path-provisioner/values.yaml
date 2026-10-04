@@ -1,0 +1,31 @@
+# local-path-provisioner — дефолтный StorageClass кластера: PVC без явного
+# storageClassName биндятся к нему. Официальный чарт из репозитория проекта
+# (каталог deploy/chart/local-path-provisioner).
+#
+# Значения вынесены из `spec.source.helm.valuesObject` в
+# `platform/local-path-provisioner/values.yaml`, Application подключает их через
+# `$values` — второй источник в `spec.sources`.
+
+storageClass:
+  # Дефолтный класс: PVC без явного storageClassName тоже биндится.
+  defaultClass: true
+  # Teardown-скрипт провижионера — `rm -rf "$VOL_DIR"`, поэтому Delete сносит
+  # данные вместе с PVC. Retain оставляет PV в Released: каталог на диске цел,
+  # вернуть его можно, пересоздав PVC с тем же именем.
+  reclaimPolicy: Retain
+
+nodePathMap:
+  - node: DEFAULT_PATH_FOR_NON_LISTED_NODES
+    paths:
+      - /storage/apps/k8s/local-path
+
+# Дефолт чарта — resources: {} не задано. Без requests планировщик не знает, что
+# размещает; провижионер обслуживает attach/detach для всех локальных PVC, и
+# его вытеснение означает, что тома перестают работать.
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: "1"
+    memory: 256Mi
