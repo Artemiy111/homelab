@@ -40,6 +40,16 @@ spec:
           protocol: TCP
         - port: 2053
           protocol: TCP
+    # DNS-01 webhook cert-manager ходит через прокси к API Spaceship: WAF
+    # провайдера отвечает 403 на запросы из этой сети. Только порт прокси —
+    # панель 2053 webhook'у не нужна.
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: cert-manager
+      ports:
+        - port: 8440
+          protocol: TCP
     - from:
         - namespaceSelector:
             matchLabels:

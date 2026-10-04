@@ -28,7 +28,7 @@ spec:
   source:
     repoURL: forgejo.biplane.v6.rocks/artemiy/charts
     chart: cert-manager-webhook-dns01
-    targetRevision: 0.2.0
+    targetRevision: 0.3.0
     helm:
       releaseName: dns01-webhook
       valuesObject:
@@ -40,12 +40,16 @@ spec:
             memory: 160Mi
         image:
           repository: forgejo.biplane.v6.rocks/artemiy/cert-manager-webhook-dns01
-          tag: 0.2.0
+          tag: 0.3.0
         provider:
           dynv6:
             existingSecret: dns01-webhook-dynv6-token
           spaceship:
             existingSecret: dns01-webhook-spaceship
+            # WAF Spaceship отвечает 403 на запросы из сети стенда, поэтому
+            # API провайдера доступен только через egress-прокси 3x-ui. Прокси
+            # привязан к провайдеру: dynv6 через него не ходит.
+            proxyURL: http://xui-egress.3x-ui.svc.cluster.local:8440
   destination:
     server: https://kubernetes.default.svc
     namespace: cert-manager
