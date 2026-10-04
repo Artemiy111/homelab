@@ -17,7 +17,7 @@
     "exceptions": ["argocd", "cert-manager", "cnpg-system", "elastic-system", "gitlab", "grafana-operator", "kube-system", "local-path-storage", "mariadb-system", "traefik"]
   },
   "secrets": {
-    "vault_static_secret": 84,
+    "vault_static_secret": 85,
     "sealed_secret": 4
   },
   "docs": {

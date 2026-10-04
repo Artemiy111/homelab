@@ -23,7 +23,7 @@ alerting:
     token: "${TELEGRAM_BOT_TOKEN}"
     id: "${TELEGRAM_CHAT_ID}"
     client:
-      proxy-url: "${TELEGRAM_PROXY_URL}"
+      proxy-url: "${XUI_EGRESS_PROXY_URL}"
     default-alert:
       failure-threshold: 3
       success-threshold: 2
@@ -85,7 +85,7 @@ endpoints:
     interval: 120s
     client:
       timeout: 30s
-      proxy-url: http://${HOST_IP}:8440
+      proxy-url: "${XUI_EGRESS_PROXY_URL}"
     conditions:
       - "[STATUS] == 200"
       - "[RESPONSE_TIME] < 5000"

@@ -57,8 +57,18 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
-            - name: TELEGRAM_PROXY_URL
-              value: "http://$(HOST_IP):8440"
+            - name: XUI_EGRESS_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: xui-egress
+                  key: XUI_EGRESS_USERNAME
+            - name: XUI_EGRESS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: xui-egress
+                  key: XUI_EGRESS_PASSWORD
+            - name: XUI_EGRESS_PROXY_URL
+              value: "http://$(XUI_EGRESS_USERNAME):$(XUI_EGRESS_PASSWORD)@xui-egress.3x-ui.svc.cluster.local:8440"
           startupProbe:
             httpGet:
               path: /
