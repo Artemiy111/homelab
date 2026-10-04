@@ -169,6 +169,21 @@ challenge, у чьего провайдера нет credentials. Поэтому
 так же, как отсутствие секрета, — `SPACESHIP_API_KEY is not set` в логе webhook'а.
 Отличаются они списком ключей в destination Secret'е.
 
+**Credentials, доставленные после старта пода, в под не попадут.** Переменная
+окружения читается один раз, при запуске контейнера, а `optional: true` не даёт
+поду упасть. Поэтому после первого появления секрета в Vault под нужен
+перезапуск, иначе webhook продолжит сообщать `SPACESHIP_API_KEY is not set` при
+секрете, который на самом деле есть:
+
+```sh
+kubectl -n cert-manager annotate vaultstaticsecret dns01-webhook-spaceship \
+  vso.secrets.hashicorp.com/force-sync="$(date +%s)" --overwrite
+kubectl -n cert-manager rollout restart deploy/dns01-webhook-cert-manager-webhook-dns01
+```
+
+Тот же порядок применим к учётной записи прокси: `dns01-webhook-egress` доставляется
+так же, но перезапуск нужен и для него.
+
 Ротация: обновить значение в Vault, дальше VSO перезапишет Secret за
 `refreshAfter`. Форсировать без ожидания:
 
