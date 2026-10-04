@@ -13,7 +13,11 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: eck-operator
+  # Имя НЕ совпадает с именем файла (`eck-operator.yaml`). Здесь это осознанно:
+  # имя Application = releaseName, а releaseName попадает в
+  # app.kubernetes.io/instance на все ресурсы чарта. Переименование меняет
+  # labels и `argocd.argoproj.io/tracking-id`, то есть пересоздаёт StatefulSet.
+  name: elastic-operator
   namespace: argocd
 spec:
   project: upstream
