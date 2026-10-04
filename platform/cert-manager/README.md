@@ -105,6 +105,7 @@ VSO через `VaultStaticSecret`. Единственная копия знач
 |---|---|---|
 | `kv/dns01-webhook/dynv6` | `token` | `dns01-webhook-dynv6-token` |
 | `kv/dns01-webhook/spaceship` | `api-key`, `api-secret` | `dns01-webhook-spaceship` |
+| `kv/3x-ui/@dns01-webhook/egress` | `XUI_EGRESS_USERNAME`, `XUI_EGRESS_PASSWORD` | `dns01-webhook-egress` |
 
 Имена ключей совпадают с ключами destination Secret'а в чарте webhook'а —
 доставка не переименовывает ключи, поэтому при 다른 именах правится
@@ -130,6 +131,20 @@ API Spaceship закрыт WAF'ом провайдера: из сети стен
 
 TLS сквозной: прокси видит метаданные соединения, но не содержимое запросов и не
 API-ключ.
+
+Учётная запись прокси — отдельная, по одной на потребителя: у gatus своя, у
+webhook'а своя. Путь `kv/3x-ui/@dns01-webhook/egress` с ключами
+`XUI_EGRESS_USERNAME` и `XUI_EGRESS_PASSWORD`, доставка в Secret
+`dns01-webhook-egress`. URL прокси собирается в поде: в
+`argocd/applications/dns01-webhook.yaml` это
+`http://$(XUI_EGRESS_USERNAME):$(XUI_EGRESS_PASSWORD)@xui-egress…:8440`, и
+Kubernetes раскрывает ссылки на объявленные выше переменные. В репозитории в
+адресе нет credentials — только имя хоста.
+
+Пароль обязан состоять из букв, цифр и `-`, `_`, `.`: символы `@`, `:`, `/`, `#`,
+`%` и пробелы ломают разбор URL. Значение живёт в двух местах — в базе панели
+3x-ui и в Vault, — поэтому ротация это два шага: сначала новая пара в панели,
+затем Vault и форс-синк VSO. Подробности в `apps/3x-ui/README.md`.
 
 Раскладка путей — ADR 0006, правило 1 «потребитель — владелец»: webhook
 единственный пользователь этих кредов. Два пути потому, что значения отзываются
