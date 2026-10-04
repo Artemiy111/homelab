@@ -1,0 +1,51 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: upstream
+  namespace: argocd
+spec:
+  description: >-
+    Компоненты, разворачиваемые из внешнего Helm-чарта или внешнего git-репозитория.
+    Права на ресурсы повторяют проект default без изменений: ограничивать по kind
+    тут нечего, операторы законно создают CRD, ClusterRole, PriorityClass и
+    webhook-конфигурации. Сужается только destinations — компонент не может
+    приземлиться в namespace сервиса. Плательщик за новый компонент в новом
+    namespace — правка этого файла.
+  sourceRepos:
+    - "*"
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: default
+    - server: https://kubernetes.default.svc
+      namespace: cert-manager
+    - server: https://kubernetes.default.svc
+      namespace: cnpg-system
+    - server: https://kubernetes.default.svc
+      namespace: elastic-system
+    - server: https://kubernetes.default.svc
+      namespace: forgejo
+    - server: https://kubernetes.default.svc
+      namespace: grafana-operator
+    - server: https://kubernetes.default.svc
+      namespace: headlamp
+    - server: https://kubernetes.default.svc
+      namespace: kube-system
+    - server: https://kubernetes.default.svc
+      namespace: local-path-storage
+    - server: https://kubernetes.default.svc
+      namespace: longhorn-system
+    - server: https://kubernetes.default.svc
+      namespace: mariadb-system
+    - server: https://kubernetes.default.svc
+      namespace: monitoring
+    - server: https://kubernetes.default.svc
+      namespace: radar
+    - server: https://kubernetes.default.svc
+      namespace: traefik
+    - server: https://kubernetes.default.svc
+      namespace: vault
+    - server: https://kubernetes.default.svc
+      namespace: vault-secrets-operator
+  clusterResourceWhitelist:
+    - group: "*"
+      kind: "*"

@@ -30,7 +30,7 @@ metadata:
   name: forgejo
   namespace: argocd
 spec:
-  project: default
+  project: upstream
   source:
     repoURL: https://codeberg.org/forgejo-contrib/forgejo-helm.git
     path: .

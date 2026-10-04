@@ -10,7 +10,7 @@ metadata:
   name: snapshot-controller
   namespace: argocd
 spec:
-  project: default
+  project: upstream
   sources:
     - repoURL: https://github.com/kubernetes-csi/external-snapshotter.git
       targetRevision: v8.6.0

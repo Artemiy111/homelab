@@ -24,7 +24,7 @@ metadata:
   name: dns01-webhook
   namespace: argocd
 spec:
-  project: default
+  project: upstream
   source:
     repoURL: forgejo.biplane.v6.rocks/artemiy/charts
     chart: cert-manager-webhook-dns01

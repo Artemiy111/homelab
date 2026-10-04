@@ -14,7 +14,7 @@ metadata:
   name: vault
   namespace: argocd
 spec:
-  project: default
+  project: upstream
   source:
     repoURL: https://github.com/hashicorp/vault-helm
     path: .

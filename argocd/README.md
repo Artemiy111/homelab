@@ -12,7 +12,7 @@ Argo CD поднимается на кластере как **проверка �
 | Namespace | `argocd` |
 | URL | https://argocd.example.com |
 | Параметры | `argocd/install/values.yaml` — только отклонения от дефолтов чарта |
-| Маршрут | `install/route.yaml` |
+| Маршрут | `platform/argocd/route.yaml` |
 
 Все команды ниже выполняются **на сервере** (там есть `helm` и kubeconfig),
 из корня репозитория.
@@ -112,17 +112,106 @@ argocd account update-password
 5. **ApplicationSet** — генератор приложений из git-директорий и списка
    кластеров вместо ручного создания каждого Application.
 
-## Обновление Application: спека живёт в кластере
+## Бутстрап: спеки Application'ов живут в git
 
-Application'ы применяются руками (`kubectl apply -f argocd/applications/<name>.yaml`), app-of-apps
-здесь нет. Поэтому Argo читает желаемое состояние **из объекта в кластере**, а манифест в git
-нужен только чтобы не потерять это состояние: пока файл не применён, правка values в git
-ничего не меняет (приложение остаётся `Synced` на старой спеке).
+Application'ы применяет корневой `Application` — `bootstrap/root-application.yaml`.
+Он рендерит каталог `argocd/` через kustomize и получает `AppProject` `upstream`
+плюс 18 `Application` из `applications/`. Раньше app-of-apps не было, и спеки
+лежали только в git: Argo читал желаемое состояние из объекта в кластере, и пока
+файл не применён руками, правка values в git ничего не меняла.
+
+Публичный ключ deploy key добавляется в Forgejo (Настройки репозитория → Deploy
+keys, только чтение), а приватный ключ отдаётся команде с машины, где он лежит:
+
+Ключ лежит в `~/.ssh/id_homelab-argocd_homelab-repo`, комментарий
+`homelab-argocd/homelab-repo` — по нему видно, для чего он:
 
 ```sh
-kubectl apply -f argocd/applications/local-path-provisioner.yaml   # обновить спеку
-argocd app sync local-path-provisioner                    # или ручной sync, см. ниже
+argocd repo add ssh://git@forgejo.biplane.v6.rocks:2222/artemiy/homelab.git \
+  --type git --name homelab \
+  --ssh-private-key-path ~/.ssh/id_homelab-argocd_homelab-repo
 ```
+
+Deploy key сделан без пароля: Argo тянет репозиторий без человека на месте и
+зашифрованный ключ не откроет. Личный ключ аккаунта тоже сработал бы, но он шире
+нужного — deploy key ограничен одним репозиторием.
+
+Два подводных камня:
+
+- **Без `--ssh-private-key-path` команда не создаст рабочее подключение.** Argo
+  не получает ключа и пытается обратиться к SSH-агенту, которого в поде нет:
+  `error creating SSH agent: "SSH agent requested but SSH_AUTH_SOCK not-specified"`.
+- **URL должен совпасть с `root-application.yaml` посимвольно** — секрет
+  сопоставляется с `repoURL` точным сравнением строки.
+
+Хост-ключ Forgejo уже прописан в `configs.ssh.knownHosts` в `install/values.yaml`,
+поэтому проверка хоста проходит. Ключ добавлен из `known_hosts` macOS, где
+`origin` уже работает, — то есть проверен существующим соединением; `ssh-keyscan`
+для этого не годится, он опрашивает сервер и ничего не проверяет. Тип только
+`ssh-rsa`: ed25519-хостового ключа Forgejo в `known_hosts` нет.
+
+После изменения `knownHosts` нужен `helm upgrade` с тем же values и перезапуск
+`repo-server` — этот блок монтируется в под, а не читается на лету:
+
+```sh
+helm upgrade argocd argo/argo-cd --version 10.9.1 \
+  --namespace argocd -f argocd/install/values.yaml \
+  --set global.domain=argocd.example.com
+kubectl -n argocd rollout restart deploy/argocd-repo-server
+```
+
+Значение `global.domain` в `--set` нужно только чтобы не переписать его: в
+values оно живёт как есть, а передача `--set` поверх `-f` — не ошибка, а
+дублирование. Проще переустановить релиз той же командой, что и при установке.
+
+Сам root применяется руками — ровно как и сам Argo ставится `helm install`:
+контроллер не может применить Application, который сам его и создаёт.
+
+```sh
+kubectl apply -f argocd/bootstrap/root-application.yaml
+argocd app sync root
+```
+
+Проверка, что переход состоялся и ничего не сломалось:
+
+```sh
+argocd proj get upstream              # проект создан
+argocd app list --project upstream    # 18 приложений, все Synced
+argocd app diff traefik               # пусто
+```
+
+Дальше спеки меняются только коммитом: правка в git доезжает сама, `kubectl apply`
+по одному файлу не нужен.
+
+Что root делает и чего не делает:
+
+| | Зачем |
+|---|---|
+| `automated.prune: true` | удалённый из git `Application` исчезает из кластера |
+| `selfHeal` не включён | отладочные правки Application в кластере не откатываются |
+| finalizer не задан | удаление root не сносит компоненты каскадом |
+| `retry` с backoff | компенсирует «упавший sync не повторяется сам» для самого root |
+| `ignoreDifferences` на `/spec/syncPolicy/automated` | ручное отключение автосинка не считается дрейфом |
+
+Ограничения, которые надо знать до того, как что-то сломается:
+
+- **`destinations` в `projects/upstream.yaml` — белый список из 16 namespace.**
+  Компонент в новом namespace не задеплоится, пока его не впишут руками. Сделано
+  намеренно: `clusterResourceWhitelist` у всех 18 компонентов одинаковый и
+  включает `*`, ограничивать по kind бессмысленно — операторы законно создают
+  CRD, ClusterRole, PriorityClass и webhook-конфигурации. Единственное, что
+  осталось сузить, — куда им можно.
+- **`namespaceResourceWhitelist` не задан намеренно.** Он не только разрешает,
+  но и фильтрует resource tree в UI: не внесённые в него `Pod`/`ReplicaSet`
+  перестают быть видны под `Deployment`. Плюс namespaced-ресурсы Argo
+  ограничивает deny-list'ом, а не allow-list'ом, так что ограничивать их
+  whitelist'ом — не то самое.
+- **Root живёт в проекте `default`.** Если `default` когда-нибудь ужесточат
+  (Argo документирует, как убрать из него все права), root откажется работать —
+  тогда ему нужен собственный проект.
+- **`prune: true` у root, но finalizer у 18 `Application` не задан.** Удаление
+  спеки из git уберёт `Application` и оставит его ресурсы сиротами, а не снесёт
+  их. Это осознанно: на одном узле ошибка в prune — простой.
 
 ### Внутренние значения (домен, externalIPs)
 
@@ -146,7 +235,9 @@ redirect URL в `radar` и `headlamp`, домен в `dns01-webhook`. Секре
 
 - **Упавший sync не повторяется сам.** После ошибки контроллер логирует
   `failed previous sync attempt ... will not retry` и ждёт новый revision или ручной sync,
-  даже при включённом `automated`. Форсировать из кластера (без CLI):
+  даже при включённом `automated`. У `root` это компенсировано полем `retry`; у 18
+  платформенных `Application` — пока нет, там выкручивается вручную. Форсировать
+  из кластера (без CLI):
   ```sh
   kubectl -n argocd patch application local-path-provisioner --type merge \
     -p '{"operation":{"sync":{"prune":true}}}'
@@ -160,7 +251,7 @@ redirect URL в `radar` и `headlamp`, домен в `dns01-webhook`. Секре
 ## kube-state-metrics (боевой компонент под Argo)
 
 `kube-state-metrics.yaml` — Application, который ставит официальный чарт
-`prometheus-community/kube-state-metrics` в namespace `default`. Он отдаёт
+`prometheus-community/kube-state-metrics` в namespace `monitoring`. Он отдаёт
 метрики состояния объектов кластера (`kube_*`), которых нет у node-exporter.
 Это уже не пробный стенд, а рабочий компонент, поэтому держать его нужно
 **только** под Argo — не дублировать манифестами для будущего Flux.
@@ -271,6 +362,9 @@ Application больше нет. Маршрут
 ## Удаление
 
 ```sh
+# Сначала root: иначе он успеет восстановить то, что удаляется ниже
+kubectl delete application root -n argocd
+
 # Сначала приложения и их ресурсы, иначе финалайзеры подвесят удаление namespace
 argocd app list -A
 argocd app delete guestbook --cascade

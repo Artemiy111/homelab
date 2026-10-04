@@ -1,0 +1,23 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - applications/cert-manager.yaml
+  - applications/cloudnative-pg.yaml
+  - applications/dns01-webhook.yaml
+  - applications/eck-operator.yaml
+  - applications/forgejo.yaml
+  - applications/gateway-api.yaml
+  - applications/grafana-operator.yaml
+  - applications/headlamp.yaml
+  - applications/kube-state-metrics.yaml
+  - applications/local-path-provisioner.yaml
+  - applications/longhorn.yaml
+  - applications/mariadb-operator.yaml
+  - applications/radar.yaml
+  - applications/sealed-secrets.yaml
+  - applications/snapshot-controller.yaml
+  - applications/traefik.yaml
+  - applications/vault.yaml
+  - applications/vault-secrets-operator.yaml
+  - projects/upstream.yaml

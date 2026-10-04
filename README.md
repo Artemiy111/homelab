@@ -253,7 +253,11 @@ apps/<service>/k8s/      manifests, one directory per service
 apps/<service>/README.md runbook: deploy, verify, operate
 platform/                k0s, traefik, longhorn, cnpg, mariadb, cert-manager
 platform/homelab/        Helm chart holding all HTTP routes and shared config
-argocd/                  Argo CD install values, one Application per component
+argocd/install/           Argo CD install values (only chart deviations)
+argocd/applications/      one Application per component, applied by root
+argocd/projects/          AppProject: which components may land where
+argocd/bootstrap/         root Application, applied once by hand
+argocd/kustomization.yaml what root renders: projects/ + applications/
 ansible/                 roles and playbooks for the host
 terraform/<module>/      one root module per external resource
 packages/                standalone Go projects, each with its own repo and remote

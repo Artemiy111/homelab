@@ -62,7 +62,11 @@ jobs:
       #
       # Сканируются только каталоги с манифестами: apps/<сервис>/k8s/. Файлы
       # values/Chart (Helm) и templates чарта homelab — не готовые манифесты, их
-      # исключаем; рендер чарта — отдельная задача.
+      # исключаем; рендер чарта — отдельная задача. kustomization.yaml — тоже не
+      # объект API, а вход для kustomize: до argocd/kustomization.yaml он просто
+      # не попадал в сканируемые пути, потому что лежал в apps/<сервис>/, а не в
+      # apps/<сервис>/k8s/. Теперь появился в argocd/, поэтому исключение нужно
+      # явно.
       #
       # -skip — явный реестр CR, для которых нет схем в наборе Kubernetes. Новый
       # CR в сканируемых путях уронит job, и его надо осознанно добавить сюда
@@ -77,6 +81,7 @@ jobs:
             -ignore-filename-pattern 'values\.yaml$' \
             -ignore-filename-pattern 'Chart\.yaml$' \
             -ignore-filename-pattern 'platform/homelab/templates' \
-            -skip "Application,Beat,Certificate,Cluster,ClusterConfig,ClusterIssuer,Database,Elasticsearch,Gateway,GatewayClass,Grant,Grafana,GrafanaAlertRuleGroup,GrafanaDatasource,GrafanaDashboard,GrafanaFolder,GrafanaNotificationPolicy,HTTPRoute,BackendTLSPolicy,Kibana,MariaDB,Middleware,SecretTransformation,SealedSecret,TLSStore,User,VaultAuth,VaultAuthGlobal,VaultConnection,VaultDynamicSecret,VaultPKISecret,VaultStaticSecret,VolumeSnapshotClass" \
+            -ignore-filename-pattern 'kustomization\.yaml$' \
+            -skip "Application,AppProject,Beat,Certificate,Cluster,ClusterConfig,ClusterIssuer,Database,Elasticsearch,Gateway,GatewayClass,Grant,Grafana,GrafanaAlertRuleGroup,GrafanaDatasource,GrafanaDashboard,GrafanaFolder,GrafanaNotificationPolicy,HTTPRoute,BackendTLSPolicy,Kibana,MariaDB,Middleware,SecretTransformation,SealedSecret,TLSStore,User,VaultAuth,VaultAuthGlobal,VaultConnection,VaultDynamicSecret,VaultPKISecret,VaultStaticSecret,VolumeSnapshotClass" \
             -summary \
             apps/*/k8s platform argocd

@@ -27,7 +27,7 @@ metadata:
   name: mariadb-operator
   namespace: argocd
 spec:
-  project: default
+  project: upstream
   source:
     repoURL: https://mariadb-operator.github.io/mariadb-operator
     chart: mariadb-operator

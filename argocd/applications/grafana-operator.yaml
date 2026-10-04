@@ -34,7 +34,7 @@ metadata:
   name: grafana-operator
   namespace: argocd
 spec:
-  project: default
+  project: upstream
   source:
     repoURL: ghcr.io/grafana/helm-charts
     chart: grafana-operator

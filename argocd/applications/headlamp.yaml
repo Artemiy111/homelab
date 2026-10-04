@@ -14,7 +14,7 @@ metadata:
   name: headlamp
   namespace: argocd
 spec:
-  project: default
+  project: upstream
   source:
     repoURL: https://kubernetes-sigs.github.io/headlamp/
     chart: headlamp

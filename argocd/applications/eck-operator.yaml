@@ -11,7 +11,7 @@ metadata:
   name: elastic-operator
   namespace: argocd
 spec:
-  project: default
+  project: upstream
   source:
     repoURL: https://github.com/elastic/cloud-on-k8s.git
     path: deploy/eck-operator
