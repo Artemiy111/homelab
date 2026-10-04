@@ -4,13 +4,6 @@ metadata:
   name: upstream
   namespace: argocd
 spec:
-  description: >-
-    Компоненты, разворачиваемые из внешнего Helm-чарта или внешнего git-репозитория.
-    Права на ресурсы повторяют проект default без изменений: ограничивать по kind
-    тут нечего, операторы законно создают CRD, ClusterRole, PriorityClass и
-    webhook-конфигурации. Сужается только destinations — компонент не может
-    приземлиться в namespace сервиса. Плательщик за новый компонент в новом
-    namespace — правка этого файла.
   sourceRepos:
     - "*"
   destinations:
