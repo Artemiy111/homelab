@@ -45,9 +45,12 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: cert-manager
+  # `group` не указан: для core-API группа пустая, и Argo это подразумевает.
+  # Явное `group: ""` нельзя — server-side apply срезает пустую строку, и поле
+  # пропадает из живого объекта: Application уходит в OutOfSync с
+  # `group: ""` в желаемом состоянии и без него в живом.
   ignoreDifferences:
-    - group: ""
-      kind: Secret
+    - kind: Secret
       name: cert-manager-webhook-ca
       namespace: cert-manager
       jsonPointers:
