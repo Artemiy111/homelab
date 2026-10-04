@@ -209,9 +209,17 @@ argocd app diff traefik               # пусто
 - **Root живёт в проекте `default`.** Если `default` когда-нибудь ужесточат
   (Argo документирует, как убрать из него все права), root откажется работать —
   тогда ему нужен собственный проект.
-- **`prune: true` у root, но finalizer у 18 `Application` не задан.** Удаление
-  спеки из git уберёт `Application` и оставит его ресурсы сиротами, а не снесёт
-  их. Это осознанно: на одном узле ошибка в prune — простой.
+- **`prune: true` у root, а finalizer у 18 `Application` в манифестах не задан.**
+  Это осознанно: на одном узле ошибка в prune — простой. Но есть исключение,
+  о котором надо знать: Argo добавляет `pre-delete-finalizer.argocd.argoproj.io`
+  сам, когда в рендере чарта появляется `PreDelete`-хук. На 2026-10-04 это
+  произошло с `longhorn` и `vault-secrets-operator`, и удаление спеки из git у
+  этих двух снесёт ресурсы каскадом, а у остальных 16 оставит сиротами.
+  Проверять:
+  ```sh
+  kubectl -n argocd get application -o \
+    custom-columns='NAME:.metadata.name,FINALIZERS:.metadata.finalizers'
+  ```
 
 ### Внутренние значения (домен, externalIPs)
 
