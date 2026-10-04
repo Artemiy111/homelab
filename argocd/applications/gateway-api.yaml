@@ -35,6 +35,13 @@ spec:
     path: config/crd/standard
   destination:
     server: https://kubernetes.default.svc
+    # Приложение состоит только из кластерных CRD, поэтому namespace не
+    # используется: CreateNamespace=false, ни один ресурс в него не попадает.
+    # Но Argo сверяет destination с `destinations` проекта буквально, и пустая
+    # строка не совпадает ни с одной записью whitelist — приложение уходит в
+    # InvalidSpecError. Поэтому указываем default: он в whitelist и под CRD
+    # ничего не создаёт.
+    namespace: default
   syncPolicy:
     syncOptions:
       - ServerSideApply=true
