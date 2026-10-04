@@ -45,7 +45,7 @@ certManager:
     - name: wildcard-casa
       secretName: wildcard-casa-tls
       domain: biplane.casa
-      issuer: letsencrypt-staging-casa
+      issuer: letsencrypt-prod-casa
 
 namespaces:
   - 3x-ui
