@@ -228,8 +228,9 @@ redirect URL в `radar` и `headlamp`, домен в `dns01-webhook`. Секре
 нет: реальные credentials приходят из Vault через VSO, в Application лежат
 ссылки `existingSecret` и `secretKeyRef`.
 
-Все они лежат в `valuesObject` публичного Application, одним файлом с
-остальными значениями приложения. Отдельный приватный слой был отменён
+Значения лежат в публичном репозитории: у `traefik` — в
+`platform/traefik/values.yaml`, у остальных компонентов пока инлайн в
+`valuesObject` Application. Отдельный приватный слой был отменён
 (`docs/adr/0009`): домен и так публичен — wildcard-сертификат Let's Encrypt
 попадает в Certificate Transparency, где виден базовый домен, — а приватный
 репозиторий стоил второго источника в каждом Application, SSH-подключения Argo,
@@ -332,14 +333,15 @@ Application больше нет. Маршрут
 
 - `skipCrds: true` — CRD `*.traefik.io` кластерные; под управлением Argo они
   при удалении приложения снесли бы все `IngressRoute`/`Middleware` кластера.
-- values продублированы из `platform/traefik/values.yaml` инлайном. При правке
-  values менять оба места, иначе кластер уедет от файла.
+- values лежат в `platform/traefik/values.yaml` и подключены через `$values` —
+  второй источник в `spec.sources`, ссылающийся на этот же репозиторий по SSH.
+  Раньше те же 32 значения были продублированы инлайн в `valuesObject`, и правка
+  файла молча расходилась с кластером. Теперь файл — единственный источник.
 - `service.spec.externalIPs` — адрес узла, и это нагрузочное значение: без него
-  Traefik не принимает трафик на адрес узла.
-  Домен здесь не нужен — он живёт в маршрутах `platform/homelab`, а не в values
-  Traefik.
-- Обе строки выше снимаются вместе с переводом на values из приватного
-  репозитория: и дублирование, и файл (`docs/adr/0008`, #641).
+  Traefik не принимает трафик на адрес узла. Живёт в values-файле.
+  Домен здесь не нужен — он в маршрутах `platform/homelab`, а не в values Traefik.
+- Значения из приватного репозитория сюда не возвращаются (`docs/adr/0009`):
+  домен и адрес узла публичны по решению.
 - Чарт сам создаёт `ClusterRole`/`ClusterRoleBinding`/`IngressClass` — они под
   управлением Argo (в отличие от RBAC headlamp, который вне чарта).
 

@@ -1,3 +1,14 @@
+# Traefik — единственный вход в кластер: терминирует TLS, держит Gateway и
+# HTTPRoute, публикует /dashboard.
+#
+# Значения лежат в platform/traefik/values.yaml и подключаются через `$values`.
+# Раньше те же 32 значения были продублированы инлайн в `valuesObject`, и правка
+# файла молча расходилась с кластером — долг был зафиксирован в argocd/README.md.
+#
+# Второй источник — этот же репозиторий по SSH с deploy key, добавленным
+# `argocd repo add`. В нём Argo берёт только values: `ref: values` ограничивает
+# источник файлами values, поэтому манифесты из этого репозитория сюда не
+# попадают.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -5,104 +16,20 @@ metadata:
   namespace: argocd
 spec:
   project: upstream
-  source:
-    repoURL: https://traefik.github.io/charts
-    chart: traefik
-    targetRevision: 41.4.0
-    helm:
-      releaseName: traefik
-      skipCrds: true
-      valuesObject:
-        resources:
-          requests:
-            memory: 192Mi
-          limits:
-            memory: 384Mi
-        providers:
-          kubernetesCRD:
-            allowCrossNamespace: true
-          kubernetesGateway:
-            # HTTPRoute обслуживает тот же Traefik. CRD Gateway API ставит
-            # отдельное приложение argocd/applications/gateway-api.yaml: чарт
-            # Traefik их не везёт с версии 40.2.0, skipCrds на них не действует.
-            enabled: true
-            # TCPRoute смотрится на v1alpha2, которого нет в standard CRD v1.6;
-            # с experimentalChannel провайдер молча не стартует.
-            experimentalChannel: false
-            # Per-backend настройки в Gateway API нет, а три маршрута идут к
-            # hostNetwork-подам, поэтому глобально не включаем.
-            nativeLBByDefault: false
-        # Gateway и GatewayClass описаны в чарте platform/homelab: hostname
-        # слушателя и certificateRef требуют домена из его values.
-        gateway:
-          enabled: false
-        gatewayClass:
-          enabled: false
-        service:
-          spec:
-            # externalIPs — адрес узла, и он нагрузочный: без него Traefik не
-            # принимает трафик на адрес узла. Домен в values Traefik не нужен:
-            # маршруты живут в platform/homelab/templates/routes/.
-            type: ClusterIP
-            externalIPs:
-              - 192.168.1.254
-        ports:
-          web:
-            port: 8000
-            expose:
-              default: true
-            protocol: TCP
-          websecure:
-            port: 8443
-            http:
-              tls:
-                enabled: true
-            expose:
-              default: true
-            protocol: TCP
-        metrics:
-          prometheus:
-            service:
-              enabled: true
-            # Per-router метрики. По умолчанию в Traefik выключены
-            # (addRoutersLabels=false), и без них в VM нет ни одной серии
-            # traefik_router_* — метрики только по бэкенд-сервисам, по роутеру
-            # не понять, какой маршрут ведёт себя неправильно. #284.
-            # Цена: серий примерно вдвое больше (объём дают бакеты гистограмм),
-            # а запас по диску vmdata после инцидента 0003 не расширялся —
-            # решение принято осознанно, отслеживать расход в #284.
-            addRoutersLabels: true
-        additionalArguments:
-          - --ping
-        # JSON access-логи в stdout (их собирает Alloy → Loki). В формате JSON
-        # Traefik отдаёт ядровые поля trace_id/span_id, по которым Loki и Tempo
-        # связаны (#446). Query-параметры дропаем, чтобы не писать в логи
-        # чувствительные значения вроде OAuth code.
-        accessLog:
-          enabled: true
-          format: json
-          fields:
-            queryParameters:
-              defaultMode: drop
-        # Трейсы через OTLP/HTTP в otel-collector, дальше в Tempo. Сэмплинг 1.0 —
-        # трафик homelab мал; при росте нагрузки снизить.
-        tracing:
-          sampleRate: 1.0
-          otlp:
-            enabled: true
-            http:
-              enabled: true
-              endpoint: http://otel-collector.monitoring.svc.cluster.local:4318/v1/traces
-        ingressRoute:
-          healthcheck:
-            enabled: true
-            entryPoints:
-              - websecure
-            tls: {}
-        ingressClass:
-          enabled: true
-          isDefaultClass: true
-          name: traefik
+  sources:
+    - repoURL: https://traefik.github.io/charts
+      chart: traefik
+      targetRevision: 41.4.0
+      helm:
+        releaseName: traefik
+        # CRD `*.traefik.io` кластерные: под управлением Argo удаление
+        # приложения снесло бы все IngressRoute и Middleware кластера.
+        skipCrds: true
+        valueFiles:
+          - $values/platform/traefik/values.yaml
+    - repoURL: ssh://git@forgejo.biplane.v6.rocks:2222/artemiy/homelab.git
+      targetRevision: main
+      ref: values
   destination:
     server: https://kubernetes.default.svc
     namespace: traefik
