@@ -1,13 +1,12 @@
 # CloudNativePG — оператор PostgreSQL: кластеры, failover, бэкапы, PITR.
-# Ставится официальным чартом cloudnative-pg из cloudnative-pg.github.io/charts;
-# Argo рендерит его сам (см. argocd/README.md).
+# Ставится официальным чартом cloudnative-pg из cloudnative-pg.github.io/charts.
 #
 # Оператор кластерный (config.clusterWide, дефолт true): одна установка
 # обслуживает все Cluster'ы во всех namespace. Поэтому его namespace
-# (cnpg-system) не совпадает с namespace баз (default) — так и задумано.
+# (cnpg-system) не совпадает с namespace баз (databases) — так и задумано.
 #
-# Сами кластеры и базы живут в platform/cnpg/ отдельными манифестами. Argo ими не
-# управляет: CRD оператора должны существовать раньше, а порядок «сначала
+# Сами кластеры и базы живут в platform/cnpg/ отдельными манифестами. Argo ими
+# не управляет: CRD оператора должны существовать раньше, а порядок «сначала
 # оператор, потом CR» Argo в одном приложении не гарантирует.
 #
 # Мониторинг: monitoring.podMonitorEnabled оставлен дефолтным false. В кластере
@@ -16,6 +15,10 @@
 # instance manager каждого инстанса отдаёт /metrics на 9187, и vmagent заберёт
 # их через pod-discovery (задача после установки, см. platform/cnpg/README.md).
 # Grafana-дашборд из чарта не ставим: UI уже есть, дашборд принесём сами.
+#
+# Значения вынесены из `spec.source.helm.valuesObject` в
+# `platform/cloudnative-pg/values.yaml`, Application подключает их через
+# `$values` — второй источник в `spec.sources`.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -23,27 +26,24 @@ metadata:
   namespace: argocd
 spec:
   project: upstream
-  source:
-    repoURL: https://cloudnative-pg.github.io/charts
-    chart: cloudnative-pg
-    targetRevision: 0.29.0
-    helm:
-      releaseName: cloudnative-pg
-      valuesObject:
-        # Дефолт у чарта: resources: {} (не задано)
-        resources:
-          requests:
-            cpu: 50m
-            memory: 128Mi
-          limits:
-            cpu: "1"
-            memory: 512Mi
+  sources:
+    - repoURL: https://cloudnative-pg.github.io/charts
+      chart: cloudnative-pg
+      targetRevision: 0.29.0
+      helm:
+        releaseName: cloudnative-pg
+        valueFiles:
+          - $values/platform/cloudnative-pg/values.yaml
+    - repoURL: ssh://git@forgejo.biplane.v6.rocks:2222/artemiy/homelab.git
+      targetRevision: main
+      ref: values
   destination:
     server: https://kubernetes.default.svc
     namespace: cnpg-system
   syncPolicy:
     syncOptions:
       - ServerSideApply=true
+      # CRD и кластеры баз кластерные: prune вместе с приложением снёс бы их.
       - Prune=false
       - CreateNamespace=true
     automated:

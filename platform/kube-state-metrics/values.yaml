@@ -1,0 +1,21 @@
+# kube-state-metrics отдаёт состояние объектов кластера (Deployment, Pod, Job,
+# PVC и т.д.) метриками `kube_*` — их не дают ни node-exporter, ни cAdvisor.
+# Метрики скрейпит vmagent статическими job'ами по Service (job
+# `kube-state-metrics` в apps/victoria-metrics/config/vmagent/scrape.yml).
+
+# Дефолт чарта — resources: {} на всех компонентах. Без requests планировщик не
+# знает, что размещает; без limits один разъехавшийся контроллер способен
+# вытеснить приложения на одноузловом кластере.
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: "1"
+    memory: 512Mi
+
+# Метрики собирает vmagent, а не сам kubelet: сборщик kube-state-metrics должен
+# работать и на control-plane. Toleration ко всем taint'ам — иначе под не
+# запланируется туда, где метрики читать нечем.
+tolerations:
+  - operator: Exists

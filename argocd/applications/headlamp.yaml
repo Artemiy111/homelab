@@ -1,13 +1,17 @@
 # Headlamp — веб-UI для Kubernetes. Ставится официальным чартом
-# kubernetes-sigs/headlamp, Argo рендерит его сам.
+# kubernetes-sigs/headlamp.
 #
-# ВНИМАНИЕ: без clusterRoleBinding.create чарт создаёт ClusterRoleBinding
-# cluster-admin на SA ПОДА. Ниже он выключен: права приходят из OIDC-токена
-# пользователя, а границей сети остаётся NetworkPolicy в
+# ВНИМАНИЕ: без clusterRoleBinding.create (выключен в values) чарт создаёт
+# ClusterRoleBinding cluster-admin на SA ПОДА. Права приходят из OIDC-токена
+# пользователя, границей сети остаётся NetworkPolicy в
 # platform/headlamp/networkpolicy.yaml.
 #
 # Маршрут и NetworkPolicy namespace headlamp живут вне Application
 # (platform/headlamp/route.yaml, platform/headlamp/networkpolicy.yaml).
+#
+# Значения вынесены из `spec.source.helm.valuesObject` в
+# `platform/headlamp/values.yaml`, Application подключает их через `$values` —
+# второй источник в `spec.sources`.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -15,38 +19,17 @@ metadata:
   namespace: argocd
 spec:
   project: upstream
-  source:
-    repoURL: https://kubernetes-sigs.github.io/headlamp/
-    chart: headlamp
-    targetRevision: 0.45.0
-    helm:
-      releaseName: headlamp
-      valuesObject:
-        resources:
-          requests:
-            memory: 64Mi
-          limits:
-            memory: 128Mi
-        # Дефолтный CRB чарта (clusterRoleBinding.create: true) выдаёт
-        # cluster-admin сервис-аккаунту ПОДА (headlamp). Под остаётся
-        # безправным, а права приходят из OIDC-токена пользователя.
-        clusterRoleBinding:
-          create: false
-        config:
-          oidc:
-            # clientSecret приходит из Secret через envFrom, clientID — тоже: он
-            # известен только после создания приложения в Zitadel.
-            secret:
-              create: false
-            externalSecret:
-              enabled: true
-              name: headlamp-oidc
-        # scopes — константа, меняется только вместе с набором claim'ов в Zitadel.
-        env:
-          - name: OIDC_ISSUER_URL
-            value: https://id.biplane.v6.rocks
-          - name: OIDC_SCOPES
-            value: openid,profile,email
+  sources:
+    - repoURL: https://kubernetes-sigs.github.io/headlamp/
+      chart: headlamp
+      targetRevision: 0.45.0
+      helm:
+        releaseName: headlamp
+        valueFiles:
+          - $values/platform/headlamp/values.yaml
+    - repoURL: ssh://git@forgejo.biplane.v6.rocks:2222/artemiy/homelab.git
+      targetRevision: main
+      ref: values
   destination:
     server: https://kubernetes.default.svc
     namespace: headlamp

@@ -1,0 +1,17 @@
+# Управление секретами в кластере: SealedSecret → Secret с ключом из этой
+# namespace. Нужен везде, где Secret создаётся не через Vault.
+#
+# `fullnameOverride` обязателен: без него чарт называет ресурсы
+# `sealed-secrets`, а исторически задеплоено `sealed-secrets-controller` —
+# вместе с ключом `sealed-secrets-key*` в этой же namespace. Переименование
+# создало бы второй контроллер рядом со старым.
+fullnameOverride: sealed-secrets-controller
+
+# Дефолт чарта — resources: {} на обоих компонентах. На одноузловом кластере
+# без requests планировщик не знает, что размещает, без limits контроллер
+# способен вытеснить приложения.
+resources:
+  requests:
+    memory: 64Mi
+  limits:
+    memory: 128Mi

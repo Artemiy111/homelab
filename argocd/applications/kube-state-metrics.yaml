@@ -1,12 +1,10 @@
-# kube-state-metrics через Argo CD: состояние объектов кластера (Deployment,
-# Pod, Job, PVC и т.д.) как метрики kube_* — их не дают node-exporter и
-# cAdvisor. Ставим официальным чартом prometheus-community: ClusterRole,
-# Service и обновления — на апстриме.
+# kube-state-metrics: состояние объектов кластера как метрики `kube_*` —
+# их не дают node-exporter и cAdvisor. Ставим официальным чартом
+# prometheus-community: ClusterRole, Service и обновления — на апстриме.
 #
-# Этот компонент боевой (его скрейпит vmagent), а Argo сейчас пробный стенд
-# (целевой GitOps — Flux, см. argocd/README.md). Держать его ТОЛЬКО под
-# Argo: не дублировать манифестами для Flux, иначе два контроллера начнут
-# спорить за одни объекты.
+# Значения вынесены из `spec.source.helm.valuesObject` в
+# `platform/kube-state-metrics/values.yaml`, Application подключает их через
+# `$values` — второй источник в `spec.sources`.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -14,22 +12,17 @@ metadata:
   namespace: argocd
 spec:
   project: upstream
-  source:
-    repoURL: https://prometheus-community.github.io/helm-charts
-    chart: kube-state-metrics
-    targetRevision: 8.5.0
-    helm:
-      releaseName: kube-state-metrics
-      valuesObject:
-        resources:
-          requests:
-            cpu: 50m
-            memory: 128Mi
-          limits:
-            cpu: "1"
-            memory: 512Mi
-        tolerations:
-          - operator: Exists
+  sources:
+    - repoURL: https://prometheus-community.github.io/helm-charts
+      chart: kube-state-metrics
+      targetRevision: 8.5.0
+      helm:
+        releaseName: kube-state-metrics
+        valueFiles:
+          - $values/platform/kube-state-metrics/values.yaml
+    - repoURL: ssh://git@forgejo.biplane.v6.rocks:2222/artemiy/homelab.git
+      targetRevision: main
+      ref: values
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring

@@ -1,19 +1,17 @@
 # cert-manager — выпуск и ротация TLS-сертификатов из кластера.
-# Ставится официальным чартом cert-manager из charts.jetstack.io; Argo рендерит
-# его сам (см. argocd/README.md).
+# Ставится официальным чартом cert-manager из charts.jetstack.io.
 #
-# CRD ставим вместе с оператором (crds.enabled: true) — как cloudnative-pg и
-# mariadb-operator. CRD кластерные; Prune=false не даёт удалить их вместе с
-# приложением (иначе снесло бы все Certificate/Issuer кластера).
+# CRD ставим вместе с оператором: они кластерные, и Prune=false не даёт удалить
+# их вместе с приложением (иначе снесло бы все Certificate/Issuer кластера).
 #
 # Эмитент и Certificate живут не здесь, а в шаблонах чарта platform/homelab
 # (templates/cert-manager/): CRD должны существовать раньше CR, а порядок
 # «сначала оператор, потом CR» Argo в одном приложении не гарантирует.
 #
 # Вебхук-сертификаты cert-manager выпускает сам (self-signed bootstrap CA).
-# Helm `lookup` в Argo не работает, поэтому здесь задан ignoreDifferences на
-# поля, которые дописывает контроллер; RespectIgnoreDifferences в syncOptions
-# не даёт selfHeal переписывать их обратно.
+# Helm `lookup` в Argo не работает, поэтому ниже ignoreDifferences на поля,
+# которые дописывает контроллер, а RespectIgnoreDifferences не даёт selfHeal
+# переписать их обратно.
 #
 # Метрики: prometheus.enabled оставлен дефолтным true — чарт развешивает
 # аннотации `prometheus.io/scrape` на подах controller, webhook и cainjector.
@@ -22,6 +20,10 @@
 # в scrape.yml отсутствует, поэтому рассчитывать на него нельзя. CRD
 # prometheus-operator (monitoring.coreos.com) в кластере нет, поэтому никаких
 # PodMonitor/ServiceMonitor не создаём.
+#
+# Значения вынесены из `spec.source.helm.valuesObject` в
+# `platform/cert-manager/values.yaml`, Application подключает их через
+# `$values` — второй источник в `spec.sources`.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -29,42 +31,17 @@ metadata:
   namespace: argocd
 spec:
   project: upstream
-  source:
-    repoURL: https://charts.jetstack.io
-    chart: cert-manager
-    targetRevision: v1.21.2
-    helm:
-      releaseName: cert-manager
-      valuesObject:
-        crds:
-          enabled: true
-        # Дефолт у чарта: resources: {} у controller, webhook и cainjector.
-        # Для одноузлового кластера это плохо: без requests планировщик не
-        # знает, что размещает, а без limits разъехавшийся контроллер способен
-        # вытеснить рабочие поды.
-        resources:
-          requests:
-            cpu: 50m
-            memory: 64Mi
-          limits:
-            cpu: "1"
-            memory: 256Mi
-        webhook:
-          resources:
-            requests:
-              cpu: 10m
-              memory: 32Mi
-            limits:
-              cpu: 100m
-              memory: 128Mi
-        cainjector:
-          resources:
-            requests:
-              cpu: 10m
-              memory: 64Mi
-            limits:
-              cpu: 100m
-              memory: 256Mi
+  sources:
+    - repoURL: https://charts.jetstack.io
+      chart: cert-manager
+      targetRevision: v1.21.2
+      helm:
+        releaseName: cert-manager
+        valueFiles:
+          - $values/platform/cert-manager/values.yaml
+    - repoURL: ssh://git@forgejo.biplane.v6.rocks:2222/artemiy/homelab.git
+      targetRevision: main
+      ref: values
   destination:
     server: https://kubernetes.default.svc
     namespace: cert-manager
