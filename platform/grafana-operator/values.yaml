@@ -1,0 +1,19 @@
+# Grafana Operator — CRD и контроллер для Grafana и Loki. Держит в кластере
+# CRD `monitoring.coreos.com` и `grafana.integreatly.org`.
+
+# Дефолт, но фиксируем явно: значение определяет, смотрит ли оператор весь
+# кластер или только свой namespace, и сменить его молча нельзя. Сейчас
+# cluster-wide — Grafana, Loki и дашборды живут в namespace monitoring, а
+# оператор в grafana-operator.
+namespaceScope: false
+
+# Дефолт у чарта: resources: {}. Для одноузлового кластера это плохо: без
+# requests планировщик не знает, что размещает, без limits разъехавшийся
+# оператор способен вытеснить сами инстансы Grafana.
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: "1"
+    memory: 512Mi
