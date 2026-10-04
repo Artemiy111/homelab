@@ -2,8 +2,9 @@
 # разрешения. Специфика 3x-ui — порты наружу через externalIPs:
 #   - 8443 (inbound Xray) должен принимать клиентов из интернета, поэтому
 #     разрешаем 0.0.0.0/0; default-deny здесь всё равно ограничивает остальное;
-#   - 8440 (forward proxy) нужен мониторингу — gatus и uptime-kuma;
-#   - панель 2053 доступна только через traefik и мониторингу.
+#   - 8440 (forward proxy) нужен gatus (Telegram и проверка egress) и
+#     cert-manager (DNS-01 webhook ходит к API Spaceship через прокси);
+#   - панель 2053 доступна через traefik, мониторингу и uptime-kuma.
 # Egress не ограничивается.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy

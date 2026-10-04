@@ -5,10 +5,10 @@ metadata:
   namespace: 3x-ui
 spec:
   # HTTP forward proxy (порт 8440) на IP узла: Gatus ходит на
-  # http://{{ .Values.config.serverIp }}:8440 (см. client.proxy-url для Telegram).
+  # http://{{ .Values.serverIp }}:8440 (см. client.proxy-url для Telegram).
   type: ClusterIP
   externalIPs:
-    - {{ .Values.config.serverIp }}
+    - {{ .Values.serverIp }}
   selector:
     app: 3x-ui
   ports:

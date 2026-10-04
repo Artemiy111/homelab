@@ -115,7 +115,7 @@ VSO через `VaultStaticSecret`. Единственная копия знач
 API Spaceship закрыт WAF'ом провайдера: из сети стенда любой запрос, включая
 документацию, получает `403`, а `api.spaceship.dev` и `api.spaceship.com` не
 резолвятся. Поэтому запросы к Spaceship идут через egress-прокси 3x-ui
-(`platform/homelab/templates/services/xui-egress.service.yaml`), а подключение
+(`apps/3x-ui/chart/templates/service-xui-egress.yaml`), а подключение
 задаётся в `argocd/applications/dns01-webhook.yaml`
 (`provider.spaceship.proxyURL`).
 
