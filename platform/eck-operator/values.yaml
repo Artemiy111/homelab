@@ -1,0 +1,13 @@
+# Оператор Elastic Cloud on Kubernetes — CRD и контроллер для Elasticsearch,
+# Kibana и Beats. Ставится из каталога `deploy/eck-operator` в репозитории
+# проекта, официального Helm-репозитория нет.
+
+# Дефолт у чарта: resources: {} не задано. Без requests планировщик не знает,
+# что размещает, без limits оператор способен вытеснить сам Elasticsearch.
+resources:
+  requests:
+    cpu: 100m
+    memory: 150Mi
+  limits:
+    cpu: "1"
+    memory: 512Mi

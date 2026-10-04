@@ -17,7 +17,9 @@
 # Секреты обоих провайдеров необязательны: webhook поднимается без них и падает
 # только тот challenge, у чьего провайдера нет credentials.
 #
-# Вебхук-чарт сам создаёт self-signed CA и serving-сертификат и APIService.
+# Значения вынесены из `spec.source.helm.valuesObject` в
+# `platform/dns01-webhook/values.yaml`, Application подключает их через
+# `$values` — второй источник в `spec.sources`.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -25,33 +27,17 @@ metadata:
   namespace: argocd
 spec:
   project: upstream
-  source:
-    repoURL: forgejo.biplane.v6.rocks/artemiy/charts
-    chart: cert-manager-webhook-dns01
-    targetRevision: 0.5.0
-    helm:
-      releaseName: dns01-webhook
-      valuesObject:
-        groupName: acme.homelab.local
-        resources:
-          requests:
-            memory: 64Mi
-          limits:
-            memory: 160Mi
-        image:
-          repository: forgejo.biplane.v6.rocks/artemiy/cert-manager-webhook-dns01
-          tag: 0.5.0
-        provider:
-          dynv6:
-            existingSecret: dns01-webhook-dynv6-token
-          spaceship:
-            existingSecret: dns01-webhook-spaceship
-            # Учётная запись прокси: логин и пароль разными ключами из Vault,
-            # URL собирается в поде. Прокси привязан к провайдеру: dynv6 через
-            # него не ходит. WAF Spaceship отвечает 403 на запросы из сети
-            # стенда, поэтому API провайдера доступен только так.
-            egressSecret: dns01-webhook-egress
-            proxyURL: http://$(XUI_EGRESS_USERNAME):$(XUI_EGRESS_PASSWORD)@xui-egress.3x-ui.svc.cluster.local:8440
+  sources:
+    - repoURL: forgejo.biplane.v6.rocks/artemiy/charts
+      chart: cert-manager-webhook-dns01
+      targetRevision: 0.5.0
+      helm:
+        releaseName: dns01-webhook
+        valueFiles:
+          - $values/platform/dns01-webhook/values.yaml
+    - repoURL: ssh://git@forgejo.biplane.v6.rocks:2222/artemiy/homelab.git
+      targetRevision: main
+      ref: values
   destination:
     server: https://kubernetes.default.svc
     namespace: cert-manager
