@@ -273,7 +273,32 @@ redirect URL в `radar` и `headlamp`, домен в `dns01-webhook`. Секре
 | `path` | каталог с манифестами |
 | `namespace` | куда деплоить. **Указывается явно:** 13 сервисов живут в `monitoring`, а каталоги называются иначе (`node-exporter`, `grafana`, `loki`…), и выводить namespace из имени каталога нельзя |
 | `project` | `homelab` либо `homelab-cluster-readers` — см. ниже |
-| `prune` | по умолчанию `true`; `false` там, где удаление ресурса означает потерю данных |
+
+`prune` в реестре нет и не может быть: подстановка в `ApplicationSet` работает
+только для строк, а `spec.template.spec.syncPolicy.automated.prune` в CRD —
+boolean. Попытка `prune: '{{.prune}}'` валит объект целиком:
+
+```
+ApplicationSet.argoproj.io "apps" is invalid:
+spec.template.spec.syncPolicy.automated.prune: Invalid value: "string":
+… must be of type boolean: "string"
+```
+
+и `ApplicationSet` не создаётся — ни один сервис не попадает под Argo. Для
+boolean-полей есть `templatePatch`, но он тут не окупается: `prune: true` задан
+литералом в самом `ApplicationSet`, а сервисы, где prune опасен, получат
+отдельный `ApplicationSet` без prune.
+
+### Про `prune`
+
+`prune: true` означает: ресурс, удалённый из git, удаляется и из кластера. Для
+stateless-сервисов это и нужно — иначе удалённый из репозитория Deployment
+продолжит жить.
+
+Для сервиса с данными prune опасен: удаление PVC в тех Application
+(`seafile`, `nextcloud`, `forgejo`) равно потере данных. У них будет
+`prune: false`, и удаление каталога из git оставит осиротевшие ресурсы, которые
+надо снести руками.
 
 ### Проект `homelab`
 

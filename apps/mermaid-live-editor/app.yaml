@@ -2,4 +2,3 @@ name: mermaid-live-editor
 path: apps/mermaid-live-editor
 namespace: mermaid-live-editor
 project: homelab
-prune: true
