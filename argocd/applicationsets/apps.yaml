@@ -19,8 +19,8 @@ spec:
       project: '{{.project}}'
       source:
         repoURL: ssh://git@forgejo.biplane.v6.rocks:2222/artemiy/homelab.git
-        targetRevision: d43738ceb9816ed6863e6d4f7ad92dab2b57660f
-        path: '{{.path}}'
+        targetRevision: main
+        path: '{{.dir}}'
       destination:
         server: https://kubernetes.default.svc
         namespace: '{{.namespace}}'
