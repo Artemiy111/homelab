@@ -2,6 +2,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
+  - applicationsets/apps.yaml
   - applications/cert-manager.yaml
   - applications/cloudnative-pg.yaml
   - applications/dns01-webhook.yaml
@@ -20,4 +21,5 @@ resources:
   - applications/traefik.yaml
   - applications/vault.yaml
   - applications/vault-secrets-operator.yaml
+  - projects/homelab.yaml
   - projects/upstream.yaml

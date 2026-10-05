@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: apps
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    - git:
+        repoURL: ssh://git@forgejo.biplane.v6.rocks:2222/artemiy/homelab.git
+        revision: main
+        files:
+          - path: "apps/*/app.yaml"
+  template:
+    metadata:
+      name: '{{.name}}'
+    spec:
+      project: '{{.project}}'
+      source:
+        repoURL: ssh://git@forgejo.biplane.v6.rocks:2222/artemiy/homelab.git
+        targetRevision: main
+        path: '{{.path}}'
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{.namespace}}'
+      syncPolicy:
+        automated:
+          prune: '{{.prune}}'
+          selfHeal: true
+        syncOptions:
+          - ServerSideApply=true

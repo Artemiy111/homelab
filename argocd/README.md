@@ -257,7 +257,53 @@ redirect URL в `radar` и `headlamp`, домен в `dns01-webhook`. Секре
   Argo будет вечно `OutOfSync` с `field is immutable`; лечится удалением объекта, после чего
   Argo создаёт его заново.
 
-## kube-state-metrics (боевой компонент под Argo)
+## Приложения из `apps/`
+
+Приложения переводятся на Argo через `ApplicationSet` в
+`argocd/applicationsets/apps.yaml`. Генератор — git-файлы: он читает
+`apps/<сервис>/app.yaml`, и такой каталог становится `Application`. Каталог без
+`app.yaml` остаётся ручным — это осознанно: генератор каталогов создал бы
+`Application` для `apps/spotdl/`, где манифестов нет.
+
+`app.yaml` — реестр, а не копия имён:
+
+| Поле | Зачем |
+|---|---|
+| `name` | имя `Application`; по умолчанию совпадает с каталогом |
+| `path` | каталог с манифестами |
+| `namespace` | куда деплоить. **Указывается явно:** 13 сервисов живут в `monitoring`, а каталоги называются иначе (`node-exporter`, `grafana`, `loki`…), и выводить namespace из имени каталога нельзя |
+| `project` | `homelab` либо `homelab-cluster-readers` — см. ниже |
+| `prune` | по умолчанию `true`; `false` там, где удаление ресурса означает потерю данных |
+
+### Проект `homelab`
+
+Единственное кластерное право — свой `Namespace`. Приложение обязано уметь
+создать свой, но не может трогать `CRD`, `ClusterRole`, `StorageClass` и прочее
+на уровне кластера. Это структурная защита от эскалации: нельзя случайно
+выдать сервису кластерные права, как это делал чарт headlamp
+(`clusterRoleBinding.create: true`).
+
+`namespaceResourceWhitelist` не задан намеренно. Он не только разрешает, но и
+фильтрует resource tree в UI: не внесённые в него `Pod`/`ReplicaSet`
+перестают быть видны под `Deployment`. Плюс namespaced-ресурсы Argo
+ограничивает deny-list'ом, а не allow-list'ом — ограничивать их whitelist'ом
+не то самое.
+
+`destinations` — `namespace: '*'`, в отличие от проекта `upstream`: перечислять
+40+ namespace'ов сервисов означало бы править проект при каждом новом
+сервисе. Границы сервиса держат его манифесты.
+
+Шесть приложений читают кластер целиком (`alloy`, `beyla`,
+`alloy-profiler`, `victoria-metrics`, `homepage`, `elk`) — им нужен
+`ClusterRole`, поэтому они попадут в отдельный проект
+`homelab-cluster-readers` с соответствующим whitelist.
+
+### Ограничение генератора
+
+Git-генератор опрашивает репозиторий каждые `requeueAfterSeconds` (дефолт 180).
+Webhook не поможет: Argo поддерживает его только для GitHub и GitLab, origin
+здесь Forgejo. Так что новое приложение появляется в кластере с задержкой до
+трёх минут после мержа — это нормально и специально не ускорено.
 
 `kube-state-metrics.yaml` — Application, который ставит официальный чарт
 `prometheus-community/kube-state-metrics` в namespace `monitoring`. Он отдаёт
