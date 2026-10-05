@@ -1,0 +1,9 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Манифесты лежат в k8s/, и без этого файла Argo считает каталог приложения
+# пустым и отвечает «app path does not exist»: plain-каталог он не рекурсирует.
+# Явный kustomization.yaml делает тип приложения детерминированным.
+resources:
+  - k8s/daemonset.yaml
+  - k8s/service.yaml
