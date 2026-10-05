@@ -35,6 +35,28 @@ configs:
     # лишнюю нагрузку на Forgejo.
     timeout.reconciliation: 60s
 
+    # HTTPRoute: apiserver подставляет дефолты из OpenAPI-схемы CRD, которых
+    # нет в манифесте, и Argo считает их дрейфом. Приложение после успешного
+    # sync навсегда остаётся OutOfSync, при этом `argocd app diff` пуст.
+    # Дефолты взяты из `kubectl get crd httproutes.gateway.networking.k8s.io`:
+    #   spec.parentRefs[].group           = gateway.networking.k8s.io
+    #   spec.parentRefs[].kind            = Gateway
+    #   spec.rules[].backendRefs[].group  = ""
+    #   spec.rules[].backendRefs[].kind   = Service
+    #   spec.rules[].backendRefs[].weight = 1
+    #   spec.rules[].matches = [{path: {type: PathPrefix, value: /}}]
+    # Формат jqPathExpressions — именно путь к полю. Конструкция вида
+    # `del(.group, .kind)` не работает: del() удаляет из результата запроса,
+    # а нужен адрес поля.
+    resource.customizations.ignoreDifferences.gateway.networking.k8s.io_HTTPRoute: |
+      jqPathExpressions:
+        - .spec.parentRefs[]?.group
+        - .spec.parentRefs[]?.kind
+        - .spec.rules[]?.backendRefs[]?.group
+        - .spec.rules[]?.backendRefs[]?.kind
+        - .spec.rules[]?.backendRefs[]?.weight
+        - .spec.rules[]?.matches
+
   # Значение заменяет дефолт чарта целиком, поэтому дефолтные ключи
   # (bitbucket.org, github.com) тут повторены — без них Argo перестанет
   # клонировать с этих хостов.

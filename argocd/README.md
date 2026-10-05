@@ -338,6 +338,43 @@ stateless-сервисов это и нужно — иначе удалённы�
 Это заодно делает тип приложения детерминированным: не приходится полагаться
 на то, как именно Argo определит каталог.
 
+### Про HTTPRoute и дефолты CRD
+
+Apiserver подставляет в `HTTPRoute` шесть полей, которых нет в манифесте:
+
+| Поле | Значение |
+|---|---|
+| `spec.parentRefs[].group` | `gateway.networking.k8s.io` |
+| `spec.parentRefs[].kind` | `Gateway` |
+| `spec.rules[].backendRefs[].group` | `""` |
+| `spec.rules[].backendRefs[].kind` | `Service` |
+| `spec.rules[].backendRefs[].weight` | `1` |
+| `spec.rules[].matches` | `[{path: {type: PathPrefix, value: /}}]` |
+
+Argo о таких дефолтах не знает — он знает только про встроенные типы Kubernetes.
+Итог выглядит противоречиво: `argocd app diff` пуст, `argocd app sync` отрабатывает
+успешно, но приложение навсегда остаётся `OutOfSync`. Расходится ровно один ресурс
+на приложение, и auto-sync не помогает — он же и не срабатывает, потому что
+состояние не меняется.
+
+Решение — `resource.customizations.ignoreDifferences` в `install/values.yaml`.
+Синтаксис `jqPathExpressions` требует **путь к полю**, а не операцию над ним:
+`.spec.parentRefs[]?.group` верно, `.spec.parentRefs[] | del(.group, .kind)` — нет,
+`del()` удаляет из результата запроса, и правило молча ничего не игнорирует. На
+этом ушла часть времени: ошибка выглядит как «настройка не действует», хотя
+настройка как раз неверная.
+
+Дефолты взяты из схемы самого CRD, а не из документации:
+
+```sh
+kubectl get crd httproutes.gateway.networking.k8s.io \
+  -o jsonpath='{..rules.items.properties}' | jq
+```
+
+Правкой всех 41 `apps/*/k8s/route.yaml` вопрос не решается: дефолты появились бы
+снова при обновлении CRD, и manifests-файлы начали бы повторять то, что и так
+знает apiserver.
+
 ## Про кэш ошибок рендера
 
 `controller.default.cache.expiration` по умолчанию **24 часа**, и ошибка
