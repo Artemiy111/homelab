@@ -302,6 +302,7 @@ PR, добавляющий сервис, не показывает ни `prune`,
 ```sh
 # 1. Снять finalizer с Application, если он есть. Иначе удаление спеки
 #    снесёт управляемые ресурсы каскадом, а вместе с ними Namespace.
+#    Пока сервис обслуживает ApplicationSet — см. «Снятие ApplicationSet».
 kubectl -n argocd get application <svc> -o \
   custom-columns='NAME:.metadata.name,FINALIZERS:.metadata.finalizers'
 kubectl -n argocd patch application <svc> --type json \
@@ -333,15 +334,46 @@ stateless-сервисов это и нужно — иначе удалённы�
 Обратная сторона `prune: true` — удаление спеки сервиса из git удаляет и его
 ресурсы, если у `Application` есть `resources-finalizer.argocd.argoproj.io`:
 finalizer заставляет Argo снести управляемые ресурсы перед тем, как объект
-исчезнет. Для stateless-сервиса это не страшно, но правило общее: **прежде чем
-удалять `Application` руками, снять с него finalizer**, иначе поды и `Namespace`
-исчезнут вместе с ним. Нашлись три таких — их создал `ApplicationSet`.
+исчезнет. Проверять надо всегда, а не по списку.
 
-Отдельно про удаление `ApplicationSet`: у созданных им `Application` есть
-`ownerReferences` с `blockOwnerDeletion`, поэтому удаление самого `ApplicationSet`
-удаляет и их — вместе с ресурсами, если у них есть finalizer. При снятии
-`ApplicationSet` finalizer надо снять с его `Application` заранее, отдельным
-шагом до синка root.
+Три таких `Application` нашлись 2026-10-06 — их создал `ApplicationSet`, и
+finalizer добавлял именно он, а не Argo при `automated`-синке: наши 25
+`Application`, написанные рукой, ни одного не имеют, хотя `automated` включён
+у всех. Отсюда и порядок ниже.
+
+### Снятие `ApplicationSet`
+
+Удаление `ApplicationSet` каскадом удаляет созданные им `Application` — у них
+`ownerReferences` с `blockOwnerDeletion`. Если у них же есть
+`resources-finalizer`, каскад продолжается в managed-ресурсы и `Namespace`.
+На 2026-10-06 с этим столкнулись при снятии `ApplicationSet apps`:
+`code-server` и `mermaid-live-editor` потеряли бы поды.
+
+Просто снять finalizer руками нельзя: `applicationset-controller` в пределах
+цикла реконсиляции возвращает его и логирует `updated Application`. Сначала
+запрещаем контроллеру трогать эти `Application`, потом снимаем finalizer, потом
+удаляем сет:
+
+```sh
+# 1. create-only запрещает и изменять, и удалять существующие Application.
+kubectl -n argocd patch applicationset apps --type merge \
+  -p '{"spec":{"syncPolicy":{"applicationsSync":"create-only"}}}'
+
+# 2. Теперь finalizer держится снятым (проверять после реконсиляции, не сразу).
+for a in code-server mermaid-live-editor node-exporter; do
+  kubectl -n argocd patch application "$a" --type json \
+    -p '[{"op":"remove","path":"/metadata/finalizers"}]'
+done
+kubectl -n argocd get application \
+  -o custom-columns='NAME:.metadata.name,FINALIZERS:.metadata.finalizers' \
+  | grep -v '<none>'
+
+# 3. Удалить сет — теперь из git коммитом или руками.
+```
+
+Без шага 1 шаг 2 не имеет эффекта, а без шага 2 шаг 3 роняет сервисы. После
+перехода финализаторов нет ни у одного `Application`, поэтому будущее удаление
+спеки оставит ресурсы сиротами — сносить их руками.
 
 ### Проект `homelab`
 
