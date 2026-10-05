@@ -1,4 +1,4 @@
 name: node-exporter
-path: apps/node-exporter
+dir: apps/node-exporter
 namespace: monitoring
 project: homelab
