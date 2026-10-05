@@ -110,15 +110,18 @@ argocd account update-password
 4. **`lookup` не работает.** Чарты, читающие существующие объекты кластера при
    шаблонизации (генерация паролей), отрендерятся с пустыми значениями.
 5. **ApplicationSet** — генератор приложений из git-директорий и списка
-   кластеров вместо ручного создания каждого Application.
+   кластеров вместо ручного создания каждого Application. Возможность рабочая,
+   но у нас не используется: генератор собирает `Application` в рантайме, и
+   спека не лежит в git. Свойства проверены на стенде, решение — в разделе
+   «Приложения из `apps/`».
 
 ## Бутстрап: спеки Application'ов живут в git
 
 Application'ы применяет корневой `Application` — `bootstrap/root-application.yaml`.
 Он рендерит каталог `argocd/` через kustomize и получает `AppProject` `upstream`
-плюс 18 `Application` из `applications/`. Раньше app-of-apps не было, и спеки
-лежали только в git: Argo читал желаемое состояние из объекта в кластере, и пока
-файл не применён руками, правка values в git ничего не меняла.
+плюс 25 `Application` из `applications/` и `applications/apps/`. Раньше app-of-apps
+не было, и спеки лежали только в git: Argo читал желаемое состояние из объекта в
+кластере, и пока файл не применён руками, правка values в git ничего не меняла.
 
 Публичный ключ deploy key добавляется в Forgejo (Настройки репозитория → Deploy
 keys, только чтение), а приватный ключ отдаётся команде с машины, где он лежит:
@@ -177,6 +180,7 @@ argocd app sync root
 ```sh
 argocd proj get upstream              # проект создан
 argocd app list --project upstream    # 18 приложений, все Synced
+argocd app list --project homelab     # 7 сервисов, все Synced
 argocd app diff traefik               # пусто
 ```
 
@@ -209,13 +213,16 @@ argocd app diff traefik               # пусто
 - **Root живёт в проекте `default`.** Если `default` когда-нибудь ужесточат
   (Argo документирует, как убрать из него все права), root откажется работать —
   тогда ему нужен собственный проект.
-- **`prune: true` у root, а finalizer у 18 `Application` в манифестах не задан.**
+- **`prune: true` у root, а finalizer у `Application` в манифестах не задан.**
   Это осознанно: на одном узле ошибка в prune — простой. Но есть исключение,
   о котором надо знать: Argo добавляет `pre-delete-finalizer.argocd.argoproj.io`
   сам, когда в рендере чарта появляется `PreDelete`-хук. На 2026-10-04 это
   произошло с `longhorn` и `vault-secrets-operator`, и удаление спеки из git у
-  этих двух снесёт ресурсы каскадом, а у остальных 16 оставит сиротами.
-  Проверять:
+  этих двух снесёт ресурсы каскадом, а у остальных оставит сиротами.
+  `resources-finalizer.argocd.argoproj.io` при этом есть не у всех: на 2026-10-05
+  его носили три `Application`, созданных `ApplicationSet`, и ни один из 18
+  написанных рукой в `applications/`, хотя `automated`-синк включён у обоих
+  наборов. Проверять надо всегда, а не по списку:
   ```sh
   kubectl -n argocd get application -o \
     custom-columns='NAME:.metadata.name,FINALIZERS:.metadata.finalizers'
@@ -259,39 +266,58 @@ redirect URL в `radar` и `headlamp`, домен в `dns01-webhook`. Секре
 
 ## Приложения из `apps/`
 
-Приложения переводятся на Argo через `ApplicationSet` в
-`argocd/applicationsets/apps.yaml`. Генератор — git-файлы: он читает
-`apps/<сервис>/app.yaml`, и такой каталог становится `Application`. Каталог без
-`app.yaml` остаётся ручным — это осознанно: генератор каталогов создал бы
-`Application` для `apps/spotdl/`, где манифестов нет.
+По одному `Application` на сервис, лежат в `argocd/applications/apps/` и
+применяются тем же корневым `Application`, что и платформенные компоненты.
+Способ тот же, что у 18 компонентов в `applications/`, — в репозитории один
+стандарт на все 25 приложений.
 
-`app.yaml` — реестр, а не копия имён:
+Цена — повтор `repoURL` и `targetRevision` в каждом файле. Экономия на нём не
+стоит: генератор собирает `Application` в рантайме, спека не лежит в git, и
+PR, добавляющий сервис, не показывает ни `prune`, ни `selfHeal`, ни
+`syncOptions` — то есть ровно то, что Argo сделает с кластером.
 
-| Поле | Зачем |
+Что было вместо этого: `ApplicationSet` с git-генератором файлов, который читал
+`apps/<сервис>/app.yaml` — реестр из четырёх полей (`name`, `dir`, `namespace`,
+`project`). От него отказались, и вот почему:
+
+| Проблема реестра | Что вместо |
 |---|---|
-| `name` | имя `Application`; по умолчанию совпадает с каталогом |
-| `dir` | каталог с манифестами. **Не `path`:** git-генератор файлов добавляет служебный параметр `path` (путь к самому файлу-реестру), и он перекрывает одноимённое поле из `app.yaml` — подстановка `{{.path}}` даст не строку, а map вида `map[basename:… segments:[…]]`, и Argo ответит «app path does not exist» |
-| `namespace` | куда деплоить. **Указывается явно:** 13 сервисов живут в `monitoring`, а каталоги называются иначе (`node-exporter`, `grafana`, `loki`…), и выводить namespace из имени каталога нельзя |
-| `project` | `homelab` либо `homelab-cluster-readers` — см. ниже |
+| `Application` собирается в рантайме, в git не лежит | спека в файле, видна в диффе PR |
+| `app.yaml` не проверялся ни одним гейтом: `kubeconform` сканирует `apps/*/k8s`, `platform`, `argocd`, а `apps/<сервис>/app.yaml` не попадает ни в одну дорожку | файл в `argocd/` проверяется kubeconform как `Application` |
+| `prune` задан литералом в `spec.template` и достаётся всем без исключения — сервисы с данными защищены только тем, что их не добавили | `prune` виден в файле сервиса |
+| поля реестра — подмножество `spec.Application`: чарты (`3x-ui`, `element`) и multi-source values (`traefik`) не выражались | выражаются, отдельный `Application` на каждый случай |
+| `path` в реестре перекрывается служебным параметром генератора — пришлось переименовать в `dir` | таких коллизий нет |
+| добавление сервиса — одна строка в git, но сервис появляется в кластере сам и незаметно | добавление сервиса — новый файл плюс строка в `argocd/kustomization.yaml`, и в ревью видно, что сервис добавлен под Argo |
 
-Служебные параметры генератора: `basename`, `basenameNormalized`,
-`filename`, `filenameNormalized`, `path`, `segments`. Поля `app.yaml` с такими
-именами перекрываются — отсюда `dir` вместо `path`.
+Обходной путь для boolean-полей (`templatePatch`, где `prune: {{ .prune }}`
+рендерится как YAML, а не как строка) существует и был бы пригоден — но он не
+решает ни одну из проблем выше, только последнюю.
 
-`prune` в реестре нет и не может быть: подстановка в `ApplicationSet` работает
-только для строк, а `spec.template.spec.syncPolicy.automated.prune` в CRD —
-boolean. Попытка `prune: '{{.prune}}'` валит объект целиком:
+### Перевод сервиса на Argo
 
+Один сервис — один файл в `argocd/applications/apps/` плюс строка в
+`argocd/kustomization.yaml`. Ниже — порядок для сервиса, который уже применён
+руками; AGE подов при этом не должен сброситься.
+
+```sh
+# 1. Снять finalizer с Application, если он есть. Иначе удаление спеки
+#    снесёт управляемые ресурсы каскадом, а вместе с ними Namespace.
+kubectl -n argocd get application <svc> -o \
+  custom-columns='NAME:.metadata.name,FINALIZERS:.metadata.finalizers'
+kubectl -n argocd patch application <svc> --type json \
+  -p '[{"op":"remove","path":"/metadata/finalizers"}]'
+
+# 2. Проверить рендер до синка: Argo покажет расхождение, если что-то не так.
+argocd app diff <svc>
+
+# 3. Синк и проверка, что поды те же.
+argocd app sync <svc>
+kubectl -n <ns> get pods
 ```
-ApplicationSet.argoproj.io "apps" is invalid:
-spec.template.spec.syncPolicy.automated.prune: Invalid value: "string":
-… must be of type boolean: "string"
-```
 
-и `ApplicationSet` не создаётся — ни один сервис не попадает под Argo. Для
-boolean-полей есть `templatePatch`, но он тут не окупается: `prune: true` задан
-литералом в самом `ApplicationSet`, а сервисы, где prune опасен, получат
-отдельный `ApplicationSet` без prune.
+`server-side apply` обязателен (`ServerSideApply=true`): часть сервисов
+применялась Helm'ом, и client-side apply полез бы чинить
+`last-applied-configuration`, которого после Helm нет.
 
 ### Про `prune`
 
@@ -303,6 +329,19 @@ stateless-сервисов это и нужно — иначе удалённы�
 (`seafile`, `nextcloud`, `forgejo`) равно потере данных. У них будет
 `prune: false`, и удаление каталога из git оставит осиротевшие ресурсы, которые
 надо снести руками.
+
+Обратная сторона `prune: true` — удаление спеки сервиса из git удаляет и его
+ресурсы, если у `Application` есть `resources-finalizer.argocd.argoproj.io`:
+finalizer заставляет Argo снести управляемые ресурсы перед тем, как объект
+исчезнет. Для stateless-сервиса это не страшно, но правило общее: **прежде чем
+удалять `Application` руками, снять с него finalizer**, иначе поды и `Namespace`
+исчезнут вместе с ним. Нашлись три таких — их создал `ApplicationSet`.
+
+Отдельно про удаление `ApplicationSet`: у созданных им `Application` есть
+`ownerReferences` с `blockOwnerDeletion`, поэтому удаление самого `ApplicationSet`
+удаляет и их — вместе с ресурсами, если у них есть finalizer. При снятии
+`ApplicationSet` finalizer надо снять с его `Application` заранее, отдельным
+шагом до синка root.
 
 ### Проект `homelab`
 
@@ -392,12 +431,12 @@ URL и пути — но **не** из ревизии, так что фикса�
 должно решить проблему системно; пока не сделано, об ошибке рендера стоит
 думать как о «залипшей на сутки».
 
-## Ограничение генератора
+## Задержка применения
 
-Git-генератор опрашивает репозиторий каждые `requeueAfterSeconds` (дефолт 180).
-Webhook не поможет: Argo поддерживает его только для GitHub и GitLab, origin
-здесь Forgejo. Так что новое приложение появляется в кластере с задержкой до
-трёх минут после мержа — это нормально и специально не ускорено.
+Webhook не работает: Argo поддерживает его только для GitHub и GitLab, origin
+здесь Forgejo. Поэтому root ждёт следующей сверки ревизии, и спека
+`Application` доезжает в кластер с задержкой — это нормально и специально не
+ускорено.
 
 `kube-state-metrics.yaml` — Application, который ставит официальный чарт
 `prometheus-community/kube-state-metrics` в namespace `monitoring`. Он отдаёт

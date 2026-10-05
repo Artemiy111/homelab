@@ -2,7 +2,13 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-  - applicationsets/apps.yaml
+  - applications/apps/code-server.yaml
+  - applications/apps/gatus.yaml
+  - applications/apps/mermaid-live-editor.yaml
+  - applications/apps/node-exporter.yaml
+  - applications/apps/otel-collector.yaml
+  - applications/apps/open-webui.yaml
+  - applications/apps/uptime-kuma.yaml
   - applications/cert-manager.yaml
   - applications/cloudnative-pg.yaml
   - applications/dns01-webhook.yaml
