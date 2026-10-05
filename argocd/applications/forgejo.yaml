@@ -24,6 +24,9 @@
 #
 # Встроенная база/кэш чарта не включаются — иначе консолидация БД отменяется
 # (docs/adr/0002).
+# Значения вынесены из `spec.source.helm.valuesObject` в
+# `platform/forgejo/values.yaml`, Application подключает их через `$values` —
+# второй источник в `spec.sources`.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -31,190 +34,17 @@ metadata:
   namespace: argocd
 spec:
   project: upstream
-  source:
-    repoURL: https://codeberg.org/forgejo-contrib/forgejo-helm.git
-    path: .
-    targetRevision: v16.0.1
-    helm:
-      releaseName: forgejo
-      valuesObject:
-        image:
-          registry: data.forgejo.org
-          repository: forgejo/forgejo
-          tag: 16-rootless
-          digest: sha256:23ccc146e6dc2cd1f5c5435909baae64db873201717f1726490dae649283e6cd
-          rootless: true
-        gitea:
-          admin:
-            # Служебный админ forgejo-admin, не личный аккаунт: роль в сервисе и
-            # человек — разные сущности. Логин не может быть `admin` — Forgejo
-            # резервирует это имя («name is reserved»). Пароль приходит из
-            # Secret'а forgejo-admin в values не попадает.
-            # keepUpdated перетирал бы пароль при каждом рестарте пода, поэтому
-            # initialOnlyNoReset: выставляем один раз, дальше правит человек.
-            email: admin@biplane.v6.rocks
-            existingSecret: forgejo-admin
-            passwordMode: initialOnlyNoReset
-          # OIDC-источник входа через Zitadel. Init-контейнер чарта идемпотентно
-          # создаёт источник (`forgejo admin auth add-oauth`), а если он уже
-          # есть — обновляет (`update-oauth`), поэтому значения живут в
-          # GitOps, а не в UI. key/secret приходят из existingSecret
-          # (VaultStaticSecret forgejo-oidc → kv/forgejo/oidc); имена ключей
-          # в Secret задаёт чарт — `key` и `secret`.
-          #
-          # Имя источника `zitadel` не декоративно: Forgejo ищет источник по
-          # имени, а не по id, и подставляет это же имя в URL кнопки входа и
-          # в redirect_uri. Поэтому `name` здесь и redirect URI приложения в
-          # Zitadel (terraform/zitadel/applications.tf) обязаны совпадать.
-          oauth:
-            - name: zitadel
-              provider: openidConnect
-              autoDiscoverUrl: https://id.biplane.v6.rocks/.well-known/openid-configuration
-              existingSecret: forgejo-oidc
-          config:
-            server:
-              # Наружу SSH отдаётся на 2222 (service.ssh.port ниже), внутри
-              # rootless-образ слушает тот же порт.
-              SSH_PORT: 2222
-              SSH_LISTEN_PORT: 2222
-              LFS_START_SERVER: true
-              DOMAIN: forgejo.biplane.v6.rocks
-              ROOT_URL: https://forgejo.biplane.v6.rocks
-              SSH_DOMAIN: forgejo.biplane.v6.rocks
-              # PROTOCOL — про листенер самого Forgejo, а не про внешний адрес:
-              # с `https` он пытается поднять TLS на :3000 и падает
-              # («Failed to load https cert file»). TLS терминирует Traefik,
-              # поэтому здесь http, а внешний адрес задаёт ROOT_URL.
-              PROTOCOL: http
-              # Без явного DOMAIN чарт берёт его из дефолтного ingress.hosts
-              # (git.example.com), а от DOMAIN наследуется SSH_DOMAIN — Forgejo
-              # отдавал бы git.example.com в ssh_url репозиториев. Поэтому DOMAIN
-              # обязателен.
-            database:
-              DB_TYPE: postgres
-              HOST: shared-rw.databases.svc.cluster.local
-              NAME: forgejo
-              USER: forgejo
-            security:
-              # Обратный прокси — Traefik в кластере (pod CIDR k0s).
-              REVERSE_PROXY_TRUSTED_PROXIES: 10.244.0.0/16
-            service:
-              DISABLE_REGISTRATION: true
-              ENABLE_UPDATE_CHECKER: false
-              DEFAULT_USER_VISIBILITY: private
-            repository:
-              DEFAULT_PRIVATE: private
-            openid:
-              # OpenID 2.0, не OIDC: к нашему источнику (gitea.oauth выше)
-              # эти ключи отношения не имеют, кнопка входа рисуется по списку
-              # активных OAuth2-источников.
-              ENABLE_OPENID_SIGNIN: false
-              ENABLE_OPENID_SIGNUP: false
-            oauth2_client:
-              # Учётки через OIDC не создаются. Незнакомый логин Zitadel после
-              # колбэка попадает на /user/link_account, где привязка идёт только
-              # после локального входа; с auto-регистрацией он бы завёл новую
-              # учётку — в Zitadel включён allow_register, то есть логини
-              # заводит кто угодно извне.
-              ENABLE_AUTO_REGISTRATION: false
-              # Молча привязать OIDC-логин к существующей учётке нельзя: Forgejo
-              # сначала ищет совпадение по имени, потом по почте, и при
-              # совпадении привязка проходит без участия человека (и без 2FA).
-              # Здесь только явная привязка по локальному паролю, и 2FA учётки
-              # тут же запрашивается. Дефолт Forgejo здесь `login`, но
-              # значение зафиксировано явно: это то, что запрещает тихую
-              # привязку.
-              ACCOUNT_LINKING: login
-              # Claim email нужен для идентификации логина на странице привязки.
-              # Список через пробел, как в app.ini.
-              OPENID_CONNECT_SCOPES: profile email
-            actions:
-              ENABLED: true
-              # Экшены тянем с локального инстанса (org `actions`), а не с
-              # data.forgejo.org: тот периодически недоступен, и job падает на
-              # загрузке экшена до старта шагов. Настройка instance-wide, поэтому
-              # в org `actions` зазеркален весь набор. Детали и обновление —
-              # apps/forgejo/README.md.
-              DEFAULT_ACTIONS_URL: http://forgejo-http
-            cron:
-              ENABLED: true
-              RUN_AT_START: true
-            cron.git_gc_repos:
-              ENABLE: true
-              SCHEDULE: "@every 24h"
-          metrics:
-            enabled: true
-          additionalConfigFromEnvs:
-            - name: FORGEJO__database__PASSWD
-              valueFrom:
-                secretKeyRef:
-                  name: forgejo-db
-                  key: password
-            - name: FORGEJO__metrics__TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: forgejo-metrics
-                  key: FORGEJO_METRICS_TOKEN
-            - name: FORGEJO__i18n__DEFAULT_LOCALE
-              valueFrom:
-                configMapKeyRef:
-                  name: homelab-config
-                  key: DEFAULT_LOCALE
-            - name: TZ
-              valueFrom:
-                configMapKeyRef:
-                  name: homelab-config
-                  key: TZ
-        persistence:
-          enabled: true
-          # Имя PVC задаётся здесь; менять после установки нельзя — это новый том.
-          claimName: forgejo-data
-          storageClass: longhorn-retain
-          size: 5Gi
-        # Серверный шаблон merge-сообщения (ConfigMap лежит рядом, в
-        # apps/forgejo/k8s/merge-message.configmap.yaml): задаёт пустое тело
-        # вместо `Reviewed-on: <url>` (#25). Forgejo читает
-        # {CustomPath}/default_merge_message при старте, поэтому после правки
-        # нужен рестарт пода.
-        extraVolumes:
-          - name: merge-message-templates
-            configMap:
-              name: forgejo-merge-message
-        extraContainerVolumeMounts:
-          - name: merge-message-templates
-            mountPath: /data/gitea/default_merge_message
-            readOnly: true
-        service:
-          http:
-            # Стандартный порт 80 (см. issue #269). Чарт тянет и containerPort
-            # за service.http.port, поэтому контейнер тоже слушает 80
-            # (rootless-образу позволяет net.ipv4.ip_unprivileged_port_start).
-            port: 80
-          ssh:
-            type: ClusterIP
-            port: 2222
-            externalIPs:
-              - 192.168.1.254
-        # Ingress — свой файл (apps/forgejo/route.yaml), как у
-        # остальных сервисов. Встроенный выключен: он собирал ROOT_URL из
-        # наличия ingress.tls, а Argo считал объект нездоровым, потому что
-        # Traefik не пишет status.loadBalancer. Поэтому ROOT_URL и PROTOCOL
-        # заданы явно и не зависят от чарта.
-        ingress:
-          enabled: false
-        resources:
-          requests:
-            cpu: 20m
-            memory: 256Mi
-          limits:
-            cpu: "1"
-            memory: 768Mi
-        containerSecurityContext:
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop: ["ALL"]
-          seccompProfile:
-            type: RuntimeDefault
+  sources:
+    - repoURL: https://codeberg.org/forgejo-contrib/forgejo-helm.git
+      path: .
+      targetRevision: v16.0.1
+      helm:
+        releaseName: forgejo
+        valueFiles:
+          - $values/platform/forgejo/values.yaml
+    - repoURL: ssh://git@forgejo.biplane.v6.rocks:2222/artemiy/homelab.git
+      targetRevision: main
+      ref: values
   destination:
     server: https://kubernetes.default.svc
     namespace: forgejo
