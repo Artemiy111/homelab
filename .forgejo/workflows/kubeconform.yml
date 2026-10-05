@@ -82,6 +82,6 @@ jobs:
             -ignore-filename-pattern 'Chart\.yaml$' \
             -ignore-filename-pattern 'platform/homelab/templates' \
             -ignore-filename-pattern 'kustomization\.yaml$' \
-            -skip "Application,AppProject,Beat,Certificate,Cluster,ClusterConfig,ClusterIssuer,Database,Elasticsearch,Gateway,GatewayClass,Grant,Grafana,GrafanaAlertRuleGroup,GrafanaDatasource,GrafanaDashboard,GrafanaFolder,GrafanaNotificationPolicy,HTTPRoute,BackendTLSPolicy,Kibana,MariaDB,Middleware,SecretTransformation,SealedSecret,TLSStore,User,VaultAuth,VaultAuthGlobal,VaultConnection,VaultDynamicSecret,VaultPKISecret,VaultStaticSecret,VolumeSnapshotClass" \
+            -skip "Application,AppProject,ApplicationSet,Beat,Certificate,Cluster,ClusterConfig,ClusterIssuer,Database,Elasticsearch,Gateway,GatewayClass,Grant,Grafana,GrafanaAlertRuleGroup,GrafanaDatasource,GrafanaDashboard,GrafanaFolder,GrafanaNotificationPolicy,HTTPRoute,BackendTLSPolicy,Kibana,MariaDB,Middleware,SecretTransformation,SealedSecret,TLSStore,User,VaultAuth,VaultAuthGlobal,VaultConnection,VaultDynamicSecret,VaultPKISecret,VaultStaticSecret,VolumeSnapshotClass" \
             -summary \
             apps/*/k8s platform argocd

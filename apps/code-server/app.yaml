@@ -1,0 +1,4 @@
+name: code-server
+path: apps/code-server
+namespace: code-server
+project: homelab
