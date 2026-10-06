@@ -64,23 +64,45 @@ sync_url() {
 # Схемы kubeconform лежат подкаталогом в монорепе yannh/kubernetes-json-schema,
 # готового URL-архива нет — собираем sparse-checkout'ом. mtime/владелец
 # фиксируем, чтобы архив не зависел от окружения.
+#
+# Набора два: standalone и standalone-strict. Второй нужен гейту с флагом
+# -strict: kubeconform подставляет {{.StrictSuffix}} в путь и ищет схему в
+# каталоге, которого в зеркале не было бы. Оба кладём из одного клона, меняя
+# sparse-checkout, чтобы не платить за clone дважды.
+#
+# Имя объекта — kubernetes-json-schema_<ver>_<variant>.tar.gz, где variant это
+# standalone или standalone-strict; внутри архива каталог v<ver>-<variant>.
+# Разделитель в имени и в каталоге разный, и это не опечатка: так объекты
+# лежали до появления второго набора, переименование ломает ссылки в CI.
 sync_schemas() {
-  local ver="$1" path tmp
+  local ver="$1" tmp
   [ -z "$ver" ] && return 0
-  path="kubeconform-schemas/$ver/kubernetes-json-schema_${ver}_standalone.tar.gz"
-  if object_exists "$path"; then
-    echo "skip $path"
-    return 0
-  fi
-  echo "build $path"
+
+  local -a pending=()
+  local variant dir path
+  for variant in "standalone" "standalone-strict"; do
+    dir="v${ver}-${variant}"
+    path="kubeconform-schemas/$ver/kubernetes-json-schema_${ver}_${variant}.tar.gz"
+    if object_exists "$path"; then
+      echo "skip $path"
+    else
+      pending+=("$variant")
+    fi
+  done
+  [ "${#pending[@]}" -eq 0 ] && return 0
+
   ensure_build_tools
   tmp="$(mktemp -d)"
   git clone --depth 1 --filter=blob:none --sparse "$SCHEMA_REPO" "$tmp/schemas"
-  git -C "$tmp/schemas" sparse-checkout set "v${ver}-standalone"
-  tar -C "$tmp/schemas" \
-    --sort=name --mtime='@0' --owner=0 --group=0 --numeric-owner \
-    -czf "$tmp/schemas.tar.gz" "v${ver}-standalone"
-  s3cp "$tmp/schemas.tar.gz" "s3://$BUCKET/$path"
+  for variant in "${pending[@]}"; do
+    dir="v${ver}-${variant}"
+    git -C "$tmp/schemas" sparse-checkout set "$dir"
+    echo "build kubeconform-schemas/$ver/kubernetes-json-schema_${ver}_${variant}.tar.gz"
+    tar -C "$tmp/schemas" \
+      --sort=name --mtime='@0' --owner=0 --group=0 --numeric-owner \
+      -czf "$tmp/schemas.tar.gz" "$dir"
+    s3cp "$tmp/schemas.tar.gz" "s3://$BUCKET/kubeconform-schemas/$ver/kubernetes-json-schema_${ver}_${variant}.tar.gz"
+  done
   rm -rf "$tmp"
 }
 
