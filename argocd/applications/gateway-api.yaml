@@ -29,10 +29,10 @@ metadata:
   namespace: argocd
 spec:
   project: upstream
-  source:
-    repoURL: https://github.com/kubernetes-sigs/gateway-api.git
-    targetRevision: v1.6.2
-    path: config/crd/standard
+  sources:
+    - repoURL: https://github.com/kubernetes-sigs/gateway-api.git
+      targetRevision: v1.6.2
+      path: config/crd/standard
   destination:
     server: https://kubernetes.default.svc
     # Приложение состоит только из кластерных CRD, поэтому namespace не

@@ -5,10 +5,10 @@ metadata:
   namespace: argocd
 spec:
   project: homelab
-  source:
-    repoURL: ssh://git@forgejo.biplane.v6.rocks:2222/artemiy/homelab.git
-    targetRevision: main
-    path: apps/otel-collector
+  sources:
+    - repoURL: ssh://git@forgejo.biplane.v6.rocks:2222/artemiy/homelab.git
+      targetRevision: main
+      path: apps/otel-collector
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
