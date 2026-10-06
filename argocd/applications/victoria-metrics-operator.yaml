@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: victoria-metrics-operator
+  namespace: argocd
+spec:
+  project: upstream
+  sources:
+    - repoURL: https://victoriametrics.github.io/helm-charts
+      chart: victoria-metrics-operator
+      targetRevision: 0.68.1
+      helm:
+        releaseName: victoria-metrics-operator
+        valueFiles:
+          - $values/platform/victoria-metrics-operator/values.yaml
+    - repoURL: ssh://git@forgejo.biplane.v6.rocks:2222/artemiy/homelab.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: victoria-metrics-operator
+  syncPolicy:
+    syncOptions:
+      - ServerSideApply=true
+      - Prune=false
+      - CreateNamespace=true
+    automated:
+      selfHeal: true

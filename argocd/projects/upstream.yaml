@@ -39,6 +39,8 @@ spec:
       namespace: vault
     - server: https://kubernetes.default.svc
       namespace: vault-secrets-operator
+    - server: https://kubernetes.default.svc
+      namespace: victoria-metrics-operator
   clusterResourceWhitelist:
     - group: "*"
       kind: "*"
