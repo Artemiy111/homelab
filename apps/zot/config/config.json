@@ -1,0 +1,69 @@
+{
+  "distSpecVersion": "1.1.1",
+  "storage": {
+    "rootDirectory": "/var/lib/zot",
+    "dedupe": true,
+    "gc": true,
+    "gcDelay": "1h",
+    "gcInterval": "24h"
+  },
+  "http": {
+    "address": "0.0.0.0",
+    "port": "5000",
+    "realm": "zot",
+    "compat": ["docker2s2"],
+    "accessControl": {
+      "metrics": {
+        "anonymousPolicy": ["read"]
+      },
+      "repositories": {
+        "**": {
+          "anonymousPolicy": ["read"]
+        }
+      }
+    }
+  },
+  "log": {
+    "level": "info"
+  },
+  "extensions": {
+    "metrics": {
+      "enable": true,
+      "prometheus": {
+        "path": "/metrics"
+      }
+    },
+    "sync": {
+      "enable": true,
+      "registries": [
+        {
+          "urls": ["https://ghcr.io"],
+          "onDemand": true,
+          "tlsVerify": true,
+          "preserveDigest": true,
+          "content": [
+            { "prefix": "**", "destination": "/ghcr.io" }
+          ]
+        },
+        {
+          "urls": ["https://index.docker.io"],
+          "onDemand": true,
+          "tlsVerify": true,
+          "preserveDigest": true,
+          "content": [
+            { "prefix": "**", "destination": "/docker.io" }
+          ]
+        },
+        {
+          "urls": ["https://data.forgejo.org"],
+          "onDemand": true,
+          "tlsVerify": true,
+          "preserveDigest": true,
+          "content": [
+            { "prefix": "**", "destination": "/data.forgejo.org" }
+          ]
+        }
+      ]
+    }
+  }
+}

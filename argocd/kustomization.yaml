@@ -37,6 +37,7 @@ resources:
   - applications/vault.yaml
   - applications/vault-secrets-operator.yaml
   - applications/victoria-metrics-operator.yaml
+  - applications/zot.yaml
   - projects/homelab-cluster-readers.yaml
   - projects/homelab.yaml
   - projects/upstream.yaml

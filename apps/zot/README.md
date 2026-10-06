@@ -6,17 +6,7 @@ Zot — лёгкий OCI-реестр, используемый как **pull-th
 локального хранилища — недоступность или rate-limit внешнего реестра не ломает
 пайплайн.
 
-| | |
-|---|---|
-| Namespace | `zot` |
-| Развёртывание | манифестами `apps/zot/k8s/` (`kubectl apply -f`) |
-| Образ | `ghcr.io/project-zot/zot:v2.1.21` (пин по тегу и дайджесту) |
-| Данные | PVC `zot-data` на `longhorn` (кэш, потеря не страшна) |
-| API | `http://zot.zot.svc.cluster.local` — только внутри кластера |
-| Потребитель | Forgejo Runner + DinD (`apps/forgejo`) |
-
-Кластерные образы (kubelet/containerd) через Zot **не** ходят: кэш нужен только
-для CI.
+Кластерные образы (kubelet/containerd) через Zot **не** ходят: кэш нужен только для CI.
 
 ## Как это работает
 
@@ -35,13 +25,6 @@ Zot — лёгкий OCI-реестр, используемый как **pull-th
   ([authn-authz](https://zotregistry.dev/v2.1.21/articles/authn-authz/)).
 - Так как Zot отдаётся по http, его хост помечен `insecure-registries` в
   `apps/forgejo/k8s/runner-dind.configmap.yaml`.
-
-## Развёртывание
-
-```sh
-kubectl apply -f apps/zot/k8s/
-kubectl -n zot get pods,pvc,svc
-```
 
 Проверка, что API жив (конфиг anonymous-only, поэтому `/v2/` отдаёт 403 — это
 нормально, а pull при этом работает):
@@ -74,7 +57,7 @@ Hub, несовместимый с path-prefix раскладкой Zot. Есл�
 
 ## Добавление upstream-реестра
 
-Дописать запись в `extensions.sync.registries` (`configmap.yaml`) и применить:
+Дописать запись в `extensions.sync.registries` (`config/config.json`) и применить:
 
 ```json
 {
@@ -86,21 +69,4 @@ Hub, несовместимый с path-prefix раскладкой Zot. Есл�
 }
 ```
 
-Для приватных upstream'ов нужен `credentialsFile` из Secret'а, а не из
-ConfigMap.
-
-## Размер кэша и очистка
-
-Том — `longhorn`, 20Gi, без `Retain`: кэш восстановим. Zot собирает мусор
-(`storage.gc`, `gcInterval: 24h`). Если том переполнится, проще увеличить PVC
-или удалить `zot-data` (Zot скачает нужное заново).
-
-## Проверка на живом стенде
-
-1. `kubectl -n zot get pods` — под `Running`.
-2. Прогнать любой workflow: job стартует, в логах Zot виден pull-through
-   (`kubectl -n zot logs deploy/zot | grep -i sync`).
-3. Повторный прогон или рестарт пода раннера — образ не тянется из интернета.
-
-Первый pull каждого образа заметно медленнее (Zot качает из upstream), это
-одноразовая плата.
+Для приватных upstream'ов нужен `credentialsFile` из Secret'а, а не из ConfigMap.
