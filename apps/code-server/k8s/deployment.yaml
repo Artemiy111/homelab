@@ -4,7 +4,7 @@ metadata:
   name: code-server
   namespace: code-server
 spec:
-  # hostPath-каталоги нельзя монтировать в два пода одновременно.
+  # hostPath-каталоги
   strategy:
     type: Recreate
   revisionHistoryLimit: 2

@@ -4,7 +4,7 @@ metadata:
   name: glitchtip-valkey
   namespace: glitchtip
 spec:
-  # RWO-том брокера: два пода при rolling update пишут в один каталог.
+  # RWO-том брокера
   strategy:
     type: Recreate
   revisionHistoryLimit: 2

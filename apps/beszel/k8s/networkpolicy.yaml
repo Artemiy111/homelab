@@ -1,6 +1,3 @@
-# Базовый NetworkPolicy для namespace сервиса: default-deny ingress плюс
-# явные разрешения. Agent и hub общаются через общий unix-сокет на hostPath,
-# не по сети; наружу hub доступен только через traefik. Egress не ограничивается.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:

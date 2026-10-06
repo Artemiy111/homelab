@@ -586,12 +586,6 @@ ConfigMap, меняется его ResourceVersion, оператор перес�
 
 ## Развёртывание в Kubernetes
 
-Разворачивается kustomize-набором:
-
-```sh
-kubectl apply --server-side --field-manager=homelab -k apps/grafana/
-```
-
 `k8s/grafana.yaml` — CR `Grafana`: версия образа, `GF_DATABASE_*`, креды через
 `secretKeyRef`, probes, ресурсы и тома провижининга. Deployment, Service,
 ServiceAccount, ConfigMap с `grafana.ini` и headless-Service для алертинга

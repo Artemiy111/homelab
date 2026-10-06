@@ -14,22 +14,9 @@ CAP_SYS_ADMIN, поэтому это отдельный инстанс.
 Привилегии взяты по списку capabilities (как у Beyla в #542), а не
 `privileged: true` из примера Pyroscope.
 
-## Развёртывание
-
-```sh
-kubectl apply -k apps/alloy-profiler
-```
-
 ## bpffs
 
 `/sys/fs/bpf` смонтирован с `mountPropagation: HostToContainer` и делится с
 Beyla. Нужен, чтобы pinned BPF-карты были едиными — без них не работает
 связка «трейс → профиль» (Beyla в этом случае пишет `OBI will use
 process-internal maps`).
-
-## Проверка
-
-```sh
-kubectl -n monitoring get pods -l app=alloy-profiler
-kubectl -n monitoring logs -l app=alloy-profiler --tail=20 | grep -i pyroscope
-```

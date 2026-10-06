@@ -4,7 +4,7 @@ metadata:
   name: authentik-worker
   namespace: authentik
 spec:
-  # RWO-том /data: два пода при rolling update пишут в один каталог.
+  # RWO-том
   strategy:
     type: Recreate
   revisionHistoryLimit: 2

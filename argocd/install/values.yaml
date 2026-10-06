@@ -16,23 +16,16 @@
 # ─────────────────────────────────────────────────────────────────────────
 
 global:
-  # Дефолт: argocd.example.com. Подставляется в генерируемые URL — статус-бейдж,
-  # ссылки в UI, редиректы SSO. Должно совпадать с Host() в IngressRoute.
-  domain: argocd.example.com
+  domain: argocd.biplane.v6.rocks
 
 configs:
-  # → argocd-cmd-params-cm. Ключ = имя флага без "--", точка в имени допустима.
+  # → argocd-cmd-params-cm. Ключ = имя флага без "--".
   params:
-    # Дефолт: false. Argo слушает HTTPS и сам следит за сертификатом.
-    # Нам нужно наоборот: TLS терминирует Traefik на <node1-ip> со своим
-    # wildcard-tls, значит бэкенд обязан быть plain HTTP.
+    # терминируем TLS в Traefik
     server.insecure: true
 
   # → argocd-cm.
   cm:
-    # Дефолт: 120s. Как часто Argo ходит в git за новыми коммитами.
-    # На homelab с одним репо можно реактивнее; верни 120s, если заметишь
-    # лишнюю нагрузку на Forgejo.
     timeout.reconciliation: 60s
 
     # HTTPRoute: apiserver подставляет дефолты из OpenAPI-схемы CRD, которых
@@ -57,9 +50,6 @@ configs:
         - .spec.rules[]?.backendRefs[]?.weight
         - .spec.rules[]?.matches
 
-  # Значение заменяет дефолт чарта целиком, поэтому дефолтные ключи
-  # (bitbucket.org, github.com) тут повторены — без них Argo перестанет
-  # клонировать с этих хостов.
   ssh:
     knownHosts: |
       [ssh.github.com]:443 ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBEmKSENjQEezOmxkZMy7opKgwFB9nkt5YRrYMjNuG5N87uRgg6CLrbo5wAdT/y6v0mKV0U2w0WZ2YB/++Tpockg=
@@ -78,11 +68,6 @@ configs:
       vs-ssh.visualstudio.com ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC7Hr1oTWqNqOlzGJOfGJ4NakVyIzf1rXYd4d7wo6jBlkLvCA4odBlL0mDUyZ0/QUfTTqeu+tm22gOsv+VrVTMk6vwRU75gY/y9ut5Mb3bR5BV58dKXyq9A9UeB5Cakehn5Zgm6x1mKoVyf+FFn26iYqXJRgzIZZcZ5V6hrE0Qg39kZm4az48o0AUbf6Sp4SLdvnuMa2sVNwHBboS7EJkm57XQPVU3/QpyNLHbWDdzwtrlS+ez30S3AdYhLKEOxAG8weOnyrtLJAUen9mTkol8oII1edf7mWWbWVf0nBmly21+nZcmCTISQBtdcyPaEno7fFQMDD26/s0lfKob4Kw8H
       [forgejo.biplane.v6.rocks]:2222 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC/4+4Ua3E7xflXffOuPbj+WIAFNcFqGWCD33kUeZ5fMXa1mu1HCh3TKpHTdmW7HZHjmmKSsaBteD7s2VheCpk2J0WkNttZ4iBjwpoQiErEmzlBt3o5Tap5DYcZkvIsT6jMw+pBT2l6mfM1KJJtzIWM0nQP83Sm0lSWfzW0csgmAgB+W+YpARZV1HY49Q9aLXYJVEhjeIexFHmTPwIQQj382DppgSQtLVuHnvAGL7rKxOLeVD8oJF6bcnLWoPWBhYlbG3mXvwvbZJQ/HaUCBvZVvEzgEjXc4KJpa15C27cTO5K1d2+LhuUGDzVQs+9xhUaeOQs1szVZoCXitRyBzqiF2HysAr3PfoR4jNY6WK7u5B4m8+7Qcpuvg1mRCmQ3QB287N+3df0BqUpvbRE9XbRWl4I1muCHWP+Dm1i4Xa6dgSrDl+cV5op1kZls25GNh90bTUUqdmrC3bZ0K5vZHjJhR3ZRfHxnlv7nTkmy6VCIh5Ez7NrOyuz3k/iSuc0M27+t8D8w+yuAtGIyCtv3m3M4sAqGNgiwDg0QFo/85vLboWcJYcri9hLG2PROa3c+j3YwapyIyYt/eaOnoONCuo0wUtfYEZdRmq2yzLfsna91EMMGd5TOjTokatjtsbajgB9GgXIfr/VpKXod7fT3BVywC9D7ZoYmVUnjgnzT9gEtiQ==
 
-# ─── Ресурсы ─────────────────────────────────────────────────────────────
-# Дефолт у всех компонентов: resources: {} (не задано). Для однозной k0s это
-# плохо: без requests планировщик не знает, что размещает, а без limits один
-# разъехавшийся контроллер способен вытеснить рабочие приложения.
-# Значения скромные — Argo в non-HA режиме на небольшом кластере этого хватает.
 controller:
   resources:
     requests:
@@ -140,52 +125,24 @@ redis:
     limits:
       memory: 128Mi
 
-# ─── Отключаем лишнее для пробного стенда ────────────────────────────────
-# dex — встроенный OIDC-провайдер. Дефолт: enabled: true (лишний под).
-# SSO у нас будет внешний (authentik) через configs.cm "oidc.config",
-# а для пробного стенда хватит локального admin.
 dex:
   enabled: false
 
-# notifications-controller. Дефолт: enabled: true. Понадобится, когда захочется
-# алерты о рассинхроне в Matrix/Telegram; тогда верни true и настрой secret.
+# notifications-controller. Дефолт: enabled: true
 notifications:
   enabled: false
 
-# ─── Что осознанно НЕ трогаем (дефолты уже правильные) ───────────────────
-# crds.install: true    — CRD едут в templates/, поэтому обновляются при upgrade
-#                         (в Helm это работает только с 5.2.0+).
-# crds.keep: true       — при helm uninstall CRD остаются. Значит для полного
-#                         удаления их надо снести руками, иначе останется мусор.
-# server/controller/repoServer/applicationSet.replicas: 1
-#                       — non-HA и так одноподовый; в HA нужен redis-ha
-#                         и минимум 3 узла.
-# redis.enabled: true   — кэш repo-server, обязателен, не трогать.
-# server.service.type   — ClusterIP, то есть трафик внутрь идёт через Traefik.
-#                         Не менять на LoadBalancer/NodePort: MetalLB в кластере
-#                         больше нет, а externalIPs уже занят Traefik'ом.
-# applicationSet        — приезжает всегда (с чарта 6.9.0), не отключается.
-# global.networkPolicy.create: true
-#                       — дефолт с чарта 10.0.0. У argocd-server политика
-#                         разрешает ingress откуда угодно, поэтому Traefik
-#                         достучится; остальные компоненты общаются только
-#                         между собой. Calico политики реально применяет.
-# global.image.tag      — не фиксируем: версия образа приходит из appVersion
-#                         чарта, а версия чарта закреплена в --version.
-# server.ingress.enabled: false
-#                       — маршрутизация через IngressRoute в Traefik.
-
-# ─── Полезные ручки на будущее (сейчас закомментированы) ─────────────────
+# ─── Полезные ручки на будущее
 # configs:
 #   cm:
 #     # Отключить локального admin, когда заработает OIDC. Открытая наружу
 #     # форма логина с одним статичным паролем — главный источник проблем.
 #     admin.enabled: false
 #     oidc.config: |
-#       name: authentik
-#       issuer: https://authentik.example.com/application/o/argocd/
+#       name: zitadel
+#       issuer: https://id.biplane.v6.rocks/application/o/argocd/
 #       clientID: argocd
-#       clientSecret: $oidc.authentik.clientSecret
+#       clientSecret: $oidc.zitadel.clientSecret
 #       requestedScopes: ["openid", "profile", "email", "groups"]
 #     # Нужно, если kustomization.yaml ссылается на файлы вне корня репозитория.
 #     kustomize.buildOptions: --load-restrictor LoadRestrictionsNone

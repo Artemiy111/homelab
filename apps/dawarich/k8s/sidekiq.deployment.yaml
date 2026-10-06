@@ -4,7 +4,7 @@ metadata:
   name: dawarich-sidekiq
   namespace: dawarich
 spec:
-  # RWO-тома storage/watched общие с app: оба пода пишут в один каталог.
+  # RWO-тома
   strategy:
     type: Recreate
   revisionHistoryLimit: 2

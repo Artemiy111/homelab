@@ -20,24 +20,3 @@ root со всеми capability по умолчанию.
 
 Также задействован `security_opt: label:disable` (SELinux-метка) и добавлен
 healthcheck по `http://127.0.0.1:5001/`.
-
-## Хранилище
-
-Сервис живёт в собственном namespace `lute` (`apps/lute/k8s/namespace.yaml`), как
-paperless/immich/zitadel. Оба тома — динамические PVC на Longhorn
-(`storageClassName: longhorn-retain`, `apps/lute/k8s/pvcs.yaml`): данные лежат в
-Longhorn-томах, а не на путях хоста.
-
-Два тома вместо одного:
-
-- `lute-data-pvc` → `/lute_data` — сама база `lute.db`, картинки, плагины;
-- `lute-backup-pvc` → `/lute_backup` — каталог бэкапов Lute (`Settings → backup_dir`).
-  Отдельный том, чтобы копии переживали порчу каталога данных и чтобы их можно
-  было позже увести на другой носитель.
-
-Про бэкапы Lute: приложение умеет их само — `lute/backup/service.py` копирует
-SQLite-базу в `lute_backup_<timestamp>.db.gz` (плюс зеркалит `userimages`) и
-делает это автоматически, если включены `backup_enabled` и `backup_auto`, не чаще
-раза в сутки (`should_run_auto_backup`). Ротацию задаёт `backup_count`, ручные
-бэкапы (`manual_`-префикс) не удаляются. Это не отменяет внешний бэкап: копии
-лежат на том же диске, что и данные.

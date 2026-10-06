@@ -34,18 +34,5 @@ API сервера ──(pods/log)──> alloy ──push──> loki:3100
   `nodes` (list/watch) и `pods/log` (get);
 - `k8s/alloy.service.yaml` — Service для скрейпа `/metrics` (:12345) vmagent'ом.
 
-## Развёртывание
-
-```sh
-kubectl apply -k apps/alloy/
-```
-
-## Проверка
-
-```sh
-kubectl -n monitoring get pods -l app=alloy
-kubectl -n monitoring logs -l app=alloy --tail=50
-```
-
 Ошибок чтения логов и записи в Loki быть не должно; в Loki появляются потоки с
 лейблами `namespace`, `pod`, `container`, `job`.

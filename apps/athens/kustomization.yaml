@@ -9,9 +9,6 @@ resources:
   - k8s/data.pvc.yaml
   - k8s/networkpolicy.yaml
 configMapGenerator:
-  # config.toml собирается в ConfigMap `athens`; kustomize добавляет хэш
-  # содержимого к имени и переписывает ссылку в Deployment, поэтому правка
-  # конфига сама запускает rollout.
   - name: athens
     files:
       - config/config.toml

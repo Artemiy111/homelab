@@ -4,7 +4,7 @@ metadata:
   name: beszel
   namespace: beszel
 spec:
-  # SQLite на RWO-томе: два пода при rolling update пишут в одну БД.
+  # SQLite на RWO-томе
   strategy:
     type: Recreate
   revisionHistoryLimit: 2

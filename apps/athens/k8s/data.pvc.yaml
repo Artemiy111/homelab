@@ -1,6 +1,3 @@
-# Кэш Go-модулей. Теряется без последствий: при потере тома Athens скачает
-# модули заново. Поэтому класс longhorn без Retain, в отличие от данных
-# сервисов. RWO-том на одной ноде требует strategy.type: Recreate у Deployment.
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:

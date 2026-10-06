@@ -1,7 +1,3 @@
-# Базовый NetworkPolicy для namespace сервиса: default-deny ingress плюс
-# явные разрешения. Egress не ограничивается: политика разграничивает
-# cross-namespace доступ на стороне получателя, а egress-allowlist требует
-# отдельного решения по интернет-трафику.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:

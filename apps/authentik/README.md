@@ -3,8 +3,6 @@
 Authentik — тестовый identity provider. 
 URL: `https://auth.example.com/`
 
-Разворачивается манифестами в apps/authentik/k8s/.
-
 ## Первый запуск
 
 Секреты сервиса — секретный ключ Authentik, пароль PostgreSQL, CIDR Traefik —

@@ -10,9 +10,6 @@ resources:
   - k8s/vaultauth.yaml
   - k8s/vaultstaticsecret.yaml
 configMapGenerator:
-  # Конфиги ATS собираются в ConfigMap `ats`; kustomize добавляет хэш
-  # содержимого к имени и переписывает ссылку в Deployment, поэтому правка
-  # любого конфига сама запускает rollout.
   - name: ats
     files:
       - config/records.yaml

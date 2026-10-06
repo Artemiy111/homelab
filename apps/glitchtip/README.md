@@ -3,13 +3,6 @@
 GlitchTip — сбор ошибок приложений, совместимый с Sentry SDK.
 URL: `https://glitchtip.example.com/`
 
-Разворачивается манифестами в apps/glitchtip/k8s/.
-
-## Первый запуск
-
-Миграции БД выполняются init-контейнером перед стартом `web`; повторный запуск
-идемпотентен.
-
 ## Хранилище
 
 База — PostgreSQL в общем кластере CNPG `shared` (namespace `databases`,

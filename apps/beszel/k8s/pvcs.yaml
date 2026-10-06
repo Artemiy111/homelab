@@ -1,5 +1,3 @@
-# SQLite хаба Beszel (история): без backup target, поэтому longhorn-retain.
-# RWO-том на одной ноде требует strategy.type: Recreate (см. hub.deployment.yaml).
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -11,10 +9,8 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      # Данные ~7 МБ; запас под историю.
       storage: 64Mi
 ---
-# Состояние агента Beszel (сейчас ~4 КБ).
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:

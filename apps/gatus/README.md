@@ -3,12 +3,6 @@
 Gatus — основной декларативный монитор доступности homelab.
 URL: `https://uptime.example.com/`.
 
-Разворачивается kustomize-набором из `apps/gatus/`:
-
-```sh
-kubectl apply -k apps/gatus/
-```
-
 `config/config.yaml` лежит в исходном виде, а `configMapGenerator` собирает из
 него ConfigMap `gatus-config` (имя получает hash-суффикс от содержимого) и
 монтирует в под как `/config/config.yaml`. Правка конфига меняет pod-template и
@@ -24,13 +18,6 @@ kubectl apply -k apps/gatus/
 
 Бэкапы и ретеншен базы — на стороне CNPG (`platform/cnpg/README.md`). При
 переезде с SQLite история не переносилась: мониторинг начал с чистого листа.
-
-## Первый запуск
-
-Gatus работает в кластере, поэтому может проверять как пользовательские
-HTTPS-маршруты, так и отдельно выбранные backend по внутренним DNS-именам.
-HTTPS-проверки явно используют Technitium DNS `<node1-ip>` как DNS resolver и
-тем самым охватывают DNS, TLS, Traefik и приложение одной проверкой.
 
 ## Уведомления через ntfy
 

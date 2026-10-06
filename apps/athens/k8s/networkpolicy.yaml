@@ -1,4 +1,3 @@
-# Базовый NetworkPolicy: default-deny ingress + явные разрешения.
 # Потребители Athens: раннер с DinD (namespace forgejo) и Traefik (маршрут
 # goproxy.<домен> для браузера и сборок с хоста). Egress не ограничивается:
 # Athens ходит в upstream (proxy.golang.org, sum.golang.org).

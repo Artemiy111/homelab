@@ -1,6 +1,4 @@
-# Базовый NetworkPolicy: default-deny ingress + явные разрешения.
-# traefik — веб; vmagent из monitoring скрейпит метрики app (9300). Метрики
-# базы отдаёт CNPG. Egress не ограничивается.
+# traefik — веб; vmagent из monitoring скрейпит метрики app (9300). Метрики базы отдаёт CNPG
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:

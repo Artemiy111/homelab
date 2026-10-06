@@ -11,19 +11,6 @@ VLESS, VMess, Trojan, Shadowsocks, WireGuard, Hysteria2, HTTP/SOCKS и неск�
 интернет. В этом репозитории интерфейс доступен только через локальный Traefik,
 а Xray получает один заранее опубликованный порт `8443` по TCP и UDP.
 
-Разворачивается чартом из `apps/3x-ui/chart/`:
-
-```sh cluster
-helm template xui apps/3x-ui/chart | kubectl apply -f -
-```
-
-Чарт самодостаточный: в нём namespace, учётная запись и `VaultAuth`,
-`VaultStaticSecret`, PVC, Deployment, NetworkPolicy, HTTPRoute и все три
-Service. Единственное значение — `serverIp` в `values.yaml`: в него уходят
-`externalIPs` сервисов `xui-egress` и `xui-inbound`. Это тот же адрес, что
-`config.serverIp` в `platform/homelab/values.yaml`, поэтому при переезде узла
-править нужно оба места.
-
 Панель читает `homelab-config` (`TZ`) из своего namespace — ConfigMap создаёт
 платформенный чарт, чарт 3x-ui от него зависит и сам его не создаёт.
 
