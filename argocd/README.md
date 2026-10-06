@@ -119,7 +119,7 @@ argocd account update-password
 
 Application'ы применяет корневой `Application` — `bootstrap/root-application.yaml`.
 Он рендерит каталог `argocd/` через kustomize и получает `AppProject` `upstream`
-плюс 25 `Application` из `applications/` и `applications/apps/`. Раньше app-of-apps
+плюс 31 `Application` из `applications/` и `applications/apps/`. Раньше app-of-apps
 не было, и спеки лежали только в git: Argo читал желаемое состояние из объекта в
 кластере, и пока файл не применён руками, правка values в git ничего не меняла.
 
@@ -179,8 +179,9 @@ argocd app sync root
 
 ```sh
 argocd proj get upstream              # проект создан
-argocd app list --project upstream    # 18 приложений, все Synced
-argocd app list --project homelab     # 7 сервисов, все Synced
+argocd app list --project upstream               # 18 компонентов
+argocd app list --project homelab                # 8 сервисов
+argocd app list --project homelab-cluster-readers # 5 сервисов, alloy-profiler OutOfSync
 argocd app diff traefik               # пусто
 ```
 
@@ -269,7 +270,7 @@ redirect URL в `radar` и `headlamp`, домен в `dns01-webhook`. Секре
 По одному `Application` на сервис, лежат в `argocd/applications/apps/` и
 применяются тем же корневым `Application`, что и платформенные компоненты.
 Способ тот же, что у 18 компонентов в `applications/`, — в репозитории один
-стандарт на все 25 приложений.
+стандарт на все 31 приложение.
 
 Цена — повтор `repoURL` и `targetRevision` в каждом файле. Экономия на нём не
 стоит: генератор собирает `Application` в рантайме, спека не лежит в git, и
@@ -319,6 +320,25 @@ kubectl -n <ns> get pods
 `server-side apply` обязателен (`ServerSideApply=true`): часть сервисов
 применялась Helm'ом, и client-side apply полез бы чинить
 `last-applied-configuration`, которого после Helm нет.
+
+### Проект сервиса
+
+`homelab` либо `homelab-cluster-readers`. Второй нужен шести сервисам, читающим
+кластер целиком, — `alloy`, `alloy-profiler`, `beyla`, `homepage`,
+`victoria-metrics`, `elk`. Список имён и причина — в разделе
+«Проект `homelab-cluster-readers`».
+
+### Отключённый сервис
+
+Поле `suspend` у `Application` нет — это механизм Flux. В Argo эквивалент
+отсутствие блока `syncPolicy.automated`: приложение существует, но никогда не
+синкается само, поэтому Argo не создаст удалённые ресурсы обратно.
+
+Так выключен `alloy-profiler`: `DaemonSet` удалён из кластера вручную
+2026-10-06, входящих профилей в `pyroscope` нет. Файл Application оставлен с
+манифестами, но без `automated`; включение — убрать блок из файла. Приложение
+при этом постоянно `OutOfSync`, и это служит индикатором выключенного
+состояния.
 
 ### Про `prune`
 
