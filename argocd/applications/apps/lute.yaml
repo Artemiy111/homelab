@@ -1,0 +1,20 @@
+apiVersion: argoproj.argocd.io/v1alpha1
+kind: Application
+metadata:
+  name: lute
+  namespace: argocd
+spec:
+  project: homelab
+  sources:
+    - repoURL: ssh://forgejo.biplane.v6.rocks:2222/artemiy/homelab.git
+      targetRevision: main
+      path: apps/lute
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: lute
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - ServerSizeApply=true

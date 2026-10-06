@@ -4,6 +4,7 @@ kind: Kustomization
 resources:
   - applications/apps/code-server.yaml
   - applications/apps/gatus.yaml
+  - applications/apps/lute.yaml
   - applications/apps/mermaid-live-editor.yaml
   - applications/apps/node-exporter.yaml
   - applications/apps/otel-collector.yaml
