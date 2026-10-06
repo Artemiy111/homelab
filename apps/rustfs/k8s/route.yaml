@@ -23,6 +23,19 @@ spec:
       backendRefs:
         - name: rustfs
           port: 80
+    # API консоли: `/rustfs/admin/v3`. Правило обязано идти до PathPrefix
+    # `/rustfs/console` — иначе запрос логина (обычный POST без заголовка
+    # Authorization) проваливается в catch-all ниже и уходит на S3 API, где
+    # отвечает 403, а консоль сообщает «неверные креды». Базовый URL зашит в
+    # собранный JS консоли: `${host}/rustfs/admin/v3`. Апстрим это знает:
+    # rustfs/rustfs#2433 (console за reverse-proxy subpath теряет префикс).
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /rustfs/admin
+      backendRefs:
+        - name: rustfs
+          port: 9001
     # Консоль: только её base path.
     - matches:
         - path:
