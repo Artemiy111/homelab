@@ -32,7 +32,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/kubeconform-schemas
-          key: kubeconform-schemas-1.36.3-mirror-${{ runner.os }}
+          key: kubeconform-schemas-1.36.3-strict-mirror-${{ runner.os }}
       - name: Cache downloaded CR schemas
         uses: actions/cache@v4
         with:
@@ -60,14 +60,20 @@ jobs:
           echo "$expected  /tmp/kubeconform/kubeconform.tar.gz" | sha256sum -c -
           tar -xzf /tmp/kubeconform/kubeconform.tar.gz -C /tmp/kubeconform kubeconform
           install -m 0755 /tmp/kubeconform/kubeconform "$HOME/.local/bin/kubeconform"
+      # Набора схем два, и они должны лежать рядом: kubeconform подставляет
+      # {{.StrictSuffix}} в путь, поэтому -strict ищет набор в каталоге
+      # v<ver>-standalone-strict, а без флага — в v<ver>-standalone.
       - name: Install schemas
         if: steps.schemas.outputs.cache-hit != 'true'
         run: |
           set -euo pipefail
-          url="http://rustfs.rustfs.svc.cluster.local/mirror/kubeconform-schemas/1.36.3/kubernetes-json-schema_1.36.3_standalone.tar.gz"
+          base="http://rustfs.rustfs.svc.cluster.local/mirror/kubeconform-schemas/1.36.3"
           mkdir -p "$HOME/.cache/kubeconform-schemas"
-          curl -fsSL -o /tmp/schemas.tar.gz "$url"
-          tar -xzf /tmp/schemas.tar.gz -C "$HOME/.cache/kubeconform-schemas"
+          for variant in standalone standalone-strict; do
+            curl -fsSL -o "/tmp/schemas-$variant.tar.gz" \
+              "$base/kubernetes-json-schema_1.36.3_$variant.tar.gz"
+            tar -xzf "/tmp/schemas-$variant.tar.gz" -C "$HOME/.cache/kubeconform-schemas"
+          done
       - name: Add kubeconform to PATH
         run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
       # Второй -schema-location — схемы CR из datreeio/CRDs-catalog: они не в
@@ -97,6 +103,9 @@ jobs:
       # которого схемы нет, job упадёт, и это лучше тихого пропуска через
       # -ignore-missing-schemas. Схема может отставать от CRD оператора: тогда
       # добавляем сюда конкретный kind и фиксируем причину.
+      # -strict запрещает поля, которых нет в схеме, и повторяющиеся ключи в
+      # YAML. Без него опечатка в имени поля (seletor вместо selector) проходит
+      # валидацию молча, хотя apiserver такой манифест отвергнет.
       - name: Validate manifests
         run: |
           set -euo pipefail
@@ -104,6 +113,7 @@ jobs:
           mkdir -p "$HOME/.cache/kubeconform-http"
           kubeconform \
             -kubernetes-version 1.36.3 \
+            -strict \
             -cache "$HOME/.cache/kubeconform-http" \
             -schema-location "$HOME/.cache/kubeconform-schemas/{{.NormalizedKubernetesVersion}}-standalone{{.StrictSuffix}}/{{.ResourceKind}}{{.KindSuffix}}.json" \
             -schema-location "https://raw.githubusercontent.com/datreeio/CRDs-catalog/$CRD_SCHEMAS_REV/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json" \

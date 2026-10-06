@@ -85,6 +85,19 @@ kubeconform он же собирает из git. Артефакты с изве�
 перед загрузкой, а CI — после скачивания. Бакет append-only: чтобы заменить
 версию, удалить объект и перезапустить.
 
+Схем Kubernetes два набора, `kubeconform-schemas/<ver>/`:
+
+| Объект | Каталог внутри | Кто ищет |
+| --- | --- | --- |
+| `kubernetes-json-schema_<ver>_standalone.tar.gz` | `v<ver>-standalone/` | гейт без `-strict` |
+| `kubernetes-json-schema_<ver>_standalone-strict.tar.gz` | `v<ver>-standalone-strict/` | гейт с `-strict` |
+
+Разделение нужно флагу `-strict` в kubeconform: он подставляет в путь
+`{{.StrictSuffix}}` и ищет схему в каталоге, которого в зеркале не было бы —
+весь job падал бы с `could not find schema`. Оба набора собираются из одного
+клона `yannh/kubernetes-json-schema`: sparse-checkout меняется между
+`sparse-checkout set`, клон повторно не качается.
+
 Схемы CR в зеркале нет: kubeconform тянет их с
 `raw.githubusercontent.com/datreeio/CRDs-catalog` напрямую (issue #791). У job'ов
 egress есть — проверено `wget` из контейнера `dind` пода `forgejo-runner`.
