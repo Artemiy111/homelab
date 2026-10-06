@@ -7,9 +7,14 @@ on:
       - "apps/**"
       - "platform/**"
       - "argocd/**"
+      - "scripts/kubeconform.sh"
       - ".forgejo/workflows/kubeconform.yml"
   pull_request:
     paths: *paths
+
+# Скрипт проверки лежит среди путей: правка набора путей или схем без запуска
+# гейта оставила бы main с непроверенными манифестами ровно настолько же,
+# насколько сейчас непроверенным был фикс lute (#788, #789).
 
 jobs:
   kubeconform:
@@ -45,9 +50,10 @@ jobs:
       #
       # Схемы Kubernetes нужны локальными ради привязки к версии: kubeconform
       # подставляет {{.NormalizedKubernetesVersion}} из -kubernetes-version, то
-      # есть проверяет манифесты по API 1.36.3, а не по master. Схемы CR такой
-      # привязки не имеют: они выведены из CRD конкретной версии оператора, и
-      # тянутся по HTTPS (issue #791).
+      # есть проверяет манифесты по API 1.36.3, а не по master. Зеркало
+      # публикует только нестрогий набор, поэтому строгий скрипт добирает по
+      # HTTPS — как и схемы CR, которые выведены из CRD конкретной версии
+      # оператора (issue #791).
       - name: Install kubeconform
         if: steps.kubeconform.outputs.cache-hit != 'true'
         run: |
@@ -72,44 +78,15 @@ jobs:
         run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
       # Второй -schema-location — схемы CR из datreeio/CRDs-catalog: они не в
       #ходят в набор схем Kubernetes, а без них 40% ресурсов (все CR операторов)
-      #не проверялись бы. Схемы каталога выведены из CRD и лежат по путям
-      # <group>/<kind>_<version>.json — шаблон ниже это разворачивает.
+      #не проверялись бы. Ревизия каталога зафиксирована коммитом и передаётся
+      # скрипту через CRD_SCHEMAS_REV — она же ключ кэша выше.
       #
-      # Ревизия зафиксирована коммитом, а не веткой main: у каталога нет
-      # пригодных тегов (последний v0.0.12 вышел в 2023, ветка main движется
-      # каждый день). Без пина красный job нельзя отличить от «схему обновили
-      # полчаса назад». Обновление — руками, как у бинаря kubeconform.
-      #
-      # -cache складывает скачанные схемы на диск: без него каждый прогон тянет
-      # несколько сотен файлов (~5 MiB) заново. Каталог кэша переиспользуется
-      # через actions/cache, поэтому набор попадает в CI один раз на прогон.
-      #
-      # Сканируются только каталоги с манифестами: apps/<сервис>/k8s/. Файлы
-      # values/Chart (Helm) и templates чарта homelab — не готовые манифесты, их
-      # исключаем; рендер чарта — отдельная задача. kustomization.yaml — тоже не
-      # объект API, а вход для kustomize: до argocd/kustomization.yaml он просто
-      # не попадал в сканируемые пути, потому что лежал в apps/<сервис>/, а не в
-      # apps/<сервис>/k8s/. Теперь появился в argocd/, поэтому исключение нужно
-      # явно.
-      #
-      # -skip не нужен: набор CR покрывает все kind'ы в сканируемых путях.
-      # Реестр остаётся осознанным выбором на будущее — если появится CR, для
-      # которого схемы нет, job упадёт, и это лучше тихого пропуска через
-      # -ignore-missing-schemas. Схема может отставать от CRD оператора: тогда
-      # добавляем сюда конкретный kind и фиксируем причину.
+      # Набор путей, схем, фильтров и -strict живёт в scripts/kubeconform.sh:
+      # тот же скрипт вызывают .githooks/pre-commit и scripts/check.sh, и
+      # расхождение трёх прогонов хуже, чем отсутствие проверки. Здесь только
+      # ставим бинарь и раскладываем схемы Kubernetes из зеркала.
       - name: Validate manifests
         run: |
           set -euo pipefail
           kubeconform -v
-          mkdir -p "$HOME/.cache/kubeconform-http"
-          kubeconform \
-            -kubernetes-version 1.36.3 \
-            -cache "$HOME/.cache/kubeconform-http" \
-            -schema-location "$HOME/.cache/kubeconform-schemas/{{.NormalizedKubernetesVersion}}-standalone{{.StrictSuffix}}/{{.ResourceKind}}{{.KindSuffix}}.json" \
-            -schema-location "https://raw.githubusercontent.com/datreeio/CRDs-catalog/$CRD_SCHEMAS_REV/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json" \
-            -ignore-filename-pattern 'values\.yaml$' \
-            -ignore-filename-pattern 'Chart\.yaml$' \
-            -ignore-filename-pattern 'platform/homelab/templates' \
-            -ignore-filename-pattern 'kustomization\.yaml$' \
-            -summary \
-            apps/*/k8s platform argocd
+          ./scripts/kubeconform.sh

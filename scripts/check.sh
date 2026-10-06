@@ -55,6 +55,13 @@ step "секреты в коммитах ветки" gitleaks git --config .gitl
   --log-opts="origin/main..HEAD"
 step "числа в docs/status соответствуют репозиторию" ./scripts/status-badges.sh --check
 
+if optional kubeconform; then
+  # Полный набор каталогов и схем: те же, что в гейте kubeconform.yml и в
+  # pre-commit. Скрипт общий намеренно — расхождение локальной проверки с
+  # гейтом хуже, чем её отсутствие.
+  step "kubeconform" ./scripts/kubeconform.sh
+fi
+
 if optional shellcheck; then
   # bash 3.2 на macOS не знает mapfile, поэтому массив собирается циклом.
   scripts=()

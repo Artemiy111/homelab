@@ -143,12 +143,24 @@ npm i -g @commitlint/cli @commitlint/config-conventional
 
 | Хук | Что проверяет |
 | --- | --- |
-| `.githooks/pre-commit` | gitleaks по staged, соответствие `docs/status/` состоянию репозитория |
+| `.githooks/pre-commit` | gitleaks по staged, соответствие `docs/status/` состоянию репозитория, схемы API манифестов из индекса (`kubeconform`) |
 | `.githooks/commit-msg` | сообщение коммита по `commitlint.config.mjs` |
 
 `./scripts/check.sh` (или `bun run check`) — те же проверки плюс shellcheck и
 actionlint; хуки, в отличие от скрипта, выполняются всегда, когда
 `core.hooksPath` настроен, а скрипт можно позвать руками.
+
+`kubeconform` нужен локально и для хука, и для скрипта:
+
+```sh
+brew install kubeconform
+```
+
+Хук смотрит на манифесты из индекса, `check.sh` и гейт в
+`.forgejo/workflows/kubeconform.yml` — на все каталоги. Набор путей, схем и
+фильтров лежит в `scripts/kubeconform.sh` и общий для всех трёх: расхождение
+локальной проверки с гейтом хуже, чем её отсутствие, потому что приучает не
+смотреть на результат.
 
 ## Локальная проверка
 

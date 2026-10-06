@@ -12,3 +12,24 @@ fi
 
 gitleaks git --staged --config .gitleaks.toml --no-banner --redact
 ./scripts/status-badges.sh --check
+
+# Схемы API для манифестов, попавших в индекс. Проверяем только staged, а не
+# весь кед: полный прогон занимает секунды и большую часть времени уходит на
+# схемы, которые коммит не трогает. Авторитетная проверка — CI, здесь нужен
+# быстрый отказ до коммита. Набор путей, схем и фильтров — в
+# scripts/kubeconform.sh, тот же скрипт вызывает и гейт.
+#
+# Валится и на манифест, и на мусор в индексе: если kubeconform не
+# установлен, молча пропускать проверку нельзя — так она исчезает из
+# разработки, и это молчание стоит уже одной сломанной синхронизации Argo.
+if ! command -v kubeconform >/dev/null 2>&1; then
+  echo "kubeconform не установлен (brew install kubeconform) — коммит остановлен" >&2
+  exit 1
+fi
+
+# Только каталоги с манифестами — те же, что у гейта. По одному расширению
+# отбирать нельзя: workflow в .forgejo/workflows/*.yml и Chart.yaml тоже
+# заканчиваются на .yml, и kubeconform принимает их за объекты API.
+git diff --cached --name-only --diff-filter=ACMR |
+  grep -E '^(apps/[^/]+/k8s/|platform/|argocd/).*\.ya?ml$' |
+  xargs -r ./scripts/kubeconform.sh
