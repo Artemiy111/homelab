@@ -80,10 +80,16 @@ http://rustfs.rustfs.svc.cluster.local/mirror/<path>
 (#728, `docs/incidents/0007`) и выглядит как 404 на существующем объекте.
 
 Что зеркалировать — `apps/rustfs/artifacts.tsv` (`<path> <sha256> <url>`).
-Скачивает и складывает CronJob `mirror-sync` (образ `amazon/aws-cli`; egress
-есть только у него); схемы kubeconform он же собирает из git. Артефакты с
-известным sha256 проверяются перед загрузкой, а CI — после скачивания. Бакет
-append-only: чтобы заменить версию, удалить объект и перезапустить.
+Скачивает и складывает CronJob `mirror-sync` (образ `amazon/aws-cli`); схемы
+kubeconform он же собирает из git. Артефакты с известным sha256 проверяются
+перед загрузкой, а CI — после скачивания. Бакет append-only: чтобы заменить
+версию, удалить объект и перезапустить.
+
+Схемы CR в зеркале нет: kubeconform тянет их с
+`raw.githubusercontent.com/datreeio/CRDs-catalog` напрямую (issue #791). У job'ов
+egress есть — проверено `wget` из контейнера `dind` пода `forgejo-runner`.
+Зеркалом остаются бинарники и схемы Kubernetes: первое ради сверки sha256,
+второе ради привязки к версии кластера, которой у схем CR нет.
 
 Бакет `mirror` и его public-read policy — код в `terraform/rustfs`: правка бакета
 в консоли будет перезаписана на следующем `terraform apply`, а CronJob

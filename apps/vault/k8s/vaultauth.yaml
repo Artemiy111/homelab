@@ -5,3 +5,4 @@ metadata:
   namespace: vault
 spec:
   address: http://vault.vault.svc.cluster.local:8200
+  skipTLSVerify: false

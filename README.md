@@ -119,7 +119,7 @@ A set of Forgejo Actions workflows
 | `lint / shellcheck` | shellcheck | All shell scripts |
 | `lint / ansible-lint` | ansible-lint | `production` profile |
 | `lint / tflint` | tflint | Terraform HCL, bundled ruleset |
-| `manifests / kubeconform` | kubeconform | Manifests against real Kubernetes schemas |
+| `manifests / kubeconform` | kubeconform | Manifests against Kubernetes and CR schemas |
 | `manifests / kube-linter` | kube-linter | Security checks, explicit allow-list |
 
 Local hooks run the same checks before a commit leaves the machine
