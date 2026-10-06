@@ -28,5 +28,6 @@ resources:
   - applications/traefik.yaml
   - applications/vault.yaml
   - applications/vault-secrets-operator.yaml
+  - projects/homelab-cluster-readers.yaml
   - projects/homelab.yaml
   - projects/upstream.yaml

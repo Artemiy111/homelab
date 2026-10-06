@@ -393,10 +393,37 @@ kubectl -n argocd get application \
 40+ namespace'ов сервисов означало бы править проект при каждом новом
 сервисе. Границы сервиса держат его манифесты.
 
-Шесть приложений читают кластер целиком (`alloy`, `beyla`,
-`alloy-profiler`, `victoria-metrics`, `homepage`, `elk`) — им нужен
-`ClusterRole`, поэтому они попадут в отдельный проект
-`homelab-cluster-readers` с соответствующим whitelist.
+### Проект `homelab-cluster-readers`
+
+Шесть приложений читают кластер целиком — `alloy`, `alloy-profiler`, `beyla`,
+`victoria-metrics`, `homepage`, `elk`. Первым четырём и `elk` нужен
+`ClusterRole`, а проект `homelab` разрешает только `Namespace`, поэтому они
+живут в отдельном проекте `homelab-cluster-readers`.
+
+Почему отдельный, а не расширить `homelab`: добавление `ClusterRole` в его
+whitelist дало бы право всем ~45 сервисам проекта, включая те, которые его не
+запрашивали. Здесь право есть ровно у шести.
+
+Whitelist перечисляет не вид целиком, а конкретные имена — двенадцать записей
+по шесть пар `ClusterRole`/`ClusterRoleBinding`. Схема
+`ClusterResourceRestrictionItem` допускает `name` с glob-паттернами, а без
+`name` совпадает всё в группе и виде. Поэтому сервис не сможет создать
+посторонний `ClusterRole`, даже если тот появится в манифесте по ошибке.
+
+`clusterResourceWhitelist` — единственный рычаг на кластерные объекты:
+namespaced-ресурсы Argo ограничивает deny-list'ом, cluster-scoped —
+allow-list'ом. Нет записи → нельзя ни создать, ни удалить. Отсюда свойство,
+которого нет у `upstream` с его `*`/`*`: `prune: true` у приложения в
+`homelab` или `homelab-cluster-readers` физически не может задеть чужой
+кластерный объект.
+
+Почему ограничение нужно. Argo применяет манифесты от имени одной учётки
+`system:serviceaccount:argocd:argocd-application-controller`, и у неё есть
+права на `create`/`delete` любых кластерных объектов — иначе не поставились бы
+операторы Longhorn, Gateway API и cert-manager. `AppProject` вторая линия
+поверх этого. Без неё ошибка в манифесте (убрали `ClusterRole` из `k8s/`)
+привела бы не к отказу Argo, а к удалению `ClusterRole` из кластера: сборщик
+логов или метрик молча теряет права и перестаёт работать.
 
 ### Про `kustomization.yaml`
 
