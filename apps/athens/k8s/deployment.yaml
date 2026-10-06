@@ -4,7 +4,7 @@ metadata:
   name: athens
   namespace: athens
 spec:
-  # RWO-том: два пода одновременно его не смонтируют.
+  # RWO-том
   strategy:
     type: Recreate
   revisionHistoryLimit: 2

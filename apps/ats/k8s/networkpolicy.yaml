@@ -1,5 +1,4 @@
-# Потребители ATS: раннер CI (namespace forgejo) и Traefik. Egress не ограничиваем: ATS ходит в
-# upstream по HTTPS (много разных хостов), а редиректы уводят на CDN GitHub.
+# Потребители ATS: раннер CI и Traefik
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:

@@ -1,6 +1,6 @@
-# Потребители Athens: раннер с DinD (namespace forgejo) и Traefik (маршрут
-# goproxy.<домен> для браузера и сборок с хоста). Egress не ограничивается:
-# Athens ходит в upstream (proxy.golang.org, sum.golang.org).
+# Потребители Athens: раннер с DinD и Traefik (маршрут
+# goproxy.<домен> для браузера и сборок с хоста).
+# Egress не ограничивается: Athens ходит в upstream (proxy.golang.org, sum.golang.org).
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:

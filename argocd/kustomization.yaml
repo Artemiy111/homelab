@@ -4,6 +4,9 @@ kind: Kustomization
 resources:
   - applications/apps/alloy-profiler.yaml
   - applications/apps/alloy.yaml
+  - applications/apps/athens.yaml
+  - applications/apps/ats.yaml
+  - applications/apps/beszel.yaml
   - applications/apps/beyla.yaml
   - applications/apps/code-server.yaml
   - applications/apps/gatus.yaml
