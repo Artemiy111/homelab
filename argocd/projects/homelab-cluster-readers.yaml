@@ -24,6 +24,13 @@ spec:
   # создать, ни удалить. Поэтому prune у этих приложений физически не может
   # задеть чужой кластерный объект.
   clusterResourceWhitelist:
+    # Свой Namespace нужен сервису, который приносит namespace.yaml в своих
+    # манифестах: homepage — единственный такой в этом проекте. Остальные
+    # четыре живут в уже существующем monitoring. Без этой записи синк
+    # homepage падает с «Namespace is not permitted in project».
+    - group: ""
+      kind: Namespace
+      name: homepage
     - group: rbac.authorization.k8s.io
       kind: ClusterRole
       name: alloy-logs

@@ -416,9 +416,15 @@ kubectl -n argocd get application \
 ### Проект `homelab-cluster-readers`
 
 Шесть приложений читают кластер целиком — `alloy`, `alloy-profiler`, `beyla`,
-`victoria-metrics`, `homepage`, `elk`. Первым четырём и `elk` нужен
+`victoria-metrics`, `homepage`, `elk`. Первым пяти и `elk` нужен
 `ClusterRole`, а проект `homelab` разрешает только `Namespace`, поэтому они
 живут в отдельном проекте `homelab-cluster-readers`.
+
+Отдельно про `Namespace`: сервис, который приносит `namespace.yaml` в своих
+манифестах, требует и права создать `Namespace`. В этом проекте такой один —
+`homepage`; остальные четыре живут в уже существующем `monitoring`. Поэтому
+whitelist содержит `Namespace` с именем `homepage`, а не вид целиком. Без этой
+записи синк падает с «`Namespace` is not permitted in project».
 
 Почему отдельный, а не расширить `homelab`: добавление `ClusterRole` в его
 whitelist дало бы право всем ~45 сервисам проекта, включая те, которые его не
