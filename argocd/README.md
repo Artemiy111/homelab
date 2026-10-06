@@ -459,8 +459,12 @@ kubectl get crd httproutes.gateway.networking.k8s.io \
 URL и пути — но **не** из ревизии, так что фиксация `targetRevision` не
 помогает. Сработало удаление и пересоздание `Application` под другим именем.
 
-Понижение `controller.default.cache.expiration` в `argocd/install/values.yaml`
-должно решить проблему системно; пока не сделано, об ошибке рендера стоит
+Понижено до `10m` в `argocd/install/values.yaml`, в `configs.params` — отдельного
+значения `controller.default.*` в чарте 10.9.1 нет, ключ попадает в
+`argocd-cmd-params-cm` через эту свободную карту. Компонент читает cm при
+старте, поэтому после `helm upgrade` нужен рестарт `application-controller`.
+
+Пока `helm upgrade` не выполнен, действует дефолт: об ошибке рендера стоит
 думать как о «залипшей на сутки».
 
 ## Задержка применения
