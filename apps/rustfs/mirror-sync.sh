@@ -65,18 +65,24 @@ sync_url() {
 # готового URL-архива нет — собираем sparse-checkout'ом. mtime/владелец
 # фиксируем, чтобы архив не зависел от окружения.
 #
-# Набора два: -standalone и -standalone-strict. Второй нужен гейту с флагом
+# Набора два: standalone и standalone-strict. Второй нужен гейту с флагом
 # -strict: kubeconform подставляет {{.StrictSuffix}} в путь и ищет схему в
-# каталоге, которого в зеркале не было бы. Оба кладём в один клон и sparse-checkout,
-# чтобы не платить за clone дважды.
+# каталоге, которого в зеркале не было бы. Оба кладём из одного клона, меняя
+# sparse-checkout, чтобы не платить за clone дважды.
+#
+# Имя объекта — kubernetes-json-schema_<ver>_<variant>.tar.gz, где variant это
+# standalone или standalone-strict; внутри архива каталог v<ver>-<variant>.
+# Разделитель в имени и в каталоге разный, и это не опечатка: так объекты
+# лежали до появления второго набора, переименование ломает ссылки в CI.
 sync_schemas() {
   local ver="$1" tmp
   [ -z "$ver" ] && return 0
 
   local -a pending=()
-  local variant path
-  for variant in "-standalone" "-standalone-strict"; do
-    path="kubeconform-schemas/$ver/kubernetes-json-schema_${ver}${variant}.tar.gz"
+  local variant dir path
+  for variant in "standalone" "standalone-strict"; do
+    dir="v${ver}-${variant}"
+    path="kubeconform-schemas/$ver/kubernetes-json-schema_${ver}_${variant}.tar.gz"
     if object_exists "$path"; then
       echo "skip $path"
     else
@@ -89,12 +95,13 @@ sync_schemas() {
   tmp="$(mktemp -d)"
   git clone --depth 1 --filter=blob:none --sparse "$SCHEMA_REPO" "$tmp/schemas"
   for variant in "${pending[@]}"; do
-    git -C "$tmp/schemas" sparse-checkout set "v${ver}${variant}"
-    echo "build kubeconform-schemas/$ver/kubernetes-json-schema_${ver}${variant}.tar.gz"
+    dir="v${ver}-${variant}"
+    git -C "$tmp/schemas" sparse-checkout set "$dir"
+    echo "build kubeconform-schemas/$ver/kubernetes-json-schema_${ver}_${variant}.tar.gz"
     tar -C "$tmp/schemas" \
       --sort=name --mtime='@0' --owner=0 --group=0 --numeric-owner \
-      -czf "$tmp/schemas.tar.gz" "v${ver}${variant}"
-    s3cp "$tmp/schemas.tar.gz" "s3://$BUCKET/kubeconform-schemas/$ver/kubernetes-json-schema_${ver}${variant}.tar.gz"
+      -czf "$tmp/schemas.tar.gz" "$dir"
+    s3cp "$tmp/schemas.tar.gz" "s3://$BUCKET/kubeconform-schemas/$ver/kubernetes-json-schema_${ver}_${variant}.tar.gz"
   done
   rm -rf "$tmp"
 }
