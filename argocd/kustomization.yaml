@@ -21,6 +21,7 @@ resources:
   - applications/apps/open-webui.yaml
   - applications/apps/pyroscope.yaml
   - applications/apps/rustfs.yaml
+  - applications/apps/seafile.yaml
   - applications/apps/tempo.yaml
   - applications/apps/uptime-kuma.yaml
   - applications/apps/verdaccio.yaml
