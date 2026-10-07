@@ -12,7 +12,11 @@ spec:
     - vm.biplane.v6.rocks
   rules:
     - backendRefs:
-        - name: victoria-metrics
+        # Имя Service — без дефиса, как в victoriametrics.service.yaml. Здесь
+        # стояло victoria-metrics, и Traefik не находил бэкенд: 500 с
+        # OriginStatus 0. Имя самого HTTPRoute остаётся с дефисом — оно в
+        # идентификаторе ресурса.
+        - name: victoriametrics
           port: 80
           filters:
             - type: ExtensionRef
