@@ -2,20 +2,6 @@
 
 Uptime-мониторинг сервисов: дашборд статусов, метрики Prometheus, уведомления.
 
-## Запуск
-
-Разворачивается kustomize-набором из `apps/uptime-kuma/`:
-
-```sh
-kubectl apply -k apps/uptime-kuma/
-```
-
-Мониторы, теги и status page описаны в Terraform: `terraform/uptime-kuma/`.
-В кластере своего декларативного механизма у сервиса не осталось.
-
-Завершить первоначальную настройку учётной записи по адресу
-`https://kuma.example.com/`.
-
 ## Память
 
 Node-процесс Kuma со временем раздувается до гигабайта и больше: кэш heartbeats
@@ -63,73 +49,6 @@ Kuma 2.x не использует SQLite: переменные `UPTIME_KUMA_DB_
 поднимет поды и сделает SST сам. При 2 репликах нельзя: кворум Galera требует
 нечётного числа узлов, и выживший узел уходит в read-only, то есть вместо
 простоя приложение получает ошибки записи.
-
-### Переключение на внешнюю базу
-
-Переноса данных нет: база внешняя наполняется заново, мониторы и история
-проверок создаются с нуля. Порядку важно — Kuma стартует на пустой базе раньше,
-чем Terraform успеет создать мониторы.
-
-1. Применить кластер и секреты:
-
-   ```sh
-   kubectl apply -f platform/mariadb/uptime-kuma-mariadb.instance.yaml
-   kubectl apply -f platform/mariadb/uptime-kuma-mariadb.databases.yaml
-   kubectl apply -f platform/mariadb/uptime-kuma-mariadb.users.yaml
-   kubectl apply -f apps/uptime-kuma/k8s/vaultstaticsecret-mariadb.yaml
-   ```
-
-2. Дождаться готовности кластера и синхронизации секретов:
-
-   ```sh
-   kubectl -n uptime-kuma get mariadb,pods
-   kubectl -n uptime-kuma annotate vaultstaticsecret uptime-kuma-mariadb \
-     vso.secrets.hashicorp.com/force-sync="$(date +%s)" --overwrite
-   ```
-
-3. Переключить Kuma: применить kustomization — Deployment получит
-   `UPTIME_KUMA_DB_*`, а `/app/data` станет `emptyDir`:
-
-   ```sh
-   kubectl -n uptime-kuma scale deploy/uptime-kuma --replicas=0
-   kubectl apply -k apps/uptime-kuma/
-   kubectl -n uptime-kuma get pods -w
-   ```
-
-   Проверить, что Kuma поднялась на внешней базе:
-
-   ```sh
-   kubectl -n uptime-kuma logs deploy/uptime-kuma | grep -i "Database Type"
-   ```
-
-   В логе должно быть `Database Type: mariadb`. Если осталось `sqlite` или
-   `embedded-mariadb` — секреты не синхронизировались.
-
-   Старый PVC `uptime-kuma-data` и его Longhorn-том удаляются руками: манифеста
-   больше нет, а `kubectl apply` удалённые объекты не трогает. Ищи их по
-   `kubectl -n uptime-kuma get pvc` и `kubectl -n longhorn-system get volumes.longhorn.io`.
-
-4. Создать мониторы:
-
-   ```sh
-   cd terraform/uptime-kuma
-   terraform apply
-   ```
-
-   Мониторы, теги, status page, прокси и настройки создаются из
-   `terraform/uptime-kuma/`. Импортировать нечего: база пустая, поэтому
-   `imports.tf` в модуле нет.
-
-5. Проверить в UI, что все 62 монитора на месте, а `/metrics` отдаётся.
-
-### Ключ метрик после перезапуска
-
-Ключ API для `/metrics` хранится в базе, поэтому после её пересоздания он
-исчезает, а basic auth на `/metrics` включается обратно. Нужен новый ключ в
-UI (Настройки → API Keys, без срока действия) и новое значение в Vault по пути
-`kv/uptime-kuma/@monitoring/uptime-kuma-metrics-api-key` — его читает vmagent
-(`apps/victoria-metrics/k8s/vmagent.deployment.yaml`). После этого перезапустить
-vmagent, иначе он продолжит скрейпить со старым ключом.
 
 ### Оговорка про пароль на диске
 

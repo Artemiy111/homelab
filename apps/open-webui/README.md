@@ -22,14 +22,6 @@ OpenAI-совместимый API не подключены (`ENABLE_OLLAMA_API=
 для RAG, сгенерированные изображения) при перезапуске теряются — когда появится
 движок инференса, логично вынести их в S3 или на том.
 
-## Запуск
-
-Разворачивается через kustomize:
-
-```sh
-kubectl apply -k apps/open-webui/
-```
-
 ## Подключение движка (позже)
 
 - LocalAI: `ENABLE_OPENAI_API=true`, `OPENAI_API_BASE_URL=http://local-ai/v1`

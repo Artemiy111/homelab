@@ -21,12 +21,6 @@ Synapse поддерживает только legacy Opentracing (Jaeger), у Li
 | Synapse (Python) | HTTP-уровень | eBPF видит протокол, но не бизнес-спаны внутри |
 | coturn (C) | HTTP-уровень | то же |
 
-## Развёртывание
-
-```sh
-kubectl apply -k apps/beyla
-```
-
 ## Привилегии
 
 Контейнер **не** `privileged`. Нужен `hostPID: true` (иначе Beyla не видит

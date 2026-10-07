@@ -171,12 +171,6 @@ kustomize-набор в `apps/victoria-metrics/`: манифесты в `k8s/`, 
   `vmagent` скопом — каждый в своём, и под каждый отдельная строка в политике
   `app/vmagent`.
 
-Применение (от `artlab` на сервере, после `git pull --ff-only`):
-
-```sh
-kubectl apply -k apps/victoria-metrics/
-```
-
 ## Проверка
 
 Наличие целей и их состояние:

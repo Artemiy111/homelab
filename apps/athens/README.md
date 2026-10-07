@@ -8,7 +8,6 @@ Athens — прокси Go-модулей по официальному прот
 | | |
 |---|---|
 | Namespace | `athens` |
-| Развёртывание | kustomize `apps/athens/` (`kubectl apply -k`) |
 | Образ | `gomods/athens:v0.18.1` (пин по тегу и дайджесту, amd64) |
 | Данные | PVC `athens-data` на `longhorn` (кэш, потеря не страшна) |
 | API | `http://athens.athens.svc.cluster.local` — внутри кластера (порт 80) |

@@ -18,12 +18,6 @@
 Скрейпит vmagent (job `node-exporter` в
 `apps/victoria-metrics/config/vmagent/scrape.yml`).
 
-## Развёртывание
-
-```sh
-kubectl apply -f apps/node-exporter/k8s/
-```
-
 ## Проверка
 
 ```sh

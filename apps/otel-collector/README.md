@@ -23,12 +23,6 @@ Traefik ──OTLP──> otel-collector:4318 ──OTLP──> tempo:4317
 - `k8s/deployment.yaml` — один под, образ зафиксирован по digest;
 - `k8s/service.yaml` — ClusterIP, порты 4317/4318 (приём) и 8889 (скрейп).
 
-## Развёртывание
-
-```sh
-kubectl apply -k apps/otel-collector/
-```
-
 ## Подключение приложения
 
 RustFS шлёт OTLP на этот коллектор (`RUSTFS_OBS_ENDPOINT` в его Deployment).
