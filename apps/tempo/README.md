@@ -25,12 +25,6 @@ Traefik ──OTLP/HTTP:4318──> otel-collector ──OTLP/gRPC:4317──> t
 (у homelab для этого есть RustFS): это позволяет переживать потерю узла и не
 ограничиваться локальным диском. Переезд на S3 — отдельная задача.
 
-## Развёртывание
-
-```sh
-kubectl apply -k apps/tempo/
-```
-
 kustomize собирает `config/tempo.yaml` в ConfigMap `tempo-config` с хэшем
 содержимого, поэтому правка конфига сама запускает rollout.
 

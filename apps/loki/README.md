@@ -22,12 +22,6 @@ Alloy (DaemonSet) ──push──> loki:3100 <── Grafana (Explore)
 - `k8s/loki.pvc.yaml` — PVC `loki-data` (Longhorn, `longhorn-retain`, 10 Ги);
 - `k8s/loki.service.yaml` — ClusterIP, порт 3100.
 
-## Развёртывание
-
-```sh
-kubectl apply -k apps/loki/
-```
-
 ## Проверка
 
 Под и готовность:
