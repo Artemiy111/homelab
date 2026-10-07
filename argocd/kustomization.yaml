@@ -12,12 +12,14 @@ resources:
   - applications/apps/beyla.yaml
   - applications/apps/code-server.yaml
   - applications/apps/dawarich.yaml
+  - applications/apps/db-exporters.yaml
   - applications/apps/gatus.yaml
   - applications/apps/gitlab.yaml
   - applications/apps/glitchtip.yaml
   - applications/apps/grafana.yaml
   - applications/apps/home-assistant.yaml
   - applications/apps/homepage.yaml
+  - applications/apps/image-updates.yaml
   - applications/apps/immich.yaml
   - applications/apps/infisical.yaml
   - applications/apps/jellyfin.yaml

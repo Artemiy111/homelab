@@ -1,0 +1,13 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: monitoring
+resources:
+  - k8s/docker-socket-proxy.service.yaml
+  - k8s/wud.service.yaml
+  - k8s/wud.deployment.yaml
+  - k8s/docker-socket-proxy.deployment.yaml
+  - k8s/store.pvc.yaml
+  - k8s/secure-headers.middleware.yaml
+  - k8s/ratelimit-default.middleware.yaml
+  - k8s/oauth2-proxy.middleware.yaml
+  - k8s/route.yaml

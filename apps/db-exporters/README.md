@@ -49,12 +49,6 @@ MariaDB | `mysqld-exporter` (`v0.20.0`) | 9104 | 2
   `root`, пароль из Secret `uptime-kuma-mariadb-root`/
   `INIT_UPTIME_KUMA_MARIADB_ROOT_PASSWORD`).
 
-## Развёртывание
-
-```sh
-kubectl apply -f apps/db-exporters/k8s/
-```
-
 Проверка, что все экспортеры живы:
 
 ```sh
