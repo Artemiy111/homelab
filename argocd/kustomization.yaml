@@ -11,6 +11,7 @@ resources:
   - applications/apps/beyla.yaml
   - applications/apps/code-server.yaml
   - applications/apps/gatus.yaml
+  - applications/apps/grafana.yaml
   - applications/apps/homepage.yaml
   - applications/apps/loki.yaml
   - applications/apps/lute.yaml
@@ -19,6 +20,7 @@ resources:
   - applications/apps/otel-collector.yaml
   - applications/apps/open-webui.yaml
   - applications/apps/pyroscope.yaml
+  - applications/apps/rustfs.yaml
   - applications/apps/tempo.yaml
   - applications/apps/uptime-kuma.yaml
   - applications/apps/verdaccio.yaml

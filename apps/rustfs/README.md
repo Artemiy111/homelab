@@ -53,8 +53,6 @@ aws --endpoint-url https://s3.${DOMAIN} \
 
 ## Эксплуатация
 
-Разворачивается через kustomize: `kubectl apply -k apps/rustfs`.
-
 Смена root-креденшелов: обновить значение в Vault по пути `kv/rustfs/credentials`,
 дождаться синка VSO и пересоздать под.
 Учтите: креды применяются только при инициализации пустого `/data`; для смены
@@ -133,10 +131,9 @@ egress есть — проверено `wget` из контейнера `dind` �
 `mirror-sync` только заливает объекты.
 
 Скрипт (`mirror-sync.sh`) и манифест (`artifacts.tsv`) едут в ConfigMap
-`mirror-sync` через kustomize — отдельного шага нет:
+`mirror-sync` через kustomize — отдельного шага нет. Форсировать прогон:
 
 ```sh
-kubectl apply -k apps/rustfs
 kubectl -n rustfs create job --from=cronjob/mirror-sync mirror-sync-manual
 ```
 

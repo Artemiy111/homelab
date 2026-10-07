@@ -198,7 +198,7 @@ kubectl -n monitoring get cm grafana-alerting \
 kubectl -n grafana-operator logs deploy/grafana-operator --since=30s | grep -c GrafanaReconciler
 ```
 
-После `kubectl apply -k apps/grafana/` второй счётчик обязан быть больше нуля.
+Второй счётчик обязан быть больше нуля.
 
 Побочный эффект того же механизма: **ротация секретов применяется сама**.
 `grafana-admin`, `grafana-db` и `grafana-ntfy` обновляются VSO на месте, `env`
@@ -210,18 +210,8 @@ kubectl -n grafana-operator logs deploy/grafana-operator --since=30s | grep -c G
 JSON-файлы хранятся в читаемом виде (`indent=2`), суммарно 337946 Б. Это больше
 лимита аннотации `kubectl.kubernetes.io/last-applied-configuration` (262144 Б),
 с которым падает client-side apply, поэтому **Grafana применяется только
-server-side apply** — он эту аннотацию не пишет:
-
-```sh
-kubectl apply --server-side --field-manager=homelab -k apps/grafana/
-```
-
-Остальные приложения репозитория пока применяются client-side; переход на
-server-side для них — отдельная задача, не смешивать её с правками Grafana.
-Причина миграции именно в размере: client-side apply падает на лимите аннотации
-(проверено на стенде — `metadata.annotations: Too long` при 337946 Б). Побочный
-плюс server-side — владение полями в `metadata.managedFields`, но на повреждённый
-ConfigMap это не влияет, и отдельного подтверждения не требует.
+server-side apply** — он эту аннотацию не пишет. Проверено на стенде:
+`metadata.annotations: Too long` при 337946 Б.
 
 Дашборды: `cloudnative-pg.json` и `postgresql-database.json` — экспорт из UI
 Grafana; `traefik.json` — написан руками под метрики Traefik;
@@ -577,7 +567,7 @@ kubectl logs deploy/grafana-deployment -n monitoring --since=10m | grep "Failed 
 риска оставить заведомо ложное правило-«canary» в `k8s/alerts.yaml`, но оно
 не должно попасть в main.
 
-Обновления правил доезжают обычным путём — `kubectl apply` пересобирает
+Обновления правил доезжают обычным путём — пересобирается
 ConfigMap, меняется его ResourceVersion, оператор пересчитывает
 `checksum/secrets` и под перезапускается сам. Отдельный `rollout restart` не
 нужен. Перечитывание провижининга без рестарта через Admin API у Grafana есть,
