@@ -7,7 +7,4 @@ resources:
   - k8s/wud.deployment.yaml
   - k8s/docker-socket-proxy.deployment.yaml
   - k8s/store.pvc.yaml
-  - k8s/secure-headers.middleware.yaml
-  - k8s/ratelimit-default.middleware.yaml
-  - k8s/oauth2-proxy.middleware.yaml
   - k8s/route.yaml

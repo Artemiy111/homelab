@@ -3,9 +3,6 @@ kind: Kustomization
 namespace: monitoring
 resources:
   - k8s/grafana.yaml
-  - k8s/secure-headers.middleware.yaml
-  - k8s/ratelimit-default.middleware.yaml
-  - k8s/oauth2-proxy.middleware.yaml
   - k8s/route.yaml
   - k8s/datasources.yaml
   - k8s/dashboards.yaml

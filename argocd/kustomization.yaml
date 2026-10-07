@@ -28,6 +28,7 @@ resources:
   - applications/apps/lute.yaml
   - applications/apps/mailserver.yaml
   - applications/apps/mermaid-live-editor.yaml
+  - applications/apps/monitoring-middlewares.yaml
   - applications/apps/nextcloud.yaml
   - applications/apps/navidrome.yaml
   - applications/apps/node-exporter.yaml
