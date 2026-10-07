@@ -1,7 +1,6 @@
 # Immich
 
-Фотографии и видео. Развёртывание — `apps/immich/k8s/`, пароль БД приходит из
-Vault через External Secrets Operator.
+Фотографии и видео. Пароль БД приходит из Vault через External Secrets Operator.
 
 ## Вход
 

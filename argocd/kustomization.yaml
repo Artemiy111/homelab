@@ -18,6 +18,7 @@ resources:
   - applications/apps/grafana.yaml
   - applications/apps/home-assistant.yaml
   - applications/apps/homepage.yaml
+  - applications/apps/immich.yaml
   - applications/apps/infisical.yaml
   - applications/apps/jellyfin.yaml
   - applications/apps/jitsi.yaml
@@ -29,8 +30,11 @@ resources:
   - applications/apps/navidrome.yaml
   - applications/apps/node-exporter.yaml
   - applications/apps/otel-collector.yaml
+  - applications/apps/oauth2-proxy.yaml
   - applications/apps/open-webui.yaml
   - applications/apps/paperless.yaml
+  - applications/apps/pdf.yaml
+  - applications/apps/postgres.yaml
   - applications/apps/pyroscope.yaml
   - applications/apps/rustfs.yaml
   - applications/apps/seafile.yaml
