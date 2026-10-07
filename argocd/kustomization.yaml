@@ -13,10 +13,13 @@ resources:
   - applications/apps/code-server.yaml
   - applications/apps/dawarich.yaml
   - applications/apps/gatus.yaml
+  - applications/apps/gitlab.yaml
   - applications/apps/glitchtip.yaml
   - applications/apps/grafana.yaml
+  - applications/apps/home-assistant.yaml
   - applications/apps/homepage.yaml
   - applications/apps/infisical.yaml
+  - applications/apps/jellyfin.yaml
   - applications/apps/loki.yaml
   - applications/apps/lute.yaml
   - applications/apps/mermaid-live-editor.yaml
@@ -27,6 +30,7 @@ resources:
   - applications/apps/pyroscope.yaml
   - applications/apps/rustfs.yaml
   - applications/apps/seafile.yaml
+  - applications/apps/structurizr.yaml
   - applications/apps/sure.yaml
   - applications/apps/talk-hpb.yaml
   - applications/apps/technitium.yaml

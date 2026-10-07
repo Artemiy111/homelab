@@ -8,7 +8,7 @@ GitLab CE одним подом из образа `gitlab/gitlab-ce` — для 
 |---|---|
 | URL | `https://gitlab.example.com/` |
 | Namespace | `gitlab` |
-| Деплой | `apps/gitlab/k8s/`, руками (`kubectl apply`), без Argo |
+| Деплой | `argocd/applications/apps/gitlab.yaml` |
 | Образ | `gitlab/gitlab-ce:19.4.0-ce.0` |
 | Данные | PVC `gitlab-data` (10Gi) и `gitlab-config` (1Gi), класс `local-path` |
 | Логин | `root` |
@@ -23,11 +23,6 @@ postgres, ...) и ~10 Gi RAM. Если понадобится «как в про
 `gitlab/gitlab`, но на текущем узле он не влезет.
 
 ## Как развёрнуто
-
-```sh
-kubectl apply -f apps/gitlab/k8s/
-helm template platform/homelab | kubectl apply -f -
-```
 
 `platform/homelab-config/configmap.yaml` содержит документ для namespace
 `gitlab` (DOMAIN, TZ) — оттуда Deployment берёт env, а `gitlab.rb` подставляет
@@ -110,11 +105,6 @@ kubectl -n gitlab exec deploy/gitlab -- gitlab-rake gitlab:check
 - Резервных копий нет. Для теста — ок; для нужных данных это отдельная задача.
 
 ## Удаление
-
-```sh
-helm template platform/homelab | kubectl delete -f -
-kubectl delete -f apps/gitlab/k8s/
-```
 
 `local-path` держит reclaimPolicy `Retain`, поэтому PV и каталоги на диске
 останутся (`/storage/apps/k8s/local-path/`). Чтобы вычистить полностью —
