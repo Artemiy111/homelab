@@ -1,0 +1,14 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: forgejo
+resources:
+  - k8s/namespace.yaml
+  - k8s/merge-message.configmap.yaml
+  - k8s/runner-dind.configmap.yaml
+  - k8s/runner.configmap.yaml
+  - k8s/runner.deployment.yaml
+  - k8s/runner.pvc.yaml
+  - k8s/networkpolicy.yaml
+  - k8s/route.yaml
+  - k8s/vaultauth.yaml
+  - k8s/vaultstaticsecret.yaml

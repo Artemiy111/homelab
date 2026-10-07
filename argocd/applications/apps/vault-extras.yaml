@@ -1,0 +1,31 @@
+# Три NetworkPolicy, два из которых названы default-deny-ingress: networkpolicy.yaml
+# в namespace vault, networkpolicy-vso.yaml — в vault-secrets-operator. Поэтому у
+# Kustomization нет поля namespace: глобальная трансформация свела бы оба объекта
+# в vault и kustomize упал бы с «namespace transformation produces ID conflict».
+# Namespace берётся из каждого манифеста, как и задано в файлах.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: vault-extras
+  namespace: argocd
+spec:
+  project: homelab
+  sources:
+    - repoURL: ssh://git@forgejo.biplane.v6.rocks:2222/artemiy/homelab.git
+      targetRevision: main
+      path: apps/vault
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: vault
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: true
+    syncOptions:
+      - ServerSideApply=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 3m

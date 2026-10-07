@@ -16,6 +16,7 @@ resources:
   - applications/apps/element.yaml
   - applications/apps/db-exporters.yaml
   - applications/apps/gatus.yaml
+  - applications/apps/forgejo-extras.yaml
   - applications/apps/gitlab.yaml
   - applications/apps/glitchtip.yaml
   - applications/apps/grafana.yaml
@@ -50,6 +51,7 @@ resources:
   - applications/apps/tempo.yaml
   - applications/apps/uptime-kuma.yaml
   - applications/apps/verdaccio.yaml
+  - applications/apps/vault-extras.yaml
   - applications/apps/victoria-metrics.yaml
   - applications/apps/zitadel.yaml
   - applications/cert-manager.yaml
