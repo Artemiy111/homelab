@@ -20,13 +20,17 @@ resources:
   - applications/apps/homepage.yaml
   - applications/apps/infisical.yaml
   - applications/apps/jellyfin.yaml
+  - applications/apps/jitsi.yaml
   - applications/apps/loki.yaml
   - applications/apps/lute.yaml
+  - applications/apps/mailserver.yaml
   - applications/apps/mermaid-live-editor.yaml
+  - applications/apps/nextcloud.yaml
   - applications/apps/navidrome.yaml
   - applications/apps/node-exporter.yaml
   - applications/apps/otel-collector.yaml
   - applications/apps/open-webui.yaml
+  - applications/apps/paperless.yaml
   - applications/apps/pyroscope.yaml
   - applications/apps/rustfs.yaml
   - applications/apps/seafile.yaml
