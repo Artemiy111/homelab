@@ -1,12 +1,13 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
+namespace: beszel
 resources:
-  - agent.deployments.yaml
-  - hub.deployment.yaml
-  - hub.service.yaml
-  - namespace.yaml
-  - networkpolicy.yaml
-  - route.yaml
-  - vaultauth.yaml
-  - vaultstaticsecret.yaml
-
+  - k8s/namespace.yaml
+  - k8s/vaultauth.yaml
+  - k8s/vaultstaticsecret.yaml
+  - k8s/networkpolicy.yaml
+  - k8s/pvcs.yaml
+  - k8s/agent.deployment.yaml
+  - k8s/hub.deployment.yaml
+  - k8s/hub.service.yaml
+  - k8s/route.yaml

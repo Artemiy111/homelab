@@ -3,6 +3,7 @@ kind: Kustomization
 
 resources:
   - applications/apps/alloy-profiler.yaml
+  - applications/apps/zot.yaml
   - applications/apps/alloy.yaml
   - applications/apps/athens.yaml
   - applications/apps/ats.yaml
@@ -37,7 +38,6 @@ resources:
   - applications/vault.yaml
   - applications/vault-secrets-operator.yaml
   - applications/victoria-metrics-operator.yaml
-  - applications/zot.yaml
   - projects/homelab-cluster-readers.yaml
   - projects/homelab.yaml
   - projects/upstream.yaml
