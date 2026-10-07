@@ -6,6 +6,7 @@ resources:
   - applications/apps/zot.yaml
   - applications/apps/alloy.yaml
   - applications/apps/athens.yaml
+  - applications/apps/authentik.yaml
   - applications/apps/ats.yaml
   - applications/apps/beszel.yaml
   - applications/apps/beyla.yaml
@@ -16,12 +17,15 @@ resources:
   - applications/apps/loki.yaml
   - applications/apps/lute.yaml
   - applications/apps/mermaid-live-editor.yaml
+  - applications/apps/navidrome.yaml
   - applications/apps/node-exporter.yaml
   - applications/apps/otel-collector.yaml
   - applications/apps/open-webui.yaml
   - applications/apps/pyroscope.yaml
   - applications/apps/rustfs.yaml
   - applications/apps/seafile.yaml
+  - applications/apps/talk-hpb.yaml
+  - applications/apps/technitium.yaml
   - applications/apps/tempo.yaml
   - applications/apps/uptime-kuma.yaml
   - applications/apps/verdaccio.yaml
