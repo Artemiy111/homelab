@@ -1,3 +1,14 @@
+# gitlab отключён вручную: в кластере Deployment жил с replicas: 0, в этом файле
+# стоит 1. Расхождение не зафиксировано ни в README, ни в ADR, поэтому синк с
+# selfHeal вернул бы сервис на ноду, уже занятую на 85% по памяти (issue #727),
+# а GitLab CE по лимиту занимает 5Gi. Application заведён без блока
+# syncPolicy.automated — Argo не поднимет поды обратно. Это тот же приём, что у
+# alloy-profiler и authentik.
+#
+# Включение — два шага, и оба должны быть вместе: убрать блок automated из
+# этого файла и снять ручной масштаб в кластере. Пока в apps/gitlab/k8s/
+# deployment.yaml стоит replicas: 1, приложение без automated будет постоянно
+# OutOfSync, и это служит индикатором выключенного состояния.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -13,9 +24,6 @@ spec:
     server: https://kubernetes.default.svc
     namespace: gitlab
   syncPolicy:
-    automated:
-      prune: false
-      selfHeal: true
     syncOptions:
       - ServerSideApply=true
     retry:
