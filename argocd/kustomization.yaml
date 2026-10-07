@@ -21,7 +21,9 @@ resources:
   - applications/apps/pyroscope.yaml
   - applications/apps/tempo.yaml
   - applications/apps/uptime-kuma.yaml
+  - applications/apps/verdaccio.yaml
   - applications/apps/victoria-metrics.yaml
+  - applications/apps/zitadel.yaml
   - applications/cert-manager.yaml
   - applications/cloudnative-pg.yaml
   - applications/dns01-webhook.yaml

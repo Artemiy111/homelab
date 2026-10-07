@@ -6,12 +6,6 @@ Zitadel — IdP homelab. Доступен через Traefik по `https://id.ex
 
 ## Первый запуск
 
-Разворачивается kustomize-набором `apps/zitadel/`:
-
-```sh
-kubectl apply -k apps/zitadel/
-```
-
 Postgres поднимается кластером CloudNativePG: суперпользователь остаётся у
 оператора, а ZITADEL работает под непривилегированной managed-ролью `zitadel` —
 владельцем базы. Роль и база объявлены в `platform/cnpg/`

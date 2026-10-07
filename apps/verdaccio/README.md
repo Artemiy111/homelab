@@ -8,7 +8,6 @@ Verdaccio — npm-реестр с **uplink-прокси** на `registry.npmjs.o
 | | |
 |---|---|
 | Namespace | `verdaccio` |
-| Развёртывание | `kubectl apply -k apps/verdaccio` (kustomize) |
 | Образ | `verdaccio/verdaccio:6.10.4` (пин по тегу и дайджесту, amd64) |
 | Данные | PVC `verdaccio-data` на `longhorn` (кэш, потеря не страшна) |
 | API | `http://verdaccio.verdaccio.svc.cluster.local` — внутри кластера (порт 80) |
@@ -28,15 +27,8 @@ Verdaccio — npm-реестр с **uplink-прокси** на `registry.npmjs.o
 - `maxage: 2m` задаёт TTL метаданных в uplink-кэше: тарболл иммутабелен, а
   метаданные пакета меняются при новых релизах.
 
-## Развёртывание
-
-```sh
-kubectl apply -k apps/verdaccio
-kubectl -n verdaccio get pods,pvc,svc
-```
-
 `config/config.yaml` попадает в ConfigMap через `configMapGenerator` в
-`kustomization.yaml`: kustomize добавляет хэш содержимого к имени ConfigMap и
+`kustomization.yaml`: кustomize добавляет хэш содержимого к имени ConfigMap и
 переписывает ссылку в Deployment, поэтому правка конфига сама запускает
 rollout (SoT — файл в git, а не ConfigMap в кластере).
 
