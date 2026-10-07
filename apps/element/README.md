@@ -5,8 +5,6 @@ Element — web-клиент Matrix, а Synapse — его homeserver. В это
 видеозвонков. Стек рассчитан на доступ из LAN и tailnet; публичный NAT-path не
 используется.
 
-Разворачивается манифестами в apps/element/k8s/.
-
 ## Состав
 
 - `element-web` — веб-интерфейс по `https://element.example.com/`;

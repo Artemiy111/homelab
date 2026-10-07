@@ -2,6 +2,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
+  - applications/apps/3x-ui.yaml
   - applications/apps/alloy-profiler.yaml
   - applications/apps/zot.yaml
   - applications/apps/alloy.yaml
@@ -12,6 +13,7 @@ resources:
   - applications/apps/beyla.yaml
   - applications/apps/code-server.yaml
   - applications/apps/dawarich.yaml
+  - applications/apps/element.yaml
   - applications/apps/db-exporters.yaml
   - applications/apps/gatus.yaml
   - applications/apps/gitlab.yaml
