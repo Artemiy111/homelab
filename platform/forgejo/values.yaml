@@ -25,7 +25,7 @@ gitea:
     #
     # keepUpdated перетирал бы пароль при каждом рестарте пода, поэтому
     # initialOnlyNoReset: выставляем один раз, дальше правит человек.
-    email: admin@biplane.v6.rocks
+    email: admin@biplane.casa
     existingSecret: forgejo-admin
     passwordMode: initialOnlyNoReset
 

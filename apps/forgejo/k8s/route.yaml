@@ -8,7 +8,6 @@ spec:
     - name: homelab
       namespace: traefik
   hostnames:
-    - forgejo.biplane.v6.rocks
     - forgejo.biplane.casa
   rules:
     - backendRefs:
