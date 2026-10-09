@@ -9,6 +9,7 @@ spec:
       namespace: traefik
   hostnames:
     - jellyfin.biplane.v6.rocks
+    - jellyfin.biplane.casa
   rules:
     - backendRefs:
         - name: jellyfin

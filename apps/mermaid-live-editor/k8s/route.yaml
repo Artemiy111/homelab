@@ -9,6 +9,7 @@ spec:
       namespace: traefik
   hostnames:
     - mermaid.biplane.v6.rocks
+    - mermaid.biplane.casa
   rules:
     - backendRefs:
         - name: mermaid-live-editor

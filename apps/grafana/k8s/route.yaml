@@ -9,6 +9,7 @@ spec:
       namespace: traefik
   hostnames:
     - grafana.biplane.v6.rocks
+    - grafana.biplane.casa
   rules:
     - backendRefs:
         - name: grafana-service

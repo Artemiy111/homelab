@@ -9,6 +9,7 @@ spec:
       namespace: traefik
   hostnames:
     - xui.biplane.v6.rocks
+    - xui.biplane.casa
   rules:
     - backendRefs:
         - name: xui

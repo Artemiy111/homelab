@@ -9,6 +9,7 @@ spec:
       namespace: traefik
   hostnames:
     - netdata.biplane.v6.rocks
+    - netdata.biplane.casa
   rules:
     - backendRefs:
         - name: netdata

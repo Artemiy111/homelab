@@ -9,6 +9,7 @@ spec:
       namespace: traefik
   hostnames:
     - dns.biplane.v6.rocks
+    - dns.biplane.casa
   rules:
     - backendRefs:
         - name: technitium

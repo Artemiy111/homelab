@@ -9,6 +9,7 @@ spec:
       namespace: traefik
   hostnames:
     - talk-signaling.biplane.v6.rocks
+    - talk-signaling.biplane.casa
   rules:
     - matches:
         - path:

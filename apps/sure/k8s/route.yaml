@@ -9,6 +9,7 @@ spec:
       namespace: traefik
   hostnames:
     - sure.biplane.v6.rocks
+    - sure.biplane.casa
   rules:
     - backendRefs:
         - name: sure

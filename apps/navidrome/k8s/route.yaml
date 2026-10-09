@@ -9,6 +9,7 @@ spec:
       namespace: traefik
   hostnames:
     - music.biplane.v6.rocks
+    - music.biplane.casa
   rules:
     - backendRefs:
         - name: navidrome

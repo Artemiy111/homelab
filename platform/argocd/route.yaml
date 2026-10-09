@@ -9,6 +9,7 @@ spec:
       namespace: traefik
   hostnames:
     - argocd.biplane.v6.rocks
+    - argocd.biplane.casa
   rules:
     - backendRefs:
         - name: argocd-server

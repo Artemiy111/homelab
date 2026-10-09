@@ -9,6 +9,7 @@ spec:
       namespace: traefik
   hostnames:
     - meet.biplane.v6.rocks
+    - meet.biplane.casa
   rules:
     - backendRefs:
         - name: jitsi-web

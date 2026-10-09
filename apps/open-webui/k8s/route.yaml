@@ -9,6 +9,7 @@ spec:
       namespace: traefik
   hostnames:
     - ai.biplane.v6.rocks
+    - ai.biplane.casa
   rules:
     - backendRefs:
         - name: open-webui

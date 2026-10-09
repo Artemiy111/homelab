@@ -9,6 +9,7 @@ spec:
       namespace: traefik
   hostnames:
     - paperless.biplane.v6.rocks
+    - paperless.biplane.casa
   rules:
     - backendRefs:
         - name: paperless

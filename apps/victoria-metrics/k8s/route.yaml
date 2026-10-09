@@ -9,6 +9,7 @@ spec:
       namespace: traefik
   hostnames:
     - vm.biplane.v6.rocks
+    - vm.biplane.casa
   rules:
     - backendRefs:
         # Имя Service — без дефиса, как в victoriametrics.service.yaml. Здесь

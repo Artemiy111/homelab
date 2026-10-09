@@ -9,6 +9,7 @@ spec:
       namespace: traefik
   hostnames:
     - infisical.biplane.v6.rocks
+    - infisical.biplane.casa
   rules:
     - backendRefs:
         - name: infisical

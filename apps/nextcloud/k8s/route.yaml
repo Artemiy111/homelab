@@ -9,6 +9,7 @@ spec:
       namespace: traefik
   hostnames:
     - nextcloud.biplane.v6.rocks
+    - nextcloud.biplane.casa
   rules:
     - backendRefs:
         - name: nextcloud

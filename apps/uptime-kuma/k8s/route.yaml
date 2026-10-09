@@ -9,6 +9,7 @@ spec:
       namespace: traefik
   hostnames:
     - kuma.biplane.v6.rocks
+    - kuma.biplane.casa
   rules:
     - backendRefs:
         - name: uptime-kuma

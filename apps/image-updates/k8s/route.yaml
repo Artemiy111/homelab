@@ -9,6 +9,7 @@ spec:
       namespace: traefik
   hostnames:
     - wud.biplane.v6.rocks
+    - wud.biplane.casa
   rules:
     - backendRefs:
         - name: wud

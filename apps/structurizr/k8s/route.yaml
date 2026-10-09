@@ -9,6 +9,7 @@ spec:
       namespace: traefik
   hostnames:
     - structurizr.biplane.v6.rocks
+    - structurizr.biplane.casa
   rules:
     - backendRefs:
         - name: structurizr

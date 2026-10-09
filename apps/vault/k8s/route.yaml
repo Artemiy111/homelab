@@ -9,6 +9,7 @@ spec:
       namespace: traefik
   hostnames:
     - vault.biplane.v6.rocks
+    - vault.biplane.casa
   rules:
     - backendRefs:
         - name: vault
