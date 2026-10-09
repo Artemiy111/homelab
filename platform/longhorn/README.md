@@ -82,8 +82,10 @@ kubectl apply -f platform/longhorn/volumesnapshotclass.yaml
 # 5a. Доступ vmagent к метрикам Longhorn (дополняет чартовую NetworkPolicy)
 kubectl apply -f platform/longhorn/networkpolicy-metrics.yaml
 
-# 6. UI за oauth2-proxy
-helm template platform/homelab | kubectl apply -f -
+# 6. Маршрут UI за oauth2-proxy. Argo его не синхронизирует: у Application
+# longhorn в spec.sources только чарт и ref: values, файла маршрута там нет.
+# После правки в git применять руками, иначе разойдётся с кластером (#858).
+kubectl apply -f platform/longhorn/route.yaml
 ```
 
 DNS трогать не нужно: в зоне есть wildcard `*.example.com`.

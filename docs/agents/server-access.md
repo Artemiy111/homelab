@@ -192,18 +192,59 @@ ssh homelab-agent 'systemctl is-active k0scontroller; dig +short @<node1-ip> upt
 ssh homelab-agent 'sudo -u artlab bash -lc "cd /home/artlab/projects/homelab && kubectl apply -k apps/grafana/ && kubectl get pods"'
 ```
 
-Общая конфигурация (`homelab-config`) и все HTTP-маршруты живут в Helm-чарте
-`platform/homelab` и применяются одной командой. Домен и адрес сервера берутся
-из `platform/homelab/values.yaml`, который лежит в репозитории
+В Helm-чарте `platform/homelab` живут `homelab-config`, Gateway, GatewayClass,
+`Certificate` и `ClusterIssuer`, два Service и конфигмапы Element Web,
+Home Assistant и Structurizr. Домен и адрес сервера берутся из
+`platform/homelab/values.yaml`, который лежит в репозитории
 (`docs/adr/0009`) — отдельного приватного values-файла нет:
 
 ```sh
 ssh homelab-agent 'sudo -u artlab bash -lc "cd /home/artlab/projects/homelab && helm template platform/homelab | kubectl apply -f -"'
 ```
 
+HTTPRoute в этом чарте **нет** — их применение описано ниже отдельно.
+
 Не перезапускать все сервисы, если изменение касается только одного. После
 применения дождаться, пока поды перейдут в `Running`/`Ready`, прежде чем
 проверять HTTP.
+
+### Кто применяет HTTPRoute
+
+Маршруты не все едут одним способом, и это легко перепутать: Argo не знает о
+трёх файлах из четырёх, поэтому правка в git для них молча не доезжает.
+
+| Файл | Кто применяет |
+|---|---|
+| `apps/<сервис>/k8s/route.yaml` | Argo, `spec.sources[].path` у Application |
+| `apps/3x-ui/chart/templates/route.yaml`, `apps/element/chart/templates/route.yaml` | Argo, `chart` в Application |
+| `apps/seafile/k8s/onlyoffice.route.yaml` | Argo, вместе с каталогом `apps/seafile` |
+| `platform/radar/route.yaml`, `platform/headlamp/route.yaml` | Argo, `spec.sources[].path` |
+| `platform/longhorn/route.yaml` | вручную |
+| `platform/traefik/dashboard.route.yaml` | вручную |
+| `platform/argocd/route.yaml` | вручную |
+
+У `longhorn`, `traefik` и `argocd` в `spec.sources` только чарт и `ref: values`:
+файлы маршрутов не указаны нигде, и Argo их не синхронизирует. В кластере они
+есть потому, что применялись вручную при развёртывании. После правки такого
+маршрута в git нужен ручной apply, иначе `git` и кластер разойдутся без
+признака в Argo. Как это убрать — #858.
+
+```sh
+ssh homelab-agent 'sudo -u artlab bash -lc "cd /home/artlab/projects/homelab && kubectl apply -f platform/longhorn/route.yaml"'
+ssh homelab-agent 'sudo -u artlab bash -lc "cd /home/artlab/projects/homelab && kubectl apply -f platform/traefik/dashboard.route.yaml"'
+ssh homelab-agent 'sudo -u artlab bash -lc "cd /home/artlab/projects/homelab && kubectl apply -f platform/argocd/route.yaml"'
+```
+
+Проверить, что маршрут из git действительно применён:
+
+```sh
+ssh homelab-agent 'sudo -u artlab bash -lc "kubectl -n traefik get gateway homelab -o json | jq -r \".status.listeners[]|[.name,.attachedRoutes]|@tsv\""'
+```
+
+Маршрут, которого нет в кластере, попадает в `attachedRoutes` только после
+apply. `NoMatchingListenerHostname` в статусе HTTPRoute означает, что ни один
+слушатель не объявлен на этот домен, — проверять `platform/homelab/values.yaml`,
+а не маршрут.
 
 ## Проверка платформы
 

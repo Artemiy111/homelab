@@ -11,6 +11,14 @@ HTTPS-точку входа `websecure`, а `web` перенаправляет H
 дашборда (`dashboard.route.yaml`). Остальные маршруты живут рядом с
 приложениями, в `apps/<сервис>/k8s/route.yaml`.
 
+Маршрут дашборда Argo не синхронизирует: у Application `traefik` в
+`spec.sources` только чарт и `ref: values`, файла маршрута там нет. После
+правки в git применять руками, иначе разойдётся с кластером (#858):
+
+```sh
+kubectl apply -f platform/traefik/dashboard.route.yaml
+```
+
 `Gateway` и `GatewayClass` описаны в `platform/homelab/templates/gateway/`, а не
 здесь: hostname слушателя и `certificateRef` требуют домена из values чарта
 `platform/homelab`. В values Traefik выключены `gateway.enabled`

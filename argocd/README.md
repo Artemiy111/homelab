@@ -12,7 +12,7 @@ Argo CD поднимается на кластере как **проверка �
 | Namespace | `argocd` |
 | URL | https://argocd.example.com |
 | Параметры | `argocd/install/values.yaml` — только отклонения от дефолтов чарта |
-| Маршрут | `platform/argocd/route.yaml` |
+| Маршрут | `platform/argocd/route.yaml` — применяется вручную, Argo его не синхронизирует (#858) |
 
 Все команды ниже выполняются **на сервере** (там есть `helm` и kubeconfig),
 из корня репозитория.
