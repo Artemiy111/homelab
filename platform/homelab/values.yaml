@@ -37,6 +37,17 @@ certManager:
       issuerSuffix: casa
   # По Certificate на домен. Отдельный Secret на каждый: подмена issuerRef на
   # staging не должна переписывать боевой сертификат (docs/incidents/0002).
+  #
+  # Список — источник правды ещё и для слушателей Gateway
+  # (templates/gateway/gateway.yaml): на каждый домен там создаётся
+  # wildcard- и apex-слушатель на этот Secret. Домен без записи здесь не
+  # принимает трафик, а его HTTPRoute отбрасывается с
+  # NoMatchingListenerHostname.
+  #
+  # listenerSuffix обязателен для домена, отличного от config.domain: имена
+  # слушателей попадают в `HTTPRoute.spec.parentRefs[].sectionName`, и без
+  # суффикса два домена дали бы два слушателя с именем `https`. Для
+  # config.domain суффикс не задаётся — маршруты ссылаются на `https` и `apex`.
   certificates:
     - name: wildcard
       secretName: wildcard-tls
@@ -45,6 +56,7 @@ certManager:
     - name: wildcard-casa
       secretName: wildcard-casa-tls
       domain: biplane.casa
+      listenerSuffix: casa
       issuer: letsencrypt-prod-casa
 
 namespaces:
