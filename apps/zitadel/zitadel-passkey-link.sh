@@ -26,14 +26,7 @@ die()  { printf '\033[1;31mОшибка: %s\033[0m\n' "$*" >&2; exit 1; }
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 values="${script_dir}/../../platform/homelab/values.yaml"
 
-[[ -r "$values" ]] || die "не читается ${values} — укажите ZITADEL_HOST явно."
-
-DOMAIN="${DOMAIN:-}"
-if [[ -z "$DOMAIN" ]]; then
-  DOMAIN="$(sed -n 's/^  domain:[[:space:]]*\([^[:space:]]*\).*/\1/p' "$values" | head -1)"
-  [[ -n "$DOMAIN" ]] || die "не найден config.domain в ${values} — укажите ZITADEL_HOST явно."
-fi
-
+DOMAIN="${DOMAIN:-$(sed -n 's/^  domain:[[:space:]]*\([^[:space:]]*\).*/\1/p' "$values" | head -1)}"
 ZITADEL_HOST="${ZITADEL_HOST:-id.$DOMAIN}"
 
 API_BASE="https://${ZITADEL_HOST}/v2"
