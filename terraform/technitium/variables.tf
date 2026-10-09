@@ -1,7 +1,15 @@
 variable "domain" {
   description = "Корневой домен стенда; он же имя локальной зоны Technitium. Панель и API — dns.<домен>"
   type        = string
+  default = "biplane.v6.rocks"
 }
+
+variable "domain_new" {
+  description = "Новый домен для зоны"
+  type        = string
+  default = "biplane.casa"
+}
+
 
 variable "host_ip" {
   description = "Адрес сервера: на него резолвятся wildcard и dns-запись зоны domain"

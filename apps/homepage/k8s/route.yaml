@@ -9,7 +9,7 @@ spec:
       namespace: traefik
       sectionName: https
   hostnames:
-    - home.biplane.v6.rocks
+    - home.biplane.casa
   rules:
     - backendRefs:
         - name: homepage

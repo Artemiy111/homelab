@@ -9,7 +9,7 @@ spec:
       namespace: traefik
       sectionName: https
   hostnames:
-    - lute.biplane.v6.rocks
+    - lute.biplane.casa
   rules:
     - backendRefs:
         - name: lute
