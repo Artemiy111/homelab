@@ -1,5 +1,5 @@
 # Forgejo — git-сервер стенда: origin этого репозитория и OCI-реестр
-# (`forgejo.biplane.v6.rocks/artemiy/charts`, откуда Argo тянет чарт
+# (`forgejo.biplane.casa/artemiy/charts`, откуда Argo тянет чарт
 # dns01-webhook). Ставится официальным чартом forgejo-contrib/forgejo-helm из
 # каталога `.` репозитория, Argo рендерит его сам.
 #

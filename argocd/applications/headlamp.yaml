@@ -27,7 +27,7 @@ spec:
         releaseName: headlamp
         valueFiles:
           - $values/platform/headlamp/values.yaml
-    - repoURL: ssh://git@forgejo.biplane.v6.rocks:2222/artemiy/homelab.git
+    - repoURL: ssh://git@forgejo.biplane.casa:2222/artemiy/homelab.git
       targetRevision: main
       ref: values
   destination:

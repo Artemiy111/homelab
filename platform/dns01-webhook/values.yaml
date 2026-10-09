@@ -1,5 +1,5 @@
 # cert-manager-webhook-dns01 — вебхук для DNS-01 проверки в cert-manager.
-# Собственный чарт в Forgejo (`forgejo.biplane.v6.rocks/artemiy/charts`).
+# Собственный чарт в Forgejo (`forgejo.biplane.casa/artemiy/charts`).
 #
 # DNS-01 нужен там, где HTTP-01 не проходит: wildcard-сертификат `*.домен`
 # требует подтверждения DNS, а внешние сети стенда провайдеры режут.
@@ -19,7 +19,7 @@ resources:
     memory: 160Mi
 
 image:
-  repository: forgejo.biplane.v6.rocks/artemiy/cert-manager-webhook-dns01
+  repository: forgejo.biplane.casa/artemiy/cert-manager-webhook-dns01
   tag: 0.5.0
 
 provider:

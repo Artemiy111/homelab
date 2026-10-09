@@ -6,7 +6,7 @@ metadata:
 spec:
   project: homelab-cluster-readers
   sources:
-    - repoURL: ssh://git@forgejo.biplane.v6.rocks:2222/artemiy/homelab.git
+    - repoURL: ssh://git@forgejo.biplane.casa:2222/artemiy/homelab.git
       targetRevision: main
       path: apps/homepage
   destination:

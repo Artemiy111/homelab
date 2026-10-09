@@ -20,7 +20,7 @@ spec:
         releaseName: mariadb-operator
         valueFiles:
           - $values/platform/mariadb-operator/values.yaml
-    - repoURL: ssh://git@forgejo.biplane.v6.rocks:2222/artemiy/homelab.git
+    - repoURL: ssh://git@forgejo.biplane.casa:2222/artemiy/homelab.git
       targetRevision: main
       ref: values
   destination:

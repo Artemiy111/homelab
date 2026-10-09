@@ -130,7 +130,7 @@ keys, только чтение), а приватный ключ отдаётс�
 `homelab-argocd/homelab-repo` — по нему видно, для чего он:
 
 ```sh
-argocd repo add ssh://git@forgejo.biplane.v6.rocks:2222/artemiy/homelab.git \
+argocd repo add ssh://git@forgejo.biplane.casa:2222/artemiy/homelab.git \
   --type git --name homelab \
   --ssh-private-key-path ~/.ssh/id_homelab-argocd_homelab-repo
 ```
