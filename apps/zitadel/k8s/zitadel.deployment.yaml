@@ -51,11 +51,12 @@ spec:
             - name: http
               containerPort: 8080
           env:
+            # Домен литералом: Zitadel переключён на biplane.casa, а
+            # config.domain в homelab-config ещё biplane.v6.rocks (переезд
+            # #851, пачка 6). От DOMAIN зависят ZITADEL_EXTERNALDOMAIN и все
+            # DEFAULT*URL, то есть объявленный issuer.
             - name: DOMAIN
-              valueFrom:
-                configMapKeyRef:
-                  name: homelab-config
-                  key: DOMAIN
+              value: biplane.casa
             - name: TZ
               valueFrom:
                 configMapKeyRef:

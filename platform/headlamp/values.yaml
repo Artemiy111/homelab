@@ -37,7 +37,7 @@ env:
   # OIDC_ISSUER_URL — адрес Zitadel в кластере, попадает в URL логина и в
   # метаданные провайдера у каждого браузера.
   - name: OIDC_ISSUER_URL
-    value: https://id.biplane.v6.rocks
+    value: https://id.biplane.casa
   # scopes — константа, меняется только вместе с набором claim'ов в Zitadel.
   - name: OIDC_SCOPES
     value: openid,profile,email

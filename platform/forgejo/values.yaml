@@ -46,7 +46,7 @@ gitea:
   oauth:
     - name: zitadel
       provider: openidConnect
-      autoDiscoverUrl: https://id.biplane.v6.rocks/.well-known/openid-configuration
+      autoDiscoverUrl: https://id.biplane.casa/.well-known/openid-configuration
       existingSecret: forgejo-oidc
 
   config:

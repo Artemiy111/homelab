@@ -149,7 +149,7 @@ notifications:
 #     admin.enabled: false
 #     oidc.config: |
 #       name: zitadel
-#       issuer: https://id.biplane.v6.rocks/application/o/argocd/
+#       issuer: https://id.biplane.casa/application/o/argocd/
 #       clientID: argocd
 #       clientSecret: $oidc.zitadel.clientSecret
 #       requestedScopes: ["openid", "profile", "email", "groups"]

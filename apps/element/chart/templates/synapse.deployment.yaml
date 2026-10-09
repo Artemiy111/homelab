@@ -119,7 +119,7 @@ spec:
                   name: element-secrets
                   key: TURN_SHARED_SECRET
             - name: SYNAPSE_OIDC_ISSUER
-              value: "https://id.$(DOMAIN)"
+              value: "https://id.biplane.casa"
             - name: OIDC_CLIENT_ID
               valueFrom:
                 secretKeyRef:

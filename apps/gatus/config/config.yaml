@@ -427,7 +427,7 @@ endpoints:
 
   - name: Zitadel
     group: Applications
-    url: https://id.${DOMAIN}/debug/healthz
+    url: https://id.biplane.casa/debug/healthz
     interval: 60s
     client: *https-client
     conditions:
