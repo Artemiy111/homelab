@@ -36,22 +36,37 @@ prompt. `export` обязателен — без него значение ос�
 ## Значения
 
 ```hcl
-domain  = "example.com"   # тот же домен, что в platform/homelab
-host_ip = "192.0.2.10"    # адрес Technitium: ему tailnet отдаёт зону domain
+domain  = "example.com"   # основной домен, тот же что в platform/homelab
+host_ip = "192.0.2.10"    # адрес Technitium: ему tailnet отдаёт зоны
 ```
 
-Оба значения — внутренние, в git не идут; реальные лежат в
+Значения — внутренние, в git не идут; реальные лежат в
 `terraform/tailscale/terraform.tfvars` (gitignored).
+
+Домен переезда (`biplane.casa`) задан в `dns.tf` литералом и в переменную не
+вынесен: реальный домен стенда публичен (wildcard-сертификат Let's Encrypt
+публикуется в Certificate Transparency, `docs/agents/information-handling.md`),
+поэтому держать его в приватном слое нечего. `var.domain` остаётся основным
+доменом — тем, что в `platform/homelab/values.yaml`; когда переезд завершится
+и старый домен уйдёт, литерал в `dns.tf` удаляется вместе с ним.
 
 ## Что управляется
 
 Один ресурс `tailscale_dns_configuration.tailnet` описывает DNS целиком:
 
 - `magic_dns = true`;
-- `override_local_dns = false` — имена вне зоны `domain` устройства резолвят
-  своими резолверами;
-- `split_dns` для `domain` → `host_ip` (Technitium): запросы зоны идут в
-  домашний DNS через одобренный subnet route.
+- `override_local_dns = false` — имена вне перечисленных зон устройства
+  резолвят своими резолверами;
+- `search_paths = []` — пустой список: домашний DNS не должен подмешиваться
+  к запросам других зон;
+- по блоку `split_dns` на каждую зону, обе на `host_ip` (Technitium): запросы
+  идут в домашний DNS через одобренный subnet route, а не в публичные
+  резолверы. `use_with_exit_node = true` сохраняет маршрут и при использовании
+  exit node.
+
+Зон две: `var.domain` — основной домен, и `biplane.v6.rocks` литералом, на
+время переезда. Старый домен нужен как страховка: пока он в списке, откат
+переезда не блокирует DNS.
 
 Ресурс описывает **всю** DNS-конфигурацию, поэтому заодно чистит устаревшие
 split-DNS записи, которые в admin console приходилось удалять руками

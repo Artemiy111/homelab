@@ -1,6 +1,7 @@
 variable "domain" {
-  description = "Корневой домен стенда; его зону tailnet отдаёт домашнему DNS"
+  description = "Homelab domain"
   type        = string
+  default     = "biplane.casa"
 }
 
 variable "host_ip" {
