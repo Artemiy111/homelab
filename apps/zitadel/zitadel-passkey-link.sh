@@ -9,11 +9,11 @@
 # Требует PAT администратора (Console → Users → <admin> → Personal Access Tokens).
 # PAT передаётся переменной окружения ZITADEL_PAT или спрашивается интерактивно.
 #
-# Домен берётся из platform/homelab/values.yaml, тот же что у ZITADEL_EXTERNALDOMAIN.
-# Переопределить — переменной DOMAIN или сразу ZITADEL_HOST.
+# Домен передаётся переменной окружения DOMAIN, тот же что у ZITADEL_EXTERNALDOMAIN.
+# Либо сразу ZITADEL_HOST, если нужен нестандартный хост.
 #
 # Пример:
-#   ZITADEL_PAT=... ./zitadel/zitadel-passkey-link.sh
+#   DOMAIN=example.com ZITADEL_PAT=... ./zitadel/zitadel-passkey-link.sh
 
 set -euo pipefail
 
@@ -23,10 +23,7 @@ warn() { printf '\033[1;33m%s\033[0m\n' "$*" >&2; }
 die()  { printf '\033[1;31mОшибка: %s\033[0m\n' "$*" >&2; exit 1; }
 
 # --- Хост ------------------------------------------------------------------
-script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-values="${script_dir}/../../platform/homelab/values.yaml"
-
-DOMAIN="${DOMAIN:-$(sed -n 's/^  domain:[[:space:]]*\([^[:space:]]*\).*/\1/p' "$values" | head -1)}"
+DOMAIN="${DOMAIN:?укажите DOMAIN — тот же домен, что в platform/homelab/values.yaml}"
 ZITADEL_HOST="${ZITADEL_HOST:-id.$DOMAIN}"
 
 API_BASE="https://${ZITADEL_HOST}/v2"
@@ -68,7 +65,11 @@ else
 fi
 json="$(api POST '/users' "$body")"
 
-mapfile -t users < <(jq -r \
+# bash 3.2 на macOS не знает mapfile, поэтому список собираем циклом.
+users=()
+while IFS= read -r line; do
+  users+=("$line")
+done < <(jq -r \
   '.result[]? | [.userId, (.username // ""), (.preferredLoginName // ""), (.details.resourceOwner // "")] | @tsv' \
   <<<"$json")
 

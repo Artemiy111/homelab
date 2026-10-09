@@ -39,12 +39,12 @@ Allowed; пользователей регистрировать только pa
 это отключит и passkey.
 
 Одноразовую ссылку на регистрацию passkey без SMTP выдаёт
-`zitadel/zitadel-passkey-link.sh` (нужен PAT администратора). Домен скрипт
-берёт из `platform/homelab/values.yaml`, тот же что у `ZITADEL_EXTERNALDOMAIN`;
-переопределяется `DOMAIN` или `ZITADEL_HOST`:
+`zitadel/zitadel-passkey-link.sh` (нужен PAT администратора). Домен передаётся
+переменной `DOMAIN` — тот же, что в `platform/homelab/values.yaml`; вместо
+неё можно задать `ZITADEL_HOST`:
 
 ```sh
-ZITADEL_PAT=... ./zitadel/zitadel-passkey-link.sh
+DOMAIN=example.com ZITADEL_PAT=... ./zitadel/zitadel-passkey-link.sh
 ```
 
 ## OIDC-клиент для oauth2-proxy
