@@ -9,12 +9,13 @@
 # Требует PAT администратора (Console → Users → <admin> → Personal Access Tokens).
 # PAT передаётся переменной окружения ZITADEL_PAT или спрашивается интерактивно.
 #
+# Домен берётся из platform/homelab/values.yaml, тот же что у ZITADEL_EXTERNALDOMAIN.
+# Переопределить — переменной DOMAIN или сразу ZITADEL_HOST.
+#
 # Пример:
 #   ZITADEL_PAT=... ./zitadel/zitadel-passkey-link.sh
 
 set -euo pipefail
-
-DOMAIN="${DOMAIN:-example.com}"
 
 info() { printf '\033[1;36m%s\033[0m\n' "$*" >&2; }
 ok()   { printf '\033[1;32m%s\033[0m\n' "$*" >&2; }
@@ -22,7 +23,17 @@ warn() { printf '\033[1;33m%s\033[0m\n' "$*" >&2; }
 die()  { printf '\033[1;31mОшибка: %s\033[0m\n' "$*" >&2; exit 1; }
 
 # --- Хост ------------------------------------------------------------------
-ZITADEL_HOST="${ZITADEL_HOST:-}"
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+values="${script_dir}/../../platform/homelab/values.yaml"
+
+[[ -r "$values" ]] || die "не читается ${values} — укажите ZITADEL_HOST явно."
+
+DOMAIN="${DOMAIN:-}"
+if [[ -z "$DOMAIN" ]]; then
+  DOMAIN="$(sed -n 's/^  domain:[[:space:]]*\([^[:space:]]*\).*/\1/p' "$values" | head -1)"
+  [[ -n "$DOMAIN" ]] || die "не найден config.domain в ${values} — укажите ZITADEL_HOST явно."
+fi
+
 ZITADEL_HOST="${ZITADEL_HOST:-id.$DOMAIN}"
 
 API_BASE="https://${ZITADEL_HOST}/v2"

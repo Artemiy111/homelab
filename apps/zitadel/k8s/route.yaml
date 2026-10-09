@@ -9,6 +9,7 @@ spec:
       namespace: traefik
   hostnames:
     - id.biplane.v6.rocks
+    - id.biplane.casa
   rules:
     # Корень хоста → login UI.
     - matches:

@@ -1,6 +1,7 @@
 # Zitadel
 
-Zitadel — IdP homelab. Доступен через Traefik по `https://id.example.com/`;
+Zitadel — IdP homelab. Доступен через Traefik по `https://id.<домен>/`,
+где `<домен>` — `config.domain` из `platform/homelab/values.yaml`;
 - консоль — `/ui/console`
 - вход — `/ui/v2/login`.
 
@@ -11,7 +12,7 @@ Postgres поднимается кластером CloudNativePG: суперпо
 владельцем базы. Роль и база объявлены в `platform/cnpg/`
 (`zitadel-db.cluster.yaml`, `zitadel-db.databases.yaml`).
 
-Админ логинится как `admin@zitadel.id.example.com` (org по умолчанию —
+Админ логинится как `admin@zitadel.id.<домен>` (org по умолчанию —
 `zitadel`). Принудительная смена пароля выключена
 (`PASSWORDCHANGEREQUIRED=false`): пароль генерируется случайно и лежит в
 зашифрованных секретах, менять его при первом входе не требуется.
@@ -38,7 +39,9 @@ Allowed; пользователей регистрировать только pa
 это отключит и passkey.
 
 Одноразовую ссылку на регистрацию passkey без SMTP выдаёт
-`zitadel/zitadel-passkey-link.sh` (нужен PAT администратора):
+`zitadel/zitadel-passkey-link.sh` (нужен PAT администратора). Домен скрипт
+берёт из `platform/homelab/values.yaml`, тот же что у `ZITADEL_EXTERNALDOMAIN`;
+переопределяется `DOMAIN` или `ZITADEL_HOST`:
 
 ```sh
 ZITADEL_PAT=... ./zitadel/zitadel-passkey-link.sh
