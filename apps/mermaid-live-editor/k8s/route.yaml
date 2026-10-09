@@ -7,7 +7,6 @@ spec:
   parentRefs:
     - name: homelab
       namespace: traefik
-      sectionName: https
   hostnames:
     - mermaid.biplane.v6.rocks
   rules:

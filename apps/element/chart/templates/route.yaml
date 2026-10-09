@@ -7,7 +7,6 @@ spec:
   parentRefs:
     - name: homelab
       namespace: traefik
-      sectionName: https
   hostnames:
     - element.biplane.v6.rocks
   rules:
@@ -71,7 +70,6 @@ spec:
   parentRefs:
     - name: homelab
       namespace: traefik
-      sectionName: apex
   hostnames:
     - biplane.v6.rocks
   rules:

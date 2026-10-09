@@ -45,9 +45,9 @@ certManager:
   # NoMatchingListenerHostname.
   #
   # listenerSuffix обязателен для домена, отличного от config.domain: имена
-  # слушателей попадают в `HTTPRoute.spec.parentRefs[].sectionName`, и без
-  # суффикса два домена дали бы два слушателя с именем `https`. Для
-  # config.domain суффикс не задаётся — маршруты ссылаются на `https` и `apex`.
+  # слушателей уникальны внутри Gateway, и без суффикса два домена дали бы
+  # слушатели с одинаковым именем. Для config.domain суффикс не задаётся —
+  # исторические имена `https` и `apex` сохраняются.
   certificates:
     - name: wildcard
       secretName: wildcard-tls

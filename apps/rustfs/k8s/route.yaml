@@ -7,7 +7,6 @@ spec:
   parentRefs:
     - name: homelab
       namespace: traefik
-      sectionName: https
   hostnames:
     - rustfs.biplane.v6.rocks
     - s3.biplane.v6.rocks

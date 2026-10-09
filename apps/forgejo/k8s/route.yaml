@@ -7,7 +7,6 @@ spec:
   parentRefs:
     - name: homelab
       namespace: traefik
-      sectionName: https
   hostnames:
     - forgejo.biplane.v6.rocks
   rules:

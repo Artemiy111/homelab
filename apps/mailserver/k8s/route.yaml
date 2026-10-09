@@ -7,7 +7,6 @@ spec:
   parentRefs:
     - name: homelab
       namespace: traefik
-      sectionName: https
   hostnames:
     - mailserver.biplane.v6.rocks
   rules:
@@ -24,7 +23,6 @@ spec:
   parentRefs:
     - name: homelab
       namespace: traefik
-      sectionName: https
   hostnames:
     - mail.biplane.v6.rocks
   rules:
