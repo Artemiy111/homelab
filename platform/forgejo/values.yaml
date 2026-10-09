@@ -57,7 +57,7 @@ gitea:
       SSH_LISTEN_PORT: 2222
       LFS_START_SERVER: true
       DOMAIN: forgejo.biplane.casa
-      ROOT_URL: https://forgejo.biplane.v6.rocks
+      ROOT_URL: https://forgejo.biplane.casa
       SSH_DOMAIN: forgejo.biplane.casa
       # PROTOCOL — про листенер самого Forgejo, а не про внешний адрес: с
       # `https` он пытается поднять TLS на :3000 и падает («Failed to load https
