@@ -27,8 +27,8 @@ Longhorn подключается явным `storageClassName` в PVC. Тома
 
 | Файл | Что делает |
 |---|---|
-| `argocd/applications/longhorn.yaml` | Argo Application: официальный чарт Longhorn |
-| `argocd/applications/snapshot-controller.yaml` | CRD + контроллер CSI-снапшотов (`kube-system`) |
+| `clusters/casa/platform/longhorn/app.yaml` | Argo Application: официальный чарт Longhorn |
+| `clusters/casa/platform/snapshot-controller/app.yaml` | CRD + контроллер CSI-снапшотов (`kube-system`) |
 | `clusters/casa/platform/longhorn/storageclasses.yaml` | StorageClass `longhorn` (Delete) и `longhorn-retain` (Retain) |
 | `clusters/casa/platform/longhorn/volumesnapshotclass.yaml` | VolumeSnapshotClass: `longhorn-snapshot` (default, `type: snap`) и `longhorn-backup` (`type: bak`) |
 | `clusters/casa/platform/longhorn/networkpolicy-metrics.yaml` | Доступ vmagent к метрикам менеджера (порт 9500) для job `longhorn` |
@@ -66,10 +66,10 @@ ansible-playbook host.yml --check --diff
 ansible-playbook host.yml
 
 # 2. CSI-снапшоты (CRD + контроллер) — до того, как понадобится первый snapshot
-kubectl apply -f argocd/applications/snapshot-controller.yaml
+kubectl apply -f clusters/casa/platform/snapshot-controller/app.yaml
 
 # 3. Longhorn
-kubectl apply -f argocd/applications/longhorn.yaml
+kubectl apply -f clusters/casa/platform/longhorn/app.yaml
 
 # 4. Дождаться, пока Argo докатит релиз
 kubectl -n argocd get application longhorn -o wide
@@ -239,7 +239,7 @@ Longhorn — thin provisioning: он *выделяет* больше, чем з�
   финалайзеры, которые снимаются вручную.
 - **Спека Application живёт в кластере, а не в git.** Argo читает свой `spec` (включая
   `helm.valuesObject`) из объекта в `argocd`, поэтому после правки манифеста в
-  `argocd/applications/*.yaml` нужно применить его руками — иначе git изменился, а Argo этого не видит.
+  `clusters/casa/platform/*/app.yaml` нужно применить его руками — иначе git изменился, а Argo этого не видит.
 - **Упавший sync Argo сам не повторяет.** После ошибки контроллер пишет «failed previous sync
   attempt … will not retry» и ждёт нового revision или ручного sync:
   `kubectl -n argocd patch application <name> --type merge -p '{"operation":{"sync":{"prune":true}}}'`

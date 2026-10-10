@@ -66,13 +66,14 @@ k8s_schema_locations=(
 # CRD, которое переживёт ревью незамеченным. Схемы CR из каталога строгие уже
 # по построению, strict касается схем Kubernetes.
 #
-# Сканируются каталоги с манифестами: clusters/casa/apps/<сервис>/k8s, platform, argocd.
+# Сканируются каталоги с манифестами: clusters/casa/apps/<сервис>/manifests, clusters/casa/platform, argocd. Внутри manifests лежит config/ — это конфиги
+# приложений, а не манифесты, поэтому исключены по пути.
 # -ignore-missing-schemas намеренно не используется: для kind'а, которому нет
 # схемы, лучше упасть, чем пройти молча.
 if [ "$#" -gt 0 ]; then
   targets=("$@")
 else
-  targets=(clusters/casa/apps/*/k8s clusters/casa/platform argocd)
+  targets=(clusters/casa/apps/*/manifests clusters/casa/platform argocd)
 fi
 
 schema_args=()
@@ -89,6 +90,7 @@ kubeconform \
   -ignore-filename-pattern 'values\.yaml$' \
   -ignore-filename-pattern 'Chart\.yaml$' \
   -ignore-filename-pattern 'clusters/casa/platform/homelab/templates' \
+  -ignore-filename-pattern 'manifests/config/' \
   -ignore-filename-pattern 'kustomization\.yaml$' \
   -summary \
   "${targets[@]}"

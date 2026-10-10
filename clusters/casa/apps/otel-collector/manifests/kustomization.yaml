@@ -1,0 +1,13 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: monitoring
+resources:
+  - deployment.yaml
+  - service.yaml
+configMapGenerator:
+  # config.yaml собирается в ConfigMap `otel-collector`; kustomize добавляет хэш
+  # содержимого к имени и переписывает ссылку в Deployment, поэтому правка
+  # конфига сама запускает rollout.
+  - name: otel-collector
+    files:
+      - config/config.yaml

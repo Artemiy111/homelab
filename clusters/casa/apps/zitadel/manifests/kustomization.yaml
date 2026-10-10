@@ -1,0 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: zitadel
+resources:
+  - zitadel.sealedsecret.yaml
+  - zitadel-masterkey.sealedsecret.yaml
+  - zitadel-login-service-key.sealedsecret.yaml
+  - login.deployment.yaml
+  - login.service.yaml
+  - networkpolicy.yaml
+  - zitadel.deployment.yaml
+  - zitadel.service.yaml
+  - route.yaml
+configMapGenerator:
+  # config/zitadel.yaml собирается в ConfigMap `zitadel-config`; kustomize
+  # добавляет хэш содержимого к имени и переписывает ссылку в Deployment,
+  # поэтому правка конфига сама запускает rollout.
+  - name: zitadel-config
+    files:
+      - config/zitadel.yaml

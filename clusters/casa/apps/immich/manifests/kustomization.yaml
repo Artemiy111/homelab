@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: immich
+resources:
+  - server.service.yaml
+  - ml.service.yaml
+  - valkey.service.yaml
+  - server.deployment.yaml
+  - ml.deployment.yaml
+  - valkey.deployment.yaml
+  - library.pvc.yaml
+  - networkpolicy.yaml
+  - route.yaml
+  - vaultauth.yaml
+  - vaultstaticsecret.yaml

@@ -10,7 +10,7 @@ Traefik ──OTLP/HTTP:4318──> otel-collector ──OTLP/gRPC:4317──> t
 
 Приложения отдают трейсы в `otel-collector` по OTLP; отдельный приёмник у Tempo
 наружу не публикуется. Первый источник — Traefik: он шлёт OTLP на
-`otel-collector:4318/v1/traces` (см. `argocd/applications/traefik.yaml`), поэтому
+`otel-collector:4318/v1/traces` (см. `clusters/casa/platform/traefik/app.yaml`), поэтому
 трейс появляется от любого HTTP-запроса через ingress без правки приложений.
 
 ## Хранилище

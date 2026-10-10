@@ -2,12 +2,12 @@
   "schema": 1,
   "source": "scripts/status-badges.sh",
   "services": 55,
-  "manifests": 505,
+  "manifests": 499,
   "images": {
     "pinned": 130,
     "total": 131,
     "percent": 99,
-    "exceptions": ["clusters/casa/apps/structurizr/k8s/deployment.yaml"]
+    "exceptions": ["clusters/casa/apps/structurizr/manifests/deployment.yaml"]
   },
   "network_policy": {
     "objects": 89,

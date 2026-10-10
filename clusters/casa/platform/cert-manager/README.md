@@ -57,10 +57,10 @@ Let's Encrypt резолвит `_acme-challenge.<домен>`, идёт по CNA
 
 ## Устройство
 
-Оператор ставится через Argo (`argocd/applications/cert-manager.yaml`), вместе с
+Оператор ставится через Argo (`clusters/casa/platform/cert-manager/app.yaml`), вместе с
 CRD (`crds.enabled: true`). `Prune=false` защищает кластерные CRD.
 
-Webhook ставится отдельным Argo Application (`argocd/applications/dns01-webhook.yaml`)
+Webhook ставится отдельным Argo Application (`clusters/casa/platform/dns01-webhook/app.yaml`)
 из OCI-чарта, который публикует CI репозитория webhook'а в реестр Forgejo.
 
 `ClusterIssuer` и `Certificate` — в **шаблонах чарта `clusters/casa/platform/homelab`**
@@ -69,8 +69,8 @@ Webhook ставится отдельным Argo Application (`argocd/applicatio
 
 | Файл | Что делает |
 |---|---|
-| `argocd/applications/cert-manager.yaml` | Argo Application: оператор + CRD |
-| `argocd/applications/dns01-webhook.yaml` | Argo Application: webhook-солвер |
+| `clusters/casa/platform/cert-manager/app.yaml` | Argo Application: оператор + CRD |
+| `clusters/casa/platform/dns01-webhook/app.yaml` | Argo Application: webhook-солвер |
 | `clusters/casa/platform/homelab/templates/cert-manager/clusterissuers.yaml` | `ClusterIssuer` prod и staging для каждой зоны |
 | `clusters/casa/platform/homelab/templates/cert-manager/certificate.yaml` | `Certificate` для каждого домена |
 | `clusters/casa/platform/cert-manager/vaultauth.yaml` | ServiceAccount и `VaultAuth` для VSO |
@@ -80,11 +80,11 @@ Webhook ставится отдельным Argo Application (`argocd/applicatio
 
 ```sh
 # 1. Оператор и CRD
-kubectl apply -f argocd/applications/cert-manager.yaml
+kubectl apply -f clusters/casa/platform/cert-manager/app.yaml
 kubectl -n cert-manager get pods    # controller, webhook, cainjector
 
 # 2. Webhook-солвер (нужны repo-creds и imagePullSecret, см. ниже)
-kubectl apply -f argocd/applications/dns01-webhook.yaml
+kubectl apply -f clusters/casa/platform/dns01-webhook/app.yaml
 kubectl -n cert-manager get pods    # dns01-webhook-...
 
 # 3. Эмитенты и Certificate — из чарта (зоны, почта из values)
@@ -116,7 +116,7 @@ API Spaceship закрыт WAF'ом провайдера: из сети стен
 документацию, получает `403`, а `api.spaceship.dev` и `api.spaceship.com` не
 резолвятся. Поэтому запросы к Spaceship идут через egress-прокси 3x-ui
 (`clusters/casa/apps/3x-ui/chart/templates/service-xui-egress.yaml`), а подключение
-задаётся в `argocd/applications/dns01-webhook.yaml`
+задаётся в `clusters/casa/platform/dns01-webhook/app.yaml`
 (`provider.spaceship.proxyURL`).
 
 Прокси привязан к провайдеру, а не к поду: переменная `HTTPS_PROXY` действовала
@@ -134,7 +134,7 @@ API-ключ.
 webhook'а своя. Путь `kv/3x-ui/@dns01-webhook/egress` с ключами
 `XUI_EGRESS_USERNAME` и `XUI_EGRESS_PASSWORD`, доставка в Secret
 `dns01-webhook-egress`. URL прокси собирается в поде: в
-`argocd/applications/dns01-webhook.yaml` это
+`clusters/casa/platform/dns01-webhook/app.yaml` это
 `http://$(XUI_EGRESS_USERNAME):$(XUI_EGRESS_PASSWORD)@xui-egress…:8440`, и
 Kubernetes раскрывает ссылки на объявленные выше переменные. В репозитории в
 адресе нет credentials — только имя хоста.

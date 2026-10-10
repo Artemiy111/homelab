@@ -1,0 +1,11 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: postgres
+resources:
+  - namespace.yaml
+  - pgweb.service.yaml
+  - pgweb.deployment.yaml
+  - networkpolicy.yaml
+  - route.yaml
+  - vaultauth.yaml
+  - vaultstaticsecret.yaml

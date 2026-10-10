@@ -8,7 +8,7 @@ GitLab CE одним подом из образа `gitlab/gitlab-ce` — для 
 |---|---|
 | URL | `https://gitlab.example.com/` |
 | Namespace | `gitlab` |
-| Деплой | `argocd/applications/apps/gitlab.yaml` |
+| Деплой | `clusters/casa/apps/gitlab/app.yaml` |
 | Образ | `gitlab/gitlab-ce:19.4.0-ce.0` |
 | Данные | PVC `gitlab-data` (10Gi) и `gitlab-config` (1Gi), класс `local-path` |
 | Логин | `root` |

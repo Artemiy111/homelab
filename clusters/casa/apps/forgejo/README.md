@@ -8,7 +8,7 @@ Forgejo — лёгкая self-hosted Git-платформа (форк Gitea), к
 | URL | `https://forgejo.example.com/` |
 | Git over SSH | `ssh://git@forgejo.example.com:2222/OWNER/REPO.git` |
 | Namespace | `forgejo` |
-| Развёртывание | Argo CD: `argocd/applications/forgejo.yaml`, чарт `forgejo-helm` |
+| Развёртывание | Argo CD: `clusters/casa/platform/forgejo/app.yaml`, чарт `forgejo-helm` |
 | Данные | PVC `forgejo-data` на `longhorn-retain` (Longhorn) |
 | База | CNPG-кластер `shared` в namespace `databases`, роль и база `forgejo` |
 | Actions | включены; runner `homelab-runner` (Deployment + DinD), instance-wide; экшены — из локального зеркала |
@@ -17,7 +17,7 @@ Forgejo — лёгкая self-hosted Git-платформа (форк Gitea), к
 Самостоятельная регистрация выключена, новые репозитории и профили приватны.
 
 Домен, `service.ssh.externalIPs` и discovery URL Zitadel заданы прямо в
-`argocd/applications/forgejo.yaml` в `valuesObject` (см. `docs/adr/0009`).
+`clusters/casa/platform/forgejo/app.yaml` в `valuesObject` (см. `docs/adr/0009`).
 Credentials — пароль админа, `client-secret` — приходят из Vault и в values не
 попадают: в Application лежат ссылки `existingSecret`.
 
@@ -107,7 +107,7 @@ pull-through кэш **Zot** (`clusters/casa/apps/zot`): в метках указ
 Раннер забирает экшены (`uses: actions/...`) **с локального инстанса**, а не с
 `data.forgejo.org`: тот периодически недоступен (мониторится в Gatus), и job
 падает на загрузке экшена ещё до старта шагов. Задаёт источник
-`actions.DEFAULT_ACTIONS_URL` в `argocd/applications/forgejo.yaml`
+`actions.DEFAULT_ACTIONS_URL` в `clusters/casa/platform/forgejo/app.yaml`
 (`http://forgejo-http`).
 
 Настройка **instance-wide**: любой `uses: <owner>/<repo>` без схемы
@@ -270,7 +270,7 @@ app.ini через `FORGEJO__database__PASSWD` из `gitea.additionalConfigFromE
 `{CustomPath}/default_merge_message/SQUASH_TEMPLATE.md` (`CustomPath` — это
 `/data/gitea`, не `/data/git`). Файл приезжает из ConfigMap
 `forgejo-merge-message` (`clusters/casa/apps/forgejo/k8s/merge-message.configmap.yaml`) через
-`extraVolumes`/`extraContainerVolumeMounts` в `argocd/applications/forgejo.yaml`
+`extraVolumes`/`extraContainerVolumeMounts` в `clusters/casa/platform/forgejo/app.yaml`
 и делает тело пустым: без него Forgejo дописывает `Reviewed-on: <url>`, а это
 внутренний домен, которого не должно быть в публичной истории (#25).
 
@@ -324,7 +324,7 @@ Zitadel недоступен или сломан issuer, и она же дока
 привязываются к существующим.
 
 Источник создаёт не человек, а init-контейнер чарта: блок `gitea.oauth[]` в
-`argocd/applications/forgejo.yaml` превращается в `forgejo admin auth
+`clusters/casa/platform/forgejo/app.yaml` превращается в `forgejo admin auth
 add-oauth`, а если источник уже есть — в `update-oauth`. Значит значения живут
 в GitOps, а правка источника в UI будет затёрта следующим sync.
 
@@ -378,7 +378,7 @@ Zitadel>`. По ней он находит пользователя при ка�
    `client_secret` приложения `Forgejo`. В state и в git секрета нет
    (см. `infra/terraform/zitadel/README.md`), значения живут только в Vault.
 3. Vault: `kv/forgejo/oidc` с ключами `key` и `secret`.
-4. `argocd/applications/forgejo.yaml`, поверх — приватный merge-patch с
+4. `clusters/casa/platform/forgejo/app.yaml`, поверх — приватный merge-patch с
    реальным discovery URL, затем sync и рестарт пода.
 5. Привязать учётки (см. выше) — по одной на логин.
 
@@ -435,7 +435,7 @@ push-зеркало в GitHub — git распределённый, и код п
 ## Обновление
 
 1. Посмотреть release notes Forgejo и тег чарта (`forgejo-helm` на Codeberg).
-2. В `argocd/applications/forgejo.yaml` поднять `targetRevision` (тег чарта) и
+2. В `clusters/casa/platform/forgejo/app.yaml` поднять `targetRevision` (тег чарта) и
    `image.tag`/`image.digest` (образ Forgejo) — это две независимые вещи.
 3. Дождаться sync: правка в git доезжает сама, отдельная команда не нужна.
 4. Миграции схемы выполняет init-контейнер чарта (`forgejo migrate`); если он

@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: glitchtip
+resources:
+  - namespace.yaml
+  - web.service.yaml
+  - valkey.service.yaml
+  - web.deployment.yaml
+  - worker.deployment.yaml
+  - valkey.deployment.yaml
+  - valkey.pvc.yaml
+  - networkpolicy.yaml
+  - route.yaml
+  - vaultauth.yaml
+  - vaultstaticsecret.yaml

@@ -1,6 +1,6 @@
 # CloudNativePG: кластеры баз
 
-Оператор ставится через Argo CD (`argocd/applications/cloudnative-pg.yaml`), кластеры и
+Оператор ставится через Argo CD (`clusters/casa/platform/cloudnative-pg/app.yaml`), кластеры и
 базы — обычные манифесты в этом каталоге, применяются руками. Argo ими не
 управляет: его CRD должны существовать раньше релиза, а порядок «оператор →
 CR» в одном Application не гарантирован.
@@ -237,7 +237,7 @@ CRI-O 1.31+, чарт CNPG 0.26.0+. Расширение объявляется 
 kubectl apply -f clusters/casa/platform/cnpg/namespaces.yaml
 
 # 1. Оператор: в Argo приложение и sync, либо
-kubectl apply -f argocd/applications/cloudnative-pg.yaml
+kubectl apply -f clusters/casa/platform/cloudnative-pg/app.yaml
 argocd app sync cloudnative-pg
 kubectl -n cnpg-system get pods -w
 
@@ -312,7 +312,7 @@ kubectl delete -f clusters/casa/platform/cnpg/test18.secret.yaml
 ```sh
 kubectl apply -f clusters/casa/platform/cnpg/namespaces.yaml
 kubectl apply -f clusters/casa/platform/cnpg/db-auth.sealedsecrets.yaml     # пароли ролей
-kubectl apply -f argocd/applications/cloudnative-pg.yaml          # оператор (+ sync в Argo)
+kubectl apply -f clusters/casa/platform/cloudnative-pg/app.yaml          # оператор (+ sync в Argo)
 kubectl -n cnpg-system get pods -w
 
 kubectl apply -f clusters/casa/platform/cnpg/*.cluster.yaml

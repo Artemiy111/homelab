@@ -1,0 +1,22 @@
+# alloy-profiler отключён вручную: DaemonSet удалён из кластера 2026-10-06,
+# входящих профилей в pyroscope нет. Манифесты и README остаются, поэтому
+# Application заведён, но без syncPolicy.automated — Argo не создаст DaemonSet
+# обратно. Включение: убрать блок automated из этого файла.
+#
+# Поле suspend у Application нет, это механизм Flux; в Argo эквивалент —
+# отсутствие блока automated. Приложение будет постоянно OutOfSync, и это
+# служит индикатором выключенного состояния.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: alloy-profiler
+  namespace: argocd
+spec:
+  project: homelab-cluster-readers
+  sources:
+    - repoURL: ssh://git@forgejo.biplane.casa:2222/artemiy/homelab.git
+      targetRevision: main
+      path: clusters/casa/apps/alloy-profiler/manifests
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring

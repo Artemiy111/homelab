@@ -7,7 +7,7 @@
 | Namespace | `radar` |
 | UI | https://radar.example.com (собственный OIDC-вход через Zitadel) |
 | RBAC | Права пользователя — по его Kubernetes-RBAC (имперсонация) |
-| Доставка | Argo CD Application `argocd/applications/radar.yaml` |
+| Доставка | Argo CD Application `clusters/casa/platform/radar/app.yaml` |
 
 Radar — open-source Kubernetes UI одним Go-бинарём: топология, браузер ресурсов,
 Helm, GitOps (Argo CD/Flux), live-трафик, метрики ворклоадов, кластерный аудит,
@@ -22,7 +22,7 @@ TLS-сертификаты и встроенный MCP-сервер для AI-а
 
 | Файл | Что делает |
 |---|---|
-| `argocd/applications/radar.yaml` | Argo Application: официальный чарт `skyhook/radar`, `auth.mode=oidc`; issuer, clientID и redirectURL заданы в `valuesObject` |
+| `clusters/casa/platform/radar/app.yaml` | Argo Application: официальный чарт `skyhook/radar`, `auth.mode=oidc`; issuer, clientID и redirectURL заданы в `valuesObject` |
 | `clusters/casa/platform/radar/route.yaml` | Маршрут: secure-headers + ratelimit, без oauth2-proxy |
 | `clusters/casa/platform/radar/vso-radar.serviceaccount.yaml` | ServiceAccount для External Secrets Operator |
 | `clusters/casa/platform/radar/vso-radar.vaultauth.yaml` | `VaultAuth` с ролью `radar` из Vault |
@@ -44,7 +44,7 @@ ServiceAccount. Схема по шагам:
 | Claim `role` (`admin`/`user`) | `infra/terraform/zitadel/actions.tf` |
 | `cluster-admin` для группы `oidc:admin` | `clusters/casa/platform/headlamp/headlamp-admins.clusterrolebinding.yaml` |
 | clientSecret, redirectURL | Vault `kv/radar/oidc` |
-| clientID, issuer | `valuesObject` в `argocd/applications/radar.yaml` |
+| clientID, issuer | `valuesObject` в `clusters/casa/platform/radar/app.yaml` |
 | Отдельный HMAC-ключ сессий | Vault `kv/radar/oidc`, ключ `auth-secret` |
 
 Группы приходят из claim `role` с префиксом `oidc:` — получается ровно та же
@@ -109,7 +109,7 @@ ClientSecret нового приложения в state не попадает �
 приходят в один Secret `radar-auth`.
 
 `clientID` в Vault не нужен: Radar берёт его из `--auth-oidc-client-id`, то
-есть из `valuesObject` в `argocd/applications/radar.yaml`. В Helm release он
+есть из `valuesObject` в `clusters/casa/platform/radar/app.yaml`. В Helm release он
 попадает открытым текстом, но clientID — публичный идентификатор, не секрет;
 секретом является только `client-secret`.
 
@@ -120,7 +120,7 @@ ClientSecret нового приложения в state не попадает �
 Затем Application и остальное:
 
 ```sh
-kubectl apply -f argocd/applications/radar.yaml
+kubectl apply -f clusters/casa/platform/radar/app.yaml
 
 # Дождаться, пока Argo создаст namespace, под и слой RBAC.
 kubectl -n radar get pods
@@ -171,7 +171,7 @@ clusters/casa/apps/gatus/` сама перезапускает под: ConfigMap
 
 ## Права
 
-`rbac.*` в `argocd/applications/radar.yaml` задают, что **ServiceAccount**
+`rbac.*` в `clusters/casa/platform/radar/app.yaml` задают, что **ServiceAccount**
 может, и наполняют общий кэш Radar. Права конкретного пользователя поверх этого
 определяет Kubernetes RBAC, а Radar проверяет их через `SubjectAccessReview` и
 имперсонирует при записи.
@@ -206,8 +206,8 @@ Radar ищет well-known имена и не распознаёт сервис `
 
 ## Обновление версии
 
-Меняем `targetRevision` (версия чарта) в `argocd/applications/radar.yaml`,
-применяем `kubectl apply -f argocd/applications/radar.yaml` — Argo обновит
+Меняем `targetRevision` (версия чарта) в `clusters/casa/platform/radar/app.yaml`,
+применяем `kubectl apply -f clusters/casa/platform/radar/app.yaml` — Argo обновит
 релиз сам (self-heal + automated sync). Для отката возвращаем версию в файле и
 применяем снова. Перед апгрейдом смотреть release notes:
 https://github.com/skyhook-io/radar/releases

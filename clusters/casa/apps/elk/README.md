@@ -6,7 +6,7 @@
 
 **Манифесты в этом каталоге оставлены как есть, но не применяются.** Чтобы
 вернуть стек, нужно заново применить `clusters/casa/apps/elk/k8s/` (оператор ECK остаётся
-установленным в namespace `elastic-system` через `argocd/applications/eck-operator.yaml`).
+установленным в namespace `elastic-system` через `clusters/casa/platform/eck-operator/app.yaml`).
 ```
 
 Namespace `logging` после этого пуст. Маршрут `kibana.example.com` удалён

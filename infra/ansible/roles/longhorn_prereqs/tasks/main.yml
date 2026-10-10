@@ -1,5 +1,5 @@
 ---
-# Longhorn (argocd/applications/longhorn.yaml) требует на каждом узле: iscsid для
+# Longhorn (clusters/casa/platform/longhorn/app.yaml) требует на каждом узле: iscsid для
 # iSCSI-томов V1 data engine, NFSv4-клиент для RWX и backup target (пакеты — в
 # роли base), и SELinux-модуль ниже. Повторять для каждой новой ноды.
 

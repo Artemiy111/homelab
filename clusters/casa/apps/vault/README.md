@@ -4,9 +4,9 @@
 
 | Что | Где | Чем управляется |
 |---|---|---|
-| Vault-сервер | `argocd/applications/vault.yaml` | Argo (чарт `v0.34.1`, Vault 2.0.4) |
-| Vault Secrets Operator | `argocd/applications/vault-secrets-operator.yaml` | Argo (чарт `v1.6.0`) |
-| `VaultAuthGlobal`, `VaultConnection`, `VaultAuth`, PoC | `clusters/casa/apps/vault/k8s/` | Argo (`argocd/applications/apps/vault-extras.yaml`) |
+| Vault-сервер | `clusters/casa/platform/vault/app.yaml` | Argo (чарт `v0.34.1`, Vault 2.0.4) |
+| Vault Secrets Operator | `clusters/casa/platform/vault-secrets-operator/app.yaml` | Argo (чарт `v1.6.0`) |
+| `VaultAuthGlobal`, `VaultConnection`, `VaultAuth`, PoC | `clusters/casa/apps/vault/k8s/` | Argo (`clusters/casa/apps/vault-extras/app.yaml`) |
 | `VaultAuth` и `VaultStaticSecret` приложения | `clusters/casa/apps/<сервис>/k8s/` | Argo вместе с приложением |
 | NetworkPolicy неймспейса Vault | `clusters/casa/apps/vault/k8s/networkpolicy.yaml` | Argo (`vault-extras`) |
 | NetworkPolicy неймспейса VSO | `clusters/casa/apps/vault/k8s/networkpolicy-vso.yaml` | Argo (`vault-extras`) |

@@ -11,7 +11,7 @@ VictoriaMetrics как datasource.
 ## Данные и доступ
 
 - Инстанс описан CR `Grafana` в `k8s/grafana.yaml`; им управляет
-  `grafana-operator` (`argocd/applications/grafana-operator.yaml`).
+  `grafana-operator` (`clusters/casa/platform/grafana-operator/app.yaml`).
 - Образ `grafana/grafana:13.2.0` (зафиксирован по digest) — в `spec.version`
   единственного CR, это единственное место, где закреплена версия.
 - Данные (пользователи, дашборды, алерты, аннотации) — PostgreSQL в общем
@@ -101,7 +101,7 @@ uid зафиксированы в `spec.datasource.uid`: на них ссыла�
 Связи между источниками: из трейса можно уйти в логи (`tracesToLogsV2` у Tempo),
 из лога — в трейс (`derivedFields` по `trace_id` у Loki), из профиля — в трейс
 (`tracesToProfiles` у Pyroscope). У Traefik включены JSON access-логи
-(`accessLog` в `argocd/applications/traefik.yaml`), и в них есть поле
+(`accessLog` в `clusters/casa/platform/traefik/app.yaml`), и в них есть поле
 `trace_id`, поэтому переходы trace↔log находят результат: логи Traefik попадают
 в Loki через Alloy.
 
@@ -149,7 +149,7 @@ Grafana; `traefik.json` — написан руками под метрики Tr
 не содержит ни одного запроса `traefik_router_*` (все 14 панелей смотрят на
 service/entrypoint), per-router панели есть только в самописном. Per-router
 метрики появляются с `metrics.prometheus.addRoutersLabels=true` в
-`argocd/applications/traefik.yaml` (#284).
+`clusters/casa/platform/traefik/app.yaml` (#284).
 
 **Правки в UI откатываются сами.** У реконсиля `GrafanaDashboard` нет пропуска
 реконсиля по хэшу, он перезаписывает дашборд на каждом проходе, а период
@@ -224,7 +224,7 @@ Longhorn по `longhorn_*`, файловые системы узла.
 не содержит ни одного запроса `traefik_router_*` (все 14 панелей смотрят на
 service/entrypoint), per-router панели есть только в самописном. Per-router
 метрики появляются при `metrics.prometheus.addRoutersLabels=true` в
-`argocd/applications/traefik.yaml` (#284).
+`clusters/casa/platform/traefik/app.yaml` (#284).
 
 ### Вендоренные дашборды с grafana.com
 
@@ -592,7 +592,7 @@ ServiceAccount, ConfigMap с `grafana.ini` и headless-Service для алерт
 
 CR применяется **после** установки `grafana-operator`: без CRD `Grafana`
 невалиден, и Argo не ставит оператор и CR в одном приложении (см. комментарий
-в `argocd/applications/cloudnative-pg.yaml`).
+в `clusters/casa/platform/cloudnative-pg/app.yaml`).
 
 Откат: убрать CR и вернуть `k8s/grafana.deployment.yaml` и
 `k8s/grafana.service.yaml` из истории git. Данные в Postgres не теряются —

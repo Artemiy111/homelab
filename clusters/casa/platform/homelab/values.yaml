@@ -13,7 +13,7 @@ config:
 #
 # webhookGroupName — группа API собственного webhook'а-солвера
 # (packages/cert-manager-webhook-dns01); должна совпадать с groupName в чарте
-# webhook'а (argocd/applications/dns01-webhook.yaml).
+# webhook'а (clusters/casa/platform/dns01-webhook/app.yaml).
 #
 # zones — по ClusterIssuer на каждую зону. Провайдер выбирается полем provider,
 # зона указывается zoneName (иначе cert-manager подставит ResolvedZone).

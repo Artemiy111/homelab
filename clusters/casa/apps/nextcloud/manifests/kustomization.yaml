@@ -1,0 +1,17 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: nextcloud
+resources:
+  - namespace.yaml
+  - app.service.yaml
+  - exporter.service.yaml
+  - redis.service.yaml
+  - app.deployment.yaml
+  - cron.deployment.yaml
+  - exporter.deployment.yaml
+  - redis.deployment.yaml
+  - html.pvc.yaml
+  - networkpolicy.yaml
+  - route.yaml
+  - vaultauth.yaml
+  - vaultstaticsecret.yaml

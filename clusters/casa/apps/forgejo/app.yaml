@@ -1,0 +1,30 @@
+# Имена forgejo и vault уже заняты платформенными Application'ами: они ставят
+# сами сервисы чартами forgejo-helm и hashicorp/vault-helm. Эти два Application
+# покрывают то, что осталось в clusters/casa/apps/<сервис>/k8s/ — маршрут, NetworkPolicy и
+# секреты, — потому что чарты их не создают.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: forgejo-extras
+  namespace: argocd
+spec:
+  project: homelab
+  sources:
+    - repoURL: ssh://git@forgejo.biplane.casa:2222/artemiy/homelab.git
+      targetRevision: main
+      path: clusters/casa/apps/forgejo/manifests
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: forgejo
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: true
+    syncOptions:
+      - ServerSideApply=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 3m

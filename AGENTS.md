@@ -59,7 +59,7 @@ Argo выполняются только в основном дереве.
 
 Внутренние значения (домен, адрес узла, issuer, clientID) лежат в репозитории
 рядом с остальными: `clusters/casa/platform/homelab/values.yaml` и `valuesObject` в
-`argocd/applications/`. Отдельный приватный репозиторий отменён — решение
+`clusters/casa/*/*/app.yaml`. Отдельный приватный репозиторий отменён — решение
 `docs/adr/0009`. Credentials в values не кладутся никогда, для них Vault и
 `VaultStaticSecret`. Правила обращения с обоими уровнями —
 `docs/agents/information-handling.md`.

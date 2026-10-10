@@ -1,0 +1,13 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: infisical
+resources:
+  - namespace.yaml
+  - backend.service.yaml
+  - redis.service.yaml
+  - backend.deployment.yaml
+  - redis.deployment.yaml
+  - networkpolicy.yaml
+  - route.yaml
+  - vaultauth.yaml
+  - vaultstaticsecret.yaml

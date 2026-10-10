@@ -2,7 +2,7 @@
 # externalIPs. Схема чарта traefik-41.4.0 (strict JSON schema).
 #
 # Файл — единственный источник значений для Application traefik
-# (`argocd/applications/traefik.yaml` ссылается на него через `$values`).
+# (`clusters/casa/platform/traefik/app.yaml` ссылается на него через `$values`).
 # Раньше те же значения были продублированы инлайн в `valuesObject` Application,
 # и правка файла молча расходилась с кластером.
 
@@ -20,7 +20,7 @@ providers:
     allowCrossNamespace: true
   kubernetesGateway:
     # HTTPRoute обслуживает тот же Traefik. CRD Gateway API ставит отдельное
-    # приложение argocd/applications/gateway-api.yaml: чарт Traefik их не везёт
+    # приложение clusters/casa/platform/gateway-api/app.yaml: чарт Traefik их не везёт
     # с версии 40.2.0, а skipCrds на них не действует.
     enabled: true
     # TCPRoute смотрится на v1alpha2, которого нет в standard CRD v1.6.

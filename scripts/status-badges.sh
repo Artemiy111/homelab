@@ -58,14 +58,15 @@ deploy_files() {
     grep -vE '/compose\.ya?ml$' || true
 }
 
-# manifest_files — область CI-гейта kubeconform: clusters/casa/apps/<сервис>/k8s/, clusters/casa/platform/,
+# manifest_files — область CI-гейта kubeconform: clusters/casa/apps/<сервис>/manifests/, clusters/casa/platform/,
 # argocd/ без values.yaml, Chart.yaml и шаблонов чарта. Только по ней считается
 # число манифестов, чтобы оно совпадало с тем, что реально проверяет CI.
 manifest_files() {
   repo_files '*.yaml' '*.yml' |
-    grep -E '^(clusters/casa/apps/[^/]+/k8s|clusters/casa/platform|argocd)/' |
+    grep -E '^(clusters/casa/apps/[^/]+/manifests|clusters/casa/platform|argocd)/' |
     grep -vE '(values|Chart)\.yaml$' |
-    grep -vE '^clusters/casa/platform/homelab/templates/' || true
+    grep -vE '^clusters/casa/platform/homelab/templates/' |
+    grep -vE '/manifests/config/' || true
 }
 
 # Образ в однострочной форме `image: <ref>`. Многострочные формы (`image:` и
