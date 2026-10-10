@@ -126,7 +126,7 @@ mkdir -p /etc/k0s
 #
 # Реальный issuer Zitadel лежит в приватном слое: в git только плейсхолдер,
 # иначе домен уехал бы в публичное зеркало.
-K0S_CONFIG="${REPO_ROOT}/etc/k0s/k0s.yaml.j2"
+K0S_CONFIG="${REPO_ROOT}/infra/host/etc/k0s/k0s.yaml.j2"
 K0S_PRIVATE="${SCRIPT_DIR}/values.private.yaml"
 
 if [[ -f "${K0S_PRIVATE}" ]]; then

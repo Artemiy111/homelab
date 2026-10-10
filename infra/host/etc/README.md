@@ -8,18 +8,18 @@
 Предпочтительный способ — через Ansible:
 
 ```sh
-cd ansible && ansible-playbook host.yml
+cd infra/ansible && ansible-playbook host.yml
 ```
 
 Альтернативно (вручную, для отладки):
 
 ```bash
 # На сервере (от root или через sudo):
-sudo cp /home/artlab/projects/homelab/etc/docker/daemon.json /etc/docker/daemon.json
-sudo cp /home/artlab/projects/homelab/etc/dnf/automatic.conf /etc/dnf/automatic.conf
-sudo cp /home/artlab/projects/homelab/etc/fail2ban/jail.local /etc/fail2ban/jail.local
-sudo cp /home/artlab/projects/homelab/etc/systemd/tailscale-policy-route.service /etc/systemd/system/
-sudo cp /home/artlab/projects/homelab/etc/sysctl.d/99-inotify.conf /etc/sysctl.d/99-inotify.conf
+sudo cp /home/artlab/projects/homelab/infra/host/etc/docker/daemon.json /etc/docker/daemon.json
+sudo cp /home/artlab/projects/homelab/infra/host/etc/dnf/automatic.conf /etc/dnf/automatic.conf
+sudo cp /home/artlab/projects/homelab/infra/host/etc/fail2ban/jail.local /etc/fail2ban/jail.local
+sudo cp /home/artlab/projects/homelab/infra/host/etc/systemd/tailscale-policy-route.service /etc/systemd/system/
+sudo cp /home/artlab/projects/homelab/infra/host/etc/sysctl.d/99-inotify.conf /etc/sysctl.d/99-inotify.conf
 
 sudo systemctl restart docker
 sudo systemctl enable --now dnf-automatic.timer

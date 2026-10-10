@@ -126,7 +126,7 @@ CI (`.forgejo/workflows/ansible.yml`) прогоняет ansible-lint 26.8.0 с 
 ```sh
 python3 -m venv ~/.venvs/ansible
 ~/.venvs/ansible/bin/pip install "ansible==12.3.0" "ansible-lint==26.8.0"
-cd ansible && ~/.venvs/ansible/bin/ansible-lint --offline
+cd infra/ansible && ~/.venvs/ansible/bin/ansible-lint --offline
 ```
 
 `ansible` — полный metapackage: его wheel несёт коллекции, syntax-check

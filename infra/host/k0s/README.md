@@ -24,7 +24,7 @@ Single-node k0s на Fedora Server 44, максимально близкий к 
 `k0scontroller` при смене файла.
 
 ```sh
-cd ansible && ansible-playbook host.yml
+cd infra/ansible && ansible-playbook host.yml
 ```
 
 Реальный issuer Zitadel для OIDC-входа apiserver лежит в приватном слое

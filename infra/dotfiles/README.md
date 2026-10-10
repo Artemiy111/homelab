@@ -12,9 +12,9 @@
 ```bash
 # На сервере:
 for f in .zshrc .tmux.conf .gitconfig .bash_profile .bashrc; do
-  ln -sf /home/artlab/projects/homelab/dotfiles/$f ~/$f
+  ln -sf /home/artlab/projects/homelab/infra/dotfiles/$f ~/$f
 done
-ln -sf /home/artlab/projects/homelab/dotfiles/.ssh/config ~/.ssh/config
+ln -sf /home/artlab/projects/homelab/infra/dotfiles/.ssh/config ~/.ssh/config
 ```
 
 ## Состав
