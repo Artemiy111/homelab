@@ -1,0 +1,12 @@
+# Конфиг общего окружения стенда. Раньше чарт platform/homelab раскладывал
+# его сразу по тридцати namespace'ам; раздача по владельцам — рядом с
+# манифестом, который его читает.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: homelab-config
+  namespace: glitchtip
+data:
+  DOMAIN: biplane.casa
+  TZ: Asia/Yekaterinburg
+  DEFAULT_LOCALE: ru

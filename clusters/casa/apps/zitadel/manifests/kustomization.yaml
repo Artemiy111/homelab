@@ -2,6 +2,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: zitadel
 resources:
+  - homelab-config.yaml
   - zitadel.sealedsecret.yaml
   - zitadel-masterkey.sealedsecret.yaml
   - zitadel-login-service-key.sealedsecret.yaml

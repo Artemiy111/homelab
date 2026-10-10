@@ -2,6 +2,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: mailserver
 resources:
+  - homelab-config.yaml
   - mailserver-mail.service.yaml
   - namespace.yaml
   - mail.service.yaml

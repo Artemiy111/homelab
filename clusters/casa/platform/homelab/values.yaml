@@ -53,37 +53,3 @@ certManager:
       secretName: wildcard-casa-tls
       domain: biplane.casa
       issuer: letsencrypt-prod-casa
-
-namespaces:
-  - 3x-ui
-  - authentik
-  - beszel
-  - dawarich
-  - default
-  - element
-  - forgejo
-  - gitlab
-  - glitchtip
-  - homepage
-  - home-assistant
-  - immich
-  - infisical
-  - jellyfin
-  - jitsi
-  - mailserver
-  - monitoring
-  - navidrome
-  - nextcloud
-  - oauth2-proxy
-  - open-webui
-  - paperless
-  - pdf
-  - rustfs
-  - seafile
-  - structurizr
-  - sure
-  - talk-hpb
-  - technitium
-  - uptime-kuma
-  - vault
-  - zitadel

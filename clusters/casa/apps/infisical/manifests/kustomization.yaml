@@ -2,6 +2,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: infisical
 resources:
+  - homelab-config.yaml
   - namespace.yaml
   - backend.service.yaml
   - redis.service.yaml

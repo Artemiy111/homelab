@@ -1,0 +1,15 @@
+# Конфиг общего окружения стенда. Раньше чарт platform/homelab раскладывал
+# его сразу по тридцати namespace'ам; раздача по владельцам — рядом с
+# манифестом, который его читает.
+#
+# Юнит без Application и не применяется, но ссылка не optional: без этого
+# файла под зависнет в ContainerCreating, если сервис включат.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: homelab-config
+  namespace: local-ai
+data:
+  DOMAIN: biplane.casa
+  TZ: Asia/Yekaterinburg
+  DEFAULT_LOCALE: ru

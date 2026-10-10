@@ -6,6 +6,11 @@ metadata:
 spec:
   project: homelab
   sources:
+    # homelab-config разложен по владельцам вместо веера из чарта
+    # platform/homelab; манифест лежит рядом с локальным чартом.
+    - repoURL: ssh://git@forgejo.biplane.casa:2222/artemiy/homelab.git
+      targetRevision: main
+      path: clusters/casa/apps/3x-ui/manifests
     - repoURL: ssh://git@forgejo.biplane.casa:2222/artemiy/homelab.git
       targetRevision: main
       path: clusters/casa/apps/3x-ui/chart
