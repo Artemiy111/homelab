@@ -66,7 +66,7 @@ flowchart TB
 | Longhorn | CSI-хранилище: снапшоты, клоны, RWX | [`clusters/casa/platform/longhorn/`](clusters/casa/platform/longhorn/) |
 | CloudNativePG | Кластеры баз PostgreSQL | [`clusters/casa/platform/cnpg/`](clusters/casa/platform/cnpg/) |
 | MariaDB Operator | Инстансы MariaDB | [`clusters/casa/platform/mariadb/`](clusters/casa/platform/mariadb/) |
-| Argo CD | GitOps-контроллер | [`argocd/`](argocd/) |
+| Argo CD | GitOps-контроллер | [`bootstrap/`](bootstrap/) |
 | Vault Secrets Operator | Синхронизирует пути Vault в Kubernetes Secrets | [`clusters/casa/apps/vault/`](clusters/casa/apps/vault/) |
 | Ansible | Пакеты и подготовка хоста | [`infra/ansible/`](infra/ansible/) |
 | Terraform | Ресурсы вне кластера | [`infra/terraform/`](infra/terraform/) |

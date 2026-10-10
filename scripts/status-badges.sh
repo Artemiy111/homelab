@@ -48,22 +48,22 @@ repo_files() {
 # Две области, и разница между ними осмысленная.
 #
 # deploy_files — всё, что уезжает в кластер: любой отслеживаемый YAML под
-# clusters/casa/apps/, clusters/casa/platform/, argocd/, включая values.yaml, чарты сервисов и шаблоны
+# clusters/casa/apps/, clusters/casa/platform/, bootstrap/, включая values.yaml, чарты сервисов и шаблоны
 # чарта homelab. Compose-файлы хостовых утилит (clusters/casa/apps/spotdl) в кластер не
 # попадают, поэтому исключены. По этой области считаются образы, namespace'ы и
 # секреты.
 deploy_files() {
   repo_files '*.yaml' '*.yml' |
-    grep -E '^(clusters/casa/apps|clusters/casa/platform|argocd)/' |
+    grep -E '^(clusters/casa/apps|clusters/casa/platform|bootstrap)/' |
     grep -vE '/compose\.ya?ml$' || true
 }
 
 # manifest_files — область CI-гейта kubeconform: clusters/casa/apps/<сервис>/manifests/, clusters/casa/platform/,
-# argocd/ без values.yaml, Chart.yaml и шаблонов чарта. Только по ней считается
+# bootstrap/ без values.yaml, Chart.yaml и шаблонов чарта. Только по ней считается
 # число манифестов, чтобы оно совпадало с тем, что реально проверяет CI.
 manifest_files() {
   repo_files '*.yaml' '*.yml' |
-    grep -E '^(clusters/casa/apps/[^/]+/manifests|clusters/casa/platform|argocd)/' |
+    grep -E '^(clusters/casa/apps/[^/]+/manifests|clusters/casa/platform|bootstrap)/' |
     grep -vE '(values|Chart)\.yaml$' |
     grep -vE '^clusters/casa/platform/homelab/templates/' |
     grep -vE '/manifests/config/' || true

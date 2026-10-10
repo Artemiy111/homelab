@@ -6,7 +6,7 @@ on:
     paths: &paths
       - "clusters/casa/apps/**"
       - "clusters/casa/platform/**"
-      - "argocd/**"
+      - "bootstrap/**"
       - ".kube-linter.yaml"
       - ".forgejo/workflows/kube-linter.yml"
   pull_request:
@@ -52,4 +52,4 @@ jobs:
         run: |
           set -euo pipefail
           kube-linter version
-          kube-linter lint --config .kube-linter.yaml --fail-if-no-objects-found clusters/casa/apps/*/manifests clusters/casa/platform argocd
+          kube-linter lint --config .kube-linter.yaml --fail-if-no-objects-found clusters/casa/apps/*/manifests clusters/casa/platform bootstrap

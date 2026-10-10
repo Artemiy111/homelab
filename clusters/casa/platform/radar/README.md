@@ -16,7 +16,7 @@ TLS-сертификаты и встроенный MCP-сервер для AI-а
 
 Здесь Radar служит второй (после Headlamp) панелью обзора кластера и ставится
 официальным чартом под Argo CD — тем же способом, что `headlamp` и `longhorn`
-(см. `argocd/README.md`).
+(см. `docs/runbooks/argocd.md`).
 
 ## Файлы
 

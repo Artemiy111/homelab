@@ -20,5 +20,5 @@ UI Argo постоянно опрашивает API, и лимит 100/50 сра
 `ExtensionRef`: ссылка в `HTTPRoute` ищет `Middleware` рядом с маршрутом, а не
 в `traefik`. Оригинал — `clusters/casa/platform/traefik/oauth2-proxy.middleware.yaml`.
 
-Параметры установки самого Argo CD — `argocd/install/values.yaml`, это другой
+Параметры установки самого Argo CD — `bootstrap/argocd-values.yaml`, это другой
 каталог: отклонения от дефолтов чарта, а не манифесты кластера.

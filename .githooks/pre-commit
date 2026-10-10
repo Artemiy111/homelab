@@ -31,5 +31,5 @@ fi
 # отбирать нельзя: workflow в .forgejo/workflows/*.yml и Chart.yaml тоже
 # заканчиваются на .yml, и kubeconform принимает их за объекты API.
 git diff --cached --name-only --diff-filter=ACMR |
-  grep -E '^(clusters/casa/apps/[^/]+/manifests/|clusters/casa/platform/|argocd/).*\.ya?ml$' |
+  grep -E '^(clusters/casa/apps/[^/]+/manifests/|clusters/casa/platform/|bootstrap/).*\.ya?ml$' |
   xargs -r ./scripts/kubeconform.sh

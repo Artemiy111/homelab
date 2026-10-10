@@ -6,7 +6,7 @@ on:
     paths: &paths
       - "clusters/casa/apps/**"
       - "clusters/casa/platform/**"
-      - "argocd/**"
+      - "bootstrap/**"
       - "scripts/kubeconform.sh"
       - ".forgejo/workflows/kubeconform.yml"
   pull_request:

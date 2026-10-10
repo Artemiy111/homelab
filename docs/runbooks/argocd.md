@@ -1,9 +1,12 @@
-# Argo CD (пробный стенд)
+# Argo CD: установка, бутстрап и разборы
 
-Argo CD поднимается на кластере как **проверка второго GitOps-инструмента**:
-целевое решение — Flux (см. `docs/research/k8s/argo-cd-vs-flux-cd.md`), но
-разницу между «Argo рендерит манифесты сам» и «Flux управляет Helm-релизом»
-полезно пощупать руками, а не вычитать.
+Argo CD — GitOps-контроллер кластера: под ним весь `clusters/casa/`, а
+`bootstrap/` применяется руками. Документ описывает установку, бутстрап и
+разборы подводных камней, накопленные по ходу.
+
+Целевое решение — Flux (`docs/research/k8s/argo-cd-vs-flux-cd.md`), поэтому
+`bootstrap/` устроен так, чтобы его можно было снести целиком: root рендерит
+`clusters/casa/`, а каталог `argocd/` в раскладке не участвует.
 
 | | |
 |---|---|
@@ -11,7 +14,7 @@ Argo CD поднимается на кластере как **проверка �
 | Argo CD | v3.5.3 |
 | Namespace | `argocd` |
 | URL | https://argocd.example.com |
-| Параметры | `argocd/install/values.yaml` — только отклонения от дефолтов чарта |
+| Параметры | `bootstrap/argocd-values.yaml` — только отклонения от дефолтов чарта |
 | Маршрут | `clusters/casa/platform/argocd/route.yaml` — применяется вручную, Argo его не синхронизирует (#858) |
 
 Все команды ниже выполняются **на сервере** (там есть `helm` и kubeconfig),
@@ -24,12 +27,12 @@ helm repo add argo https://argoproj.github.io/argo-helm
 helm repo update
 
 # Сначала посмотреть, что получится, не трогая кластер:
-helm template argocd argo/argo-cd --version 10.9.1 -f argocd/install/values.yaml | less
+helm template argocd argo/argo-cd --version 10.9.1 -f bootstrap/argocd-values.yaml | less
 
 helm install argocd argo/argo-cd \
   --version 10.9.1 \
   --namespace argocd --create-namespace \
-  -f argocd/install/values.yaml \
+  -f bootstrap/argocd-values.yaml \
   --wait
 
 helm template clusters/casa/platform/homelab | kubectl apply -f -
@@ -118,7 +121,7 @@ argocd account update-password
 ## Бутстрап: спеки Application'ов живут в git
 
 Application'ы применяет корневой `Application` — `bootstrap/root-application.yaml`.
-Он рендерит каталог `argocd/` через kustomize и получает `AppProject` `upstream`
+Он рендерит каталог `clusters/casa/` через kustomize и получает `AppProject` `upstream`
 плюс 31 `Application` из `applications/` и `applications/apps/`. Раньше app-of-apps
 не было, и спеки лежали только в git: Argo читал желаемое состояние из объекта в
 кластере, и пока файл не применён руками, правка values в git ничего не меняла.
@@ -158,7 +161,7 @@ Deploy key сделан без пароля: Argo тянет репозитор�
 
 ```sh
 helm upgrade argocd argo/argo-cd --version 10.9.1 \
-  --namespace argocd -f argocd/install/values.yaml \
+  --namespace argocd -f bootstrap/argocd-values.yaml \
   --set global.domain=argocd.example.com
 kubectl -n argocd rollout restart deploy/argocd-repo-server
 ```
@@ -171,7 +174,7 @@ values оно живёт как есть, а передача `--set` повер
 контроллер не может применить Application, который сам его и создаёт.
 
 ```sh
-kubectl apply -f argocd/bootstrap/root-application.yaml
+kubectl apply -f bootstrap/root.yaml
 argocd app sync root
 ```
 
@@ -267,7 +270,7 @@ redirect URL в `radar` и `headlamp`, домен в `dns01-webhook`. Секре
 
 ## Приложения из `clusters/casa/apps/`
 
-По одному `Application` на сервис, лежат в `argocd/applications/apps/` и
+По одному `Application` на сервис, лежат в каталоге сервиса как `app.yaml` и
 применяются тем же корневым `Application`, что и платформенные компоненты.
 Способ тот же, что у 18 компонентов в `applications/`, — в репозитории один
 стандарт на все 31 приложение.
@@ -284,11 +287,12 @@ PR, добавляющий сервис, не показывает ни `prune`,
 | Проблема реестра | Что вместо |
 |---|---|
 | `Application` собирается в рантайме, в git не лежит | спека в файле, видна в диффе PR |
-| `app.yaml` не проверялся ни одним гейтом: `kubeconform` сканирует `clusters/casa/apps/*/k8s`, `platform`, `argocd`, а `clusters/casa/apps/<сервис>/app.yaml` не попадает ни в одну дорожку | файл в `argocd/` проверяется kubeconform как `Application` |
+| `app.yaml` не проверялся ни одним гейтом: `kubeconform` сканирует `clusters/casa/apps/*/manifests`,
+`clusters/casa/platform`, `bootstrap`, а `clusters/casa/apps/<сервис>/app.yaml` не попадает ни в одну дорожку | файл в каталоге юнита проверяется kubeconform как `Application` |
 | `prune` задан литералом в `spec.template` и достаётся всем без исключения — сервисы с данными защищены только тем, что их не добавили | `prune` виден в файле сервиса |
 | поля реестра — подмножество `spec.Application`: чарты (`3x-ui`, `element`) и multi-source values (`traefik`) не выражались | выражаются, отдельный `Application` на каждый случай |
 | `path` в реестре перекрывается служебным параметром генератора — пришлось переименовать в `dir` | таких коллизий нет |
-| добавление сервиса — одна строка в git, но сервис появляется в кластере сам и незаметно | добавление сервиса — новый файл плюс строка в `argocd/kustomization.yaml`, и в ревью видно, что сервис добавлен под Argo |
+| добавление сервиса — одна строка в git, но сервис появляется в кластере сам и незаметно | добавление сервиса — новый файл плюс строка в `clusters/casa/kustomization.yaml`, и в ревью видно, что сервис добавлен под Argo |
 
 Обходной путь для boolean-полей (`templatePatch`, где `prune: {{ .prune }}`
 рендерится как YAML, а не как строка) существует и был бы пригоден — но он не
@@ -296,8 +300,8 @@ PR, добавляющий сервис, не показывает ни `prune`,
 
 ### Перевод сервиса на Argo
 
-Один сервис — один файл в `argocd/applications/apps/` плюс строка в
-`argocd/kustomization.yaml`. Ниже — порядок для сервиса, который уже применён
+Один сервис — один файл `app.yaml` в каталоге сервиса плюс строка в
+`clusters/casa/kustomization.yaml`. Ниже — порядок для сервиса, который уже применён
 руками; AGE подов при этом не должен сброситься.
 
 ```sh
@@ -342,11 +346,14 @@ kubectl -n <ns> get pods
 
 Список выключенного, чтобы не выводить его археологией:
 
+Проверено 2026-10-10: `authentik` и `gitlab` снова синхронизируются
+автоматически, `netdata` удалён из репозитория целиком. Актуальное состояние —
+по `app.yaml` сервиса, а не по этой таблице.
+
 | Сервис | Как выключен | Включение |
 |---|---|---|
-| `authentik`, `gitlab`, `alloy-profiler` | Application без `syncPolicy.automated` | вернуть блок `automated` |
+| `alloy-profiler` | Application без `syncPolicy.automated` | вернуть блок `automated` |
 | `local-ai` | манифесты в git, Application нет | завести Application, вернуть namespace в `clusters/casa/platform/homelab/values.yaml` |
-| `netdata` | удалён из репозитория 2026-10-10 | поставить заново, `netdata` ставится из образа |
 | `vmagent` | `replicas: 0` в `clusters/casa/apps/victoria-metrics` (#888) | снять `replicas: 0`, вернуть проверку в Gatus |
 
 Проверки выключенных сервисов удалены из `clusters/casa/apps/gatus/config/config.yaml`, а не
@@ -462,13 +469,15 @@ allow-list'ом. Нет записи → нельзя ни создать, ни 
 `system:serviceaccount:argocd:argocd-application-controller`, и у неё есть
 права на `create`/`delete` любых кластерных объектов — иначе не поставились бы
 операторы Longhorn, Gateway API и cert-manager. `AppProject` вторая линия
-поверх этого. Без неё ошибка в манифесте (убрали `ClusterRole` из `k8s/`)
+поверх этого. Без неё ошибка в манифесте (убрали `ClusterRole` из
+`manifests/`)
 привела бы не к отказу Argo, а к удалению `ClusterRole` из кластера: сборщик
 логов или метрик молча теряет права и перестаёт работать.
 
 ### Про `kustomization.yaml`
 
-Манифесты лежат в `clusters/casa/apps/<сервис>/k8s/`, и Argo в режиме plain-каталога **не
+Манифесты лежат в `clusters/casa/apps/<сервис>/manifests/`, и Argo в режиме
+plain-каталога **не
 рекурсирует в подкаталоги**: каталог без `kustomization.yaml` считается пустым
 и приложение отвечает «app path does not exist». Проверено на стенде — в том
 числе пробным `Application` с новым именем, у которого тот же путь работал.
@@ -510,7 +519,7 @@ kubectl get crd httproutes.gateway.networking.k8s.io \
   -o jsonpath='{..rules.items.properties}' | jq
 ```
 
-Правкой всех 41 `clusters/casa/apps/*/k8s/route.yaml` вопрос не решается: дефолты появились бы
+Правкой всех 41 `clusters/casa/apps/*/manifests/route.yaml` вопрос не решается: дефолты появились бы
 снова при обновлении CRD, и manifests-файлы начали бы повторять то, что и так
 знает apiserver.
 
@@ -527,7 +536,7 @@ kubectl get crd httproutes.gateway.networking.k8s.io \
 URL и пути — но **не** из ревизии, так что фиксация `targetRevision` не
 помогает. Сработало удаление и пересоздание `Application` под другим именем.
 
-Понижено до `10m` в `argocd/install/values.yaml`, в `configs.params` — отдельного
+Понижено до `10m` в `bootstrap/argocd-values.yaml`, в `configs.params` — отдельного
 значения `controller.default.*` в чарте 10.9.1 нет, ключ попадает в
 `argocd-cmd-params-cm` через эту свободную карту. Компонент читает cm при
 старте, поэтому после `helm upgrade` нужен рестарт `application-controller`.
@@ -549,7 +558,7 @@ Webhook не работает: Argo поддерживает его только
 **только** под Argo — не дублировать манифестами для будущего Flux.
 
 ```sh
-kubectl apply -f argocd/applications/kube-state-metrics.yaml
+kubectl apply -f clusters/casa/platform/kube-state-metrics/app.yaml
 argocd app get kube-state-metrics
 argocd app diff kube-state-metrics
 ```
@@ -573,7 +582,7 @@ argocd app get kube-state-metrics
 пересоздания** ресурсов. Порядок применим и к боевому Traefik.
 
 ```sh
-kubectl apply -f argocd/applications/headlamp.yaml
+kubectl apply -f clusters/casa/platform/headlamp/app.yaml
 
 argocd app diff headlamp        # желаемое (чарт) vs живое: расхождений быть не должно
 argocd app sync headlamp        # server-side apply берёт ownership, Pod не пересоздаётся
@@ -687,5 +696,5 @@ kubectl delete crd applications.argoproj.io applicationsets.argoproj.io appproje
 
 - [argo-cd Helm chart](https://artifacthub.io/packages/helm/argo/argo-cd)
 - [Argo CD Operator Manual](https://argo-cd.readthedocs.io/en/stable/operator-manual/)
-- [docs/research/k8s/argo-cd-vs-flux-cd.md](../docs/research/k8s/argo-cd-vs-flux-cd.md)
-- [docs/research/k8s/k0s-kubernetes-distribution.md](../docs/research/k8s/k0s-kubernetes-distribution.md)
+- [argo-cd-vs-flux-cd.md](../research/k8s/argo-cd-vs-flux-cd.md)
+- [k0s-kubernetes-distribution.md](../research/k8s/k0s-kubernetes-distribution.md)

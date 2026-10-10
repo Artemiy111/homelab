@@ -6,7 +6,7 @@ on:
     paths: &paths
       - "clusters/casa/apps/**"
       - "clusters/casa/platform/**"
-      - "argocd/**"
+      - "bootstrap/**"
       - "docs/**"
       - "scripts/**"
       - ".forgejo/workflows/status.yml"

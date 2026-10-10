@@ -178,7 +178,7 @@ infra/host/etc/k0s/
 | Gateway | Traefik — единый вход на `<node1-ip>`, Gateway API (`clusters/casa/platform/traefik/`) |
 | UI кластера | Headlamp (`clusters/casa/platform/headlamp/`) |
 | Секреты | sealed-secrets (`clusters/casa/platform/sealed-secrets/app.yaml`) |
-| GitOps | Argo CD — пробный стенд (`argocd/README.md`); целевое решение — Flux |
+| GitOps | Argo CD — пробный стенд (`docs/runbooks/argocd.md`); целевое решение — Flux |
 
 ### Почему нет MetalLB
 
