@@ -8,7 +8,7 @@ spec:
   # как раньше через Docker (роутер Keenetic ходит DNS-запросами на <node1-ip>:53).
   type: ClusterIP
   externalIPs:
-    - {{ .Values.config.serverIp }}
+    - 192.168.1.254
   selector:
     app: technitium
   ports:

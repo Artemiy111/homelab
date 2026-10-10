@@ -35,7 +35,7 @@ kubectl rollout restart deploy/structurizr
 ## Конфигурация
 
 Настройки (браузерный DSL-редактор + базовый URL за Traefik) заданы в ConfigMap
-`structurizr-properties` (`clusters/casa/apps/structurizr/k8s/properties.configmap.yaml`),
+`structurizr-properties` (`clusters/casa/apps/structurizr/manifests/structurizr-properties.yaml`),
 который монтируется в `/usr/local/structurizr/structurizr.properties`.
 
 Доступ закрыт forward auth (`oauth2-proxy`) на IngressRoute — своей

@@ -8,14 +8,14 @@ data:
     {
       "default_server_config": {
         "m.homeserver": {
-          "base_url": "https://element.{{ .Values.config.domain }}/",
-          "server_name": "{{ .Values.config.domain }}"
+          "base_url": "https://element.biplane.casa/",
+          "server_name": "biplane.casa"
         },
         "m.identity_server": {
           "base_url": "https://vector.im"
         }
       },
-      "trusted_domains": ["{{ .Values.config.domain }}"],
+      "trusted_domains": ["biplane.casa"],
       "default_theme": "light",
       "plugins": [
         {
@@ -26,8 +26,8 @@ data:
       ],
       "element_call": {
         "enabled": true,
-        "url": "https://element.{{ .Values.config.domain }}/",
-        "user_id": "https://element.{{ .Values.config.domain }}/",
+        "url": "https://element.biplane.casa/",
+        "user_id": "https://element.biplane.casa/",
         "room": ""
       },
       "features": {
@@ -46,5 +46,5 @@ data:
         "flows": [{"type": "m.login.password"}]
       },
       "disable_login_language_selector": false,
-      "set_mxc_hs_endpoint": "https://element.{{ .Values.config.domain }}/"
+      "set_mxc_hs_endpoint": "https://element.biplane.casa/"
     }
