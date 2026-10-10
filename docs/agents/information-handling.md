@@ -50,7 +50,7 @@ beyond the prefix length»), kubeconform — нет: в схеме это стр
 репозитории оказался `192.0.2.10/16`, и `kubectl apply` перестал работать.
 
 Адрес узла остаётся в `platform/homelab/values.yaml`, в `externalIPs` и в
-`terraform/*/terraform.tfvars`. В NetworkPolicy он не дублируется: трафик с
+`infra/terraform/*/terraform.tfvars`. В NetworkPolicy он не дублируется: трафик с
 узла разрешается подсетью, поэтому pinning адреса добавил бы только ещё одно
 место, которое надо править при переезде узла. Побочный эффект — `apps/elk`
 разрешает ES:9200 из всей LAN; решение пересматривается при развёртывании
@@ -71,7 +71,7 @@ Vault и попадают в кластер через `VaultStaticSecret` (VSO)
 | Уровень | Где хранится | Как попадает в кластер |
 |---|---|---|
 | Публичное | репозиторий `homelab` | `values.yaml` чарта, `valuesObject` Application, манифесты |
-| Внутреннее | то же, плюс untracked `terraform/*/terraform.tfvars` и `platform/k0s/values.private.yaml` | Argo, `helm template`, Ansible и `install.sh` |
+| Внутреннее | то же, плюс untracked `infra/terraform/*/terraform.tfvars` и `infra/host/k0s/values.private.yaml` | Argo, `helm template`, Ansible и `install.sh` |
 | Секретное | Vault | `VaultStaticSecret` (VSO), в манифестах ссылки `existingSecret`/`secretKeyRef` |
 
 Правила:
@@ -81,11 +81,11 @@ Vault и попадают в кластер через `VaultStaticSecret` (VSO)
   нельзя — у них разный радиус поражения и разный порядок ротации.
 - **Адрес узла не дублируется в NetworkPolicy.** Он живёт в
   `platform/homelab/values.yaml`, в `externalIPs` и в
-  `terraform/*/terraform.tfvars` (untracked); в документации и примерах —
+  `infra/terraform/*/terraform.tfvars` (untracked); в документации и примерах —
   плейсхолдер `192.0.2.10` из RFC 5737. В манифестах, которые применяются через
   `kubectl`, вместо адреса указывается LAN-подсеть — см. раздел выше.
 - **Приватные слои, которые остались, обязаны быть минимальными.** Сейчас это
-  `terraform/*/terraform.tfvars` и `platform/k0s/values.private.yaml`. Новый
+  `infra/terraform/*/terraform.tfvars` и `infra/host/k0s/values.private.yaml`. Новый
   приватный слой — повод сначала спросить, зачем он, потому что его содержимое
   не видно ни CI, ни `docs/status`.
 
@@ -128,13 +128,13 @@ Vault и попадают в кластер через `VaultStaticSecret` (VSO)
    исходить из того, что секрет скомпрометирован.
 10. **В примерах и скриптах — только плейсхолдеры.** `.env.example`, `init.sh`,
     README и любые примеры не должны содержать реальных значений (домен, IP,
-    токены); реальное — в Vault для секретного, в `terraform/*/terraform.tfvars`
+    токены); реальное — в Vault для секретного, в `infra/terraform/*/terraform.tfvars`
     и `config.env` для адресов и токенов инфраструктуры. Исключение —
     применяемые манифесты: в них плейсхолдер недопустим там, где значение
     проверяет `apiserver` (`NetworkPolicy.spec.ingress[].from[].ipBlock.cidr`),
     и указывается реальное значение.
-11. **Приватный слой — не свалка.** В `terraform/*/terraform.tfvars` и
-    `platform/k0s/values.private.yaml` нельзя класть credentials. Если чарт
+11. **Приватный слой — не свалка.** В `infra/terraform/*/terraform.tfvars` и
+    `infra/host/k0s/values.private.yaml` нельзя класть credentials. Если чарт
     требует секрет в values, это не повод ослаблять правило, а повод оставить
     ссылку на Vault.
 

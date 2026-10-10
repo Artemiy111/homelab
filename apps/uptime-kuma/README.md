@@ -69,7 +69,7 @@ Kuma отдаёт Prometheus-метрики на `:80/metrics`. Доступ —
 
 ## Декларативные мониторы
 
-Желаемое состояние мониторов живёт в Terraform: `terraform/uptime-kuma/`.
+Желаемое состояние мониторов живёт в Terraform: `infra/terraform/uptime-kuma/`.
 Gatus (`apps/gatus/config/config.yaml`) — источник правды, Kuma зеркалит его там,
 где это возможно.
 

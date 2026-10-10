@@ -59,7 +59,7 @@ flowchart TB
 
 | Компонент | Роль | Каталог |
 |---|---|---|
-| k0s | Одноузловой Kubernetes: Calico CNI, etcd, CoreDNS | [`platform/k0s/`](platform/k0s/) |
+| k0s | Одноузловой Kubernetes: Calico CNI, etcd, CoreDNS | [`infra/host/k0s/`](infra/host/k0s/) |
 | Traefik | Gateway API | [`platform/traefik/`](platform/traefik/) |
 | Technitium DNS | Локальный DNS, wildcard-зона, блокировка рекламы | [`apps/technitium/`](apps/technitium/) |
 | cert-manager | TLS через ACME DNS-01 | [`platform/cert-manager/`](platform/cert-manager/) |
@@ -68,8 +68,8 @@ flowchart TB
 | MariaDB Operator | Инстансы MariaDB | [`platform/mariadb/`](platform/mariadb/) |
 | Argo CD | GitOps-контроллер | [`argocd/`](argocd/) |
 | Vault Secrets Operator | Синхронизирует пути Vault в Kubernetes Secrets | [`apps/vault/`](apps/vault/) |
-| Ansible | Пакеты и подготовка хоста | [`ansible/`](ansible/) |
-| Terraform | Ресурсы вне кластера | [`terraform/`](terraform/) |
+| Ansible | Пакеты и подготовка хоста | [`infra/ansible/`](infra/ansible/) |
+| Terraform | Ресурсы вне кластера | [`infra/terraform/`](infra/terraform/) |
 
 ACME DNS-01 обслуживает `cert-manager-webhook-dns01` — написанный мной вебхук: ни у одного DNS-провайдера нет рабочего RFC2136. Поставляется как Helm-чарт; по тегу публикует и образ, и чарт в OCI-реестр.
 

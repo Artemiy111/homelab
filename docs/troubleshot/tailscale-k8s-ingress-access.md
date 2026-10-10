@@ -5,7 +5,7 @@
 
 > **Актуальность на 2026-09-15.** Запись оставлена как хроника разбора. MetalLB
 > выведен 2026-09-14: вход кластера — `<node1-ip>` через `externalIPs` сервиса
-> Traefik, VIP больше не используется (см. `platform/k0s/README.md`). Правило
+> Traefik, VIP больше не используется (см. `infra/host/k0s/README.md`). Правило
 > policy routing из раздела «Решение» при этом по-прежнему нужно: проблема
 > обратного маршрута не зависит от способа выдачи входного адреса.
 
@@ -116,7 +116,7 @@ sudo ip rule add to 100.64.0.0/10 lookup 52 priority 5200
 `192.168.x` под правило не попадают).
 
 Правило не переживает перезагрузку, поэтому закреплено systemd-юнитом
-`etc/systemd/tailscale-policy-route.service` (ставится через `ansible/host.yml`).
+`infra/host/etc/systemd/tailscale-policy-route.service` (ставится через `infra/ansible/host.yml`).
 Юнит идемпотентен и перезапускается вместе с `tailscaled` (`PartOf=`).
 
 ## Статус

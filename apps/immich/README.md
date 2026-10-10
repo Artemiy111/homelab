@@ -21,11 +21,11 @@ Settings → Authentication → OAuth Authentication.
 | Mobile redirect URI | `https://immich.<домен>/api/oauth/mobile-redirect` |
 
 Client ID соответствует приложению `immich` в Zitadel
-(`terraform/zitadel/applications.tf`), там же объявлены redirect URI:
+(`infra/terraform/zitadel/applications.tf`), там же объявлены redirect URI:
 `/auth/login`, `/user-settings`, `/api/oauth/mobile-redirect`.
 
 `<домен>` — плейсхолдер: реальный корневой домен лежит в
-`terraform/zitadel/terraform.tfvars` (untracked) и по
+`infra/terraform/zitadel/terraform.tfvars` (untracked) и по
 `docs/agents/information-handling.md` в git не пишется. `client_id` в таблице
 при этом настоящий — он не секрет и в state лежит открытым текстом.
 
@@ -48,7 +48,7 @@ OIDC-конфиг Immich хранится в БД приложения, а не 
 - `clientSecret` попал бы в state и в plan открытым текстом, что противоречит
   `docs/agents/information-handling.md`.
 
-Секрет Zitadel при этом в `terraform/zitadel` отсутствует — как и у остальных
+Секрет Zitadel при этом в `infra/terraform/zitadel` отсутствует — как и у остальных
 приложений, он лежит в Vault (`kv/immich/oidc`).
 
 Дрейф возможен: если перенастроить OIDC в UI, поправь таблицу выше.
@@ -56,7 +56,7 @@ OIDC-конфиг Immich хранится в БД приложения, а не 
 ## Роль `admin` из Zitadel
 
 `roleClaim: role` заставляет Immich читать claim `role` из токена Zitadel.
-Claim кладёт action `addRole` (`terraform/zitadel/actions.tf`) на триггере
+Claim кладёт action `addRole` (`infra/terraform/zitadel/actions.tf`) на триггере
 `POST_AUTHENTICATION` — при входе в Zitadel, а не при выдаче токена.
 
 Значение `admin` даёт админ-права в Immich, `user` — обычный доступ.

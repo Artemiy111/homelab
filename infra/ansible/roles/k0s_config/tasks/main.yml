@@ -1,0 +1,49 @@
+---
+# Доставка ClusterConfig k0s в /etc/k0s/k0s.yaml. spec.api не обновляется
+# динамически, поэтому смена файла требует рестарта control plane — это делает
+# handler. Без него роль просто привела бы файл в порядок, а apiserver
+# продолжил бы работать со старыми аргументами.
+#
+# Установка k0s (бинарь, PKI, юнит) остаётся в infra/host/k0s/install.sh:
+# она не идемпотентна и повторный запуск не имеет смысла.
+
+- name: Проверить наличие приватных значений k0s
+  ansible.builtin.stat:
+    path: "{{ k0s_config_oidc_issuer_file }}"
+  register: k0s_config_oidc_issuer_stat
+
+# Без issuer в файле останется незаполненный Jinja, и k0s не стартует. Падать
+# здесь правильнее: до рестарта control plane дело не дойдёт, а сообщение
+# объяснит, что создать.
+- name: Остановиться, если приватные значения k0s отсутствуют
+  ansible.builtin.fail:
+    msg: >-
+      Не найден {{ k0s_config_oidc_issuer_file }}.
+      Скопируйте {{ k0s_config_oidc_issuer_file }}.example
+      и укажите в нём config.oidcIssuerUrl.
+  when: not k0s_config_oidc_issuer_stat.stat.exists
+
+- name: Прочитать приватные значения k0s
+  ansible.builtin.slurp:
+    src: "{{ k0s_config_oidc_issuer_file }}"
+  register: k0s_config_oidc_issuer_raw
+  no_log: true
+
+- name: Разобрать приватные значения k0s
+  ansible.builtin.set_fact:
+    k0s_config_oidc_issuer: "{{ (k0s_config_oidc_issuer_raw.content | b64decode | from_yaml).config.oidcIssuerUrl }}"
+  no_log: true
+
+- name: Развернуть ClusterConfig k0s
+  ansible.builtin.template:
+    src: "{{ k0s_config_src }}"
+    dest: "{{ k0s_config_dest }}"
+    mode: "0600"
+    owner: root
+    group: root
+  # diff на уровне задачи, а не в аргументах модуля: action-плагин template
+  # после рендера передаёт оставшиеся аргументы в ansible.legacy.copy, который
+  # diff не принимает. Здесь это ключевое слово, и содержимое файла с issuer
+  # Zitadel в вывод плейбука не попадает.
+  diff: false
+  notify: Restart k0s

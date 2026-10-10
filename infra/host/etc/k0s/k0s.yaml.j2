@@ -1,0 +1,134 @@
+apiVersion: k0s.k0sproject.io/v1beta1
+kind: ClusterConfig
+metadata:
+  name: k0s
+spec:
+  api:
+    port: 6443
+    # Аутентификация Headlamp через OIDC: apiserver проверяет подпись токена
+    # Zitadel сам и читает из него имя пользователя и группу. Claim `role`
+    # кладёт action `addRole` (infra/terraform/zitadel/actions.tf), а группа
+    # `oidc:admin` даёт cluster-admin (platform/headlamp/rbac.yaml).
+    #
+    # Инициализация issuer асинхронная (retry каждые 10 с), поэтому apiserver
+    # стартует и при недоступном Zitadel — падает только вход через него.
+    # spec.api не обновляется динамически: после правки нужен
+    # `k0s stop && k0s start`.
+    extraArgs:
+      oidc-issuer-url: {{ k0s_config_oidc_issuer }}
+      oidc-client-id: "392923102339689485"
+      oidc-username-claim: sub
+      oidc-username-prefix: "-"
+      oidc-groups-claim: role
+      oidc-groups-prefix: "oidc:"
+
+  network:
+    provider: calico
+    podCIDR: 10.244.0.0/16
+    serviceCIDR: 10.96.0.0/12
+    calico:
+      mode: vxlan
+      overlay: Always
+      wireguard: false
+      patches:
+        - target:
+            kind: DaemonSet
+            name: calico-node
+          patch:
+            type: StrategicMergePatch
+            content: |
+              spec:
+                template:
+                  spec:
+                    containers:
+                      - name: calico-node
+                        resources:
+                          requests:
+                            memory: 192Mi
+                          limits:
+                            memory: 384Mi
+        - target:
+            kind: Deployment
+            name: calico-kube-controllers
+          patch:
+            type: StrategicMergePatch
+            content: |
+              spec:
+                template:
+                  spec:
+                    containers:
+                      - name: calico-kube-controllers
+                        resources:
+                          requests:
+                            memory: 128Mi
+                          limits:
+                            memory: 256Mi
+    kubeProxy:
+      disabled: false
+      mode: iptables
+      patches:
+        - target:
+            kind: DaemonSet
+            name: kube-proxy
+          patch:
+            type: StrategicMergePatch
+            content: |
+              spec:
+                template:
+                  spec:
+                    containers:
+                      - name: kube-proxy
+                        resources:
+                          requests:
+                            memory: 64Mi
+                          limits:
+                            memory: 128Mi
+    coreDNS:
+      patches:
+        - target:
+            kind: Deployment
+            name: coredns
+          patch:
+            type: StrategicMergePatch
+            content: |
+              spec:
+                template:
+                  spec:
+                    containers:
+                      - name: coredns
+                        resources:
+                          requests:
+                            memory: 64Mi
+                          limits:
+                            memory: 160Mi
+
+  metricsServer:
+    patches:
+      - target:
+          kind: Deployment
+          name: metrics-server
+        patch:
+          type: StrategicMergePatch
+          content: |
+            spec:
+              template:
+                spec:
+                  containers:
+                    - name: metrics-server
+                      resources:
+                        requests:
+                          memory: 64Mi
+                        limits:
+                          memory: 160Mi
+
+  storage:
+    type: etcd
+
+  # Kubelet по умолчанию держит 110 подов на ноду; homelab в этот лимит упирается.
+  workerProfiles:
+    - name: default
+      values:
+        maxPods: 200
+
+  telemetry:
+    enabled: false

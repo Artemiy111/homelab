@@ -47,7 +47,7 @@ restricted nameserver (split DNS):
 Запросы этой зоны пойдут в домашний Technitium DNS через одобренный subnet
 route, а прочие DNS-запросы останутся у обычного резолвера клиента.
 
-Итоговое состояние описано кодом в `terraform/tailscale`
+Итоговое состояние описано кодом в `infra/terraform/tailscale`
 (`tailscale_dns_configuration`): правка в admin console перезапишется на
 следующем `terraform apply`, а устаревшие записи чистит ресурс, а не рука.
 Ручные шаги ниже — что должно получиться и что проверять.

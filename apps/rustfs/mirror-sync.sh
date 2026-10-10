@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Зеркалит артефакты в RustFS (бакет mirror), чтобы CI тянул их без интернета и
-# без креденшелов. Бакет и public-read policy принадлежат terraform/rustfs, здесь
+# без креденшелов. Бакет и public-read policy принадлежат infra/terraform/rustfs, здесь
 # остаётся только заливка объектов.
 #
 # Запускается in-cluster как CronJob mirror-sync (образ amazon/aws-cli): у пода

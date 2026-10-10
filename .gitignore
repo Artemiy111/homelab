@@ -7,7 +7,7 @@ node_modules
 
 # Приватные значения k0s (issuer Zitadel для OIDC-входа apiserver):
 # install.sh подставляет его в k0s.yaml вместо плейсхолдера.
-platform/k0s/*.private.yaml
+infra/host/k0s/*.private.yaml
 
 # Вложенные независимые git-репозитории с переиспользуемыми компонентами.
 # У каждого свой remote и issue-трекер; родитель их не отслеживает.
@@ -16,7 +16,7 @@ platform/k0s/*.private.yaml
 __pycache__/
 
 # Кэш ansible-lint (автоустановка collections, fact cache).
-ansible/.ansible/
+infra/ansible/.ansible/
 
 # Terraform/OpenTofu: state, кэш провайдеров и планы не коммитятся. В state
 # лежат значения, которые провайдеры прочитали из внешних систем (токены,
@@ -32,6 +32,6 @@ crash-*.log
 
 # Значения параметров модуля: домен, адреса. В git лежит только пример в
 # README модуля.
-terraform/*/terraform.tfvars
+infra/terraform/*/terraform.tfvars
 
 .worktrees

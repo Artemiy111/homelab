@@ -143,8 +143,8 @@ VaultStaticSecret и destination Secret показывают только име
 
 1. Обновить значение в Vault по нужному пути (`kv/<сервис>/<секрет>`).
 2. Если меняется набор ключей или путь — обновить `VaultStaticSecret`,
-   `deployment` и policy в `terraform/vault/policies/`, затем выполнить
-   `terraform apply` в `terraform/`.
+   `deployment` и policy в `infra/terraform/vault/policies/`, затем выполнить
+   `terraform apply` в `infra/terraform/`.
 3. Доставить через `git pull --ff-only` по схеме из «Единственный процесс
    доставки».
 

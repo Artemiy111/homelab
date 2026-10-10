@@ -34,7 +34,7 @@ Longhorn подключается явным `storageClassName` в PVC. Тома
 | `platform/longhorn/networkpolicy-metrics.yaml` | Доступ vmagent к метрикам менеджера (порт 9500) для job `longhorn` |
 | `platform/longhorn/route.yaml` | `HTTPRoute` UI за oauth2-proxy |
 | `platform/longhorn/oauth2-proxy.middleware.yaml`, `secure-headers.middleware.yaml` | копии общих middleware в `longhorn-system`: `ExtensionRef` ищет их рядом с маршрутом |
-| `ansible/host.yml` (роль `longhorn_prereqs`), `etc/selinux/local_longhorn.cil` | Подготовка узла: `iscsid`, NFSv4-клиент, каталог данных, SELinux-модуль |
+| `infra/ansible/host.yml` (роль `longhorn_prereqs`), `infra/host/etc/selinux/local_longhorn.cil` | Подготовка узла: `iscsid`, NFSv4-клиент, каталог данных, SELinux-модуль |
 
 Исследование по теме: [docs/research/k8s/storage-classes-and-csi-provisioners.md](../../docs/research/k8s/storage-classes-and-csi-provisioners.md).
 
@@ -47,7 +47,7 @@ Longhorn подключается явным `storageClassName` в PVC. Тома
 2. **SELinux (Fedora/RHEL/Rocky).** `iscsi-initiator-utils` создаёт каталоги в `/var/lib/iscsi`
    без execute-бита, а современный `container-selinux` не даёт `iscsid_t` capability
    `dac_override`. Симптом — все тома в цикле attach/detach. Плейбук ставит минимальный
-   CIL-модуль (`etc/selinux/local_longhorn.cil`). Альтернатива — DaemonSet из репозитория
+   CIL-модуль (`infra/host/etc/selinux/local_longhorn.cil`). Альтернатива — DaemonSet из репозитория
    Longhorn: `deploy/prerequisite/longhorn-iscsi-selinux-workaround.yaml`.
 3. **NFSv4-клиент и `kubeletRootDir`.** NFSv4 нужен для RWX и для backup target;
    k0s держит kubelet в `/var/lib/k0s/kubelet`, поэтому в values задан `csi.kubeletRootDir`
@@ -259,9 +259,9 @@ Longhorn — thin provisioning: он *выделяет* больше, чем з�
 
 ## Когда появится вторая нода
 
-1. Прогнать `ansible/host.yml` на новой ноде (или применить DaemonSet-обходной путь из
+1. Прогнать `infra/ansible/host.yml` на новой ноде (или применить DaemonSet-обходной путь из
    `deploy/prerequisite/longhorn-iscsi-selinux-workaround.yaml`) и открыть порты Longhorn в
-   firewalld (`platform/k0s/firewalld/`) — список портов в Longhorn docs, раздел Networking.
+   firewalld (`infra/host/k0s/firewalld/`) — список портов в Longhorn docs, раздел Networking.
 2. В Longhorn появится вторая нода с диском (`defaultDataPath` тот же). Диск — из отдельного
    раздела или диска, не из корня.
 3. Поднять `numberOfReplicas: "2"` в `platform/longhorn/storageclasses.yaml` и применить.

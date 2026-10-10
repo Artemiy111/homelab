@@ -4,11 +4,11 @@ on:
   push:
     branches: [main]
     paths:
-      - "ansible/**"
+      - "infra/ansible/**"
       - ".forgejo/workflows/ansible.yml"
   pull_request:
     paths:
-      - "ansible/**"
+      - "infra/ansible/**"
       - ".forgejo/workflows/ansible.yml"
 
 jobs:
@@ -47,7 +47,7 @@ jobs:
       # --offline: все модули уже в venv, сетевых обращений линтера
       # (galaxy, автоскачивание зависимостей) запрещаем.
       - name: Run ansible-lint
-        working-directory: ansible
+        working-directory: infra/ansible
         run: |
           set -euo pipefail
           "$HOME/.venvs/ansible/bin/ansible-lint" --version

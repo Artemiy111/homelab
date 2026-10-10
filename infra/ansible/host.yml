@@ -1,0 +1,37 @@
+---
+# Плейбук: подготовка хоста homelab. Тонкая оболочка — вся логика в ролях
+# (infra/ansible/roles/), по роли на зону ответственности.
+# Запуск на сервере homelab:
+#   cd /home/artlab/projects/homelab/ansible && ansible-playbook host.yml
+# Dry-run (ничего не меняет):
+#   ansible-playbook host.yml --check --diff --ask-become-pass
+#
+# Одна роль вместо всего плейбука — по её тегу:
+#   ansible-playbook host.yml --tags k0s_config
+# Список тегов: ansible-playbook host.yml --list-tags
+
+- name: Подготовка хоста homelab
+  hosts: homelab
+  become: true
+  # Факты нужны роли longhorn_prereqs (ansible_facts.selinux).
+  gather_facts: true
+  # Тег каждой роли равен её имени, поэтому --tags <роль> прогоняет только её.
+  roles:
+    - role: base
+      tags: [base]
+    - role: cli_tools
+      tags: [cli_tools]
+    - role: docker
+      tags: [docker]
+    - role: autoupdates
+      tags: [autoupdates]
+    - role: fail2ban
+      tags: [fail2ban]
+    - role: sysctl
+      tags: [sysctl]
+    - role: tailscale_policy_route
+      tags: [tailscale_policy_route]
+    - role: longhorn_prereqs
+      tags: [longhorn_prereqs]
+    - role: k0s_config
+      tags: [k0s_config]

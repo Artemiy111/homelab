@@ -29,8 +29,8 @@ TLS-сертификаты и встроенный MCP-сервер для AI-а
 | `platform/radar/radar-oidc.vaultstaticsecret.yaml` | `VaultStaticSecret` `kv/radar/oidc` |
 | `platform/radar/networkpolicy.yaml` | default-deny ingress + разрешения traefik и monitoring |
 | `platform/monitoring/networkpolicy.yaml` | ingress из `radar` в `victoriametrics:8428` для метрик |
-| `terraform/zitadel/applications.tf` | Приложение `radar` в Zitadel |
-| `terraform/vault/roles.tf`, `policies/own.tf` | Роль и политика `app/radar` |
+| `infra/terraform/zitadel/applications.tf` | Приложение `radar` в Zitadel |
+| `infra/terraform/vault/roles.tf`, `policies/own.tf` | Роль и политика `app/radar` |
 
 ## Аутентификация
 
@@ -40,8 +40,8 @@ ServiceAccount. Схема по шагам:
 
 | Шаг | Где |
 |---|---|
-| Приложение OIDC в Zitadel | `terraform/zitadel/applications.tf` (`zitadel_application_v2.radar`) |
-| Claim `role` (`admin`/`user`) | `terraform/zitadel/actions.tf` |
+| Приложение OIDC в Zitadel | `infra/terraform/zitadel/applications.tf` (`zitadel_application_v2.radar`) |
+| Claim `role` (`admin`/`user`) | `infra/terraform/zitadel/actions.tf` |
 | `cluster-admin` для группы `oidc:admin` | `platform/headlamp/headlamp-admins.clusterrolebinding.yaml` |
 | clientSecret, redirectURL | Vault `kv/radar/oidc` |
 | clientID, issuer | `valuesObject` в `argocd/applications/radar.yaml` |
@@ -92,7 +92,7 @@ cluster-admin — Headlamp через apiserver, Radar через имперсо
 Сначала Terraform (Zitadel-приложение и роль Vault), затем кластер.
 
 ```sh
-cd terraform/zitadel && terraform apply
+cd infra/terraform/zitadel && terraform apply
 cd ../vault && terraform apply
 ```
 

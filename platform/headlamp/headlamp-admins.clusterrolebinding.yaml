@@ -1,5 +1,5 @@
 # Права выдаёт не ServiceAccount, а claim `role` из OIDC-токена
-# пользователя: apiserver читает его как группу (etc/k0s/k0s.yaml.j2,
+# пользователя: apiserver читает его как группу (infra/host/etc/k0s/k0s.yaml.j2,
 # spec.api.extraArgs), и Zitadel отдаёт `admin` только тем, у кого есть роль
 # admin в проекте Homelab. Поэтому subject здесь — не ServiceAccount, а группа
 # из токена, и pod остаётся бесправным.

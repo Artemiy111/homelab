@@ -42,7 +42,7 @@ gitea:
   # Имя источника `zitadel` не декоративно: Forgejo ищет источник по имени, а не
   # по id, и подставляет это же имя в URL кнопки входа и в redirect_uri.
   # Поэтому `name` здесь и redirect URI приложения в Zitadel
-  # (terraform/zitadel/applications.tf) обязаны совпадать.
+  # (infra/terraform/zitadel/applications.tf) обязаны совпадать.
   oauth:
     - name: zitadel
       provider: openidConnect

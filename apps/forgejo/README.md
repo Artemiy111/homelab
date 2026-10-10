@@ -333,7 +333,7 @@ add-oauth`, а если источник уже есть — в `update-oauth`. 
 | Имя источника | `zitadel` |
 | Провайдер | `openidConnect`, auto discovery |
 | Redirect URI | `https://forgejo.<домен>/user/oauth2/zitadel/callback` |
-| Приложение в Zitadel | `terraform/zitadel` → `zitadel_application_v2.forgejo` |
+| Приложение в Zitadel | `infra/terraform/zitadel` → `zitadel_application_v2.forgejo` |
 | Client id/secret | `kv/forgejo/oidc` → Secret `forgejo-oidc` |
 | Секция app.ini | `[oauth2_client]` — `ENABLE_AUTO_REGISTRATION`, `ACCOUNT_LINKING`, `OPENID_CONNECT_SCOPES` |
 
@@ -372,11 +372,11 @@ Zitadel>`. По ней он находит пользователя при ка�
 
 ### Порядок включения
 
-1. `terraform apply` в `terraform/vault` — иначе VSO не прочитает
+1. `terraform apply` в `infra/terraform/vault` — иначе VSO не прочитает
    `kv/forgejo/oidc` (политика `app/forgejo`).
-2. `terraform apply` в `terraform/zitadel` — в выводе `client_id` и
+2. `terraform apply` в `infra/terraform/zitadel` — в выводе `client_id` и
    `client_secret` приложения `Forgejo`. В state и в git секрета нет
-   (см. `terraform/zitadel/README.md`), значения живут только в Vault.
+   (см. `infra/terraform/zitadel/README.md`), значения живут только в Vault.
 3. Vault: `kv/forgejo/oidc` с ключами `key` и `secret`.
 4. `argocd/applications/forgejo.yaml`, поверх — приватный merge-patch с
    реальным discovery URL, затем sync и рестарт пода.

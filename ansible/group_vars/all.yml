@@ -1,6 +1,0 @@
----
-# Общие переменные всех плейбуков. Ansible загружает group_vars/all.yml
-# автоматически для хостов группы all — отдельный vars_files не нужен.
-# playbook_dir — каталог ansible/, dirname — корень репозитория; роли берут
-# отсюда пути к etc/ и dotfiles/ без `..` в путях.
-repo_root: "{{ playbook_dir | dirname }}"

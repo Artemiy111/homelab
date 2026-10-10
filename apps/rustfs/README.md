@@ -126,7 +126,7 @@ egress есть — проверено `wget` из контейнера `dind` �
 Зеркалом остаются бинарники и схемы Kubernetes: первое ради сверки sha256,
 второе ради привязки к версии кластера, которой у схем CR нет.
 
-Бакет `mirror` и его public-read policy — код в `terraform/rustfs`: правка бакета
+Бакет `mirror` и его public-read policy — код в `infra/terraform/rustfs`: правка бакета
 в консоли будет перезаписана на следующем `terraform apply`, а CronJob
 `mirror-sync` только заливает объекты.
 

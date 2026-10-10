@@ -11,7 +11,7 @@
 # Отдельного RWX-класса нет намеренно: режим доступа задаётся в PVC
 # (`accessModes`), а не в StorageClass — у класса такого поля вообще нет.
 # Longhorn отдаёт RWX-том через share-manager (NFSv4-сервер рядом с томом),
-# поэтому на узлах нужен NFSv4-клиент (ansible/host.yml). Класс-двойник ничего
+# поэтому на узлах нужен NFSv4-клиент (infra/ansible/host.yml). Класс-двойник ничего
 # не принуждал бы: запросить RWO на нём было бы можно, как и RWX на обычном.
 apiVersion: storage.k8s.io/v1
 kind: StorageClass

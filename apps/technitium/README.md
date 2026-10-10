@@ -46,7 +46,7 @@ curl -s "http://${HOST_IP}:5380/api/zones/records/add?token=$TOKEN&domain=dns.${
 ```
 
 Записи зоны `${DOMAIN}` (wildcard и `dns`) и bootstrap-зона `cloudflare-dns.com`
-описаны кодом в `terraform/technitium`: ручная правка этих записей будет
+описаны кодом в `infra/terraform/technitium`: ручная правка этих записей будет
 перезаписана на следующем `terraform apply`. Зоны, форвардеры и блокировка
 остаются ручными.
 

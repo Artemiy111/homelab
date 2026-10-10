@@ -6,7 +6,7 @@
 # осознанно per-PVC.
 #
 # Подготовка узла (iscsid, NFSv4-клиент, SELinux-модуль, каталог данных) —
-# в ansible/host.yml, роль longhorn_prereqs. Без неё тома застревают в
+# в infra/ansible/host.yml, роль longhorn_prereqs. Без неё тома застревают в
 # attach/detach.
 
 csi:

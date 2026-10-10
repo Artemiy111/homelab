@@ -59,7 +59,7 @@ flowchart TB
 
 | Component | Role | Directory |
 |---|---|---|
-| k0s | Single-node Kubernetes: Calico CNI, etcd, CoreDNS | [`platform/k0s/`](platform/k0s/) |
+| k0s | Single-node Kubernetes: Calico CNI, etcd, CoreDNS | [`infra/host/k0s/`](infra/host/k0s/) |
 | Traefik | Gateway API | [`platform/traefik/`](platform/traefik/) |
 | Technitium DNS | Local DNS, wildcard zone, ad blocking | [`apps/technitium/`](apps/technitium/) |
 | cert-manager | TLS via ACME DNS-01 | [`platform/cert-manager/`](platform/cert-manager/) |
@@ -68,8 +68,8 @@ flowchart TB
 | MariaDB Operator | MariaDB instances | [`platform/mariadb/`](platform/mariadb/) |
 | Argo CD | GitOps controller | [`argocd/`](argocd/) |
 | Vault Secrets Operator | Syncs Vault paths into Kubernetes Secrets | [`apps/vault/`](apps/vault/) |
-| Ansible | Host packages and preparation | [`ansible/`](ansible/) |
-| Terraform | Resources outside the cluster | [`terraform/`](terraform/) |
+| Ansible | Host packages and preparation | [`infra/ansible/`](infra/ansible/) |
+| Terraform | Resources outside the cluster | [`infra/terraform/`](infra/terraform/) |
 
 ACME DNS-01 is served by `cert-manager-webhook-dns01`, a webhook I wrote: neither DNS provider offers a working RFC2136. It ships as a Helm chart and releases both the image and the chart to an OCI registry on tag.
 

@@ -1,0 +1,5 @@
+# Приватные значения infra/host/k0s: реальный issuer Zitadel для OIDC-входа
+# apiserver. Без записи `git add -A` на сервере увёл бы файл в публичное
+# зеркало.
+config:
+  oidcIssuerUrl: https://id.example.com
