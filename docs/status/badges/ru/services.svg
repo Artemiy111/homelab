@@ -1,8 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="100" height="20" role="img" aria-label="сервисов: 56">
-  <title>сервисов: 56</title>
+<svg xmlns="http://www.w3.org/2000/svg" width="100" height="20" role="img" aria-label="сервисов: 55">
+  <title>сервисов: 55</title>
   <style>rect.label-bg{fill:#555}@media (prefers-color-scheme:dark){rect.label-bg{fill:#3f3f3f}}text{font-family:Verdana,DejaVu Sans,Geneva,sans-serif;font-size:11px;fill:#fff}</style>
   <rect class="label-bg" width="74" height="20"/>
   <rect x="74" width="26" height="20" fill="#007ec6"/>
   <text x="37" y="14" text-anchor="middle">сервисов</text>
-  <text x="87" y="14" text-anchor="middle">56</text>
+  <text x="87" y="14" text-anchor="middle">55</text>
 </svg>

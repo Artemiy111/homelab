@@ -70,7 +70,6 @@ namespaces:
   - infisical
   - jellyfin
   - jitsi
-  - local-ai
   - mailserver
   - monitoring
   - navidrome

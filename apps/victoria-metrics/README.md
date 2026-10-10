@@ -12,7 +12,7 @@
 | Deployment | Роль | Порт |
 |---|---|---|
 | `victoriametrics` | TSDB single-node (`victoria-metrics:v1.150.0`) | 8428, ClusterIP |
-| `vmagent` | скрейпит приложения, netdata и self, пишет в VM (`vmagent:v1.150.0`) | 8429, ClusterIP |
+| `vmagent` | скрейпит приложения и self, пишет в VM (`vmagent:v1.150.0`) | 8429, ClusterIP |
 
 VM и vmagent наружу не публикуются: их UI нужен только для отладки, запросы
 идут через Grafana. VMUI доступен по адресу `https://vm.example.com/` за
@@ -22,7 +22,7 @@ VM и vmagent наружу не публикуются: их UI нужен то�
 
 ```
 приложения /metrics ─┐
-netdata:19999 ───────┼──(scrape)──> vmagent ──(remote write)──> victoriametrics <── grafana
+                ┌──(scrape)──> vmagent ──(remote write)──> victoriametrics <── grafana
 victoriametrics ─────┤
 vmagent ─────────────┘
 ```
@@ -36,7 +36,7 @@ Netdata скрейпится только за метриками хоста и 
 `%{VAR}` (env-подстановка в `-promscrape.config`); окружение приходит из k8s
 Secrets и ConfigMap (см. `apps/victoria-metrics/k8s/vmagent.deployment.yaml`).
 
-Цели: `netdata`, `victoriametrics`, `vmagent`, `traefik`, `authentik`, `wud`,
+Цели: `victoriametrics`, `vmagent`, `traefik`, `authentik`, `wud`,
 `gatus`, `synapse`, `immich`, `livekit`, `tempo`, `athens`, `glitchtip`, `zot`,
 `prosody`, `talk-hpb`, `longhorn` (без аутентификации); `uptime-kuma`,
 `navidrome`, `dawarich`, `forgejo`, `technitium`, `stalwart`, `seafile` (креды из

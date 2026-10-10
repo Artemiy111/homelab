@@ -340,6 +340,20 @@ kubectl -n <ns> get pods
 при этом постоянно `OutOfSync`, и это служит индикатором выключенного
 состояния.
 
+Список выключенного, чтобы не выводить его археологией:
+
+| Сервис | Как выключен | Включение |
+|---|---|---|
+| `authentik`, `gitlab`, `alloy-profiler` | Application без `syncPolicy.automated` | вернуть блок `automated` |
+| `local-ai` | манифесты в git, Application нет | завести Application, вернуть namespace в `platform/homelab/values.yaml` |
+| `netdata` | удалён из репозитория 2026-10-10 | поставить заново, `netdata` ставится из образа |
+| `vmagent` | `replicas: 0` в `apps/victoria-metrics` (#888) | снять `replicas: 0`, снять `enabled: false` в Gatus |
+
+Проверки выключенного в `apps/gatus/config/config.yaml` помечены
+`enabled: false`, а не удалены: так видно, что сервис есть и почему молчит.
+Красная доска постоянного состояния хуже отсутствия доски — замечают
+настоящую тревогу по тем, кто молчит, а не по тем, кто всегда красный.
+
 ### Про `prune`
 
 `prune: true` означает: ресурс, удалённый из git, удаляется и из кластера. Для

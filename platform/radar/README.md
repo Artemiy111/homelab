@@ -58,7 +58,7 @@ apiserver — из `sub`, поэтому `kind: User` у них не совпа�
 
 ### Почему с маршрута убран oauth2-proxy
 
-У grafana, netdata и VM oauth2-proxy остаётся. У Radar — нет:
+У grafana и VM oauth2-proxy остаётся. У Radar — нет:
 
 - **Back-channel logout сломался бы.** Zitadel шлёт `POST` на
   `/auth/backchannel-logout` без cookie прокси; forward-auth ответил бы `401`,

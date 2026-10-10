@@ -117,15 +117,6 @@ locals {
       accepted_status_codes = ["200"]
     }
 
-    "netdata" = {
-      name                  = "Netdata"
-      group                 = "monitoring"
-      kind                  = "http"
-      description           = "Агент Netdata в кластере; публичный маршрут закрыт forward auth."
-      url                   = "http://netdata.monitoring.svc.cluster.local/api/v1/info"
-      accepted_status_codes = ["200"]
-    }
-
     "victoria-metrics" = {
       name                  = "VictoriaMetrics"
       group                 = "monitoring"
