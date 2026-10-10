@@ -8,7 +8,7 @@ spec:
     - name: homelab
       namespace: traefik
   hostnames:
-    - auth.biplane.v6.rocks
+    - auth.biplane.casa
   rules:
     - backendRefs:
         - name: authentik

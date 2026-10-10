@@ -8,7 +8,7 @@ spec:
     - name: homelab
       namespace: traefik
   hostnames:
-    - element.biplane.v6.rocks
+    - element.biplane.casa
   rules:
     # Element Call: SFU signaling. Порядок правил заменяет priority: Traefik
     # считает приоритет по длине правила, Gateway API — по порядку, и точное
@@ -71,7 +71,7 @@ spec:
     - name: homelab
       namespace: traefik
   hostnames:
-    - biplane.v6.rocks
+    - biplane.casa
   rules:
     # Apex-домен обслуживает только well-known: Gateway-слушатель отдаёт
     # wildcard, и без этих точных правил хост ушёл бы в catch-all.

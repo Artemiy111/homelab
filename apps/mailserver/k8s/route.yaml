@@ -8,7 +8,7 @@ spec:
     - name: homelab
       namespace: traefik
   hostnames:
-    - mailserver.biplane.v6.rocks
+    - mailserver.biplane.casa
   rules:
     - backendRefs:
         - name: mailserver
@@ -24,7 +24,7 @@ spec:
     - name: homelab
       namespace: traefik
   hostnames:
-    - mail.biplane.v6.rocks
+    - mail.biplane.casa
   rules:
     - backendRefs:
         - name: mail

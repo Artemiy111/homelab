@@ -8,7 +8,7 @@ spec:
     - name: homelab
       namespace: traefik
   hostnames:
-    - onlyoffice.biplane.v6.rocks
+    - onlyoffice.biplane.casa
   rules:
     - backendRefs:
         - name: onlyoffice

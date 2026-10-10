@@ -24,11 +24,13 @@ spec:
             - name: http
               containerPort: 3000
           env:
-            # Домен литералом — тот же, что в apps/zitadel/k8s/zitadel.deployment.yaml.
-            # AUDIENCE и CUSTOM_REQUEST_HEADERS должны совпадать с тем, что
-            # объявляет issuer, иначе login UI не доходит до бэкенда.
+            # AUDIENCE и CUSTOM_REQUEST_HEADERS строятся от DOMAIN, поэтому login
+            # UI обязан видеть ровно тот домен, который объявляет issuer.
             - name: DOMAIN
-              value: biplane.casa
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-config
+                  key: DOMAIN
             - name: TZ
               valueFrom:
                 configMapKeyRef:

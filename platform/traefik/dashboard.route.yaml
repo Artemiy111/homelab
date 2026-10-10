@@ -19,7 +19,6 @@ spec:
     - name: homelab
       namespace: traefik
   hostnames:
-    - traefik.biplane.v6.rocks
     - traefik.biplane.casa
   rules:
     - matches:

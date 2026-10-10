@@ -1,5 +1,5 @@
 config:
-  domain: biplane.v6.rocks
+  domain: biplane.casa
   serverIp: 192.168.1.254
   timezone: Asia/Yekaterinburg
   locale: ru
@@ -15,25 +15,24 @@ config:
 # (packages/cert-manager-webhook-dns01); должна совпадать с groupName в чарте
 # webhook'а (argocd/applications/dns01-webhook.yaml).
 #
-# zones — по ClusterIssuer на каждую зону, для каждой среды prod и staging.
-# Провайдер выбирается полем provider, зона указывается zoneName (иначе
-# cert-manager подставит ResolvedZone). issuerSuffix добавляется к имени
-# эмитента, чтобы у зон были разные имена; без суффикса — только первая зона.
+# zones — по ClusterIssuer на каждую зону. Провайдер выбирается полем provider,
+# зона указывается zoneName (иначе cert-manager подставит ResolvedZone).
+# issuerSuffix добавляется к имени эмитента, когда зон несколько: без суффикса
+# имя эмитента не даёт различать их. Суффикс остаётся и при единственной зоне —
+# переименование ClusterIssuer не трогает выпущенные сертификаты, а вот
+# смена issuerRef на Certificate перевыпускает его и упирается в rate limit
+# Let's Encrypt (docs/incidents/0002).
 #
 # challengeRecord — имя TXT-записи внутри зоны, нужно там, где провайдер
 # зарезервировал `_acme-challenge` и challenge-имя делегировано CNAME-ом.
 # У Spaceship такого ограничения нет, поэтому поле не задаётся.
 certManager:
   enabled: true
-  acmeEmail: letsencript@mailplane.v6.rocks
+  acmeEmail: letsencript@biplane.casa
   webhookGroupName: acme.homelab.local
   zones:
-    - domain: biplane.v6.rocks
-      provider: dynv6
-      challengeRecord: acme
     - domain: biplane.casa
       provider: spaceship
-      acmeEmail: letsencript@biplane.casa
       issuerSuffix: casa
   # По Certificate на домен. Отдельный Secret на каждый: подмена issuerRef на
   # staging не должна переписывать боевой сертификат (docs/incidents/0002).
@@ -44,19 +43,15 @@ certManager:
   # принимает трафик, а его HTTPRoute отбрасывается с
   # NoMatchingListenerHostname.
   #
-  # listenerSuffix обязателен для домена, отличного от config.domain: имена
-  # слушателей уникальны внутри Gateway, и без суффикса два домена дали бы
-  # слушатели с одинаковым именем. Для config.domain суффикс не задаётся —
-  # исторические имена `https` и `apex` сохраняются.
+  # Имя Certificate и Secret намеренно остаются с casa, хотя casa теперь
+  # config.domain: переименование вынудило бы cert-manager перевыпустить
+  # wildcard, а лимит Let's Encrypt общий на зарегистрированный домен и
+  # `.casa` им делится со всеми его держателями (docs/incidents/0002).
+  # Смена issuerRef на существующем Certificate перевыпускает его точно так же.
   certificates:
-    - name: wildcard
-      secretName: wildcard-tls
-      domain: biplane.v6.rocks
-      issuer: letsencrypt-prod
     - name: wildcard-casa
       secretName: wildcard-casa-tls
       domain: biplane.casa
-      listenerSuffix: casa
       issuer: letsencrypt-prod-casa
 
 namespaces:

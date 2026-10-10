@@ -64,7 +64,7 @@ endpoints:
   - name: Gitea SSH
     group: Infrastructure
     # Forgejo в k8s: SSH-порт 2222 висит на k8s-VIP, доступен по имени сервиса.
-    url: tcp://forgejo.biplane.casa:2222
+    url: tcp://forgejo.${DOMAIN}:2222
     interval: 60s
     conditions: &tcp-connected
       - "[CONNECTED] == true"
@@ -227,7 +227,7 @@ endpoints:
 
   - name: Forgejo
     group: Applications
-    url: https://forgejo.biplane.casa/api/healthz
+    url: https://forgejo.${DOMAIN}/api/healthz
     interval: 60s
     client: *https-client
     conditions:
@@ -427,7 +427,7 @@ endpoints:
 
   - name: Zitadel
     group: Applications
-    url: https://id.biplane.casa/debug/healthz
+    url: https://id.${DOMAIN}/debug/healthz
     interval: 60s
     client: *https-client
     conditions:

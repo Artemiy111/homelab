@@ -8,7 +8,7 @@ spec:
     - name: homelab
       namespace: traefik
   hostnames:
-    - glitchtip.biplane.v6.rocks
+    - glitchtip.biplane.casa
   rules:
     - backendRefs:
         - name: glitchtip

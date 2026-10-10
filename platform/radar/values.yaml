@@ -26,8 +26,8 @@ auth:
   oidc:
     issuerURL: https://id.biplane.casa
     clientID: "392954354702773261"
-    redirectURL: https://radar.biplane.v6.rocks/auth/callback
-    postLogoutRedirectURL: https://radar.biplane.v6.rocks/
+    redirectURL: https://radar.biplane.casa/auth/callback
+    postLogoutRedirectURL: https://radar.biplane.casa/
     groupsClaim: role
     # Группы приходят из claim `role` (admin|user), который кладёт action addRole
     # в Zitadel. Префикс `oidc:` даёт ровно ту группу `oidc:admin`, что и у

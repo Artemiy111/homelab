@@ -8,7 +8,7 @@ spec:
     - name: homelab
       namespace: traefik
   hostnames:
-    - ha.biplane.v6.rocks
+    - ha.biplane.casa
   rules:
     # nativeLB не переносим: в Gateway API его нет, и он здесь не нужен —
     # под hostNetwork, endpoint сервиса и так адрес узла.

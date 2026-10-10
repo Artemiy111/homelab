@@ -8,7 +8,6 @@ spec:
     - name: homelab
       namespace: traefik
   hostnames:
-    - goproxy.biplane.v6.rocks
     - goproxy.biplane.casa
   rules:
     - backendRefs:

@@ -35,11 +35,43 @@ read -rs TECHNITIUM_API_TOKEN && echo
 export TECHNITIUM_API_TOKEN
 ```
 
+## Переезд зоны на новый домен
+
+Зона и записи переехали с `biplane.v6.rocks` на `biplane.casa`. Обе зоны
+одновременно существовали в state: старая как `domain_zone`/`wildcard`/`dns`,
+новая как `domain_zone_new`/`wildcard_new`/`dns_new`. Код теперь знает только
+новые имена, поэтому state надо перенести вручную — `plan` без этого предложит
+уничтожить новую зону и создать её же заново.
+
+Порядок: сначала `state rm` старых адресов (зона `biplane.v6.rocks` в консоли
+Technitium останется, но управлять ей больше нечем), затем `state mv` новых на
+канонические имена. `mv` обязателен именно в этом порядке: наоборот адреса
+конфликтуют.
+
+```sh macOS
+cd terraform/technitium
+terraform state rm technitium_zone.domain_zone
+terraform state rm technitium_record.wildcard
+terraform state rm technitium_record.dns
+
+terraform state mv technitium_zone.domain_zone_new   technitium_zone.domain_zone
+terraform state mv technitium_record.wildcard_new    technitium_record.wildcard
+terraform state mv technitium_record.dns_new         technitium_record.dns
+
+terraform plan
+```
+
+Ожидается `No changes`. Если `plan` показывает создание зоны — `mv` не прошёл
+или порядок был нарушен; apply в этом состоянии удалит живую зону `biplane.casa`
+вместе с wildcard-записью, и apex перестанет резолвиться.
+
+Зону `biplane.v6.rocks` после этого удаляют руками в консоли Technitium.
+
 ## Значения
 
 ```hcl
-domain  = "example.com"   # тот же домен, что в platform/homelab
-host_ip = "192.0.2.10"    # адрес сервера
+domain  = "biplane.casa" # тот же домен, что в platform/homelab
+host_ip = "192.0.2.10"   # адрес сервера
 ```
 
 Оба внутренние, в git не идут; реальные лежат в

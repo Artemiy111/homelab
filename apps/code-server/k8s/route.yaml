@@ -8,7 +8,6 @@ spec:
     - name: homelab
       namespace: traefik
   hostnames:
-    - code.biplane.v6.rocks
     - code.biplane.casa
   rules:
     - backendRefs:

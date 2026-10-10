@@ -8,9 +8,7 @@ spec:
     - name: homelab
       namespace: traefik
   hostnames:
-    - rustfs.biplane.v6.rocks
     - rustfs.biplane.casa
-    - s3.biplane.v6.rocks
     - s3.biplane.casa
   rules:
     # Подписанные S3-запросы браузерной консоли к её же хосту уходят на API:

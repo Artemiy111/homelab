@@ -16,7 +16,7 @@
 # ─────────────────────────────────────────────────────────────────────────
 
 global:
-  domain: argocd.biplane.v6.rocks
+  domain: argocd.biplane.casa
 
 configs:
   # → argocd-cmd-params-cm. Ключ = имя флага без "--".
@@ -74,7 +74,6 @@ configs:
       gitlab.com ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCsj2bNKTBSpIYDEGk9KxsGh3mySTRgMtXL583qmBpzeQ+jqCMRgBqB98u3z++J1sKlXHWfM9dyhSevkMwSbhoR8XIq/U0tCNyokEi/ueaBMCvbcTHhO7FcwzY92WK4Yt0aGROY5qX2UKSeOvuP4D6TPqKF1onrSzH9bx9XUf2lEdWT/ia1NEKjunUqu1xOB/StKDHMoX4/OKyIzuS0q/T1zOATthvasJFoPrAjkohTyaDUz2LN5JoH839hViyEG82yB+MjcFV5MU3N1l1QL3cVUCh93xSaua1N85qivl+siMkPGbO5xR/En4iEY6K2XPASUEMaieWVNTRCtJ4S8H+9
       ssh.dev.azure.com ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC7Hr1oTWqNqOlzGJOfGJ4NakVyIzf1rXYd4d7wo6jBlkLvCA4odBlL0mDUyZ0/QUfTTqeu+tm22gOsv+VrVTMk6vwRU75gY/y9ut5Mb3bR5BV58dKXyq9A9UeB5Cakehn5Zgm6x1mKoVyf+FFn26iYqXJRgzIZZcZ5V6hrE0Qg39kZm4az48o0AUbf6Sp4SLdvnuMa2sVNwHBboS7EJkm57XQPVU3/QpyNLHbWDdzwtrlS+ez30S3AdYhLKEOxAG8weOnyrtLJAUen9mTkol8oII1edf7mWWbWVf0nBmly21+nZcmCTISQBtdcyPaEno7fFQMDD26/s0lfKob4Kw8H
       vs-ssh.visualstudio.com ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC7Hr1oTWqNqOlzGJOfGJ4NakVyIzf1rXYd4d7wo6jBlkLvCA4odBlL0mDUyZ0/QUfTTqeu+tm22gOsv+VrVTMk6vwRU75gY/y9ut5Mb3bR5BV58dKXyq9A9UeB5Cakehn5Zgm6x1mKoVyf+FFn26iYqXJRgzIZZcZ5V6hrE0Qg39kZm4az48o0AUbf6Sp4SLdvnuMa2sVNwHBboS7EJkm57XQPVU3/QpyNLHbWDdzwtrlS+ez30S3AdYhLKEOxAG8weOnyrtLJAUen9mTkol8oII1edf7mWWbWVf0nBmly21+nZcmCTISQBtdcyPaEno7fFQMDD26/s0lfKob4Kw8H
-      [forgejo.biplane.v6.rocks]:2222 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC/4+4Ua3E7xflXffOuPbj+WIAFNcFqGWCD33kUeZ5fMXa1mu1HCh3TKpHTdmW7HZHjmmKSsaBteD7s2VheCpk2J0WkNttZ4iBjwpoQiErEmzlBt3o5Tap5DYcZkvIsT6jMw+pBT2l6mfM1KJJtzIWM0nQP83Sm0lSWfzW0csgmAgB+W+YpARZV1HY49Q9aLXYJVEhjeIexFHmTPwIQQj382DppgSQtLVuHnvAGL7rKxOLeVD8oJF6bcnLWoPWBhYlbG3mXvwvbZJQ/HaUCBvZVvEzgEjXc4KJpa15C27cTO5K1d2+LhuUGDzVQs+9xhUaeOQs1szVZoCXitRyBzqiF2HysAr3PfoR4jNY6WK7u5B4m8+7Qcpuvg1mRCmQ3QB287N+3df0BqUpvbRE9XbRWl4I1muCHWP+Dm1i4Xa6dgSrDl+cV5op1kZls25GNh90bTUUqdmrC3bZ0K5vZHjJhR3ZRfHxnlv7nTkmy6VCIh5Ez7NrOyuz3k/iSuc0M27+t8D8w+yuAtGIyCtv3m3M4sAqGNgiwDg0QFo/85vLboWcJYcri9hLG2PROa3c+j3YwapyIyYt/eaOnoONCuo0wUtfYEZdRmq2yzLfsna91EMMGd5TOjTokatjtsbajgB9GgXIfr/VpKXod7fT3BVywC9D7ZoYmVUnjgnzT9gEtiQ==
       [forgejo.biplane.casa]:2222 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC/4+4Ua3E7xflXffOuPbj+WIAFNcFqGWCD33kUeZ5fMXa1mu1HCh3TKpHTdmW7HZHjmmKSsaBteD7s2VheCpk2J0WkNttZ4iBjwpoQiErEmzlBt3o5Tap5DYcZkvIsT6jMw+pBT2l6mfM1KJJtzIWM0nQP83Sm0lSWfzW0csgmAgB+W+YpARZV1HY49Q9aLXYJVEhjeIexFHmTPwIQQj382DppgSQtLVuHnvAGL7rKxOLeVD8oJF6bcnLWoPWBhYlbG3mXvwvbZJQ/HaUCBvZVvEzgEjXc4KJpa15C27cTO5K1d2+LhuUGDzVQs+9xhUaeOQs1szVZoCXitRyBzqiF2HysAr3PfoR4jNY6WK7u5B4m8+7Qcpuvg1mRCmQ3QB287N+3df0BqUpvbRE9XbRWl4I1muCHWP+Dm1i4Xa6dgSrDl+cV5op1kZls25GNh90bTUUqdmrC3bZ0K5vZHjJhR3ZRfHxnlv7nTkmy6VCIh5Ez7NrOyuz3k/iSuc0M27+t8D8w+yuAtGIyCtv3m3M4sAqGNgiwDg0QFo/85vLboWcJYcri9hLG2PROa3c+j3YwapyIyYt/eaOnoONCuo0wUtfYEZdRmq2yzLfsna91EMMGd5TOjTokatjtsbajgB9GgXIfr/VpKXod7fT3BVywC9D7ZoYmVUnjgnzT9gEtiQ==
 
 controller:
