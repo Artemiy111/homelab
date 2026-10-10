@@ -1,6 +1,6 @@
 # Radar — open-source Kubernetes UI (один Go-бинарь): топология, ресурсы, Helm,
 # GitOps, аудит, MCP. Ставится официальным чартом skyhook/radar; маршрут —
-# clusters/casa/platform/homelab/templates/routes/radar.yaml.
+# clusters/casa/apps/radar/manifests/route.yaml.
 #
 # auth.mode=oidc: Radar входит в Zitadel сам и имперсонирует пользователя в
 # Kubernetes, поэтому права определяет RBAC пользователя, а не общий

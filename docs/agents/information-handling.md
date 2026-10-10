@@ -49,7 +49,7 @@ DNS-именем, а в публичных источниках не появл�
 beyond the prefix length»), kubeconform — нет: в схеме это строка. В
 репозитории оказался `192.0.2.10/16`, и `kubectl apply` перестал работать.
 
-Адрес узла остаётся в `clusters/casa/platform/homelab/values.yaml`, в `externalIPs` и в
+Адрес узла остаётся в `externalIPs` и в
 `infra/terraform/*/terraform.tfvars`. В NetworkPolicy он не дублируется: трафик с
 узла разрешается подсетью, поэтому pinning адреса добавил бы только ещё одно
 место, которое надо править при переезде узла. Побочный эффект — `clusters/casa/apps/elk`
@@ -80,7 +80,7 @@ Vault и попадают в кластер через `VaultStaticSecret` (VSO)
   значение в values, оно берётся из Vault по ссылке. Смешивать два уровня
   нельзя — у них разный радиус поражения и разный порядок ротации.
 - **Адрес узла не дублируется в NetworkPolicy.** Он живёт в
-  `clusters/casa/platform/homelab/values.yaml`, в `externalIPs` и в
+  `externalIPs` и в
   `infra/terraform/*/terraform.tfvars` (untracked); в документации и примерах —
   плейсхолдер `192.0.2.10` из RFC 5737. В манифестах, которые применяются через
   `kubectl`, вместо адреса указывается LAN-подсеть — см. раздел выше.

@@ -47,7 +47,7 @@ host_ip = "192.0.2.10"    # адрес Technitium: ему tailnet отдаёт �
 стенда публичен (wildcard-сертификат Let's Encrypt публикуется в Certificate
 Transparency, `docs/agents/information-handling.md`), поэтому держать его в
 приватном слое нечего. `var.domain` остаётся основным доменом — тем, что в
-`clusters/casa/platform/homelab/values.yaml`.
+манифестах Traefik.
 
 ## Что управляется
 

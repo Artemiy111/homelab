@@ -15,7 +15,7 @@ spec:
     # /.well-known/openid-configuration: apiserver сверяет claim iss и отклоняет
     # токен при расхождении. Домен — ZITADEL_EXTERNALDOMAIN из
     # clusters/casa/apps/zitadel/k8s/zitadel.deployment.yaml, он же config.domain в
-    # clusters/casa/platform/homelab/values.yaml.
+    # раньше жил в config.serverIp чарта platform/homelab, который распущен.
     #
     # Инициализация issuer асинхронная (retry каждые 10 с), поэтому apiserver
     # стартует и при недоступном Zitadel — падает только вход через него.

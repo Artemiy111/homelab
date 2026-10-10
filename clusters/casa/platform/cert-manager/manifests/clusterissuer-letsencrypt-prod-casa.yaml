@@ -1,0 +1,22 @@
+# Эмитент Let's Encrypt для зоны. Письмо и зона были в certManager values
+# чарта platform/homelab; после растворения чарта — литералы, как и во всех
+# прочих манифестах.
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod-casa
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: letsencript@biplane.casa
+    privateKeySecretRef:
+      name: letsencrypt-prod-casa-account-key
+    solvers:
+    - dns01:
+        webhook:
+          groupName: acme.homelab.local
+          solverName: dns01
+          config:
+            provider: spaceship
+            zoneName: biplane.casa

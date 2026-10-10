@@ -353,7 +353,7 @@ kubectl -n <ns> get pods
 | Сервис | Как выключен | Включение |
 |---|---|---|
 | `alloy-profiler` | Application без `syncPolicy.automated` | вернуть блок `automated` |
-| `local-ai` | манифесты в git, Application нет | завести Application, вернуть namespace в `clusters/casa/platform/homelab/values.yaml` |
+| `local-ai` | манифесты в git, Application нет | завести Application, вернуть namespace сервиса |
 | `vmagent` | `replicas: 0` в `clusters/casa/apps/victoria-metrics` (#888) | снять `replicas: 0`, вернуть проверку в Gatus |
 
 Проверки выключенных сервисов удалены из `clusters/casa/apps/gatus/config/config.yaml`, а не

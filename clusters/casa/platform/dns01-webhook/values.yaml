@@ -5,7 +5,7 @@
 # требует подтверждения DNS, а внешние сети стенда провайдеры режут.
 
 # Домен группы DNS-01: подписи ACME запросов пишутся в эту зону. Обязан
-# совпадать с webhookGroupName в clusters/casa/platform/homelab/values.yaml (оттуда его берёт
+# совпадать с webhookGroupName в бывшем чарте platform/homelab (оттуда его берёт
 # ClusterIssuer).
 groupName: acme.homelab.local
 

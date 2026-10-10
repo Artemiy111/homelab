@@ -1,0 +1,11 @@
+# GatewayClass, которым обслуживает Traefik. Имя и controllerName
+# совпадают с теми, что создаёт чарт Traefik, поэтому наш объект и объект
+# чарта — один и тот же: применяется ровно один. В values чарта Traefik
+# gatewayClass.enabled выключен, и владение объектом целиком здесь.
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: traefik
+spec:
+  controllerName: traefik.io/gateway-controller

@@ -32,6 +32,11 @@ metadata:
 spec:
   project: upstream
   sources:
+    # Эмитент и wildcard-сертификат переехали из чарта platform/homelab к
+# владельцу — cert-manager'у. Второй источник обычным каталогом.
+    - repoURL: ssh://git@forgejo.biplane.casa:2222/artemiy/homelab.git
+      targetRevision: main
+      path: clusters/casa/platform/cert-manager/manifests
     - repoURL: https://charts.jetstack.io
       chart: cert-manager
       targetRevision: v1.21.2

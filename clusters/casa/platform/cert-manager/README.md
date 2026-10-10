@@ -18,7 +18,7 @@ A/AAAA для этого не нужны — валидация идёт цел�
 
 ## Провайдеры
 
-Зоны перечислены в `certManager.zones` (`clusters/casa/platform/homelab/values.yaml`), на каждую
+Зоны перечислены в `manifests/clusterissuer-*.yaml`, на каждую
 свой `ClusterIssuer` для prod и staging.
 
 | Зона | Провайдер | Что нужно вручную |
@@ -71,8 +71,8 @@ Webhook ставится отдельным Argo Application (`clusters/casa/pla
 |---|---|
 | `clusters/casa/platform/cert-manager/app.yaml` | Argo Application: оператор + CRD |
 | `clusters/casa/platform/dns01-webhook/app.yaml` | Argo Application: webhook-солвер |
-| `clusters/casa/platform/homelab/templates/cert-manager/clusterissuers.yaml` | `ClusterIssuer` prod и staging для каждой зоны |
-| `clusters/casa/platform/homelab/templates/cert-manager/certificate.yaml` | `Certificate` для каждого домена |
+| `clusters/casa/platform/cert-manager/manifests/clusterissuers.yaml` | `ClusterIssuer` prod и staging для каждой зоны |
+| `clusters/casa/platform/cert-manager/manifests/certificate.yaml` | `Certificate` для каждого домена |
 | `clusters/casa/platform/cert-manager/vaultauth.yaml` | ServiceAccount и `VaultAuth` для VSO |
 | `clusters/casa/platform/cert-manager/vaultstaticsecret.yaml` | доставка credentials провайдеров из Vault |
 

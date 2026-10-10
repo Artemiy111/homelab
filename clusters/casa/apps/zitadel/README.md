@@ -1,7 +1,7 @@
 # Zitadel
 
 Zitadel — IdP homelab. Доступен через Traefik по `https://id.<домен>/`,
-где `<домен>` — `config.domain` из `clusters/casa/platform/homelab/values.yaml`;
+где `<домен>` — литерал в манифестах юнита;
 - консоль — `/ui/console`
 - вход — `/ui/v2/login`.
 
@@ -40,7 +40,7 @@ Allowed; пользователей регистрировать только pa
 
 Одноразовую ссылку на регистрацию passkey без SMTP выдаёт
 `zitadel/zitadel-passkey-link.sh` (нужен PAT администратора). Домен передаётся
-переменной `DOMAIN` — тот же, что в `clusters/casa/platform/homelab/values.yaml`; вместо
+переменной `DOMAIN` — тот же, что в бывшем чарте platform/homelab; вместо
 неё можно задать `ZITADEL_HOST`:
 
 ```sh

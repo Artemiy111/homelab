@@ -19,7 +19,7 @@ HTTPS-точку входа `websecure`, а `web` перенаправляет H
 kubectl apply -f clusters/casa/platform/traefik/dashboard.route.yaml
 ```
 
-`Gateway` и `GatewayClass` описаны в `clusters/casa/platform/homelab/templates/gateway/`, а не
+`Gateway` и `GatewayClass` описаны в `clusters/casa/platform/traefik/manifests/`, а не
 здесь: hostname слушателя и `certificateRef` требуют домена из values чарта
 `clusters/casa/platform/homelab`. В values Traefik выключены `gateway.enabled`
 и `gatewayClass.enabled`, иначе чарт создал бы второй Gateway без сертификата.
@@ -36,7 +36,7 @@ helm upgrade --install traefik <чарт> -f values.yaml \
 
 TLS терминируется на entrypoint `websecure`. Сертификат отдаёт `Gateway`
 `homelab` — `certificateRef` на секрет `wildcard-tls` в namespace `traefik`
-(`clusters/casa/platform/homelab/templates/gateway/gateway.yaml`). TLSStore `default`
+(`clusters/casa/platform/traefik/manifests/gateway-homelab.yaml`). TLSStore `default`
 (`tlsstore.yaml`) остался для маршрутов, которые ещё не переведены на
 Gateway API.
 

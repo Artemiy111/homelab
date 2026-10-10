@@ -49,7 +49,7 @@ repo_files() {
 #
 # deploy_files — всё, что уезжает в кластер: любой отслеживаемый YAML под
 # clusters/casa/apps/, clusters/casa/platform/, bootstrap/, включая values.yaml, чарты сервисов и шаблоны
-# чарта homelab. Compose-файлы хостовых утилит (clusters/casa/apps/spotdl) в кластер не
+# чарта. Compose-файлы хостовых утилит (clusters/casa/apps/spotdl) в кластер не
 # попадают, поэтому исключены. По этой области считаются образы, namespace'ы и
 # секреты.
 deploy_files() {
@@ -65,7 +65,7 @@ manifest_files() {
   repo_files '*.yaml' '*.yml' |
     grep -E '^(clusters/casa/apps/[^/]+/manifests|clusters/casa/platform|bootstrap)/' |
     grep -vE '(values|Chart)\.yaml$' |
-    grep -vE '^clusters/casa/platform/homelab/templates/' |
+    grep -vE '^clusters/casa/apps/' |
     grep -vE '/manifests/config/' || true
 }
 

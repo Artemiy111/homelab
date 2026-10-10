@@ -259,7 +259,7 @@ ssh homelab-agent 'sudo -u artlab bash -lc "cd /home/artlab/projects/homelab && 
 В Helm-чарте `clusters/casa/platform/homelab` живут `homelab-config`, Gateway, GatewayClass,
 `Certificate` и `ClusterIssuer`, два Service и конфигмапы Element Web,
 Home Assistant и Structurizr. Домен и адрес сервера берутся из
-`clusters/casa/platform/homelab/values.yaml`, который лежит в репозитории
+`externalIPs` в values Traefik, который лежит в репозитории
 (`docs/adr/0009`) — отдельного приватного values-файла нет. Values тоже
 в git, поэтому рендер делается локально:
 
@@ -309,7 +309,7 @@ KUBECONFIG=~/.kube/configs/homelab.yaml kubectl -n traefik get gateway homelab \
 
 Маршрут, которого нет в кластере, попадает в `attachedRoutes` только после
 apply. `NoMatchingListenerHostname` в статусе HTTPRoute означает, что ни один
-слушатель не объявлен на этот домен, — проверять `clusters/casa/platform/homelab/values.yaml`,
+слушатель не объявлен на этот домен, — проверять Gateway в traefik,
 а не маршрут.
 
 ## Проверка платформы

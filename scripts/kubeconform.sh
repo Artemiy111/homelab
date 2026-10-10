@@ -99,7 +99,6 @@ kubeconform \
   "${schema_args[@]}" \
   -ignore-filename-pattern 'values\.yaml$' \
   -ignore-filename-pattern 'Chart\.yaml$' \
-  -ignore-filename-pattern 'clusters/casa/platform/homelab/templates' \
   -ignore-filename-pattern 'manifests/config/' \
   -ignore-filename-pattern 'kustomization\.yaml$' \
   -summary \

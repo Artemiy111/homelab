@@ -1,0 +1,41 @@
+# Единственная точка входа в кластер. Слушатели строятся по списку
+# certManager.certificates: домен без слушателя не принимает трафик, а
+# HTTPRoute на такой домен отбрасывается с NoMatchingListenerHostname.
+#
+# Секреты лежат в этом же namespace, поэтому ReferenceGrant не нужен.
+# allowedRoutes.namespaces.from: All — маршруты лежат в namespace приложений,
+# а Gateway здесь. Сознательный размен: целостность обеспечивает то, что
+# HTTPRoute всё равно нужно положить в репозиторий.
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: homelab
+  namespace: traefik
+spec:
+  gatewayClassName: traefik
+  listeners:
+  - name: https
+    protocol: HTTPS
+    port: 8443
+    hostname: '*.biplane.casa'
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - kind: Secret
+        name: wildcard-casa-tls
+    allowedRoutes:
+      namespaces:
+        from: All
+  - name: apex
+    protocol: HTTPS
+    port: 8443
+    hostname: biplane.casa
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - kind: Secret
+        name: wildcard-casa-tls
+    allowedRoutes:
+      namespaces:
+        from: All

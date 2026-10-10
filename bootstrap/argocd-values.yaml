@@ -57,6 +57,12 @@ configs:
         - .spec.rules[]?.backendRefs[]?.kind
         - .spec.rules[]?.backendRefs[]?.weight
         - .spec.rules[]?.matches
+    # Gateway: apiserver подставляет group в certificateRefs[]. Без правила
+    # traefik висит OutOfSync после перехода Gateway под Argo, хотя рендер
+    # совпадает с кластером.
+    resource.customizations.ignoreDifferences.gateway.networking.k8s.io_Gateway: |
+      jqPathExpressions:
+        - .spec.listeners[]?.tls.certificateRefs[]?.group
 
   ssh:
     knownHosts: |

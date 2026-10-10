@@ -10,7 +10,7 @@
 # wildcard'ом Let's Encrypt из clusterissuers.yaml. Схему с HTTPS обязывает сам
 # Argo: OCI-клиент не ходит по http.
 #
-# groupName обязан совпадать с webhookGroupName в clusters/casa/platform/homelab/values.yaml
+# groupName обязан совпадать с webhookGroupName в бывшем чарте platform/homelab
 # (оттуда его берёт ClusterIssuer), а provider — с полем provider в
 # certManager.zones этого же файла.
 #

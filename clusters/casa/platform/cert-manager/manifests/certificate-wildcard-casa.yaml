@@ -1,0 +1,18 @@
+# Wildcard-сертификат, который слушают Gateway'и. Имя и secretName намеренно
+# остаются с суффиксом -casa: переименование заставило бы cert-manager
+# перевыпустить wildcard (docs/incidents/0002).
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: wildcard-casa
+  namespace: traefik
+spec:
+  secretName: wildcard-casa-tls
+  issuerRef:
+    name: letsencrypt-prod-casa
+    kind: ClusterIssuer
+  dnsNames:
+  - '*.biplane.casa'
+  - biplane.casa
+  renewBefore: 720h
