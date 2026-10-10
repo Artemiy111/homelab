@@ -138,18 +138,6 @@ endpoints:
       - "[BODY] == OK"
     alerts: *alerts-all
 
-  - name: vmagent
-    group: Monitoring
-    # Выключен в #888: узел не успевал обслуживать сбор метрик.
-    enabled: false
-    url: http://vmagent.monitoring.svc.cluster.local/health
-    interval: 60s
-    client: *docker-client
-    conditions:
-      - "[STATUS] == 200"
-      - "[BODY] == OK"
-    alerts: *alerts-all
-
   - name: Grafana
     group: Monitoring
     # Публичный маршрут закрыт forward auth (302 без авторизации), поэтому
@@ -230,26 +218,6 @@ endpoints:
   - name: code-server
     group: Applications
     url: https://code.${DOMAIN}/healthz
-    interval: 60s
-    client: *https-client
-    conditions: *https-ok
-    alerts: *alerts-all
-
-  - name: Authentik
-    group: Applications
-    # Выключен намеренно, Application без syncPolicy.automated.
-    enabled: false
-    url: https://auth.${DOMAIN}/-/health/ready/
-    interval: 60s
-    client: *https-client
-    conditions: *https-ok
-    alerts: *alerts-all
-
-  - name: LocalAI
-    group: Applications
-    # Выключен намеренно, в кластере нет ни Application, ни Deployment.
-    enabled: false
-    url: https://localai.${DOMAIN}/readyz
     interval: 60s
     client: *https-client
     conditions: *https-ok

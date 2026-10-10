@@ -347,12 +347,13 @@ kubectl -n <ns> get pods
 | `authentik`, `gitlab`, `alloy-profiler` | Application без `syncPolicy.automated` | вернуть блок `automated` |
 | `local-ai` | манифесты в git, Application нет | завести Application, вернуть namespace в `platform/homelab/values.yaml` |
 | `netdata` | удалён из репозитория 2026-10-10 | поставить заново, `netdata` ставится из образа |
-| `vmagent` | `replicas: 0` в `apps/victoria-metrics` (#888) | снять `replicas: 0`, снять `enabled: false` в Gatus |
+| `vmagent` | `replicas: 0` в `apps/victoria-metrics` (#888) | снять `replicas: 0`, вернуть проверку в Gatus |
 
-Проверки выключенного в `apps/gatus/config/config.yaml` помечены
-`enabled: false`, а не удалены: так видно, что сервис есть и почему молчит.
-Красная доска постоянного состояния хуже отсутствия доски — замечают
-настоящую тревогу по тем, кто молчит, а не по тем, кто всегда красный.
+Проверки выключенных сервисов удалены из `apps/gatus/config/config.yaml`, а не
+помечены `enabled: false`. `enabled: false` останавливает опрос, но Gatus хранит
+последний результат в своей БД и продолжает показывать его красным — доска
+остаётся вечно красной, а её перестаёшь открывать. По этому списку и таблице
+выше восстанавливается, что отключено и почему.
 
 ### Про `prune`
 
