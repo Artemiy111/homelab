@@ -1,3 +1,0 @@
-# Адрес узла: в него уходят externalIPs сервисов xui-egress и xui-inbound.
-# Тот же адрес, что config.serverIp в platform/homelab/values.yaml.
-serverIp: 192.168.1.254

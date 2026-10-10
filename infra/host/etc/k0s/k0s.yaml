@@ -9,13 +9,13 @@ spec:
     # Zitadel сам и читает из него имя пользователя и группу. Claim `role`
     # кладёт action `addRole` (infra/terraform/zitadel/actions.tf), а группа
     # `oidc:admin` даёт cluster-admin
-    # (platform/headlamp/headlamp-admins.clusterrolebinding.yaml).
+    # (clusters/casa/platform/headlamp/headlamp-admins.clusterrolebinding.yaml).
     #
     # Issuer обязан совпадать с тем, что Zitadel объявляет в
     # /.well-known/openid-configuration: apiserver сверяет claim iss и отклоняет
     # токен при расхождении. Домен — ZITADEL_EXTERNALDOMAIN из
-    # apps/zitadel/k8s/zitadel.deployment.yaml, он же config.domain в
-    # platform/homelab/values.yaml.
+    # clusters/casa/apps/zitadel/k8s/zitadel.deployment.yaml, он же config.domain в
+    # clusters/casa/platform/homelab/values.yaml.
     #
     # Инициализация issuer асинхронная (retry каждые 10 с), поэтому apiserver
     # стартует и при недоступном Zitadel — падает только вход через него.

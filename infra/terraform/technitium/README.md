@@ -1,7 +1,7 @@
 # Technitium (Terraform)
 
 DNS-записи зоны стенда и bootstrap-зоны `cloudflare-dns.com`. Развёртывание
-самого сервера — `apps/technitium/`, здесь только записи через HTTP API.
+самого сервера — `clusters/casa/apps/technitium/`, здесь только записи через HTTP API.
 
 ## Запуск
 
@@ -70,7 +70,7 @@ terraform plan
 ## Значения
 
 ```hcl
-domain  = "biplane.casa" # тот же домен, что в platform/homelab
+domain  = "biplane.casa" # тот же домен, что в clusters/casa/platform/homelab
 host_ip = "192.0.2.10"   # адрес сервера
 ```
 
@@ -83,7 +83,7 @@ host_ip = "192.0.2.10"   # адрес сервера
 | --- | --- |
 | `technitium_record.wildcard` | `*.<домен>` A → сервер |
 | `technitium_record.dns` | `dns.<домен>` A → сервер |
-| `technitium_record.cloudflare_bootstrap_*` | две A-записи зоны `cloudflare-dns.com` (обход DPI, см. `apps/technitium/README.md`) |
+| `technitium_record.cloudflare_bootstrap_*` | две A-записи зоны `cloudflare-dns.com` (обход DPI, см. `clusters/casa/apps/technitium/README.md`) |
 
 Две bootstrap-записи живут в одном RRset, поэтому у них `overwrite = false` —
 иначе вторая затирала бы первую.

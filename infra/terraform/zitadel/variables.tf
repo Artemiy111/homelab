@@ -1,5 +1,5 @@
 variable "domain" {
-  description = "Корневой домен стенда, без схемы: адрес Zitadel собирается как id.<домен>, как в apps/zitadel. Из него же собираются домен организации и redirect URI приложений"
+  description = "Корневой домен стенда, без схемы: адрес Zitadel собирается как id.<домен>, как в clusters/casa/apps/zitadel. Из него же собираются домен организации и redirect URI приложений"
   type        = string
 }
 

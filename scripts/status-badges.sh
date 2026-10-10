@@ -48,24 +48,24 @@ repo_files() {
 # Две области, и разница между ними осмысленная.
 #
 # deploy_files — всё, что уезжает в кластер: любой отслеживаемый YAML под
-# apps/, platform/, argocd/, включая values.yaml, чарты сервисов и шаблоны
-# чарта homelab. Compose-файлы хостовых утилит (apps/spotdl) в кластер не
+# clusters/casa/apps/, clusters/casa/platform/, argocd/, включая values.yaml, чарты сервисов и шаблоны
+# чарта homelab. Compose-файлы хостовых утилит (clusters/casa/apps/spotdl) в кластер не
 # попадают, поэтому исключены. По этой области считаются образы, namespace'ы и
 # секреты.
 deploy_files() {
   repo_files '*.yaml' '*.yml' |
-    grep -E '^(apps|platform|argocd)/' |
+    grep -E '^(clusters/casa/apps|clusters/casa/platform|argocd)/' |
     grep -vE '/compose\.ya?ml$' || true
 }
 
-# manifest_files — область CI-гейта kubeconform: apps/<сервис>/k8s/, platform/,
+# manifest_files — область CI-гейта kubeconform: clusters/casa/apps/<сервис>/k8s/, clusters/casa/platform/,
 # argocd/ без values.yaml, Chart.yaml и шаблонов чарта. Только по ней считается
 # число манифестов, чтобы оно совпадало с тем, что реально проверяет CI.
 manifest_files() {
   repo_files '*.yaml' '*.yml' |
-    grep -E '^(apps/[^/]+/k8s|platform|argocd)/' |
+    grep -E '^(clusters/casa/apps/[^/]+/k8s|clusters/casa/platform|argocd)/' |
     grep -vE '(values|Chart)\.yaml$' |
-    grep -vE '^platform/homelab/templates/' || true
+    grep -vE '^clusters/casa/platform/homelab/templates/' || true
 }
 
 # Образ в однострочной форме `image: <ref>`. Многострочные формы (`image:` и
@@ -86,7 +86,7 @@ json_array() {
   awk 'BEGIN { printf "[" } { printf "%s\"%s\"", (NR == 1 ? "" : ", "), $0 } END { print "]" }'
 }
 
-services="$(repo_files 'apps/*.yaml' 'apps/*.yml' | cut -d/ -f2 | sort -u | count_lines)"
+services="$(repo_files 'clusters/casa/apps/*.yaml' 'clusters/casa/apps/*.yml' | cut -d/ -f4 | sort -u | count_lines)"
 manifests="$(manifest_files | count_lines)"
 images_pinned="$(image_lines | grep -cE '@sha256:' || true)"
 images_total="$(image_lines | count_lines)"

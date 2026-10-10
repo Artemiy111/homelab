@@ -8,7 +8,7 @@ spec:
   sources:
     - repoURL: ssh://git@forgejo.biplane.casa:2222/artemiy/homelab.git
       targetRevision: main
-      path: apps/element/chart
+      path: clusters/casa/apps/element/chart
       helm:
         releaseName: element
   destination:

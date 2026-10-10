@@ -12,7 +12,7 @@ Argo CD поднимается на кластере как **проверка �
 | Namespace | `argocd` |
 | URL | https://argocd.example.com |
 | Параметры | `argocd/install/values.yaml` — только отклонения от дефолтов чарта |
-| Маршрут | `platform/argocd/route.yaml` — применяется вручную, Argo его не синхронизирует (#858) |
+| Маршрут | `clusters/casa/platform/argocd/route.yaml` — применяется вручную, Argo его не синхронизирует (#858) |
 
 Все команды ниже выполняются **на сервере** (там есть `helm` и kubeconfig),
 из корня репозитория.
@@ -32,7 +32,7 @@ helm install argocd argo/argo-cd \
   -f argocd/install/values.yaml \
   --wait
 
-helm template platform/homelab | kubectl apply -f -
+helm template clusters/casa/platform/homelab | kubectl apply -f -
 ```
 
 ## Проверка
@@ -113,7 +113,7 @@ argocd account update-password
    кластеров вместо ручного создания каждого Application. Возможность рабочая,
    но у нас не используется: генератор собирает `Application` в рантайме, и
    спека не лежит в git. Свойства проверены на стенде, решение — в разделе
-   «Приложения из `apps/`».
+   «Приложения из `clusters/casa/apps/`».
 
 ## Бутстрап: спеки Application'ов живут в git
 
@@ -237,7 +237,7 @@ redirect URL в `radar` и `headlamp`, домен в `dns01-webhook`. Секре
 ссылки `existingSecret` и `secretKeyRef`.
 
 Значения лежат в публичном репозитории: у `traefik` — в
-`platform/traefik/values.yaml`, у остальных компонентов пока инлайн в
+`clusters/casa/platform/traefik/values.yaml`, у остальных компонентов пока инлайн в
 `valuesObject` Application. Отдельный приватный слой был отменён
 (`docs/adr/0009`): домен и так публичен — wildcard-сертификат Let's Encrypt
 попадает в Certificate Transparency, где виден базовый домен, — а приватный
@@ -265,7 +265,7 @@ redirect URL в `radar` и `headlamp`, домен в `dns01-webhook`. Секре
   Argo будет вечно `OutOfSync` с `field is immutable`; лечится удалением объекта, после чего
   Argo создаёт его заново.
 
-## Приложения из `apps/`
+## Приложения из `clusters/casa/apps/`
 
 По одному `Application` на сервис, лежат в `argocd/applications/apps/` и
 применяются тем же корневым `Application`, что и платформенные компоненты.
@@ -278,13 +278,13 @@ PR, добавляющий сервис, не показывает ни `prune`,
 `syncOptions` — то есть ровно то, что Argo сделает с кластером.
 
 Что было вместо этого: `ApplicationSet` с git-генератором файлов, который читал
-`apps/<сервис>/app.yaml` — реестр из четырёх полей (`name`, `dir`, `namespace`,
+`clusters/casa/apps/<сервис>/app.yaml` — реестр из четырёх полей (`name`, `dir`, `namespace`,
 `project`). От него отказались, и вот почему:
 
 | Проблема реестра | Что вместо |
 |---|---|
 | `Application` собирается в рантайме, в git не лежит | спека в файле, видна в диффе PR |
-| `app.yaml` не проверялся ни одним гейтом: `kubeconform` сканирует `apps/*/k8s`, `platform`, `argocd`, а `apps/<сервис>/app.yaml` не попадает ни в одну дорожку | файл в `argocd/` проверяется kubeconform как `Application` |
+| `app.yaml` не проверялся ни одним гейтом: `kubeconform` сканирует `clusters/casa/apps/*/k8s`, `platform`, `argocd`, а `clusters/casa/apps/<сервис>/app.yaml` не попадает ни в одну дорожку | файл в `argocd/` проверяется kubeconform как `Application` |
 | `prune` задан литералом в `spec.template` и достаётся всем без исключения — сервисы с данными защищены только тем, что их не добавили | `prune` виден в файле сервиса |
 | поля реестра — подмножество `spec.Application`: чарты (`3x-ui`, `element`) и multi-source values (`traefik`) не выражались | выражаются, отдельный `Application` на каждый случай |
 | `path` в реестре перекрывается служебным параметром генератора — пришлось переименовать в `dir` | таких коллизий нет |
@@ -345,11 +345,11 @@ kubectl -n <ns> get pods
 | Сервис | Как выключен | Включение |
 |---|---|---|
 | `authentik`, `gitlab`, `alloy-profiler` | Application без `syncPolicy.automated` | вернуть блок `automated` |
-| `local-ai` | манифесты в git, Application нет | завести Application, вернуть namespace в `platform/homelab/values.yaml` |
+| `local-ai` | манифесты в git, Application нет | завести Application, вернуть namespace в `clusters/casa/platform/homelab/values.yaml` |
 | `netdata` | удалён из репозитория 2026-10-10 | поставить заново, `netdata` ставится из образа |
-| `vmagent` | `replicas: 0` в `apps/victoria-metrics` (#888) | снять `replicas: 0`, вернуть проверку в Gatus |
+| `vmagent` | `replicas: 0` в `clusters/casa/apps/victoria-metrics` (#888) | снять `replicas: 0`, вернуть проверку в Gatus |
 
-Проверки выключенных сервисов удалены из `apps/gatus/config/config.yaml`, а не
+Проверки выключенных сервисов удалены из `clusters/casa/apps/gatus/config/config.yaml`, а не
 помечены `enabled: false`. `enabled: false` останавливает опрос, но Gatus хранит
 последний результат в своей БД и продолжает показывать его красным — доска
 остаётся вечно красной, а её перестаёшь открывать. По этому списку и таблице
@@ -468,7 +468,7 @@ allow-list'ом. Нет записи → нельзя ни создать, ни 
 
 ### Про `kustomization.yaml`
 
-Манифесты лежат в `apps/<сервис>/k8s/`, и Argo в режиме plain-каталога **не
+Манифесты лежат в `clusters/casa/apps/<сервис>/k8s/`, и Argo в режиме plain-каталога **не
 рекурсирует в подкаталоги**: каталог без `kustomization.yaml` считается пустым
 и приложение отвечает «app path does not exist». Проверено на стенде — в том
 числе пробным `Application` с новым именем, у которого тот же путь работал.
@@ -510,7 +510,7 @@ kubectl get crd httproutes.gateway.networking.k8s.io \
   -o jsonpath='{..rules.items.properties}' | jq
 ```
 
-Правкой всех 41 `apps/*/k8s/route.yaml` вопрос не решается: дефолты появились бы
+Правкой всех 41 `clusters/casa/apps/*/k8s/route.yaml` вопрос не решается: дефолты появились бы
 снова при обновлении CRD, и manifests-файлы начали бы повторять то, что и так
 знает apiserver.
 
@@ -564,7 +564,7 @@ argocd app get kube-state-metrics
 ```
 
 Метрики скрейпит vmagent (job `kube-state-metrics` в
-`apps/victoria-metrics/config/vmagent/scrape.yml`) — после синка нужно
+`clusters/casa/apps/victoria-metrics/config/vmagent/scrape.yml`) — после синка нужно
 перезапустить vmagent.
 
 ## Адопция существующего Helm-релиза (на примере headlamp)
@@ -603,10 +603,10 @@ kubectl -n headlamp delete secret -l owner=helm,name=headlamp
 бежит под SA `headlamp`. Права приходят из OIDC: Headlamp отдаёт apiserver'у
 `id_token`, который тот проверяет по подписи Zitadel и читает из него claim
 `role` как группу. `cluster-admin` выдаётся группе `oidc:admin`
-(`platform/headlamp/headlamp-admins.clusterrolebinding.yaml`), поэтому он есть
+(`clusters/casa/platform/headlamp/headlamp-admins.clusterrolebinding.yaml`), поэтому он есть
 только у пользователей с ролью `admin` в Zitadel. `extraManifests` в этом
 Application больше нет. Маршрут
-(`platform/headlamp/route.yaml`) — вне Application.
+(`clusters/casa/platform/headlamp/route.yaml`) — вне Application.
 
 ### Traefik
 
@@ -616,13 +616,13 @@ Application больше нет. Маршрут
 
 - `skipCrds: true` — CRD `*.traefik.io` кластерные; под управлением Argo они
   при удалении приложения снесли бы все `IngressRoute`/`Middleware` кластера.
-- values лежат в `platform/traefik/values.yaml` и подключены через `$values` —
+- values лежат в `clusters/casa/platform/traefik/values.yaml` и подключены через `$values` —
   второй источник в `spec.sources`, ссылающийся на этот же репозиторий по SSH.
   Раньше те же 32 значения были продублированы инлайн в `valuesObject`, и правка
   файла молча расходилась с кластером. Теперь файл — единственный источник.
 - `service.spec.externalIPs` — адрес узла, и это нагрузочное значение: без него
   Traefik не принимает трафик на адрес узла. Живёт в values-файле.
-  Домен здесь не нужен — он в маршрутах `platform/homelab`, а не в values Traefik.
+  Домен здесь не нужен — он в маршрутах `clusters/casa/platform/homelab`, а не в values Traefik.
 - Значения из приватного репозитория сюда не возвращаются (`docs/adr/0009`):
   домен и адрес узла публичны по решению.
 - Чарт сам создаёт `ClusterRole`/`ClusterRoleBinding`/`IngressClass` — они под
@@ -663,7 +663,7 @@ argocd app list -A
 argocd app delete guestbook --cascade
 
 helm uninstall argocd -n argocd
-helm template platform/homelab | kubectl delete -f -
+helm template clusters/casa/platform/homelab | kubectl delete -f -
 kubectl delete ns argocd
 
 # CRD чарт намеренно не удаляет (crds.keep: true) — снимаем руками
@@ -678,7 +678,7 @@ kubectl delete crd applications.argoproj.io applicationsets.argoproj.io appproje
 Пока стенд живёт вместе с будущим Flux:
 
 - держать Argo на **отдельном** наборе ресурсов: тестовые приложения, а не
-  боевые манифесты кластера из `platform/`;
+  боевые манифесты кластера из `clusters/casa/platform/`;
 - не указывать обоим контроллерам один и тот же git-путь;
 - помнить, что Argo ставится Helm'ом, а Flux будет управлять собой сам —
   их собственные манифесты в кластере тоже не должны пересекаться.

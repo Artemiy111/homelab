@@ -8,7 +8,7 @@
 # сломает селекторы чарта).
 #
 # Значения вынесены из `spec.source.helm.valuesObject` в
-# `platform/eck-operator/values.yaml`, Application подключает их через
+# `clusters/casa/platform/eck-operator/values.yaml`, Application подключает их через
 # `$values` — второй источник в `spec.sources`.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -27,7 +27,7 @@ spec:
       targetRevision: v3.5.0
       helm:
         valueFiles:
-          - $values/platform/eck-operator/values.yaml
+          - $values/clusters/casa/platform/eck-operator/values.yaml
     - repoURL: ssh://git@forgejo.biplane.casa:2222/artemiy/homelab.git
       targetRevision: main
       ref: values

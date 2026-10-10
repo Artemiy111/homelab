@@ -20,11 +20,11 @@ jobs:
           fetch-depth: 0
       # setup-bun берётся из зеркала на локальном инстансе (org `oven-sh`) —
       # как и остальные `uses:` при DEFAULT_ACTIONS_URL=http://forgejo-http:3000.
-      # Bинарь качаем через кэш ATS (apps/ats): GitHub отдаёт release-ассет 302
+      # Bинарь качаем через кэш ATS (clusters/casa/apps/ats): GitHub отдаёт release-ассет 302
       # на подписанный CDN-URL, а HTTP-клиент внутри setup-bun по нему не идёт и
       # уходит в таймаут. ATS же разворачивает редирект сам и кэширует файл.
       # registries пишет bunfig.toml, поэтому `bun install` идёт через локальный
-      # кэш Verdaccio (apps/verdaccio).
+      # кэш Verdaccio (clusters/casa/apps/verdaccio).
       - name: Setup bun
         uses: oven-sh/setup-bun@v2
         with:

@@ -1,0 +1,95 @@
+# Базовый NetworkPolicy для namespace monitoring: default-deny ingress плюс
+# явные разрешения. traefik — UI (grafana, vm, wud); gatus и
+# uptime-kuma проверяют внутренние сервисы (victoriametrics, vmagent,
+# grafana, wud) напрямую по к8s-именам; kube-state-metrics приходит из default;
+# radar читает метрики ворклоадов из victoriametrics; grafana-operator ходит в
+# API инстанса Grafana, которым сам же управляет (#645).
+# Egress не ограничивается.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: monitoring
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress
+  namespace: monitoring
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector: {}
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: traefik
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: uptime-kuma
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: default
+          podSelector:
+            matchLabels:
+              app: kube-state-metrics
+      ports:
+        - port: 8080
+          protocol: TCP
+    # Radar (traffic.prometheusUrl) читает метрики ворклоадов из VictoriaMetrics.
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: radar
+          podSelector:
+            matchLabels:
+              app: victoriametrics
+      ports:
+        - port: 8428
+          protocol: TCP
+    # Grafana Operator управляет инстансом через его API, поэтому нужен вход
+    # из его namespace. Порт 3000 — тот, что operator-генерируемый Service
+    # grafana-service отдаёт наружу (у ручного Service это 80, см.
+    # clusters/casa/apps/grafana/k8s/grafana.service.yaml); правило пригодится с переездом
+    # clusters/casa/apps/grafana/ на Grafana CR.
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: grafana-operator
+      ports:
+        - port: 3000
+          protocol: TCP
+    # Приложения, push'ащие телеметрию по OTLP в otel-collector.
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: rustfs
+          podSelector:
+            matchLabels:
+              app: rustfs
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: open-webui
+          podSelector:
+            matchLabels:
+              app: open-webui
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: zitadel
+          podSelector:
+            matchLabels:
+              app: zitadel
+      ports:
+        - port: 4317
+          protocol: TCP
+        - port: 4318
+          protocol: TCP

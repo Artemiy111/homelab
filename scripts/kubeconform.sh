@@ -66,13 +66,13 @@ k8s_schema_locations=(
 # CRD, которое переживёт ревью незамеченным. Схемы CR из каталога строгие уже
 # по построению, strict касается схем Kubernetes.
 #
-# Сканируются каталоги с манифестами: apps/<сервис>/k8s, platform, argocd.
+# Сканируются каталоги с манифестами: clusters/casa/apps/<сервис>/k8s, platform, argocd.
 # -ignore-missing-schemas намеренно не используется: для kind'а, которому нет
 # схемы, лучше упасть, чем пройти молча.
 if [ "$#" -gt 0 ]; then
   targets=("$@")
 else
-  targets=(apps/*/k8s platform argocd)
+  targets=(clusters/casa/apps/*/k8s clusters/casa/platform argocd)
 fi
 
 schema_args=()
@@ -88,7 +88,7 @@ kubeconform \
   -schema-location "https://raw.githubusercontent.com/datreeio/CRDs-catalog/$crd_catalog_rev/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json" \
   -ignore-filename-pattern 'values\.yaml$' \
   -ignore-filename-pattern 'Chart\.yaml$' \
-  -ignore-filename-pattern 'platform/homelab/templates' \
+  -ignore-filename-pattern 'clusters/casa/platform/homelab/templates' \
   -ignore-filename-pattern 'kustomization\.yaml$' \
   -summary \
   "${targets[@]}"

@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: talk-hpb
+  namespace: talk-hpb
+  annotations:
+    # hostNetwork: endpoint сервиса — адрес узла, dial в него попадает в сам
+    # Traefik. nativeLB уводит запрос на clusterIP → hostPort. Подробности в
+    # clusters/casa/apps/home-assistant/k8s/service.yaml.
+    traefik.io/service.nativelb: "true"
+spec:
+  type: ClusterIP
+  selector:
+    app: talk-hpb
+  ports:
+    - name: signaling
+      port: 80
+      targetPort: signaling
+      protocol: TCP
+    - name: metrics
+      port: 9105
+      targetPort: metrics
+      protocol: TCP

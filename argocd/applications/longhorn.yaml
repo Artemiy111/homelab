@@ -1,11 +1,11 @@
 # Longhorn — CSI-хранилище: снапшоты, бэкапы в S3, RWX через share-manager, UI.
 # Ставится официальным чартом из charts.longhorn.io; Argo рендерит его сам
 # (см. argocd/README.md). Default StorageClass в кластере остаётся local-path —
-# классы Longhorn описываются явно в platform/longhorn/storageclasses.yaml и
+# классы Longhorn описываются явно в clusters/casa/platform/longhorn/storageclasses.yaml и
 # применяются осознанно per-PVC.
 #
 # Значения вынесены из `spec.source.helm.valuesObject` в
-# `platform/longhorn/values.yaml`, Application подключает их через `$values` —
+# `clusters/casa/platform/longhorn/values.yaml`, Application подключает их через `$values` —
 # второй источник в `spec.sources`.
 #
 # Подготовка узла (iscsid, NFSv4-клиент, SELinux-модуль, каталог данных) —
@@ -25,7 +25,7 @@ spec:
       helm:
         releaseName: longhorn
         valueFiles:
-          - $values/platform/longhorn/values.yaml
+          - $values/clusters/casa/platform/longhorn/values.yaml
     - repoURL: ssh://git@forgejo.biplane.casa:2222/artemiy/homelab.git
       targetRevision: main
       ref: values

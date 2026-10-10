@@ -2,7 +2,7 @@
 
 Организация `homelab`, проект `Homelab`, OIDC-приложения, роли проекта,
 членства, гранты и политика логина организации. Развёртывание самого инстанса —
-`apps/zitadel/`, здесь только его содержимое.
+`clusters/casa/apps/zitadel/`, здесь только его содержимое.
 
 ## Запуск
 
@@ -23,7 +23,7 @@ domain = "example.com"
 
 `domain` — корневой домен стенда, а не адрес инстанса: в блок `provider`
 подставляется `id.${var.domain}`, ровно как `ZITADEL_EXTERNALDOMAIN` в
-`apps/zitadel/k8s/zitadel.deployment.yaml`. Из того же `var.domain` собираются
+`clusters/casa/apps/zitadel/k8s/zitadel.deployment.yaml`. Из того же `var.domain` собираются
 домен организации (`homelab.id.<домен>`) и redirect URI приложений. Реальное
 значение — в `terraform.tfvars`, который не коммитится; без него Terraform
 спросит его интерактивно.
@@ -141,10 +141,10 @@ V2 независимо от per-app настройки: код ZITADEL в `Acti
 - **Системные объекты.** Организация `ZITADEL`, проект `ZITADEL`, приложения
   `Management Console`, `Admin-API`, `Auth-API`, `Management-API`, service
   account `login-client`, его `IAM_LOGIN_CLIENT` и `SystemAPIUsers` из
-  `apps/zitadel/config/zitadel.yaml`. Они создаются при инициализации инстанса,
+  `clusters/casa/apps/zitadel/config/zitadel.yaml`. Они создаются при инициализации инстанса,
   и их удаление ломает вход.
 - **Human users.** `zitadel_human_user` требует initial password и конфликтует
-  с passkey-only политикой из `apps/zitadel/README.md`. Пользователи остаются в
+  с passkey-only политикой из `clusters/casa/apps/zitadel/README.md`. Пользователи остаются в
   консоли; Terraform ссылается на их ID в `iam.tf`.
 - **Service account `homelab-service` и его PAT.** Импорт `zitadel_pat`
   требует само значение токена, то есть состояние с секретом и его попадание в

@@ -1,4 +1,4 @@
-# Forgejo (сервис apps/forgejo) — официального чарта у проекта нет, де-факто
+# Forgejo (сервис clusters/casa/apps/forgejo) — официального чарта у проекта нет, де-факто
 # стандарт — forgejo-helm из организации forgejo-contrib на Codeberg. Это форк
 # чарта Gitea, переделанный под Forgejo: внешние база и кэш вместо сабчартов,
 # rootless-образ по умолчанию, admin-пользователь и метрики.
@@ -10,9 +10,9 @@
 # Тег/дайджест — те же, что были в манифестах до переезда на чарт.
 #
 # База — внешняя: кластер CNPG shared в namespace databases, роль и база forgejo
-# (platform/cnpg/shared.cluster.yaml, shared.databases.yaml). Пароль роли лежит в
+# (clusters/casa/platform/cnpg/shared.cluster.yaml, shared.databases.yaml). Пароль роли лежит в
 # Secret'е databases/forgejo-db-auth, и он же — в forgejo/forgejo (один
-# плейнтекст, два запечатанных SealedSecret'а; так решено в platform/cnpg/README.md).
+# плейнтекст, два запечатанных SealedSecret'а; так решено в clusters/casa/platform/cnpg/README.md).
 # Здесь он подставляется в app.ini через FORGEJO__database__PASSWD, поэтому
 # секрет чарту не нужен.
 #
@@ -25,7 +25,7 @@
 # Встроенная база/кэш чарта не включаются — иначе консолидация БД отменяется
 # (docs/adr/0002).
 # Значения вынесены из `spec.source.helm.valuesObject` в
-# `platform/forgejo/values.yaml`, Application подключает их через `$values` —
+# `clusters/casa/platform/forgejo/values.yaml`, Application подключает их через `$values` —
 # второй источник в `spec.sources`.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -41,7 +41,7 @@ spec:
       helm:
         releaseName: forgejo
         valueFiles:
-          - $values/platform/forgejo/values.yaml
+          - $values/clusters/casa/platform/forgejo/values.yaml
     - repoURL: ssh://git@forgejo.biplane.casa:2222/artemiy/homelab.git
       targetRevision: main
       ref: values

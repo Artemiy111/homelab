@@ -7,7 +7,7 @@
     "pinned": 130,
     "total": 131,
     "percent": 99,
-    "exceptions": ["apps/structurizr/k8s/deployment.yaml"]
+    "exceptions": ["clusters/casa/apps/structurizr/k8s/deployment.yaml"]
   },
   "network_policy": {
     "objects": 89,

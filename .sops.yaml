@@ -8,7 +8,7 @@
 # ключа = невосстановимая потеря зашифрованных значений secrets.enc.env.
 creation_rules:
   # Правило покрывает <сервис>/secrets.enc.env. После миграции на Vault из
-  # таких файлов остался один — apps/zitadel/, исключённый из перевода.
+  # таких файлов остался один — clusters/casa/apps/zitadel/, исключённый из перевода.
   - path_regex: 'secrets\.enc\.env$'
     age: >-
       age1anr07xknmnlyp3hxnm0nts4v2fuz22z6xh52tx0cv2ahxs607aeqvzpxkz

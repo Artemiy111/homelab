@@ -22,16 +22,16 @@ jobs:
           path: ~/.local/bin
           key: actionlint-1.7.12-mirror-${{ runner.os }}
       # Бинарь берём из зеркала RustFS (issue #149): внешние репозитории бывают
-      # недоступны, а после скачивания сверяем sha256 с apps/rustfs/artifacts.tsv.
+      # недоступны, а после скачивания сверяем sha256 с clusters/casa/apps/rustfs/artifacts.tsv.
       # Скачивается один раз, дальше — из кэша выше. Зеркало наполняет CronJob
-      # mirror-sync (apps/rustfs).
+      # mirror-sync (clusters/casa/apps/rustfs).
       - name: Install actionlint
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
           set -euo pipefail
           asset="actionlint/1.7.12/actionlint_1.7.12_linux_amd64.tar.gz"
           url="http://rustfs.rustfs.svc.cluster.local/mirror/$asset"
-          expected="$(awk -v p="$asset" '$1==p{print $2}' apps/rustfs/artifacts.tsv)"
+          expected="$(awk -v p="$asset" '$1==p{print $2}' clusters/casa/apps/rustfs/artifacts.tsv)"
           mkdir -p "$HOME/.local/bin"
           curl -fsSL -o /tmp/actionlint.tar.gz "$url"
           echo "$expected  /tmp/actionlint.tar.gz" | sha256sum -c -

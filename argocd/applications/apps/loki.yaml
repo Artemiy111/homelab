@@ -8,7 +8,7 @@ spec:
   sources:
     - repoURL: ssh://git@forgejo.biplane.casa:2222/artemiy/homelab.git
       targetRevision: main
-      path: apps/loki
+      path: clusters/casa/apps/loki
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring

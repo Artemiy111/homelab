@@ -1,6 +1,6 @@
 # Radar — open-source Kubernetes UI (один Go-бинарь): топология, ресурсы, Helm,
 # GitOps, аудит, MCP. Ставится официальным чартом skyhook/radar; маршрут —
-# platform/homelab/templates/routes/radar.yaml.
+# clusters/casa/platform/homelab/templates/routes/radar.yaml.
 #
 # auth.mode=oidc: Radar входит в Zitadel сам и имперсонирует пользователя в
 # Kubernetes, поэтому права определяет RBAC пользователя, а не общий
@@ -8,7 +8,7 @@
 # отдать claim `role`.
 #
 # Значения вынесены из `spec.source.helm.valuesObject` в
-# `platform/radar/values.yaml`, Application подключает их через `$values` —
+# `clusters/casa/platform/radar/values.yaml`, Application подключает их через `$values` —
 # второй источник в `spec.sources`.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -24,7 +24,7 @@ spec:
       helm:
         releaseName: radar
         valueFiles:
-          - $values/platform/radar/values.yaml
+          - $values/clusters/casa/platform/radar/values.yaml
     - repoURL: ssh://git@forgejo.biplane.casa:2222/artemiy/homelab.git
       targetRevision: main
       ref: values

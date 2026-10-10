@@ -1,7 +1,7 @@
 # RustFS (Terraform)
 
 Бакет `mirror` и его public-read policy. Развёртывание самого хранилища —
-`apps/rustfs/`, здесь только бакет через S3 API: AWS-провайдер против кастомного
+`clusters/casa/apps/rustfs/`, здесь только бакет через S3 API: AWS-провайдер против кастомного
 эндпоинта RustFS.
 
 ## Запуск
@@ -36,7 +36,7 @@ export AWS_SECRET_ACCESS_KEY
 ## Значения
 
 ```hcl
-domain = "example.com"   # тот же домен, что в platform/homelab
+domain = "example.com"   # тот же домен, что в clusters/casa/platform/homelab
 ```
 
 Внутреннее значение, в git не идёт; реальное — в
@@ -50,7 +50,7 @@ domain = "example.com"   # тот же домен, что в platform/homelab
 | `aws_s3_bucket_policy.mirror` | public-read: анонимный `s3:GetObject` на `mirror/*` |
 
 Заливка объектов остаётся у CronJob `mirror-sync`
-(`apps/rustfs/mirror-sync.sh`, манифест `artifacts.tsv`); из скрипта убран
+(`clusters/casa/apps/rustfs/mirror-sync.sh`, манифест `artifacts.tsv`); из скрипта убран
 `ensure_bucket`, потому что бакет и policy теперь принадлежат Terraform.
 
 ## Первый apply

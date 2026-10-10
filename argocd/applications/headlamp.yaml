@@ -4,13 +4,13 @@
 # ВНИМАНИЕ: без clusterRoleBinding.create (выключен в values) чарт создаёт
 # ClusterRoleBinding cluster-admin на SA ПОДА. Права приходят из OIDC-токена
 # пользователя, границей сети остаётся NetworkPolicy в
-# platform/headlamp/networkpolicy.yaml.
+# clusters/casa/platform/headlamp/networkpolicy.yaml.
 #
 # Маршрут и NetworkPolicy namespace headlamp живут вне Application
-# (platform/headlamp/route.yaml, platform/headlamp/networkpolicy.yaml).
+# (clusters/casa/platform/headlamp/route.yaml, clusters/casa/platform/headlamp/networkpolicy.yaml).
 #
 # Значения вынесены из `spec.source.helm.valuesObject` в
-# `platform/headlamp/values.yaml`, Application подключает их через `$values` —
+# `clusters/casa/platform/headlamp/values.yaml`, Application подключает их через `$values` —
 # второй источник в `spec.sources`.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -26,7 +26,7 @@ spec:
       helm:
         releaseName: headlamp
         valueFiles:
-          - $values/platform/headlamp/values.yaml
+          - $values/clusters/casa/platform/headlamp/values.yaml
     - repoURL: ssh://git@forgejo.biplane.casa:2222/artemiy/homelab.git
       targetRevision: main
       ref: values

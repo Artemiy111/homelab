@@ -2,7 +2,7 @@
 
 Управляет настройками репозитория `artemiy/homelab`, защитой его ветки `main` и
 пилотным pull-зеркалом `actions/checkout`. Развёртывание самого инстанса —
-`apps/forgejo/` (Argo CD + `forgejo-helm`), здесь только его содержимое.
+`clusters/casa/apps/forgejo/` (Argo CD + `forgejo-helm`), здесь только его содержимое.
 
 ## Что управляется
 
@@ -47,7 +47,7 @@ domain = "example.com"
 ```
 
 `domain` — корневой домен стенда, а не адрес инстанса: в провайдер
-подставляется `forgejo.${var.domain}`, как в `apps/forgejo`. Реальное значение —
+подставляется `forgejo.${var.domain}`, как в `clusters/casa/apps/forgejo`. Реальное значение —
 в `terraform.tfvars`, который не коммитится.
 
 ## Импорт
@@ -99,7 +99,7 @@ curl -fsS -H "Authorization: token $FORGEJO_API_TOKEN" \
 `mirrors.tf` описывает pull-зеркала организации `actions` картой `local.mirrors`
 (имя → upstream): сейчас это 15 зеркал. Добавление зеркала — запись в карте плюс
 блок `import`. `actions/cache` в карту не входит: это не зеркало, а ручной
-снапшот (`apps/forgejo/README.md`).
+снапшот (`clusters/casa/apps/forgejo/README.md`).
 
 Upstream большей части зеркал — `data.forgejo.org/actions/*`, у
 `renovate-config` — `code.forgejo.org/actions/renovate-config`. Интервал у всех
@@ -179,4 +179,4 @@ Push-зеркало в GitHub тоже вне модуля: URL зеркала �
 
 Провайдер также не умеет OAuth2-приложения, защиту тегов, instance-настройки
 (`app.ini`) и регистрацию раннера — последняя делается через
-`forgejo-cli actions register` (`apps/forgejo/README.md`).
+`forgejo-cli actions register` (`clusters/casa/apps/forgejo/README.md`).

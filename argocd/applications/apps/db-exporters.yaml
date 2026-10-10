@@ -16,7 +16,7 @@ spec:
   sources:
     - repoURL: ssh://git@forgejo.biplane.casa:2222/artemiy/homelab.git
       targetRevision: main
-      path: apps/db-exporters
+      path: clusters/casa/apps/db-exporters
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring

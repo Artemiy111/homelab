@@ -1,0 +1,118 @@
+# Traefik в k8s — единый ingress: слушает 80/443 на IP узла через kube-proxy
+# externalIPs. Схема чарта traefik-41.4.0 (strict JSON schema).
+#
+# Файл — единственный источник значений для Application traefik
+# (`argocd/applications/traefik.yaml` ссылается на него через `$values`).
+# Раньше те же значения были продублированы инлайн в `valuesObject` Application,
+# и правка файла молча расходилась с кластером.
+
+# Без requests планировщик не знает, что размещает, а без limits один
+# разъехавшийся Traefik способен вытеснить приложения на одноузловом кластере.
+resources:
+  requests:
+    memory: 192Mi
+  limits:
+    memory: 384Mi
+
+providers:
+  kubernetesCRD:
+    # Middlewares живут в traefik, а IngressRoute — в namespace приложения.
+    allowCrossNamespace: true
+  kubernetesGateway:
+    # HTTPRoute обслуживает тот же Traefik. CRD Gateway API ставит отдельное
+    # приложение argocd/applications/gateway-api.yaml: чарт Traefik их не везёт
+    # с версии 40.2.0, а skipCrds на них не действует.
+    enabled: true
+    # TCPRoute смотрится на v1alpha2, которого нет в standard CRD v1.6.
+    # Экспериментальный канал не включаем: вместе с отсутствующими
+    # экспериментальными CRD это приводит к тому, что провайдер молча не
+    # стартует, а остальные провайдеры продолжают работать.
+    experimentalChannel: false
+    # nativeLBByDefault включать нельзя: per-backend настройки в Gateway API
+    # нет, а три маршрута (home-assistant, talk-hpb, livekit) идут к
+    # hostNetwork-подам. Включение глобально изменит все 49 маршрутов.
+    nativeLBByDefault: false
+
+# Gateway и GatewayClass описаны в templates/gateway/ чарта clusters/casa/platform/homelab:
+# hostname слушателя и certificateRef требуют домена из values, которого в
+# values чарта Traefik нет. Дефолт чарта (gateway.enabled) выключаем, иначе
+# появится второй Gateway без сертификата.
+gateway:
+  enabled: false
+gatewayClass:
+  enabled: false
+
+service:
+  spec:
+    # ClusterIP + externalIPs узла: единый адрес ingress для всех DNS-записей.
+    # MetalLB убран (на одном узле не нужен — kube-proxy externalIPs достаточно).
+    # Нагрузочное значение: без externalIPs Traefik не принимает трафик на адрес
+    # узла, а он единственный вход в кластер.
+    type: ClusterIP
+    externalIPs:
+      - 192.168.1.254
+
+ports:
+  web:
+    port: 8000
+    expose:
+      default: true
+    protocol: TCP
+  websecure:
+    port: 8443
+    # TLS включён на самом entrypoint (chart-дефолт, но фиксируем явно, чтобы не
+    # зависеть молча). Маршруты не указывают `tls`: сертификат берётся из
+    # TLSStore default, единственная копия секрета — в namespace traefik.
+    http:
+      tls:
+        enabled: true
+    expose:
+      default: true
+    protocol: TCP
+
+# Prometheus-метрики Traefik. Чарт и так включает entrypoint metrics (:9100) и
+# --metrics.prometheus; отдельный Service (traefik-metrics) публикует порт для
+# скрейпа из кластера (vmagent). Метрики наружу не выходят.
+metrics:
+  prometheus:
+    service:
+      enabled: true
+    addRoutersLabels: true
+
+# Нативный health-endpoint entrypoint'а. Нужен, чтобы мониторинг проверял
+# живость Traefik без авторизации: панель /dashboard закрыта oauth2-proxy и
+# отдаёт 302 на логин, а каждый такой запрос создаёт auth request в Zitadel
+# (монитор раз в минуту — это ~1440 событий в eventstore в сутки).
+additionalArguments:
+  - --ping
+
+accessLog:
+  enabled: true
+  format: json
+  fields:
+    queryParameters:
+      defaultMode: drop
+
+tracing:
+  sampleRate: 1.0
+  otlp:
+    enabled: true
+    http:
+      enabled: true
+      endpoint: http://otel-collector.monitoring.svc.cluster.local:4318/v1/traces
+
+ingressRoute:
+  healthcheck:
+    # Публичный маршрут /ping на ping@internal. Чарт по умолчанию использует
+    # entrypoint traefik (внутренний, не опубликован), поэтому явно указываем
+    # websecure — тот же, что слушает 443 и остальные маршруты.
+    enabled: true
+    entryPoints:
+      - websecure
+    # TLS берётся из TLSStore default, как и у остальных маршрутов.
+    tls: {}
+
+ingressClass:
+  enabled: true
+  isDefaultClass: true
+  name: traefik

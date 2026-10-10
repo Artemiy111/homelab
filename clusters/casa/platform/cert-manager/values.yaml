@@ -1,0 +1,54 @@
+# cert-manager — выпуск и ротация TLS-сертификатов из кластера.
+# Ставится официальным чартом cert-manager из charts.jetstack.io.
+#
+# Эмитент и Certificate живут не здесь, а в шаблонах чарта clusters/casa/platform/homelab
+# (templates/cert-manager/): CRD должны существовать раньше CR, а порядок
+# «сначала оператор, потом CR» Argo в одном приложении не гарантирует.
+#
+# Вебхук-сертификаты cert-manager выпускает сам (self-signed bootstrap CA).
+# Helm `lookup` в Argo не работает, поэтому поля, которые дописывает
+# контроллер, перечислены в `ignoreDifferences` Application, а
+# `RespectIgnoreDifferences` в syncOptions не даёт selfHeal переписать их.
+#
+# Метрики: prometheus.enabled оставлен дефолтным true — чарт развешивает
+# аннотации `prometheus.io/scrape` на подах controller, webhook и cainjector.
+# Забирает их vmagent статическими job'ами по Service'ам на порту 9402
+# (clusters/casa/apps/victoria-metrics/config/vmagent/scrape.yml). Pod-discovery по аннотациям
+# в scrape.yml отсутствует, поэтому рассчитывать на него нельзя. CRD
+# prometheus-operator (monitoring.coreos.com) в кластере нет, поэтому никаких
+# PodMonitor/ServiceMonitor не создаём.
+
+# CRD ставим вместе с оператором: кластерные, и Prune=false не даёт удалить их
+# вместе с приложением (иначе снесло бы все Certificate/Issuer кластера).
+crds:
+  enabled: true
+
+# Дефолт у чарта: resources: {} у controller, webhook и cainjector. Для
+# одноузлового кластера это плохо: без requests планировщик не знает, что
+# размещает, а без limits разъехавшийся контроллер способен вытеснить рабочие
+# поды.
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: "1"
+    memory: 256Mi
+
+webhook:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+
+cainjector:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      cpu: 100m
+      memory: 256Mi

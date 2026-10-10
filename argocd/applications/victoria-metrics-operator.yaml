@@ -12,7 +12,7 @@ spec:
       helm:
         releaseName: victoria-metrics-operator
         valueFiles:
-          - $values/platform/victoria-metrics-operator/values.yaml
+          - $values/clusters/casa/platform/victoria-metrics-operator/values.yaml
     - repoURL: ssh://git@forgejo.biplane.casa:2222/artemiy/homelab.git
       targetRevision: main
       ref: values

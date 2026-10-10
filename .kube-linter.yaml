@@ -5,7 +5,7 @@ checks:
   ignorePaths:
     - "**/values.yaml"
     - "**/Chart.yaml"
-    - "platform/homelab/templates/**"
+    - "clusters/casa/platform/homelab/templates/**"
     - "**/kustomization.yaml"
   include:
     - privileged-container

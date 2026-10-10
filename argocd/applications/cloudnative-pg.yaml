@@ -5,7 +5,7 @@
 # обслуживает все Cluster'ы во всех namespace. Поэтому его namespace
 # (cnpg-system) не совпадает с namespace баз (databases) — так и задумано.
 #
-# Сами кластеры и базы живут в platform/cnpg/ отдельными манифестами. Argo ими
+# Сами кластеры и базы живут в clusters/casa/platform/cnpg/ отдельными манифестами. Argo ими
 # не управляет: CRD оператора должны существовать раньше, а порядок «сначала
 # оператор, потом CR» Argo в одном приложении не гарантирует.
 #
@@ -13,11 +13,11 @@
 # нет CRD prometheus-operator (monitoring.coreos.com), PodMonitor'ы некому
 # читать, а с версии 1.30 поле вообще deprecated. Метрики при этом доступны:
 # instance manager каждого инстанса отдаёт /metrics на 9187, и vmagent заберёт
-# их через pod-discovery (задача после установки, см. platform/cnpg/README.md).
+# их через pod-discovery (задача после установки, см. clusters/casa/platform/cnpg/README.md).
 # Grafana-дашборд из чарта не ставим: UI уже есть, дашборд принесём сами.
 #
 # Значения вынесены из `spec.source.helm.valuesObject` в
-# `platform/cloudnative-pg/values.yaml`, Application подключает их через
+# `clusters/casa/platform/cloudnative-pg/values.yaml`, Application подключает их через
 # `$values` — второй источник в `spec.sources`.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -33,7 +33,7 @@ spec:
       helm:
         releaseName: cloudnative-pg
         valueFiles:
-          - $values/platform/cloudnative-pg/values.yaml
+          - $values/clusters/casa/platform/cloudnative-pg/values.yaml
     - repoURL: ssh://git@forgejo.biplane.casa:2222/artemiy/homelab.git
       targetRevision: main
       ref: values

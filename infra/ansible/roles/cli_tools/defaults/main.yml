@@ -30,7 +30,7 @@ cli_tools_argocd_cli_url: "https://github.com/argoproj/argo-cd/releases/download
 # SHA256 из cli_checksums.txt того же релиза (целостность при скачивании).
 cli_tools_argocd_cli_checksum: "sha256:b860f73f57cbddd993cd446f5236d797c1b1ac8554857b2683d2669f17e765b4"
 
-# --- kubectl-cnpg: плагин оператора CloudNativePG (platform/cnpg) ---
+# --- kubectl-cnpg: плагин оператора CloudNativePG (clusters/casa/platform/cnpg) ---
 # Версию держать не ниже версии оператора в кластере (сейчас 1.30.0 —
 # appVersion чарта cloudnative-pg 0.29.0): старый плагин не знает новых полей CR.
 cli_tools_kubectl_cnpg_version: "1.30.0"

@@ -58,7 +58,7 @@ git branch -d feat/577-readme
 Argo выполняются только в основном дереве.
 
 Внутренние значения (домен, адрес узла, issuer, clientID) лежат в репозитории
-рядом с остальными: `platform/homelab/values.yaml` и `valuesObject` в
+рядом с остальными: `clusters/casa/platform/homelab/values.yaml` и `valuesObject` в
 `argocd/applications/`. Отдельный приватный репозиторий отменён — решение
 `docs/adr/0009`. Credentials в values не кладутся никогда, для них Vault и
 `VaultStaticSecret`. Правила обращения с обоими уровнями —

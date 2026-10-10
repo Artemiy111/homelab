@@ -92,4 +92,4 @@ backlog слит.
 - [x] Добавить алерты на долю свободного места, `vm_storage_is_read_only` и
       устойчивый рост `vm_pending_rows` (#279). Реализовано в Grafana Unified
       Alerting, 5 правил, доставка в ntfy, пороги и runbook —
-      `apps/grafana/README.md` и `apps/victoria-metrics/README.md`.
+      `clusters/casa/apps/grafana/README.md` и `clusters/casa/apps/victoria-metrics/README.md`.

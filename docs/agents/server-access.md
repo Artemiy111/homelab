@@ -130,7 +130,7 @@ ssh homelab-agent 'sudo -u artlab bash -lc "cd /home/artlab/projects/homelab && 
 
 Секреты живут в HashiCorp Vault. В кластер их доставляет
 External Secrets Operator: `VaultStaticSecret`
-(`apps/<сервис>/k8s/vaultstaticsecret.yaml`) создаёт и обновляет обычный
+(`clusters/casa/apps/<сервис>/k8s/vaultstaticsecret.yaml`) создаёт и обновляет обычный
 Secret, который читает приложение. Значение задаёт пользователь в Vault по
 пути из `docs/adr/0006-vault-secret-path-layout.md`.
 
@@ -244,7 +244,7 @@ ssh homelab-agent 'systemctl is-active k0scontroller; dig +short @<node1-ip> upt
 отдельно применять ничего не нужно. Локальная проверка результата:
 
 ```sh
-KUBECONFIG=~/.kube/configs/homelab.yaml kubectl apply -k apps/grafana/ --dry-run=server
+KUBECONFIG=~/.kube/configs/homelab.yaml kubectl apply -k clusters/casa/apps/grafana/ --dry-run=server
 ```
 
 Ручной `kubectl apply` нужен для маршрутов, которые Argo не синхронизирует
@@ -253,18 +253,18 @@ KUBECONFIG=~/.kube/configs/homelab.yaml kubectl apply -k apps/grafana/ --dry-run
 репозитория:
 
 ```sh
-ssh homelab-agent 'sudo -u artlab bash -lc "cd /home/artlab/projects/homelab && kubectl apply -f platform/longhorn/route.yaml"'
+ssh homelab-agent 'sudo -u artlab bash -lc "cd /home/artlab/projects/homelab && kubectl apply -f clusters/casa/platform/longhorn/route.yaml"'
 ```
 
-В Helm-чарте `platform/homelab` живут `homelab-config`, Gateway, GatewayClass,
+В Helm-чарте `clusters/casa/platform/homelab` живут `homelab-config`, Gateway, GatewayClass,
 `Certificate` и `ClusterIssuer`, два Service и конфигмапы Element Web,
 Home Assistant и Structurizr. Домен и адрес сервера берутся из
-`platform/homelab/values.yaml`, который лежит в репозитории
+`clusters/casa/platform/homelab/values.yaml`, который лежит в репозитории
 (`docs/adr/0009`) — отдельного приватного values-файла нет. Values тоже
 в git, поэтому рендер делается локально:
 
 ```sh
-helm template platform/homelab | KUBECONFIG=~/.kube/configs/homelab.yaml kubectl apply -f -
+helm template clusters/casa/platform/homelab | KUBECONFIG=~/.kube/configs/homelab.yaml kubectl apply -f -
 ```
 
 HTTPRoute в этом чарте **нет** — их применение описано ниже отдельно.
@@ -280,13 +280,13 @@ HTTPRoute в этом чарте **нет** — их применение опи
 
 | Файл | Кто применяет |
 |---|---|
-| `apps/<сервис>/k8s/route.yaml` | Argo, `spec.sources[].path` у Application |
-| `apps/3x-ui/chart/templates/route.yaml`, `apps/element/chart/templates/route.yaml` | Argo, `chart` в Application |
-| `apps/seafile/k8s/onlyoffice.route.yaml` | Argo, вместе с каталогом `apps/seafile` |
-| `platform/radar/route.yaml`, `platform/headlamp/route.yaml` | Argo, `spec.sources[].path` |
-| `platform/longhorn/route.yaml` | вручную |
-| `platform/traefik/dashboard.route.yaml` | вручную |
-| `platform/argocd/route.yaml` | вручную |
+| `clusters/casa/apps/<сервис>/k8s/route.yaml` | Argo, `spec.sources[].path` у Application |
+| `clusters/casa/apps/3x-ui/chart/templates/route.yaml`, `clusters/casa/apps/element/chart/templates/route.yaml` | Argo, `chart` в Application |
+| `clusters/casa/apps/seafile/k8s/onlyoffice.route.yaml` | Argo, вместе с каталогом `clusters/casa/apps/seafile` |
+| `clusters/casa/platform/radar/route.yaml`, `clusters/casa/platform/headlamp/route.yaml` | Argo, `spec.sources[].path` |
+| `clusters/casa/platform/longhorn/route.yaml` | вручную |
+| `clusters/casa/platform/traefik/dashboard.route.yaml` | вручную |
+| `clusters/casa/platform/argocd/route.yaml` | вручную |
 
 У `longhorn`, `traefik` и `argocd` в `spec.sources` только чарт и `ref: values`:
 файлы маршрутов не указаны нигде, и Argo их не синхронизирует. В кластере они
@@ -295,9 +295,9 @@ HTTPRoute в этом чарте **нет** — их применение опи
 признака в Argo. Как это убрать — #858.
 
 ```sh
-ssh homelab-agent 'sudo -u artlab bash -lc "cd /home/artlab/projects/homelab && kubectl apply -f platform/longhorn/route.yaml"'
-ssh homelab-agent 'sudo -u artlab bash -lc "cd /home/artlab/projects/homelab && kubectl apply -f platform/traefik/dashboard.route.yaml"'
-ssh homelab-agent 'sudo -u artlab bash -lc "cd /home/artlab/projects/homelab && kubectl apply -f platform/argocd/route.yaml"'
+ssh homelab-agent 'sudo -u artlab bash -lc "cd /home/artlab/projects/homelab && kubectl apply -f clusters/casa/platform/longhorn/route.yaml"'
+ssh homelab-agent 'sudo -u artlab bash -lc "cd /home/artlab/projects/homelab && kubectl apply -f clusters/casa/platform/traefik/dashboard.route.yaml"'
+ssh homelab-agent 'sudo -u artlab bash -lc "cd /home/artlab/projects/homelab && kubectl apply -f clusters/casa/platform/argocd/route.yaml"'
 ```
 
 Проверить, что маршрут из git действительно применён:
@@ -309,7 +309,7 @@ KUBECONFIG=~/.kube/configs/homelab.yaml kubectl -n traefik get gateway homelab \
 
 Маршрут, которого нет в кластере, попадает в `attachedRoutes` только после
 apply. `NoMatchingListenerHostname` в статусе HTTPRoute означает, что ни один
-слушатель не объявлен на этот домен, — проверять `platform/homelab/values.yaml`,
+слушатель не объявлен на этот домен, — проверять `clusters/casa/platform/homelab/values.yaml`,
 а не маршрут.
 
 ## Проверка платформы

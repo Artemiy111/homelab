@@ -36,7 +36,7 @@ flowchart TB
     subgraph host["Homelab server<br/>k0s, single node"]
         EDGE["Traefik<br/>Gateway API :80 / :443<br/>wildcard TLS"]
         AUTH["oauth2-proxy<br/>forward auth<br/>Zitadel — OIDC"]
-        APPS["~50 services<br/>apps/"]
+        APPS["~50 services<br/>clusters/casa/apps/"]
         OPS["Argo CD — GitOps<br/>cert-manager<br/>ACME DNS-01<br/>Vault Operator<br/>Longhorn CSI"]
         DATA["CloudNativePG<br/>PostgreSQL<br/>MariaDB Operator"]
         OBS["OTel Collector<br/>Beyla · Alloy<br/>VictoriaMetrics · Loki<br/>Tempo · Pyroscope"]
@@ -60,14 +60,14 @@ flowchart TB
 | Component | Role | Directory |
 |---|---|---|
 | k0s | Single-node Kubernetes: Calico CNI, etcd, CoreDNS | [`infra/host/k0s/`](infra/host/k0s/) |
-| Traefik | Gateway API | [`platform/traefik/`](platform/traefik/) |
-| Technitium DNS | Local DNS, wildcard zone, ad blocking | [`apps/technitium/`](apps/technitium/) |
-| cert-manager | TLS via ACME DNS-01 | [`platform/cert-manager/`](platform/cert-manager/) |
-| Longhorn | CSI storage: snapshots, clones, RWX | [`platform/longhorn/`](platform/longhorn/) |
-| CloudNativePG | PostgreSQL clusters | [`platform/cnpg/`](platform/cnpg/) |
-| MariaDB Operator | MariaDB instances | [`platform/mariadb/`](platform/mariadb/) |
+| Traefik | Gateway API | [`clusters/casa/platform/traefik/`](clusters/casa/platform/traefik/) |
+| Technitium DNS | Local DNS, wildcard zone, ad blocking | [`clusters/casa/apps/technitium/`](clusters/casa/apps/technitium/) |
+| cert-manager | TLS via ACME DNS-01 | [`clusters/casa/platform/cert-manager/`](clusters/casa/platform/cert-manager/) |
+| Longhorn | CSI storage: snapshots, clones, RWX | [`clusters/casa/platform/longhorn/`](clusters/casa/platform/longhorn/) |
+| CloudNativePG | PostgreSQL clusters | [`clusters/casa/platform/cnpg/`](clusters/casa/platform/cnpg/) |
+| MariaDB Operator | MariaDB instances | [`clusters/casa/platform/mariadb/`](clusters/casa/platform/mariadb/) |
 | Argo CD | GitOps controller | [`argocd/`](argocd/) |
-| Vault Secrets Operator | Syncs Vault paths into Kubernetes Secrets | [`apps/vault/`](apps/vault/) |
+| Vault Secrets Operator | Syncs Vault paths into Kubernetes Secrets | [`clusters/casa/apps/vault/`](clusters/casa/apps/vault/) |
 | Ansible | Host packages and preparation | [`infra/ansible/`](infra/ansible/) |
 | Terraform | Resources outside the cluster | [`infra/terraform/`](infra/terraform/) |
 
@@ -131,41 +131,41 @@ Local hooks run the same checks before a commit leaves the machine
 
 | Service | Purpose |
 |---|---|
-| [Zitadel](apps/zitadel/) | Identity provider and SSO (primary) |
-| [oauth2-proxy](apps/oauth2-proxy/) | Forward auth for services without their own login |
-| [Technitium](apps/technitium/) | DNS server and ad blocking |
-| [Homepage](apps/homepage/) | Start page |
-| [Forgejo](apps/forgejo/) | Private Git forge and CI |
-| [Vault](apps/vault/) | Secrets, transit, PKI |
-| [Infisical](apps/infisical/) | Self-hosted secrets manager |
-| [RustFS](apps/rustfs/) | S3-compatible object storage |
-| [postgres](apps/postgres/) | pgweb admin UI |
-| [WUD](apps/image-updates/) | Image update watcher, observe-only |
-| [3x-ui](apps/3x-ui/) | Personal Xray proxy management |
-| [code-server](apps/code-server/) | VS Code in the browser |
-| [Headlamp](platform/headlamp/), [Radar](platform/radar/) | Cluster UIs |
+| [Zitadel](clusters/casa/apps/zitadel/) | Identity provider and SSO (primary) |
+| [oauth2-proxy](clusters/casa/apps/oauth2-proxy/) | Forward auth for services without their own login |
+| [Technitium](clusters/casa/apps/technitium/) | DNS server and ad blocking |
+| [Homepage](clusters/casa/apps/homepage/) | Start page |
+| [Forgejo](clusters/casa/apps/forgejo/) | Private Git forge and CI |
+| [Vault](clusters/casa/apps/vault/) | Secrets, transit, PKI |
+| [Infisical](clusters/casa/apps/infisical/) | Self-hosted secrets manager |
+| [RustFS](clusters/casa/apps/rustfs/) | S3-compatible object storage |
+| [postgres](clusters/casa/apps/postgres/) | pgweb admin UI |
+| [WUD](clusters/casa/apps/image-updates/) | Image update watcher, observe-only |
+| [3x-ui](clusters/casa/apps/3x-ui/) | Personal Xray proxy management |
+| [code-server](clusters/casa/apps/code-server/) | VS Code in the browser |
+| [Headlamp](clusters/casa/platform/headlamp/), [Radar](clusters/casa/platform/radar/) | Cluster UIs |
 
 ### Applications
 
 | Service | Purpose |
 |---|---|
-| [Immich](apps/immich/) | Photo and video library |
-| [Jellyfin](apps/jellyfin/) | Home media server |
-| [Navidrome](apps/navidrome/) | Music library |
-| [Nextcloud](apps/nextcloud/) | Files, sync, calendar, contacts |
-| [Seafile](apps/seafile/) | File sync and sharing, with OnlyOffice |
-| [Jitsi](apps/jitsi/) | Private video conferencing |
-| [Element](apps/element/) | Matrix chat and video calls via LiveKit — [custom Helm chart](apps/element/chart/) |
-| [Talk HPB](apps/talk-hpb/) | Nextcloud Talk signaling |
-| [Mailserver](apps/mailserver/) | Stalwart mail and Bulwark webmail |
-| [Paperless](apps/paperless/), [PDF](apps/pdf/) | Documents, OCR, PDF operations |
-| [Home Assistant](apps/home-assistant/) | Home automation |
-| [Dawarich](apps/dawarich/) | Location history |
-| [Lute](apps/lute/) | Language learning through reading |
-| [Sure](apps/sure/) | Personal finances |
-| [Open WebUI](apps/open-webui/), [LocalAI](apps/local-ai/) | LLM chat interface and CPU inference |
-| [Mermaid](apps/mermaid-live-editor/) | Diagram editor |
-| [Structurizr](apps/structurizr/) | Architecture diagrams |
+| [Immich](clusters/casa/apps/immich/) | Photo and video library |
+| [Jellyfin](clusters/casa/apps/jellyfin/) | Home media server |
+| [Navidrome](clusters/casa/apps/navidrome/) | Music library |
+| [Nextcloud](clusters/casa/apps/nextcloud/) | Files, sync, calendar, contacts |
+| [Seafile](clusters/casa/apps/seafile/) | File sync and sharing, with OnlyOffice |
+| [Jitsi](clusters/casa/apps/jitsi/) | Private video conferencing |
+| [Element](clusters/casa/apps/element/) | Matrix chat and video calls via LiveKit — [custom Helm chart](clusters/casa/apps/element/chart/) |
+| [Talk HPB](clusters/casa/apps/talk-hpb/) | Nextcloud Talk signaling |
+| [Mailserver](clusters/casa/apps/mailserver/) | Stalwart mail and Bulwark webmail |
+| [Paperless](clusters/casa/apps/paperless/), [PDF](clusters/casa/apps/pdf/) | Documents, OCR, PDF operations |
+| [Home Assistant](clusters/casa/apps/home-assistant/) | Home automation |
+| [Dawarich](clusters/casa/apps/dawarich/) | Location history |
+| [Lute](clusters/casa/apps/lute/) | Language learning through reading |
+| [Sure](clusters/casa/apps/sure/) | Personal finances |
+| [Open WebUI](clusters/casa/apps/open-webui/), [LocalAI](clusters/casa/apps/local-ai/) | LLM chat interface and CPU inference |
+| [Mermaid](clusters/casa/apps/mermaid-live-editor/) | Diagram editor |
+| [Structurizr](clusters/casa/apps/structurizr/) | Architecture diagrams |
 
 ## Known limitations
 

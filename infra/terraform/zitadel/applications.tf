@@ -214,7 +214,7 @@ resource "zitadel_application_v2" "headlamp" {
 # Claim `role` обязателен в самом id_token (id_token_userinfo_assertion): Radar
 # читает группы из токена, а не из userinfo. С groupsPrefix `oidc:` группа
 # получается ровно `oidc:admin` — та же, что у Headlamp, поэтому
-# ClusterRoleBinding из platform/headlamp/ работает на оба UI.
+# ClusterRoleBinding из clusters/casa/platform/headlamp/ работает на оба UI.
 resource "zitadel_application_v2" "radar" {
   project_id = zitadel_project_v2.homelab.id
   org_id     = zitadel_organization.homelab.id

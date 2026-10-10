@@ -2,7 +2,7 @@
 # CRD `monitoring.coreos.com` и `grafana.integreatly.org`.
 #
 # Значения вынесены из `spec.source.helm.valuesObject` в
-# `platform/grafana-operator/values.yaml`, Application подключает их через
+# `clusters/casa/platform/grafana-operator/values.yaml`, Application подключает их через
 # `$values` — второй источник в `spec.sources`.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -18,7 +18,7 @@ spec:
       helm:
         releaseName: grafana-operator
         valueFiles:
-          - $values/platform/grafana-operator/values.yaml
+          - $values/clusters/casa/platform/grafana-operator/values.yaml
     - repoURL: ssh://git@forgejo.biplane.casa:2222/artemiy/homelab.git
       targetRevision: main
       ref: values

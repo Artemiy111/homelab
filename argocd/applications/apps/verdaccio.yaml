@@ -8,7 +8,7 @@ spec:
   sources:
     - repoURL: ssh://git@forgejo.biplane.casa:2222/artemiy/homelab.git
       targetRevision: main
-      path: apps/verdaccio
+      path: clusters/casa/apps/verdaccio
   destination:
     server: https://kubernetes.default.svc
     namespace: verdaccio

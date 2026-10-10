@@ -8,7 +8,7 @@
 | Модуль | Что описывает | Документация |
 | --- | --- | --- |
 | `forgejo/` | Защита ветки `main` репозитория `homelab` | `infra/terraform/forgejo/README.md` |
-| `vault/` | Политики, роли и kubernetes-auth в HashiCorp Vault | `apps/vault/README.md` |
+| `vault/` | Политики, роли и kubernetes-auth в HashiCorp Vault | `clusters/casa/apps/vault/README.md` |
 | `uptime-kuma/` | Мониторы, теги, status page и настройки Uptime Kuma | `infra/terraform/uptime-kuma/README.md` |
 | `zitadel/` | Организация, проект, OIDC-приложения, роли, членства, гранты и политика логина Zitadel | `infra/terraform/zitadel/README.md` |
 | `tailscale/` | DNS tailnet: MagicDNS и split DNS на домашний домен | `infra/terraform/tailscale/README.md` |

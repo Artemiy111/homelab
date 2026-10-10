@@ -14,7 +14,7 @@ type(scope): subject
 | Часть | Правило |
 | --- | --- |
 | `type` | один из `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert` |
-| `scope` | необязательно; подсистема или сервис в нижнем регистре (`argocd`, `traefik`, `forgejo`, `sealed-secrets`, `dotfiles`, имя приложения из `apps/`) |
+| `scope` | необязательно; подсистема или сервис в нижнем регистре (`argocd`, `traefik`, `forgejo`, `sealed-secrets`, `dotfiles`, имя приложения из `clusters/casa/apps/`) |
 | `subject` | императив на английском, нижний регистр (имена собственные допустимы: `Zitadel`, `DoH`, `GLITCHTIP`), без точки в конце |
 | header | ≤ 72 символов, включая `type(scope): ` (для заголовка PR — с учётом ` (#<n>)`, см. ниже) |
 | body | **запрещено** (правило `body-empty`) |
@@ -80,7 +80,7 @@ fj pr merge <n> --method squash --delete -m ""
 
 `-m ""` обязателен: без него `fj` дописывает тело `Reviewed-on: <url>`, а это
 внутренний домен, которого не должно быть в публичной истории (см. #25).
-Серверный шаблон merge-сообщения (`apps/forgejo`) задаёт пустое тело для
+Серверный шаблон merge-сообщения (`clusters/casa/apps/forgejo`) задаёт пустое тело для
 веб-мержей, но `fj` использует своё тело и шаблон не учитывает.
 
 **Гейт это расхождение не ловит.** На `pull_request` CI линтит заголовок PR, а не

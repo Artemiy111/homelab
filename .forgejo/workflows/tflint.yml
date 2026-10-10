@@ -29,7 +29,7 @@ jobs:
           set -euo pipefail
           asset="tflint/0.64.0/tflint_linux_amd64.zip"
           url="http://rustfs.rustfs.svc.cluster.local/mirror/$asset"
-          expected="$(awk -v p="$asset" '$1==p{print $2}' apps/rustfs/artifacts.tsv)"
+          expected="$(awk -v p="$asset" '$1==p{print $2}' clusters/casa/apps/rustfs/artifacts.tsv)"
           mkdir -p "$HOME/.local/bin"
           curl -fsSL -o /tmp/tflint.zip "$url"
           echo "$expected  /tmp/tflint.zip" | sha256sum -c -

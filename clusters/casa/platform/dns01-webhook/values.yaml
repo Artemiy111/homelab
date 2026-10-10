@@ -1,0 +1,35 @@
+# cert-manager-webhook-dns01 — вебхук для DNS-01 проверки в cert-manager.
+# Собственный чарт в Forgejo (`forgejo.biplane.casa/artemiy/charts`).
+#
+# DNS-01 нужен там, где HTTP-01 не проходит: wildcard-сертификат `*.домен`
+# требует подтверждения DNS, а внешние сети стенда провайдеры режут.
+
+# Домен группы DNS-01: подписи ACME запросов пишутся в эту зону. Обязан
+# совпадать с webhookGroupName в clusters/casa/platform/homelab/values.yaml (оттуда его берёт
+# ClusterIssuer).
+groupName: acme.homelab.local
+
+# Дефолт чарта — resources: {} не задано. Без requests планировщик не знает, что
+# размещает; вебхук держит ACME-челленджи, его вытеснение ломает выпуск
+# сертификатов.
+resources:
+  requests:
+    memory: 64Mi
+  limits:
+    memory: 160Mi
+
+image:
+  repository: forgejo.biplane.casa/artemiy/cert-manager-webhook-dns01
+  tag: 0.5.0
+
+provider:
+  dynv6:
+    existingSecret: dns01-webhook-dynv6-token
+  spaceship:
+    existingSecret: dns01-webhook-spaceship
+    # Учётная запись прокси: логин и пароль разными ключами из Vault, URL
+    # собирается в поде. Прокси привязан к провайдеру: dynv6 через него не
+    # ходит. WAF Spaceship отвечает 403 на запросы из сети стенда, поэтому
+    # API провайдера доступен только так.
+    egressSecret: dns01-webhook-egress
+    proxyURL: http://$(XUI_EGRESS_USERNAME):$(XUI_EGRESS_PASSWORD)@xui-egress.3x-ui.svc.cluster.local:8440

@@ -4,7 +4,7 @@
 # CRD ставим вместе с оператором: они кластерные, и Prune=false не даёт удалить
 # их вместе с приложением (иначе снесло бы все Certificate/Issuer кластера).
 #
-# Эмитент и Certificate живут не здесь, а в шаблонах чарта platform/homelab
+# Эмитент и Certificate живут не здесь, а в шаблонах чарта clusters/casa/platform/homelab
 # (templates/cert-manager/): CRD должны существовать раньше CR, а порядок
 # «сначала оператор, потом CR» Argo в одном приложении не гарантирует.
 #
@@ -16,13 +16,13 @@
 # Метрики: prometheus.enabled оставлен дефолтным true — чарт развешивает
 # аннотации `prometheus.io/scrape` на подах controller, webhook и cainjector.
 # Забирает их vmagent статическими job'ами по Service'ам на порту 9402
-# (apps/victoria-metrics/config/vmagent/scrape.yml). Pod-discovery по аннотациям
+# (clusters/casa/apps/victoria-metrics/config/vmagent/scrape.yml). Pod-discovery по аннотациям
 # в scrape.yml отсутствует, поэтому рассчитывать на него нельзя. CRD
 # prometheus-operator (monitoring.coreos.com) в кластере нет, поэтому никаких
 # PodMonitor/ServiceMonitor не создаём.
 #
 # Значения вынесены из `spec.source.helm.valuesObject` в
-# `platform/cert-manager/values.yaml`, Application подключает их через
+# `clusters/casa/platform/cert-manager/values.yaml`, Application подключает их через
 # `$values` — второй источник в `spec.sources`.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -38,7 +38,7 @@ spec:
       helm:
         releaseName: cert-manager
         valueFiles:
-          - $values/platform/cert-manager/values.yaml
+          - $values/clusters/casa/platform/cert-manager/values.yaml
     - repoURL: ssh://git@forgejo.biplane.casa:2222/artemiy/homelab.git
       targetRevision: main
       ref: values

@@ -1,0 +1,42 @@
+{{- if .Values.certManager.enabled }}
+{{- $cm := .Values.certManager }}
+# Wildcard-сертификаты по одному на домен, список — в values
+# (`certManager.certificates`).
+#
+# Certificate живёт в namespace traefik: оттуда его читают TLSStore и слушатели
+# Gateway (clusters/casa/platform/traefik/tlsstore.yaml, clusters/casa/platform/homelab/templates/gateway).
+# Secret в другом namespace они не увидят.
+#
+# В dnsNames входят wildcard и apex. Apex обязателен: Matrix-клиент ищет
+# `https://<server_name>/.well-known/matrix/client`, а server_name = apex-домен.
+# Без apex в сертификате well-known отдаёт TLS-ошибку, и клиент не получает
+# `org.matrix.msc4143.rtc_foci` → «Call is not supported» / MISSING_MATRIX_RTC_TRANSPORT.
+#
+# Оба identifier'а проверяются через одно имя `_acme-challenge.<домен>`, но
+# в пределах одного Certificate challenge'и идут последовательно, а не параллельно
+# (docs cert-manager: «If you specify both example.com and *.example.com on the
+# same Certificate, it will take slightly longer to perform validation as each
+# domain will have to be validated one after the other»). Конфликт TXT-записей
+# возникает только при параллельных challenge'ях разных Certificate — поэтому у
+# каждого домона свой Secret.
+#
+# renewBefore 30d при 90-дневном сроке Let's Encrypt даёт запас на задержку
+# выпуска. Для отладки первого выпуска issuer меняется на парный staging.
+{{- range $cert := $cm.certificates }}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ $cert.name }}
+  namespace: traefik
+spec:
+  secretName: {{ $cert.secretName }}
+  issuerRef:
+    name: {{ $cert.issuer }}
+    kind: ClusterIssuer
+  dnsNames:
+    - "*.{{ $cert.domain }}"
+    - "{{ $cert.domain }}"
+  renewBefore: 720h
+{{- end }}
+{{- end }}

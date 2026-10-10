@@ -25,8 +25,8 @@ namespace'ов закрыто NetworkPolicy. Все они считаются и
 
 | Число | Метод | Границы |
 |---|---|---|
-| services | каталоги под `apps/`, где есть хотя бы один YAML | включает `apps/elk`, выведенный из эксплуатации: манифесты ещё не удалены |
-| manifests | файлы в области гейта kubeconform: `apps/<сервис>/k8s/`, `platform/`, `argocd/` без `values.yaml`, `Chart.yaml` и шаблонов чарта | ровно то, что проверяет CI |
+| services | каталоги под `clusters/casa/apps/`, где есть хотя бы один YAML | включает `clusters/casa/apps/elk`, выведенный из эксплуатации: манифесты ещё не удалены |
+| manifests | файлы в области гейта kubeconform: `clusters/casa/apps/<сервис>/k8s/`, `clusters/casa/platform/`, `argocd/` без `values.yaml`, `Chart.yaml` и шаблонов чарта | ровно то, что проверяет CI |
 | images pinned | `image: <ref>` одной строкой; в знаменателе только формы, где значение стоит на той же строке | многострочные формы (`image:` + `repository`/`tag` в CNPG и чартах Argo) не считаются: их нельзя объявить незакреплёнными без разбора YAML |
 | netpol coverage | namespace'ы, где есть манифест с `kind: NetworkPolicy`, делённые на все namespace'ы из манифестов: `metadata.namespace` и `spec.destination.namespace` у `Application` | вложенные `namespace:` из subject'ов RBAC и service-ссылок вебхуков не считаются |
 | ADR / postmortems | количество файлов в `docs/adr/` и `docs/incidents/NNNN-*.md` | — |
@@ -35,7 +35,7 @@ namespace'ов закрыто NetworkPolicy. Все они считаются и
 
 Число считается по области, известной только репозиторию, поэтому это нижняя
 оценка, и она расходится с кластером в обе стороны. Замер на 2026-09-29 после
-применения `apps/vault/k8s/networkpolicy-vso.yaml`:
+применения `clusters/casa/apps/vault/k8s/networkpolicy-vso.yaml`:
 
 | | репозиторий | кластер |
 |---|---|---|
@@ -52,11 +52,11 @@ namespace'ов закрыто NetworkPolicy. Все они считаются и
   нет: тестовый стенд не применяется. Репозиторий считает её в знаменателе.
 - **`logging` — остаток выведенного из эксплуатации ELK.** Namespace и два
   NetworkPolicy в кластере есть, workloads нет; в репозитории namespace
-  объявлен в `apps/elk/`. Пока
-  `apps/elk` не удалён (#617), репозиторий считает его как обычный namespace.
+  объявлен в `clusters/casa/apps/elk/`. Пока
+  `clusters/casa/apps/elk` не удалён (#617), репозиторий считает его как обычный namespace.
 - **`networkpolicy-vso.yaml` был объявлен, но не применён.** Манифест
-  `apps/vault/k8s/networkpolicy-vso.yaml` лежал в репозитории, а в кластере
-  политики для `vault-secrets-operator` не было: `apps/*/k8s` применяется
+  `clusters/casa/apps/vault/k8s/networkpolicy-vso.yaml` лежал в репозитории, а в кластере
+  политики для `vault-secrets-operator` не было: `clusters/casa/apps/*/k8s` применяется
   вручную, и ничто не проверяет, что файл доехал. Обнаружила сверка чисел с
   кластером, закрыта применением в тот же день. Вывод для процесса: у
   вручную применяемых манифестов нет проверки — см. отдельную задачу.
@@ -69,7 +69,7 @@ namespace'ов закрыто NetworkPolicy. Все они считаются и
 Список исключений пересчитывается генератором и лежит в `status.json`, здесь —
 разбор каждого.
 
-- **Образ без digest** — `apps/structurizr`. Официального образа в registry нет,
+- **Образ без digest** — `clusters/casa/apps/structurizr`. Официального образа в registry нет,
   сервис собирается из исходников, тег `localhost/structurizr:<версия>`
   импортируется в containerd узла. Исключение закрываемо: у импортированного
   образа есть digest, его можно указать в `image`; альтернатива — публикация
@@ -85,7 +85,7 @@ namespace'ов закрыто NetworkPolicy. Все они считаются и
   - `kube-system`, `local-path-storage` — системные, ими управляет k0s, а не
     манифесты репозитория;
   - `gitlab` — тестовый стенд, применяется вручную, вне Argo.
-- **Services** — `apps/elk` заменён на Loki и Alloy, манифесты остались в
+- **Services** — `clusters/casa/apps/elk` заменён на Loki и Alloy, манифесты остались в
   репозитории. Удаление — отдельная задача.
 
 ## Перегенерация
@@ -96,13 +96,13 @@ namespace'ов закрыто NetworkPolicy. Все они считаются и
 ```
 
 Гейт `.forgejo/workflows/status.yml` запускает `--check` на всех изменениях в
-`apps/`, `platform/`, `argocd/` и `docs/`: если числа в репозитории разошлись с
+`clusters/casa/apps/`, `clusters/casa/platform/`, `argocd/` и `docs/`: если числа в репозитории разошлись с
 артефактами, CI падает с указанием команды. Локально та же проверка висит в
 `.githooks/pre-commit` — расхождение ловится до коммита, а не после merge.
 
 Скрипт использует только `git`, `grep`, `awk` и coreutils, поэтому новых бинарей
 в тулчейне CI не появляется: набор инструментов в
-[`apps/rustfs/artifacts.tsv`](../../apps/rustfs/artifacts.tsv) не меняется.
+[`clusters/casa/apps/rustfs/artifacts.tsv`](../../apps/rustfs/artifacts.tsv) не меняется.
 
 ## Гонка при merge
 

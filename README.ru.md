@@ -36,7 +36,7 @@ flowchart TB
     subgraph host["Домашний сервер<br/>k0s, один узел"]
         EDGE["Traefik<br/>Gateway API :80 / :443<br/>wildcard-сертификат"]
         AUTH["oauth2-proxy<br/>forward auth<br/>Zitadel — OIDC"]
-        APPS["~50 сервисов<br/>apps/"]
+        APPS["~50 сервисов<br/>clusters/casa/apps/"]
         OPS["Argo CD — GitOps<br/>cert-manager<br/>ACME DNS-01<br/>Vault Operator<br/>Longhorn CSI"]
         DATA["CloudNativePG<br/>PostgreSQL<br/>MariaDB Operator"]
         OBS["OTel Collector<br/>Beyla · Alloy<br/>VictoriaMetrics · Loki<br/>Tempo · Pyroscope"]
@@ -60,14 +60,14 @@ flowchart TB
 | Компонент | Роль | Каталог |
 |---|---|---|
 | k0s | Одноузловой Kubernetes: Calico CNI, etcd, CoreDNS | [`infra/host/k0s/`](infra/host/k0s/) |
-| Traefik | Gateway API | [`platform/traefik/`](platform/traefik/) |
-| Technitium DNS | Локальный DNS, wildcard-зона, блокировка рекламы | [`apps/technitium/`](apps/technitium/) |
-| cert-manager | TLS через ACME DNS-01 | [`platform/cert-manager/`](platform/cert-manager/) |
-| Longhorn | CSI-хранилище: снапшоты, клоны, RWX | [`platform/longhorn/`](platform/longhorn/) |
-| CloudNativePG | Кластеры баз PostgreSQL | [`platform/cnpg/`](platform/cnpg/) |
-| MariaDB Operator | Инстансы MariaDB | [`platform/mariadb/`](platform/mariadb/) |
+| Traefik | Gateway API | [`clusters/casa/platform/traefik/`](clusters/casa/platform/traefik/) |
+| Technitium DNS | Локальный DNS, wildcard-зона, блокировка рекламы | [`clusters/casa/apps/technitium/`](clusters/casa/apps/technitium/) |
+| cert-manager | TLS через ACME DNS-01 | [`clusters/casa/platform/cert-manager/`](clusters/casa/platform/cert-manager/) |
+| Longhorn | CSI-хранилище: снапшоты, клоны, RWX | [`clusters/casa/platform/longhorn/`](clusters/casa/platform/longhorn/) |
+| CloudNativePG | Кластеры баз PostgreSQL | [`clusters/casa/platform/cnpg/`](clusters/casa/platform/cnpg/) |
+| MariaDB Operator | Инстансы MariaDB | [`clusters/casa/platform/mariadb/`](clusters/casa/platform/mariadb/) |
 | Argo CD | GitOps-контроллер | [`argocd/`](argocd/) |
-| Vault Secrets Operator | Синхронизирует пути Vault в Kubernetes Secrets | [`apps/vault/`](apps/vault/) |
+| Vault Secrets Operator | Синхронизирует пути Vault в Kubernetes Secrets | [`clusters/casa/apps/vault/`](clusters/casa/apps/vault/) |
 | Ansible | Пакеты и подготовка хоста | [`infra/ansible/`](infra/ansible/) |
 | Terraform | Ресурсы вне кластера | [`infra/terraform/`](infra/terraform/) |
 
@@ -129,41 +129,41 @@ Zitadel — основной OIDC-провайдер. Сервисы без на
 
 | Сервис | Назначение |
 |---|---|
-| [Zitadel](apps/zitadel/) | Identity provider и SSO (основной) |
-| [oauth2-proxy](apps/oauth2-proxy/) | Forward auth для сервисов без своего входа |
-| [Technitium](apps/technitium/) | DNS-сервер и блокировка рекламы |
-| [Homepage](apps/homepage/) | Стартовая страница |
-| [Forgejo](apps/forgejo/) | Приватный Git-сервис и CI |
-| [Vault](apps/vault/) | Секреты, transit, PKI |
-| [Infisical](apps/infisical/) | Self-hosted secrets manager |
-| [RustFS](apps/rustfs/) | S3-совместимое объектное хранилище |
-| [postgres](apps/postgres/) | Веб-админка PostgreSQL (pgweb) |
-| [WUD](apps/image-updates/) | Наблюдение за обновлениями образов |
-| [3x-ui](apps/3x-ui/) | Управление личным Xray-прокси |
-| [code-server](apps/code-server/) | VS Code в браузере |
-| [Headlamp](platform/headlamp/), [Radar](platform/radar/) | UI кластера |
+| [Zitadel](clusters/casa/apps/zitadel/) | Identity provider и SSO (основной) |
+| [oauth2-proxy](clusters/casa/apps/oauth2-proxy/) | Forward auth для сервисов без своего входа |
+| [Technitium](clusters/casa/apps/technitium/) | DNS-сервер и блокировка рекламы |
+| [Homepage](clusters/casa/apps/homepage/) | Стартовая страница |
+| [Forgejo](clusters/casa/apps/forgejo/) | Приватный Git-сервис и CI |
+| [Vault](clusters/casa/apps/vault/) | Секреты, transit, PKI |
+| [Infisical](clusters/casa/apps/infisical/) | Self-hosted secrets manager |
+| [RustFS](clusters/casa/apps/rustfs/) | S3-совместимое объектное хранилище |
+| [postgres](clusters/casa/apps/postgres/) | Веб-админка PostgreSQL (pgweb) |
+| [WUD](clusters/casa/apps/image-updates/) | Наблюдение за обновлениями образов |
+| [3x-ui](clusters/casa/apps/3x-ui/) | Управление личным Xray-прокси |
+| [code-server](clusters/casa/apps/code-server/) | VS Code в браузере |
+| [Headlamp](clusters/casa/platform/headlamp/), [Radar](clusters/casa/platform/radar/) | UI кластера |
 
 ### Приложения
 
 | Сервис | Назначение |
 |---|---|
-| [Immich](apps/immich/) | Фото- и видеотека |
-| [Jellyfin](apps/jellyfin/) | Домашний медиасервер |
-| [Navidrome](apps/navidrome/) | Музыкальная библиотека |
-| [Nextcloud](apps/nextcloud/) | Файлы, синхронизация, календарь, контакты |
-| [Seafile](apps/seafile/) | Файловая синхронизация и обмен файлами, с OnlyOffice |
-| [Jitsi](apps/jitsi/) | Приватные видеоконференции |
-| [Element](apps/element/) | Matrix-чат и видеозвонки через LiveKit — [собственный Helm-чарт](apps/element/chart/) |
-| [Talk HPB](apps/talk-hpb/) | Signaling для Nextcloud Talk |
-| [Mailserver](apps/mailserver/) | Почта Stalwart и веб-почта Bulwark |
-| [Paperless](apps/paperless/), [PDF](apps/pdf/) | Документы, OCR, операции с PDF |
-| [Home Assistant](apps/home-assistant/) | Автоматизация дома |
-| [Dawarich](apps/dawarich/) | История местоположений |
-| [Lute](apps/lute/) | Изучение языков через чтение |
-| [Sure](apps/sure/) | Личные финансы |
-| [Open WebUI](apps/open-webui/), [LocalAI](apps/local-ai/) | Чат-интерфейс для LLM и CPU-инференс |
-| [Mermaid](apps/mermaid-live-editor/) | Редактор диаграмм |
-| [Structurizr](apps/structurizr/) | Архитектурные диаграммы |
+| [Immich](clusters/casa/apps/immich/) | Фото- и видеотека |
+| [Jellyfin](clusters/casa/apps/jellyfin/) | Домашний медиасервер |
+| [Navidrome](clusters/casa/apps/navidrome/) | Музыкальная библиотека |
+| [Nextcloud](clusters/casa/apps/nextcloud/) | Файлы, синхронизация, календарь, контакты |
+| [Seafile](clusters/casa/apps/seafile/) | Файловая синхронизация и обмен файлами, с OnlyOffice |
+| [Jitsi](clusters/casa/apps/jitsi/) | Приватные видеоконференции |
+| [Element](clusters/casa/apps/element/) | Matrix-чат и видеозвонки через LiveKit — [собственный Helm-чарт](clusters/casa/apps/element/chart/) |
+| [Talk HPB](clusters/casa/apps/talk-hpb/) | Signaling для Nextcloud Talk |
+| [Mailserver](clusters/casa/apps/mailserver/) | Почта Stalwart и веб-почта Bulwark |
+| [Paperless](clusters/casa/apps/paperless/), [PDF](clusters/casa/apps/pdf/) | Документы, OCR, операции с PDF |
+| [Home Assistant](clusters/casa/apps/home-assistant/) | Автоматизация дома |
+| [Dawarich](clusters/casa/apps/dawarich/) | История местоположений |
+| [Lute](clusters/casa/apps/lute/) | Изучение языков через чтение |
+| [Sure](clusters/casa/apps/sure/) | Личные финансы |
+| [Open WebUI](clusters/casa/apps/open-webui/), [LocalAI](clusters/casa/apps/local-ai/) | Чат-интерфейс для LLM и CPU-инференс |
+| [Mermaid](clusters/casa/apps/mermaid-live-editor/) | Редактор диаграмм |
+| [Structurizr](clusters/casa/apps/structurizr/) | Архитектурные диаграммы |
 
 ## Известные ограничения
 

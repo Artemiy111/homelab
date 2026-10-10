@@ -6,7 +6,7 @@
 # alloy-profiler и authentik.
 #
 # Включение — два шага, и оба должны быть вместе: убрать блок automated из
-# этого файла и снять ручной масштаб в кластере. Пока в apps/gitlab/k8s/
+# этого файла и снять ручной масштаб в кластере. Пока в clusters/casa/apps/gitlab/k8s/
 # deployment.yaml стоит replicas: 1, приложение без automated будет постоянно
 # OutOfSync, и это служит индикатором выключенного состояния.
 apiVersion: argoproj.io/v1alpha1
@@ -19,7 +19,7 @@ spec:
   sources:
     - repoURL: ssh://git@forgejo.biplane.casa:2222/artemiy/homelab.git
       targetRevision: main
-      path: apps/gitlab
+      path: clusters/casa/apps/gitlab
   destination:
     server: https://kubernetes.default.svc
     namespace: gitlab

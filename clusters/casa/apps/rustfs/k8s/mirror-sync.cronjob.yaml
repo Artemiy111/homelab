@@ -1,0 +1,64 @@
+# Синк зеркала артефактов в RustFS (issue #149). Периодически (и вручную)
+# скачивает в бакет mirror то, что перечислено в clusters/casa/apps/rustfs/artifacts.tsv,
+# плюс схемы kubeconform. Бакет и public-read policy принадлежат infra/terraform/rustfs.
+#
+# Скрипт (clusters/casa/apps/rustfs/mirror-sync.sh) и манифест (clusters/casa/apps/rustfs/artifacts.tsv)
+# едут в ConfigMap mirror-sync через kustomize:
+#   kubectl apply -k clusters/casa/apps/rustfs
+#
+# Ручной запуск: kubectl -n rustfs create job --from=cronjob/mirror-sync mirror-sync-manual
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: mirror-sync
+  namespace: rustfs
+spec:
+  schedule: "17 4 * * *"
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 3600
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: sync
+              image: "amazon/aws-cli:2.36.49@sha256:f42bf088cb1456ba9e179ce71fdeb22cc46ff64ea1e3aeae8251ff81391f5bb1"
+              command:
+                - /bin/bash
+                - /scripts/mirror-sync.sh
+              env:
+                - name: S3_ENDPOINT
+                  value: http://rustfs.rustfs.svc.cluster.local
+                - name: AWS_DEFAULT_REGION
+                  value: us-east-1
+                - name: KUBERNETES_VERSION
+                  value: "1.36.3"
+                - name: AWS_ACCESS_KEY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: rustfs-credentials
+                      key: RUSTFS_ACCESS_KEY
+                - name: AWS_SECRET_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: rustfs-credentials
+                      key: RUSTFS_SECRET_KEY
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 128Mi
+                limits:
+                  cpu: "1"
+                  memory: 512Mi
+              volumeMounts:
+                - name: scripts
+                  mountPath: /scripts
+                  readOnly: true
+          volumes:
+            - name: scripts
+              configMap:
+                name: mirror-sync

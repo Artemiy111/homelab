@@ -1,7 +1,7 @@
 # Uptime Kuma (Terraform)
 
 Мониторы, теги, status page, прокси и настройки Uptime Kuma. Gatus
-(`apps/gatus/config/config.yaml`) — источник правды: URL и ожидаемые результаты
+(`clusters/casa/apps/gatus/config/config.yaml`) — источник правды: URL и ожидаемые результаты
 проверок здесь его зеркало.
 
 ## Запуск
@@ -48,7 +48,7 @@ export UPTIMEKUMA_PASSWORD
 ## Значения
 
 ```hcl
-domain   = "example.com"     # тот же домен, что в platform/homelab
+domain   = "example.com"     # тот же домен, что в clusters/casa/platform/homelab
 timezone = "Asia/Yekaterinburg"
 ```
 

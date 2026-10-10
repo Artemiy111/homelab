@@ -1,9 +1,9 @@
 # Оператор MariaDB: классы, инстансы, пользователи, бэкапы. Нужен для seafile
-# и uptime-kuma — их базы живут в кластерах баз MariaDB (platform/mariadb/),
+# и uptime-kuma — их базы живут в кластерах баз MariaDB (clusters/casa/platform/mariadb/),
 # тогда как PostgreSQL-базы обслуживает CNPG.
 #
 # Значения вынесены из `spec.source.helm.valuesObject` в
-# `platform/mariadb-operator/values.yaml`, Application подключает их через
+# `clusters/casa/platform/mariadb-operator/values.yaml`, Application подключает их через
 # `$values` — второй источник в `spec.sources`.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -19,7 +19,7 @@ spec:
       helm:
         releaseName: mariadb-operator
         valueFiles:
-          - $values/platform/mariadb-operator/values.yaml
+          - $values/clusters/casa/platform/mariadb-operator/values.yaml
     - repoURL: ssh://git@forgejo.biplane.casa:2222/artemiy/homelab.git
       targetRevision: main
       ref: values

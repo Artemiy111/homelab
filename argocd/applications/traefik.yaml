@@ -1,7 +1,7 @@
 # Traefik — единственный вход в кластер: терминирует TLS, держит Gateway и
 # HTTPRoute, публикует /dashboard.
 #
-# Значения лежат в platform/traefik/values.yaml и подключаются через `$values`.
+# Значения лежат в clusters/casa/platform/traefik/values.yaml и подключаются через `$values`.
 # Раньше те же 32 значения были продублированы инлайн в `valuesObject`, и правка
 # файла молча расходилась с кластером — долг был зафиксирован в argocd/README.md.
 #
@@ -26,7 +26,7 @@ spec:
         # приложения снесло бы все IngressRoute и Middleware кластера.
         skipCrds: true
         valueFiles:
-          - $values/platform/traefik/values.yaml
+          - $values/clusters/casa/platform/traefik/values.yaml
     - repoURL: ssh://git@forgejo.biplane.casa:2222/artemiy/homelab.git
       targetRevision: main
       ref: values

@@ -1,7 +1,7 @@
 # Tailscale (Terraform)
 
 DNS tailnet: MagicDNS и split DNS (restricted nameserver на домашний домен).
-Развёртывание Tailscale на хосте — `apps/tailscale/`, здесь только содержимое
+Развёртывание Tailscale на хосте — `clusters/casa/apps/tailscale/`, здесь только содержимое
 tailnet через API.
 
 ## Запуск
@@ -36,7 +36,7 @@ prompt. `export` обязателен — без него значение ос�
 ## Значения
 
 ```hcl
-domain  = "example.com"   # основной домен, тот же что в platform/homelab
+domain  = "example.com"   # основной домен, тот же что в clusters/casa/platform/homelab
 host_ip = "192.0.2.10"    # адрес Technitium: ему tailnet отдаёт зоны
 ```
 
@@ -47,7 +47,7 @@ host_ip = "192.0.2.10"    # адрес Technitium: ему tailnet отдаёт �
 стенда публичен (wildcard-сертификат Let's Encrypt публикуется в Certificate
 Transparency, `docs/agents/information-handling.md`), поэтому держать его в
 приватном слое нечего. `var.domain` остаётся основным доменом — тем, что в
-`platform/homelab/values.yaml`.
+`clusters/casa/platform/homelab/values.yaml`.
 
 ## Что управляется
 
@@ -70,7 +70,7 @@ DNS. Со сменой домена он убран, и `terraform apply` заб
 
 Ресурс описывает **всю** DNS-конфигурацию, поэтому заодно чистит устаревшие
 split-DNS записи, которые в admin console приходилось удалять руками
-(`apps/tailscale/README.md`).
+(`clusters/casa/apps/tailscale/README.md`).
 
 Провайдер помечает `tailscale_dns_configuration` как **alpha**: схема может
 меняться между версиями. При обновлении провайдера читать release notes, а не

@@ -175,15 +175,15 @@ infra/host/etc/k0s/
 
 | Слой | Где |
 |---|---|
-| Gateway | Traefik — единый вход на `<node1-ip>`, Gateway API (`platform/traefik/`) |
-| UI кластера | Headlamp (`platform/headlamp/`) |
+| Gateway | Traefik — единый вход на `<node1-ip>`, Gateway API (`clusters/casa/platform/traefik/`) |
+| UI кластера | Headlamp (`clusters/casa/platform/headlamp/`) |
 | Секреты | sealed-secrets (`argocd/applications/sealed-secrets.yaml`) |
 | GitOps | Argo CD — пробный стенд (`argocd/README.md`); целевое решение — Flux |
 
 ### Почему нет MetalLB
 
 LoadBalancer на однонодном кластере не нужен: тот же адрес `<node1-ip>`
-отдаётся через `externalIPs` сервиса Traefik (`platform/traefik/values.yaml`),
+отдаётся через `externalIPs` сервиса Traefik (`clusters/casa/platform/traefik/values.yaml`),
 а MetalLB в L2-режиме пришлось бы отвечать ARP за отдельный VIP <node1-vip>.
 
 Манифесты удалены 2026-09-15, но восстанавливаются, если появится вторая нода:

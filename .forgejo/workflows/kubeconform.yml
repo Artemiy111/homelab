@@ -4,8 +4,8 @@ on:
   push:
     branches: [main]
     paths: &paths
-      - "apps/**"
-      - "platform/**"
+      - "clusters/casa/apps/**"
+      - "clusters/casa/platform/**"
       - "argocd/**"
       - "scripts/kubeconform.sh"
       - ".forgejo/workflows/kubeconform.yml"
@@ -44,9 +44,9 @@ jobs:
           path: ~/.cache/kubeconform-http
           key: kubeconform-cr-schemas-${{ env.CRD_SCHEMAS_REV }}-${{ runner.os }}
       # Бинарь и набор схем Kubernetes берём из зеркала RustFS (issue #149).
-      # У скачанного бинаря сверяем sha256 с apps/rustfs/artifacts.tsv; схемы
+      # У скачанного бинаря сверяем sha256 с clusters/casa/apps/rustfs/artifacts.tsv; схемы
       # собираются в зеркало воспроизводимо, поэтому хэш в манифесте не пинится.
-      # Зеркало наполняет CronJob mirror-sync (apps/rustfs).
+      # Зеркало наполняет CronJob mirror-sync (clusters/casa/apps/rustfs).
       #
       # Схемы Kubernetes нужны локальными ради привязки к версии: kubeconform
       # подставляет {{.NormalizedKubernetesVersion}} из -kubernetes-version, то
@@ -60,7 +60,7 @@ jobs:
           set -euo pipefail
           asset="kubeconform/0.8.0/kubeconform_0.8.0_linux_amd64.tar.gz"
           url="http://rustfs.rustfs.svc.cluster.local/mirror/$asset"
-          expected="$(awk -v p="$asset" '$1==p{print $2}' apps/rustfs/artifacts.tsv)"
+          expected="$(awk -v p="$asset" '$1==p{print $2}' clusters/casa/apps/rustfs/artifacts.tsv)"
           mkdir -p "$HOME/.local/bin" /tmp/kubeconform
           curl -fsSL -o /tmp/kubeconform/kubeconform.tar.gz "$url"
           echo "$expected  /tmp/kubeconform/kubeconform.tar.gz" | sha256sum -c -

@@ -4,8 +4,8 @@ on:
   push:
     branches: [main]
     paths: &paths
-      - "apps/**"
-      - "platform/**"
+      - "clusters/casa/apps/**"
+      - "clusters/casa/platform/**"
       - "argocd/**"
       - "docs/**"
       - "scripts/**"
@@ -18,8 +18,8 @@ on:
 # badge «services» остался прежним, и README врёт.
 #
 # Тулчейн не расширяется: генератор на git, grep, awk и coreutils, поэтому
-# ничего не качаем из зеркала RustFS (apps/rustfs) и не добавляем в
-# apps/rustfs/artifacts.tsv.
+# ничего не качаем из зеркала RustFS (clusters/casa/apps/rustfs) и не добавляем в
+# clusters/casa/apps/rustfs/artifacts.tsv.
 jobs:
   status:
     runs-on: ubuntu-latest

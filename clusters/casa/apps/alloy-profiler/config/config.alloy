@@ -1,0 +1,34 @@
+// Alloy-профайлер: eBPF-сэмплирование стеков процессов в контейнерах этой
+// ноды. Отдельный инстанс от clusters/casa/apps/alloy: лог-пайплайн намеренно работает без
+// root и eBPF-возможностей, профилирование их требует.
+discovery.kubernetes "local_pods" {
+  // role обязателен и на верхнем уровне, и внутри selectors — иначе
+  // validation failed с "missing required attribute". Фильтр по
+  // spec.nodeName ограничивает выборку подами своей ноды: иначе каждый под
+  // в кластере сэмплировал бы весь узел.
+  role = "pod"
+  selectors {
+    role  = "pod"
+    field = "spec.nodeName=" + sys.env("NODE_NAME")
+  }
+}
+
+pyroscope.ebpf "instance" {
+  targets    = discovery.kubernetes.local_pods.targets
+  forward_to = [pyroscope.write.endpoint.receiver]
+
+  // Off-CPU профили: кто и сколько времени НЕ делал ничего, ожидая
+  // блокировок, ввода-вывода и планировщика. По умолчанию 0 — выключено.
+  //
+  // В описании аргумента слово «threshold» (похоже на длительность),
+  // но текст говорит «probability from 0 to 1». Значение 0.1 выбрано как
+  // умеренное и проверено наблюдением: смотрим, какие профили приходят,
+  // сколько их и что это стоит по CPU.
+  off_cpu_threshold = 0.1
+}
+
+pyroscope.write "endpoint" {
+  endpoint {
+    url = "http://pyroscope.monitoring.svc.cluster.local:4040"
+  }
+}

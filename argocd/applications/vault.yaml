@@ -6,10 +6,10 @@
 # git, поэтому repoURL указывает на репозиторий, а чарт лежит в его корне.
 # Версия зафиксирована тегом v0.34.1 (Vault 2.0.4).
 #
-# namespace: тот же, что и раньше (apps/vault/k8s/namespace.yaml удалён — его
+# namespace: тот же, что и раньше (clusters/casa/apps/vault/k8s/namespace.yaml удалён — его
 # создаёт CreateNamespace).
 # Значения вынесены из `spec.source.helm.valuesObject` в
-# `platform/vault/values.yaml`, Application подключает их через `$values` —
+# `clusters/casa/platform/vault/values.yaml`, Application подключает их через `$values` —
 # второй источник в `spec.sources`.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -25,7 +25,7 @@ spec:
       helm:
         releaseName: vault
         valueFiles:
-          - $values/platform/vault/values.yaml
+          - $values/clusters/casa/platform/vault/values.yaml
     - repoURL: ssh://git@forgejo.biplane.casa:2222/artemiy/homelab.git
       targetRevision: main
       ref: values
