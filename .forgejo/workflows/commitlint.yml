@@ -18,8 +18,9 @@ jobs:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-      # setup-bun берётся из зеркала на локальном инстансе (org `oven-sh`) —
-      # как и остальные `uses:` при DEFAULT_ACTIONS_URL=http://forgejo-http:3000.
+      # setup-bun берётся из зеркала RustFS, как и бинарники остальных гейтов
+      # (issue #149): внешние репозитории бывают недоступны, а ATS в кластере
+      # не развёрнут, и job падал на загрузке bun до установки чего-либо.
       # Bинарь качаем через кэш ATS (clusters/casa/apps/ats): GitHub отдаёт release-ассет 302
       # на подписанный CDN-URL, а HTTP-клиент внутри setup-bun по нему не идёт и
       # уходит в таймаут. ATS же разворачивает редирект сам и кэширует файл.
@@ -29,7 +30,7 @@ jobs:
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.4.0
-          bun-download-url: http://ats.ats.svc.cluster.local/github/oven-sh/bun/releases/download/bun-v1.4.0/bun-linux-x64.zip
+          bun-download-url: http://rustfs.rustfs.svc.cluster.local/mirror/bun/1.4.0/bun-linux-x64.zip
           registries: http://verdaccio.verdaccio.svc.cluster.local/
       - name: Cache dependencies
         uses: actions/cache@v4

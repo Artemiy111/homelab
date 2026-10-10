@@ -23,13 +23,34 @@ jobs:
         with:
           path: ~/.venvs/ansible
           key: ansible-lint-26.8.0-ansible-12.3.0-${{ runner.os }}
+      # Индексы apt и скачанные пакеты переживают прогон. Ключ по образу и
+      # версии python, а не по коммиту: содержимое не зависит от исходников,
+      # иначе запись пересоздавалась бы на каждом пуше и не помогала.
+      - name: Cache apt
+        uses: actions/cache@v4
+        with:
+          path: |
+            /var/lib/apt/lists
+            /var/cache/apt/archives
+          key: apt-lists-ubuntu-22.04-python3.11-${{ runner.os }}
       # python3.11 ставится ВСЕГДА, не под condition кэша: venv из кэша
       # содержит bin/python3.11 симлинком на /usr/bin/python3.11 свежего
       # контейнера, и без бинаря запускается с "bad interpreter".
+      # apt-get update нужен только когда индексов нет (холодный кэш или
+      # протухшая запись) — на тёплом он и есть самый долгий шаг гейта.
       - name: Ensure python3.11
         run: |
           set -euo pipefail
-          test -x /usr/bin/python3.11 || { apt-get update -qq && apt-get install -y --no-install-recommends python3.11 python3.11-venv; }
+          if test -x /usr/bin/python3.11; then
+            echo "python3.11 уже есть"
+            exit 0
+          fi
+          if ! ls /var/lib/apt/lists/*Packages* >/dev/null 2>&1; then
+            apt-get update -qq
+          else
+            echo "индексы apt из кэша, update пропущен"
+          fi
+          apt-get install -y --no-install-recommends python3.11 python3.11-venv
       # Ставится полный metapackage `ansible==12.3.0`: в его wheel уже входят
       # коллекции (community.general.copr нужен syntax-check), галактический
       # доступ CI не требуется. Движок — ansible-core 2.19.x: образ раннера
