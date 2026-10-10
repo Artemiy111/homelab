@@ -37,6 +37,10 @@ spec:
                   value: us-east-1
                 - name: KUBERNETES_VERSION
                   value: "1.36.3"
+                # Тот же пин, что и CRD_SCHEMAS_REV в scripts/kubeconform.sh:
+                # ключ кэша схем в workflow и источник в зеркале обязаны совпадать.
+                - name: CRD_SCHEMAS_REV
+                  value: "fd90051867733c60d32d16450556e9cd18459aef"
                 - name: AWS_ACCESS_KEY_ID
                   valueFrom:
                     secretKeyRef:

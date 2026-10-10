@@ -19,12 +19,15 @@
 #   MIRROR_BUCKET       имя бакета (по умолчанию mirror)
 #   KUBERNETES_VERSION  если задано — собрать и опубликовать схемы kubeconform
 #   SCHEMA_REPO         upstream репозиторий схем (по умолчанию yannh/kubernetes-json-schema)
+#   CRD_SCHEMAS_REV     ревизия каталога CR-схем datreeio/CRDs-catalog; если
+#                       задана — собрать и опубликовать их (второй набор)
 set -euo pipefail
 
 : "${S3_ENDPOINT:?задайте S3_ENDPOINT}"
 BUCKET="${MIRROR_BUCKET:-mirror}"
 MANIFEST="${MIRROR_MANIFEST:-/scripts/artifacts.tsv}"
 SCHEMA_REPO="${SCHEMA_REPO:-https://github.com/yannh/kubernetes-json-schema.git}"
+CRD_SCHEMA_REPO="${CRD_SCHEMA_REPO:-https://github.com/datreeio/CRDs-catalog.git}"
 
 s3api() { aws --endpoint-url "$S3_ENDPOINT" s3api "$@"; }
 s3cp() { aws --endpoint-url "$S3_ENDPOINT" s3 cp "$@"; }
@@ -106,6 +109,47 @@ sync_schemas() {
   rm -rf "$tmp"
 }
 
+# Схемы CR лежат в каталоге datreeio/CRDs-catalog как <group>/<kind>_<version>.json,
+# готовых архивов нет — кладём весь каталог одним объектом. Он небольшой, а
+# перечисление используемых групп в манифесте пришлось бы вести вручную и
+# забывать: забытая группа означает красный гейт на новом CRD.
+#
+# Ревизия зафиксирована коммитом и совпадает с CRD_SCHEMAS_REV в
+# scripts/kubeconform.sh. Fetch по SHA, а не shallow clone ветки: у каталога
+# нет пригодных тегов, а main движется каждый день.
+#
+# Имя объекта повторяет схему Kubernetes-схем, включая непривычный разделитель:
+# crds-catalog_<rev>.tar.gz внутри каталога без префикса, чтобы распаковка в
+# ~/.cache/kubeconform-schemas давала готовый путь crds/<group>/<kind>_<version>.json.
+sync_cr_schemas() {
+  local rev="$1" path tmp
+  [ -z "$rev" ] && return 0
+
+  path="kubeconform-cr-schemas/$rev/crds-catalog_${rev}.tar.gz"
+  if object_exists "$path"; then
+    echo "skip $path"
+    return 0
+  fi
+
+  ensure_build_tools
+  tmp="$(mktemp -d)"
+  git init -q "$tmp/crds"
+  git -C "$tmp/crds" remote add origin "$CRD_SCHEMA_REPO"
+  # GitHub отдаёт коммит по SHA через fetch, shallow достаточно: история не нужна.
+  git -C "$tmp/crds" fetch -q --depth 1 origin "$rev"
+  git -C "$tmp/crds" checkout -q FETCH_HEAD
+  echo "build $path"
+  # Каталог .git не попадает в архив, mtime и владелец фиксированы, иначе
+  # одинаковая ревизия давала бы разные байты при каждом прогоне.
+  tar -C "$tmp/crds" \
+    --sort=name --mtime='@0' --owner=0 --group=0 --numeric-owner \
+    --exclude=.git \
+    -czf "$tmp/crds.tar.gz" .
+  mkdir -p "kubeconform-cr-schemas/$rev"
+  s3cp "$tmp/crds.tar.gz" "s3://$BUCKET/$path"
+  rm -rf "$tmp"
+}
+
 failed=()
 
 while read -r path sha url _; do
@@ -120,6 +164,12 @@ done < "$MANIFEST"
 if [ -n "${KUBERNETES_VERSION:-}" ]; then
   if ! sync_schemas "$KUBERNETES_VERSION"; then
     failed+=("kubeconform-schemas/$KUBERNETES_VERSION")
+  fi
+fi
+
+if [ -n "${CRD_SCHEMAS_REV:-}" ]; then
+  if ! sync_cr_schemas "$CRD_SCHEMAS_REV"; then
+    failed+=("kubeconform-cr-schemas/$CRD_SCHEMAS_REV")
   fi
 fi
 

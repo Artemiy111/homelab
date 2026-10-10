@@ -38,11 +38,29 @@ jobs:
         with:
           path: ~/.cache/kubeconform-schemas
           key: kubeconform-schemas-1.36.3-mirror-${{ runner.os }}
-      - name: Cache downloaded CR schemas
+      - name: Cache kubeconform HTTP responses
         uses: actions/cache@v4
         with:
           path: ~/.cache/kubeconform-http
           key: kubeconform-cr-schemas-${{ env.CRD_SCHEMAS_REV }}-${{ runner.os }}
+      # Набор CR лежит в зеркале целиком (#910): раньше он тянулся с GitHub по
+      # HTTPS, а раннер туда не ходит, и гейт падал на каждом холодном кэше.
+      - name: Install CR schemas
+        run: |
+          set -euo pipefail
+          # Шаг необязательный. Зеркало наполняет CronJob раз в сутки, поэтому
+          # смена CRD_SCHEMAS_REV опережает его на сутки: падать здесь нельзя,
+          # иначе красное означало бы «подожди», а не «сломано». Пока объекта
+          # нет, scripts/kubeconform.sh берёт схемы по HTTP-фолбэку.
+          url="http://rustfs.rustfs.svc.cluster.local/mirror/kubeconform-cr-schemas/${CRD_SCHEMAS_REV}/crds-catalog_${CRD_SCHEMAS_REV}.tar.gz"
+          if ! curl -fsSL --max-time 60 -o /tmp/crds.tar.gz "$url"; then
+            echo "схемы CR в зеркале ещё нет, используется HTTP-фолбэк"
+            exit 0
+          fi
+          mkdir -p "$HOME/.cache/kubeconform-schemas/crds"
+          tar -xzf /tmp/crds.tar.gz -C "$HOME/.cache/kubeconform-schemas/crds"
+          test -f "$HOME/.cache/kubeconform-schemas/crds"/*/*.json
+          echo "схемы CR взяты из зеркала"
       # Бинарь и набор схем Kubernetes берём из зеркала RustFS (issue #149).
       # У скачанного бинаря сверяем sha256 с clusters/casa/apps/rustfs/artifacts.tsv; схемы
       # собираются в зеркало воспроизводимо, поэтому хэш в манифесте не пинится.

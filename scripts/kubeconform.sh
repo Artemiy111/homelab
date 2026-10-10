@@ -48,6 +48,12 @@ k8s_schema_locations=(
   "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/$k8s_schema_name"
 )
 
+# Набор CR кладёт зеркало: весь каталог одним объектом, распакованный в
+# $schema_dir/crds. GitHub остаётся в списке последним — локально набор обычно не
+# скачан, и без него проверка не работает вовсе, а в CI зеркало отвечает первым
+# и недостижимый GitHub просто не опрашивается (#910).
+crd_schema_name="{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json"
+
 # Набор CR — из datreeio/CRDs-catalog: они не входят в схемы Kubernetes, а без
 # них не проверялись бы все kind'ы операторов (HTTPRoute, Application,
 # VaultStaticSecret и прочие). Ревизия зафиксирована коммитом: у каталога нет
@@ -81,12 +87,16 @@ for location in "${k8s_schema_locations[@]}"; do
   schema_args+=(-schema-location "$location")
 done
 
+schema_args+=(-schema-location "$schema_dir/crds/$crd_schema_name")
+schema_args+=(
+  -schema-location "https://raw.githubusercontent.com/datreeio/CRDs-catalog/$crd_catalog_rev/$crd_schema_name"
+)
+
 kubeconform \
   -strict \
   -kubernetes-version "$kube_version" \
   -cache "$cache_dir" \
   "${schema_args[@]}" \
-  -schema-location "https://raw.githubusercontent.com/datreeio/CRDs-catalog/$crd_catalog_rev/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json" \
   -ignore-filename-pattern 'values\.yaml$' \
   -ignore-filename-pattern 'Chart\.yaml$' \
   -ignore-filename-pattern 'clusters/casa/platform/homelab/templates' \
