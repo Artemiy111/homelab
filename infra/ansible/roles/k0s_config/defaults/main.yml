@@ -1,13 +1,12 @@
 ---
-# Приватные значения k0s из infra/host/k0s/values.private.yaml: в них лежит
-# реальный issuer Zitadel для OIDC-входа apiserver. Файл untracked, поэтому
-# в дереве агента его нет — роль читает его на сервере, а при отсутствии
-# сообщает и пропускает себя, а не падает.
-k0s_config_oidc_issuer_file: "{{ repo_root }}/infra/host/k0s/values.private.yaml"
-
-# Шаблон ClusterConfig. Переменная k0s_config_oidc_issuer подставляется в
-# infra/host/etc/k0s/k0s.yaml.j2, потому что реальный домен в git не лежит.
-k0s_config_src: "{{ repo_root }}/infra/host/etc/k0s/k0s.yaml.j2"
+# ClusterConfig k0s для узла homelab. Переменных в файле нет, поэтому роль
+# копирует его как есть, а не рендерит: issuer Zitadel не секрет (домен виден
+# в Certificate Transparency, docs/adr/0009) и обязан совпадать с тем, что
+# объявляет /.well-known/openid-configuration.
+#
+# Файл применяется ролью k0s_config и install.sh; правка требует
+# `k0s stop && k0s start` — spec.api не обновляется динамически.
+k0s_config_src: "{{ repo_root }}/infra/host/etc/k0s/k0s.yaml"
 k0s_config_dest: /etc/k0s/k0s.yaml
 
 # systemd-юнит k0s на хосте. Рестарт нужен при смене файла: spec.api не

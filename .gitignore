@@ -5,10 +5,6 @@ node_modules
 
 /config.env
 
-# Приватные значения k0s (issuer Zitadel для OIDC-входа apiserver):
-# install.sh подставляет его в k0s.yaml вместо плейсхолдера.
-infra/host/k0s/*.private.yaml
-
 # Вложенные независимые git-репозитории с переиспользуемыми компонентами.
 # У каждого свой remote и issue-трекер; родитель их не отслеживает.
 /packages/

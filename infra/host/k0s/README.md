@@ -18,7 +18,7 @@ Single-node k0s на Fedora Server 44, максимально близкий к 
 
 ## Конфигурация
 
-`ClusterConfig` — шаблон `infra/host/etc/k0s/k0s.yaml.j2`, разворачивается в
+`ClusterConfig` — файл `infra/host/etc/k0s/k0s.yaml`, разворачивается в
 `/etc/k0s/k0s.yaml` ролью Ansible `k0s_config` (см. `infra/ansible/host.yml`).
 `spec.api` не обновляется динамически, поэтому роль рестартует
 `k0scontroller` при смене файла.
@@ -27,9 +27,11 @@ Single-node k0s на Fedora Server 44, максимально близкий к 
 cd infra/ansible && ansible-playbook host.yml
 ```
 
-Реальный issuer Zitadel для OIDC-входа apiserver лежит в приватном слое
-`infra/host/k0s/values.private.yaml` (untracked, образец — `.example`); в git
-только плейсхолдер.
+Issuer Zitadel для OIDC-входа apiserver задан прямо в
+`infra/host/etc/k0s/k0s.yaml`. Приватного слоя нет: домен не секрет, он виден
+в Certificate Transparency (docs/adr/0009), а apiserver сверяет claim `iss` с
+объявленным issuer'ом, поэтому значение обязано совпадать с
+`/.well-known/openid-configuration` Zitadel.
 
 ## Установка
 
@@ -46,8 +48,8 @@ sudo bash infra/host/k0s/install.sh
 1. Установит k0s binary
 2. Настроит firewalld (порты + pod/service CIDR)
 3. Настроит SELinux (container-selinux + labels)
-4. Развернёт `infra/host/etc/k0s/k0s.yaml.j2` в `/etc/k0s/k0s.yaml` с issuer'ом из
-   приватного слоя — тем же рендером, что и роль Ansible
+4. Развернёт `infra/host/etc/k0s/k0s.yaml` в `/etc/k0s/k0s.yaml` — тем же
+   файлом, что копирует роль Ansible
 5. Установит k0s с Calico CNI
 6. Настроит kubectl
 
@@ -156,7 +158,6 @@ sudo k0s stop && curl -sSLf https://get.k0s.sh | sudo sh && sudo k0s start
 ```
 infra/host/k0s/
 ├── install.sh                        # Bootstrap-установка (не идемпотентна)
-├── values.private.yaml.example       # Образец приватных значений
 ├── firewalld/
 │   ├── k0s-controller.xml            # Controller ports
 │   └── k0s-worker.xml                # Worker ports
@@ -165,12 +166,12 @@ infra/host/k0s/
 └── README.md                         # This file
 
 infra/host/etc/k0s/
-└── k0s.yaml.j2                       # ClusterConfig (шаблон, разворачивает Ansible)
+└── k0s.yaml                          # ClusterConfig (разворачивает Ansible)
 ```
 
 ## Состояние кластера
 
-Поверх k0s (Calico уже поднят из `infra/host/etc/k0s/k0s.yaml.j2`):
+Поверх k0s (Calico уже поднят из `infra/host/etc/k0s/k0s.yaml`):
 
 | Слой | Где |
 |---|---|

@@ -12,7 +12,7 @@
 |---|---|
 | Приложение OIDC в Zitadel | `infra/terraform/zitadel/applications.tf` |
 | Claim `role` (`admin`/`user`) | `infra/terraform/zitadel/actions.tf` |
-| Доверие apiserver к Zitadel | `infra/host/etc/k0s/k0s.yaml.j2`, `spec.api.extraArgs` |
+| Доверие apiserver к Zitadel | `infra/host/etc/k0s/k0s.yaml`, `spec.api.extraArgs` |
 | `cluster-admin` для группы `oidc:admin` | `headlamp-admins.clusterrolebinding.yaml` |
 | clientID/clientSecret/issuerURL/scopes | Vault `kv/headlamp/oidc` → `headlamp-oidc.vaultstaticsecret.yaml` |
 
@@ -66,5 +66,6 @@ Claim проверяется на стороне Zitadel, а не кластер
 
 `spec.api` не обновляется динамически: после правки `k0s.yaml` нужен
 `k0s stop && k0s start`. Секрета в самом `k0s.yaml` нет, реальный issuer
-Zitadel подставляет `install.sh` из `values.private.yaml` (untracked, плейсхолдер
-в git — `values.private.yaml.example`).
+Zitadel и `install.sh` берут его из того же файла. Issuer обязан совпадать
+с объявленным в `/.well-known/openid-configuration`, иначе apiserver отклонит
+токен: смена домена Zitadel требует правки здесь и рестарта k0s.

@@ -52,7 +52,7 @@ git branch -d feat/577-readme
   молча не выполнятся, а `check.sh` об этом предупредит.
 
 Приватные файлы в дерево **не переносятся** намеренно: `config.env`,
-`infra/host/k0s/values.private.yaml`, `infra/terraform/*/terraform.tfvars`,
+`infra/terraform/*/terraform.tfvars`,
 `.terraform/`, `*.tfstate`. В дереве агента их нет — не создавай симлинки и
 не запускай операции с приватным слоем. `terraform plan`/`apply` и проверка
 Argo выполняются только в основном дереве.

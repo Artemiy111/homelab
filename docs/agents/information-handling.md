@@ -71,7 +71,7 @@ Vault и попадают в кластер через `VaultStaticSecret` (VSO)
 | Уровень | Где хранится | Как попадает в кластер |
 |---|---|---|
 | Публичное | репозиторий `homelab` | `values.yaml` чарта, `valuesObject` Application, манифесты |
-| Внутреннее | то же, плюс untracked `infra/terraform/*/terraform.tfvars` и `infra/host/k0s/values.private.yaml` | Argo, `helm template`, Ansible и `install.sh` |
+| Внутреннее | то же, плюс untracked `infra/terraform/*/terraform.tfvars` | Argo, `helm template`, Ansible и `install.sh` |
 | Секретное | Vault | `VaultStaticSecret` (VSO), в манифестах ссылки `existingSecret`/`secretKeyRef` |
 
 Правила:
@@ -85,7 +85,7 @@ Vault и попадают в кластер через `VaultStaticSecret` (VSO)
   плейсхолдер `192.0.2.10` из RFC 5737. В манифестах, которые применяются через
   `kubectl`, вместо адреса указывается LAN-подсеть — см. раздел выше.
 - **Приватные слои, которые остались, обязаны быть минимальными.** Сейчас это
-  `infra/terraform/*/terraform.tfvars` и `infra/host/k0s/values.private.yaml`. Новый
+  `infra/terraform/*/terraform.tfvars`. Новый
   приватный слой — повод сначала спросить, зачем он, потому что его содержимое
   не видно ни CI, ни `docs/status`.
 
@@ -134,7 +134,7 @@ Vault и попадают в кластер через `VaultStaticSecret` (VSO)
     проверяет `apiserver` (`NetworkPolicy.spec.ingress[].from[].ipBlock.cidr`),
     и указывается реальное значение.
 11. **Приватный слой — не свалка.** В `infra/terraform/*/terraform.tfvars` и
-    `infra/host/k0s/values.private.yaml` нельзя класть credentials. Если чарт
+    `infra/terraform/*/terraform.tfvars` нельзя класть credentials. Если чарт
     требует секрет в values, это не повод ослаблять правило, а повод оставить
     ссылку на Vault.
 

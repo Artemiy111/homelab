@@ -8,14 +8,21 @@ spec:
     # Аутентификация Headlamp через OIDC: apiserver проверяет подпись токена
     # Zitadel сам и читает из него имя пользователя и группу. Claim `role`
     # кладёт action `addRole` (infra/terraform/zitadel/actions.tf), а группа
-    # `oidc:admin` даёт cluster-admin (platform/headlamp/rbac.yaml).
+    # `oidc:admin` даёт cluster-admin
+    # (platform/headlamp/headlamp-admins.clusterrolebinding.yaml).
+    #
+    # Issuer обязан совпадать с тем, что Zitadel объявляет в
+    # /.well-known/openid-configuration: apiserver сверяет claim iss и отклоняет
+    # токен при расхождении. Домен — ZITADEL_EXTERNALDOMAIN из
+    # apps/zitadel/k8s/zitadel.deployment.yaml, он же config.domain в
+    # platform/homelab/values.yaml.
     #
     # Инициализация issuer асинхронная (retry каждые 10 с), поэтому apiserver
     # стартует и при недоступном Zitadel — падает только вход через него.
     # spec.api не обновляется динамически: после правки нужен
     # `k0s stop && k0s start`.
     extraArgs:
-      oidc-issuer-url: {{ k0s_config_oidc_issuer }}
+      oidc-issuer-url: https://id.biplane.casa
       oidc-client-id: "392923102339689485"
       oidc-username-claim: sub
       oidc-username-prefix: "-"

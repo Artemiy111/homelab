@@ -45,7 +45,6 @@ sudo sysctl --system
   дефолтных `128`): все поды k8s и Docker работают под root и делят один бюджет,
   без этого падают файловые watcher'ы (.NET, node-fs.watch) — проявилось
   в Technitium при переносе на Kubernetes.
-- `k0s/k0s.yaml.j2` — `ClusterConfig` k0s. Шаблон: `oidc-issuer-url`
-  подставляется из приватного `infra/host/k0s/values.private.yaml`, в git лежит
-  плейсхолдер. Разворачивает роль `k0s_config`, она же рестартует
+- `k0s/k0s.yaml` — `ClusterConfig` k0s. Копируется как есть, переменных в
+  нём нет. Разворачивает роль `k0s_config`, она же рестартует
   `k0scontroller` — `spec.api` не обновляется динамически.

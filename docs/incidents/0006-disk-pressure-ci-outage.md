@@ -72,7 +72,7 @@ Evicted-подов. На этот раз цепочка дошла до конц
 
 | Кто | Порог | Что делает | При capacity 474.3 GiB |
 |---|---|---|---|
-| kubelet | `imagefs.available<15%` (дефолт, в `infra/host/etc/k0s/k0s.yaml.j2` не задан) | вытесняет поды | при ~71.1 GiB свободных |
+| kubelet | `imagefs.available<15%` (дефолт, в `infra/host/etc/k0s/k0s.yaml` не задан) | вытесняет поды | при ~71.1 GiB свободных |
 | Longhorn | `storage-minimal-available-percentage: 10` | перестаёт выделять тома | при ~47.4 GiB свободных |
 
 Окно между 15% и 10% (≈23.7 GiB), в котором Longhorn продолжает выделять тома,
