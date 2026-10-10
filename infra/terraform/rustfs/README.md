@@ -50,7 +50,7 @@ domain = "example.com"   # тот же домен, что в clusters/casa/platf
 | `aws_s3_bucket_policy.mirror` | public-read: анонимный `s3:GetObject` на `mirror/*` |
 
 Заливка объектов остаётся у CronJob `mirror-sync`
-(`clusters/casa/apps/rustfs/mirror-sync.sh`, манифест `artifacts.tsv`); из скрипта убран
+(`clusters/casa/apps/rustfs/manifests/mirror-sync.sh`, манифест `artifacts.tsv`); из скрипта убран
 `ensure_bucket`, потому что бакет и policy теперь принадлежат Terraform.
 
 ## Первый apply

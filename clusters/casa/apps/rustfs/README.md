@@ -114,7 +114,7 @@ S3 API, где подпись проверяется как надо. `GET /` п
 ([rustfs/rustfs#2433](https://github.com/rustfs/rustfs/issues/2433)), но закрыл
 как `question` без фикса.
 
-Что зеркалировать — `clusters/casa/apps/rustfs/artifacts.tsv` (`<path> <sha256> <url>`).
+Что зеркалировать — `clusters/casa/apps/rustfs/manifests/artifacts.tsv` (`<path> <sha256> <url>`).
 Скачивает и складывает CronJob `mirror-sync` (образ `amazon/aws-cli`); схемы
 kubeconform он же собирает из git. Артефакты с известным sha256 проверяются
 перед загрузкой, а CI — после скачивания. Бакет append-only: чтобы заменить

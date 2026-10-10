@@ -1,8 +1,8 @@
 # Синк зеркала артефактов в RustFS (issue #149). Периодически (и вручную)
-# скачивает в бакет mirror то, что перечислено в clusters/casa/apps/rustfs/artifacts.tsv,
+# скачивает в бакет mirror то, что перечислено в clusters/casa/apps/rustfs/manifests/artifacts.tsv,
 # плюс схемы kubeconform. Бакет и public-read policy принадлежат infra/terraform/rustfs.
 #
-# Скрипт (clusters/casa/apps/rustfs/mirror-sync.sh) и манифест (clusters/casa/apps/rustfs/artifacts.tsv)
+# Скрипт (clusters/casa/apps/rustfs/manifests/mirror-sync.sh) и манифест (clusters/casa/apps/rustfs/manifests/artifacts.tsv)
 # едут в ConfigMap mirror-sync через kustomize:
 #   kubectl apply -k clusters/casa/apps/rustfs
 #

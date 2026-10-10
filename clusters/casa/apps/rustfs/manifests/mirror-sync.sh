@@ -11,7 +11,7 @@
 # Недоступный апстрим не останавливает прогон: цикл доходит до конца манифеста,
 # неудачные артефакты перечисляются в конце, Job завершается ненулевым кодом.
 #
-# Манифест (clusters/casa/apps/rustfs/artifacts.tsv, смонтирован в /scripts/artifacts.tsv) —
+# Манифест (clusters/casa/apps/rustfs/manifests/artifacts.tsv, смонтирован в /scripts/artifacts.tsv) —
 # строки "<path> <sha256> <url>".
 #
 # Окружение:

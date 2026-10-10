@@ -19,7 +19,7 @@ on:
 #
 # Тулчейн не расширяется: генератор на git, grep, awk и coreutils, поэтому
 # ничего не качаем из зеркала RustFS (clusters/casa/apps/rustfs) и не добавляем в
-# clusters/casa/apps/rustfs/artifacts.tsv.
+# clusters/casa/apps/rustfs/manifests/artifacts.tsv.
 jobs:
   status:
     runs-on: ubuntu-latest

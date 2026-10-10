@@ -25,7 +25,7 @@ jobs:
           path: ~/.local/bin
           key: kube-linter-0.8.3-mirror-${{ runner.os }}
       # Бинарь берём из зеркала RustFS (issue #149): внешние репозитории бывают
-      # недоступны, а после скачивания сверяем sha256 с clusters/casa/apps/rustfs/artifacts.tsv.
+      # недоступны, а после скачивания сверяем sha256 с clusters/casa/apps/rustfs/manifests/artifacts.tsv.
       # Скачивается один раз, дальше — из кэша выше. Зеркало наполняет CronJob
       # mirror-sync (clusters/casa/apps/rustfs).
       - name: Install kube-linter
@@ -34,7 +34,7 @@ jobs:
           set -euo pipefail
           asset="kube-linter/0.8.3/kube-linter-linux.tar.gz"
           url="http://rustfs.rustfs.svc.cluster.local/mirror/$asset"
-          expected="$(awk -v p="$asset" '$1==p{print $2}' clusters/casa/apps/rustfs/artifacts.tsv)"
+          expected="$(awk -v p="$asset" '$1==p{print $2}' clusters/casa/apps/rustfs/manifests/artifacts.tsv)"
           mkdir -p "$HOME/.local/bin"
           curl -fsSL -o /tmp/kube-linter.tar.gz "$url"
           echo "$expected  /tmp/kube-linter.tar.gz" | sha256sum -c -

@@ -179,7 +179,7 @@ curl -X PURGE -H "X-ATS-Purge: $ATS_PURGE_TOKEN" \
    sha256sum /tmp/bun.zip
    ```
 
-   Ожидаемый sha256 совпадает с `clusters/casa/apps/rustfs/artifacts.tsv`
+   Ожидаемый sha256 совпадает с `clusters/casa/apps/rustfs/manifests/artifacts.tsv`
    (`2d03fb5f...2fe452`). Важно, что вернулся **файл**, а не `302`.
 3. Повторный запрос — быстрее, из кэша: `GET2 t≈0.15s` против `GET1 t≈1.0s`,
    счётчик `traffic_ctl metric get proxy.process.http.cache_hit_fresh` растёт.

@@ -102,7 +102,7 @@ namespace'ов закрыто NetworkPolicy. Все они считаются и
 
 Скрипт использует только `git`, `grep`, `awk` и coreutils, поэтому новых бинарей
 в тулчейне CI не появляется: набор инструментов в
-[`clusters/casa/apps/rustfs/artifacts.tsv`](../../apps/rustfs/artifacts.tsv) не меняется.
+[`clusters/casa/apps/rustfs/manifests/artifacts.tsv`](../../apps/rustfs/artifacts.tsv) не меняется.
 
 ## Гонка при merge
 
