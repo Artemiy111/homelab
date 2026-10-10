@@ -21,7 +21,7 @@
     "sealed_secret": 4
   },
   "docs": {
-    "adr": 10,
+    "adr": 11,
     "postmortems": 7,
     "research": 48
   }
