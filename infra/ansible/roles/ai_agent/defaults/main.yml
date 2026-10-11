@@ -8,7 +8,8 @@ ai_agent_home: "/home/{{ ai_agent_user }}"
 ai_agent_sudo_runas: artlab
 
 # Источник правды — каталог в репозитории (infra/dotfiles/ai-agent), а не копия
-# внутри роли: файлы доставляются тем же git-процессом, что и остальные dotfiles.
+# внутри роли: файлы доставляются тем же git-процессом, что и остальные dotfiles,
+# и обновляются прогоном agent.yml — копия в домашнем каталоге сама не меняется.
 # repo_root — общая переменная из group_vars/all.yml (корень репозитория).
 ai_agent_dotfiles_dir: "{{ repo_root }}/infra/dotfiles/ai-agent"
 ai_agent_dotfiles:

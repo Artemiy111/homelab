@@ -1,0 +1,13 @@
+---
+# Плейбук: домашний каталог artlab — dotfiles из infra/dotfiles.
+# Запуск на сервере homelab от artlab, без become и пароля sudo:
+#   cd /home/artlab/projects/homelab/infra/ansible && ansible-playbook artlab.yml
+# Dry-run (ничего не меняет):
+#   ansible-playbook artlab.yml --check --diff
+
+- name: Домфайлы пользователя artlab
+  hosts: homelab
+  # Пишет от artlab в его домашний каталог: become не нужен, sudo не спрашивается.
+  gather_facts: false
+  roles:
+    - artlab

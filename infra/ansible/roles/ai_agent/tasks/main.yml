@@ -29,16 +29,30 @@
     group: "{{ ai_agent_user }}"
     mode: "0700"
 
-# .zshrc и прочие dotfiles подключаются симлинками на файлы в репозитории,
-# чтобы обновление шло обычным git pull без повторного запуска роли.
-- name: Подключить dotfiles симлинками
+# Dotfiles копируются, а не линкуются: домашний каталог не должен зависеть от
+# того, где лежит рабочая копия репозитория. Симлинк на пути dotfiles
+# удаляется до копирования, иначе запись ушла бы по ссылке.
+- name: Собрать состояние dotfiles
+  ansible.builtin.stat:
+    path: "{{ ai_agent_home }}/{{ item }}"
+  loop: "{{ ai_agent_dotfiles }}"
+  register: ai_agent_dotfiles_stat
+
+- name: Убрать симлинки на путях dotfiles
   ansible.builtin.file:
+    path: "{{ item.stat.path }}"
+    state: absent
+  loop: "{{ ai_agent_dotfiles_stat.results }}"
+  when: item.stat.islnk | default(false)
+
+- name: Установить dotfiles
+  ansible.builtin.copy:
     src: "{{ ai_agent_dotfiles_dir }}/{{ item }}"
     dest: "{{ ai_agent_home }}/{{ item }}"
-    state: link
-    force: true
     owner: "{{ ai_agent_user }}"
     group: "{{ ai_agent_user }}"
+    mode: "0600"
+    validate: zsh -n %s
   loop: "{{ ai_agent_dotfiles }}"
 
 # authorized_keys копируется, а не линкуется: sshd строже относится к правам

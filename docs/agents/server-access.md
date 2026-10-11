@@ -101,7 +101,11 @@ ssh homelab-agent 'sudo -u artlab bash -lc "cd /home/artlab/projects/homelab && 
 5. Выполнить push ветки и merge PR в `main` (squash).
 6. На сервере выполнить `git checkout main` и `git pull --ff-only`.
 7. Применить затронутые манифесты (`kubectl apply`).
-8. Проверить состояние подов, DNS, HTTP и логи.
+8. Прогнать Ansible, если затронуты файлы хоста или dotfiles: `git pull`
+   обновляет репозиторий, но не копии в системные каталоги и домашний
+   каталог (`artlab.yml` — dotfiles, `host.yml` — системные конфиги,
+   `agent.yml` — окружение `ai-agent`).
+9. Проверить состояние подов, DNS, HTTP и логи.
 
 Сервер держит `main`: `git pull --ff-only origin main` без checkout, пока он
 не переключён на другую ветку, приведёт к отказу — историю `main` двигают

@@ -2,20 +2,28 @@
 
 Каждый файл/каталог здесь повторяет структуру домашнего каталога пользователя
 `artlab` на сервере `homelab`. Изменения доставляются обычным git-процессом
-(commit → push → `git pull --ff-only` на сервере), после чего файлы подключаются
-симлинками в домашний каталог.
+(commit → push → `git pull --ff-only` на сервере), после чего файлы копируются
+в домашний каталог плейбуком: симлинков на файлы репозитория в домашнем
+каталоге нет, поэтому его состояние не зависит от того, где лежит рабочая
+копия.
 
 ## Развёртывание
 
-После `git pull --ff-only` на сервере пересоздать симлинки:
-
 ```bash
 # На сервере:
-for f in .zshrc .tmux.conf .gitconfig .bash_profile .bashrc; do
-  ln -sf /home/artlab/projects/homelab/infra/dotfiles/$f ~/$f
-done
-ln -sf /home/artlab/projects/homelab/infra/dotfiles/.ssh/config ~/.ssh/config
+cd /home/artlab/projects/homelab && git pull --ff-only origin main
+cd infra/ansible && ansible-playbook artlab.yml
 ```
+
+Роль `artlab` копирует файлы, права выставляет явно (dotfiles `0644`,
+`.ssh/config` `0600`), а перед записью снимает симлинки на этих путях.
+Прогон идемпотентен: файлы, совпадающие с репозиторием, он не трогает.
+
+Правки файлов прямо на сервере перезаписываются следующим прогоном — источник
+правды ровно один, репозиторий. Симлинк здесь не подошёл бы именно потому,
+что его цель меняется вместе с раскладкой репозитория, а файл в домашнем
+каталоге остаётся битым: `git pull` обновляет репозиторий, но не ссылку на
+него.
 
 ## Состав
 
@@ -27,7 +35,9 @@ ln -sf /home/artlab/projects/homelab/infra/dotfiles/.ssh/config ~/.ssh/config
   (`tmux-sensible`, `catppuccin/tmux`). Требует tpm в `~/.tmux/plugins/tpm`;
   установка новых плагинов — `C-b I`.
 - `.gitconfig` — имя и email автора коммитов.
-- `.ssh/config` — конфиг SSH для GitHub (`IdentityFile ~/.ssh/id_lab_github`).
+- `.ssh/config` — конфиг SSH: GitHub (`IdentityFile ~/.ssh/id_github_from_homelab`)
+  и Forgejo (`IdentityFile ~/.ssh/id_homelab-forgejo_from_homelab`, порт `2222`).
+  Роль копирует его с `0600` и выставляет `~/.ssh` как `0700`.
 - `.bash_profile` / `.bashrc` — fallback для bash-сессий (основной шелл — zsh).
 
 ## Пользователь ai-agent
@@ -41,10 +51,10 @@ ln -sf /home/artlab/projects/homelab/infra/dotfiles/.ssh/config ~/.ssh/config
 
 ```bash
 # На сервере:
-cd /home/artlab/projects/homelab/ansible && ansible-playbook agent.yml
+cd /home/artlab/projects/homelab/infra/ansible && ansible-playbook agent.yml
 ```
 
-Плейбук создаёт пользователя, подключает симлинки dotfiles и ставит
+Плейбук создаёт пользователя, копирует dotfiles, ставит
 sudoers-правило. Детали — в `infra/ansible/README.md`.
 
 ### Структура
@@ -81,11 +91,12 @@ scp infra/dotfiles/ai-agent/.ssh/authorized_keys homelab:/home/ai-agent/.ssh/
 
 ## Приватные ключи artlab
 
-Приватные ключи (`~/.ssh/id_lab_github` и т.п.) создаются на сервере один раз
-и в репозиторий не попадают. Создание:
+Приватные ключи (`~/.ssh/id_github_from_homelab`,
+`~/.ssh/id_homelab-forgejo_from_homelab`) создаются на сервере один раз и в
+репозиторий не попадают — в git лежат только имена файлов из `.ssh/config`.
+Создание:
 
 ```bash
-ssh-keygen -t ed25519 -f ~/.ssh/id_lab_github
-
-chmod 600 ~/.ssh/config
+ssh-keygen -t ed25519 -f ~/.ssh/id_github_from_homelab
+ssh-keygen -t ed25519 -f ~/.ssh/id_homelab-forgejo_from_homelab
 ```

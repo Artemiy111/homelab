@@ -1,0 +1,41 @@
+---
+# Параметры домашнего каталога artlab. Переопределяются в group_vars/host_vars
+# при необходимости; всё, что относится только к роли, живёт здесь, а не в
+# all.yml, чтобы роль оставалась переносимой.
+artlab_user: artlab
+artlab_group: artlab
+artlab_home: "/home/{{ artlab_user }}"
+
+# Источник правды — каталог в репозитории (infra/dotfiles), а не копия внутри
+# роли: файлы доставляются тем же git-процессом, что и остальные манифесты.
+# repo_root — общая переменная из group_vars/all.yml (корень репозитория).
+artlab_dotfiles_dir: "{{ repo_root }}/infra/dotfiles"
+
+# Файлы копируются в домашний каталог, а не линкуются на рабочую копию
+# репозитория: симлинк делает домашний каталог зависимым от того, где лежит
+# репозиторий, — переезд каталога или недоступная копия ломают окружение
+# пользователя. Побочный эффект копирования: правки файлов на сервере
+# перезаписываются следующим прогоном, источник правды остаётся один.
+artlab_managed_files:
+  - src: "{{ artlab_dotfiles_dir }}/.bash_profile"
+    dest: "{{ artlab_home }}/.bash_profile"
+    mode: "0644"
+    validate: bash -n %s
+  - src: "{{ artlab_dotfiles_dir }}/.bashrc"
+    dest: "{{ artlab_home }}/.bashrc"
+    mode: "0644"
+    validate: bash -n %s
+  - src: "{{ artlab_dotfiles_dir }}/.gitconfig"
+    dest: "{{ artlab_home }}/.gitconfig"
+    mode: "0644"
+  - src: "{{ artlab_dotfiles_dir }}/.tmux.conf"
+    dest: "{{ artlab_home }}/.tmux.conf"
+    mode: "0644"
+  - src: "{{ artlab_dotfiles_dir }}/.zshrc"
+    dest: "{{ artlab_home }}/.zshrc"
+    mode: "0644"
+    validate: zsh -n %s
+  # sshd проверяет права на этот файл, поэтому 0600, а не общий для dotfiles 0644.
+  - src: "{{ artlab_dotfiles_dir }}/.ssh/config"
+    dest: "{{ artlab_home }}/.ssh/config"
+    mode: "0600"
