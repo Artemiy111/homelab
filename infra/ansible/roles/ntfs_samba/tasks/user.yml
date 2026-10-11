@@ -46,6 +46,11 @@
 - name: Прочитать базу пользователей Samba
   ansible.builtin.command:
     cmd: pdbedit -L
+  # Иначе в --check пропускается, и assert ниже проверяет пустой вывод:
+  # пользователя в базе ещё нет, он добавляется предыдущей задачей, —
+  # падение выглядело бы как «Samba не видит учётку», хотя это артефакт
+  # прогона в check mode.
+  check_mode: false
   register: ntfs_samba_passdb
   changed_when: false
   no_log: true
@@ -55,9 +60,15 @@
   # passdb недоступен. Пустой вывод означает, что клиенты не смогут
   # аутентифицироваться, и это надо поймать здесь, а не по жалобам
   # пользователя.
+  #
+  # В --check задача создания пользователя пропускается, поэтому в базе
+  # его ещё нет — это ожидаемо, и проверка нацелена на другое: что база
+  # вообще читается и учётка появится после реального прогона.
   ansible.builtin.assert:
     that:
-      - ntfs_samba_user in ntfs_samba_passdb.stdout
+      - >-
+        (ntfs_samba_user in ntfs_samba_passdb.stdout)
+        or ansible_check_mode
     fail_msg: >-
       Пользователь {{ ntfs_samba_user }} отсутствует в базе Samba
       (pdbedit -L). Клиенты не смогут войти.

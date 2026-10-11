@@ -20,8 +20,7 @@
   # «Проверить, что секции видны testparm» ниже.
   ansible.builtin.lineinfile:
     path: /etc/samba/smb.conf
-    line: |
-      {{ '\t' }}include = /etc/samba/smb.conf.d/homelab.conf
+    line: "\tinclude = /etc/samba/smb.conf.d/homelab.conf"
     insertafter: '^\[global\]'
     state: present
     mode: "0644"
@@ -46,6 +45,10 @@
   # остаётся закрытым и поды, и хост не видят демон.
   ansible.builtin.command:
     cmd: "firewall-cmd --query-service={{ ntfs_samba_firewall_service }}"
+  # Без этого задача пропускается в --check: command, который ничего не
+  # меняет, по умолчанию в check mode не выполняется, и проверка молча
+  # проходила бы с пустым результатом.
+  check_mode: false
   register: ntfs_samba_firewall_active
   changed_when: false
   failed_when: ntfs_samba_firewall_active.rc != 0
@@ -57,6 +60,10 @@
   # открыт, а шары нет. Поэтому сверяемся с эффективным конфигом.
   ansible.builtin.command:
     cmd: "testparm -s /etc/samba/smb.conf"
+  # Та же причина, что и выше: без check_mode проверка не выполняется в
+  # --check, и следующий assert падает на пустом выводе, заявляя, что
+  # секций нет, хотя файл на месте.
+  check_mode: false
   register: ntfs_samba_effective
   changed_when: false
 
@@ -91,18 +98,23 @@
   # read only в Samba не должен быть мягче, чем монтирование: раздел
   # ro, который Samba считает rw, даст клиенту ошибки ввода-вывода
   # вместо внятного «read-only resource».
+  #
+  # testparm печатает булевы значения с заглавной (`No`), а не как в
+  # smb.conf (`no`) — сравнение регистрозависимое, и без учёта этого
+  # проверка падает на корректном конфиге.
   ansible.builtin.assert:
     that:
       - >-
         (item.mode == 'ro') or
         (('[' ~ item.name ~ ']')
          in ntfs_samba_effective.stdout
-         and ('\tread only = no')
+         and ('\tread only = No')
          in ntfs_samba_effective.stdout)
     fail_msg: >-
       Том {{ item.name }} смонтирован {{ item.mode }}, но в секции шары
       нет read only = no. Клиент получит ошибки ввода-вывода вместо
       отказа по правам.
+    success_msg: "Режим {{ item.mode }} тома {{ item.name }} согласован с шарой"
   loop: "{{ ntfs_samba_volumes }}"
   loop_control:
     label: "{{ item.name }}"
