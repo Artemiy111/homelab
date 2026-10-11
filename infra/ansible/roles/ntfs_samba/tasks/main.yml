@@ -13,6 +13,10 @@
     state: present
 
 - name: Создать точки монтирования
+  # Права и владелец задаются только точкой, а не содержимым тома. На
+  # уже смонтированном томе модуль `file` применяет chmod к корню ФС, а
+  # не к каталогу: том ro отклоняет запись с «Read-only file system»,
+  # и задача падает на первом же томе.
   ansible.builtin.file:
     path: "{{ item.mountpoint }}"
     state: directory
@@ -22,30 +26,30 @@
   loop: "{{ ntfs_samba_volumes }}"
   loop_control:
     label: "{{ item.name }}"
-
-- name: Задать persistent-флаг точкам монтирования
-  # Каталог без этого флага не считается точкой монтирования, и
-  # systemd-mounts не даст его размонтировать: на диске в NTFS он
-  # создаётся как скрытый системный атрибут.
-  ansible.builtin.command:
-    cmd: chattr +t {{ item.mountpoint }}
-  loop: "{{ ntfs_samba_volumes }}"
-  loop_control:
-    label: "{{ item.name }}"
-  changed_when: false
+  when: not (item.mountpoint in ansible_mounts)
 
 # --- Монтирования ---
 
 - name: Смонтировать тома по UUID
+  # Режим берётся из описания тома, а не из общих опций: `ro` и `rw`
+  # заданы в fstab построчно, и без них mount открыл бы грязные ntfs1 и
+  # ntfs2 на запись, минуя ограничение. Уже смонтированные точки
+  # пропускаются — иначе mount перемонтирует тома поверх работающих
+  # шар и оборвёт открытые на клиентах файлы.
   ansible.posix.mount:
     path: "{{ item.mountpoint }}"
     src: "UUID={{ item.uuid }}"
     fstype: ntfs3
-    opts: "{{ ntfs_samba_mount_options }}"
+    opts: "{{ item.mode }},{{ ntfs_samba_mount_options | join(',') }}"
     state: mounted
   loop: "{{ ntfs_samba_volumes }}"
   loop_control:
     label: "{{ item.name }}"
+  when: not (item.mountpoint in ntfs_samba_mounted_points)
+  vars:
+    ntfs_samba_mounted_points: >-
+      {{ ansible_mounts.values() | map(attribute='mount')
+         | map('regex_replace', '/$', '') | list }}
   register: ntfs_samba_mount_result
 
 - name: Обновить fstab
