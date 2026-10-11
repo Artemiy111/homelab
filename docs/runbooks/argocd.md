@@ -120,7 +120,7 @@ argocd account update-password
 
 ## Бутстрап: спеки Application'ов живут в git
 
-Application'ы применяет корневой `Application` — `bootstrap/root-application.yaml`.
+Application'ы применяет корневой `Application` — `bootstrap/root.yaml`.
 Он рендерит каталог `clusters/casa/` через kustomize и получает `AppProject` `upstream`
 плюс 31 `Application` из `applications/` и `applications/apps/`. Раньше app-of-apps
 не было, и спеки лежали только в git: Argo читал желаемое состояние из объекта в
@@ -150,25 +150,83 @@ Deploy key сделан без пароля: Argo тянет репозитор�
 - **URL должен совпасть с `root-application.yaml` посимвольно** — секрет
   сопоставляется с `repoURL` точным сравнением строки.
 
-Хост-ключ Forgejo уже прописан в `configs.ssh.knownHosts` в `install/values.yaml`,
+Хост-ключ Forgejo уже прописан в `configs.ssh.knownHosts` в `bootstrap/argocd-values.yaml`,
 поэтому проверка хоста проходит. Ключ добавлен из `known_hosts` macOS, где
 `origin` уже работает, — то есть проверен существующим соединением; `ssh-keyscan`
 для этого не годится, он опрашивает сервер и ничего не проверяет. Тип только
 `ssh-rsa`: ed25519-хостового ключа Forgejo в `known_hosts` нет.
 
-После изменения `knownHosts` нужен `helm upgrade` с тем же values и перезапуск
-`repo-server` — этот блок монтируется в под, а не читается на лету:
+### Обновление релиза Argo
+
+`bootstrap/argocd-values.yaml` — единственный источник настроек Argo, и они
+попадают в кластер **только** через Helm. Правка файла в git сама по себе не
+ничего не делает: ни Argo, ни root этот файл не читают.
 
 ```sh
 helm upgrade argocd argo/argo-cd --version 10.9.1 \
-  --namespace argocd -f bootstrap/argocd-values.yaml \
-  --set global.domain=argocd.example.com
-kubectl -n argocd rollout restart deploy/argocd-repo-server
+  -n argocd -f bootstrap/argocd-values.yaml \
+  --force-conflicts --wait --timeout 10m
 ```
 
-Значение `global.domain` в `--set` нужно только чтобы не переписать его: в
-values оно живёт как есть, а передача `--set` поверх `-f` — не ошибка, а
-дублирование. Проще переустановить релиз той же командой, что и при установке.
+`--force-conflicts` здесь обязателен, а не страховка. ConfigMap
+`argocd-ssh-known-hosts-cm` правили руками, и поле `data.ssh_known_hosts`
+осталось за менеджером `kubectl-patch`. Helm через server-side apply без этого
+флага отказывается перехватывать чужое поле и валится:
+
+```
+Upgrade "argocd" failed: conflict occurred while applying object
+argocd/argocd-ssh-known-hosts-cm /v1, Kind=ConfigMap: Apply failed with
+1 conflict: conflict with "kubectl-patch" using v1: .data.ssh_known_hosts
+```
+
+Так упали ревизии 3 и 4 30 сентября. Откат на любую ревизию:
+
+```sh
+helm -n argocd history argocd
+helm -n argocd rollback argocd <revision>
+```
+
+`resource.customizations.*` — `ignoreDifferences` и `health` — контроллер
+читает при старте, а не на лету. Поэтому рестарт `application-controller` без
+`helm upgrade` бесполезен: правила ещё нет в `argocd-cm`. Проверить, что оно
+доехало:
+
+```sh
+kubectl -n argocd get cm argocd-cm -o jsonpath='{.data}' \
+  | python3 -c 'import json,sys; print([k for k in json.load(sys.stdin) if k.startswith("resource.customizations")])'
+```
+
+### Как увидеть расхождение релиза с репозиторием
+
+`helm get values --all` отдаёт и дефолты чарта, поэтому сравнивать его с файлом
+целиком бесполезно — расхождений будет сотня. Сравнивать надо только те ключи,
+которые задаёт файл:
+
+```sh
+python3 - <<'EOF'
+import json, subprocess, yaml
+live = json.loads(subprocess.run(
+    ["helm", "get", "values", "argocd", "-n", "argocd", "--all", "-o", "json"],
+    capture_output=True, text=True).stdout)
+want = yaml.safe_load(open("bootstrap/argocd-values.yaml"))
+
+def flat(d, p=""):
+    out = {}
+    for k, v in (d.items() if isinstance(d, dict) else []):
+        out.update(flat(v, f"{p}.{k}" if p else str(k)) or {f"{p}.{k}": v})
+    return out
+
+L, W = flat(live), flat(want)
+for k in sorted(W):
+    if str(L.get(k)).strip() != str(W[k]).strip():
+        print(f"{k}\n   live: {str(L.get(k))[:90]}\n   file: {str(W[k])[:90]}")
+EOF
+```
+
+Проверено 2026-10-11, когда `traefik` не сходился с репозиторием из-за
+неприменённого правила для `Gateway`: файл содержал его с #921, а в `argocd-cm`
+его не было, потому что `helm upgrade` после #921 не делался. Ничто это
+расхождение не ловило — релиз Helm и репозиторий живут отдельно.
 
 Сам root применяется руками — ровно как и сам Argo ставится `helm install`:
 контроллер не может применить Application, который сам его и создаёт.
@@ -382,7 +440,7 @@ kubectl -n <ns> get pods
 | `local-ai` | манифесты в git, Application нет | завести Application, вернуть namespace сервиса |
 | `vmagent` | `replicas: 0` в `clusters/casa/apps/victoria-metrics` (#888) | снять `replicas: 0`, вернуть проверку в Gatus |
 
-Проверки выключенных сервисов удалены из `clusters/casa/apps/gatus/config/config.yaml`, а не
+Проверки выключенных сервисов удалены из `clusters/casa/apps/gatus/manifests/config/config.yaml`, а не
 помечены `enabled: false`. `enabled: false` останавливает опрос, но Gatus хранит
 последний результат в своей БД и продолжает показывать его красным — доска
 остаётся вечно красной, а её перестаёшь открывать. По этому списку и таблице
@@ -531,7 +589,7 @@ Argo о таких дефолтах не знает — он знает толь
 на приложение, и auto-sync не помогает — он же и не срабатывает, потому что
 состояние не меняется.
 
-Решение — `resource.customizations.ignoreDifferences` в `install/values.yaml`.
+Решение — `resource.customizations.ignoreDifferences` в `bootstrap/argocd-values.yaml`.
 Синтаксис `jqPathExpressions` требует **путь к полю**, а не операцию над ним:
 `.spec.parentRefs[]?.group` верно, `.spec.parentRefs[] | del(.group, .kind)` — нет,
 `del()` удаляет из результата запроса, и правило молча ничего не игнорирует. На
@@ -599,7 +657,7 @@ argocd app get kube-state-metrics
 ```
 
 Метрики скрейпит vmagent (job `kube-state-metrics` в
-`clusters/casa/apps/victoria-metrics/config/vmagent/scrape.yml`) — после синка нужно
+`clusters/casa/apps/victoria-metrics/manifests/config/vmagent/scrape.yml`) — после синка нужно
 перезапустить vmagent.
 
 ## Адопция существующего Helm-релиза (на примере headlamp)
@@ -638,10 +696,10 @@ kubectl -n headlamp delete secret -l owner=helm,name=headlamp
 бежит под SA `headlamp`. Права приходят из OIDC: Headlamp отдаёт apiserver'у
 `id_token`, который тот проверяет по подписи Zitadel и читает из него claim
 `role` как группу. `cluster-admin` выдаётся группе `oidc:admin`
-(`clusters/casa/platform/headlamp/headlamp-admins.clusterrolebinding.yaml`), поэтому он есть
+(`clusters/casa/platform/headlamp/manifests/headlamp-admins.clusterrolebinding.yaml`), поэтому он есть
 только у пользователей с ролью `admin` в Zitadel. `extraManifests` в этом
 Application больше нет. Маршрут
-(`clusters/casa/platform/headlamp/route.yaml`) — вне Application.
+(`clusters/casa/platform/headlamp/manifests/route.yaml`) — вне Application.
 
 ### Traefik
 
