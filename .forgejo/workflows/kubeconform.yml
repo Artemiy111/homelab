@@ -45,6 +45,13 @@ jobs:
           key: kubeconform-cr-schemas-${{ env.CRD_SCHEMAS_REV }}-${{ runner.os }}
       # Набор CR лежит в зеркале целиком (#910): раньше он тянулся с GitHub по
       # HTTPS, а раннер туда не ходит, и гейт падал на каждом холодном кэше.
+      #
+      # Проверка ниже ищет любой файл через find -quit, а не глобом в test -f:
+      # каталог каталога CRD-схем разворачивается в 4056 файлов, и
+      # `test -f dir/*/*.json` передаёт их все аргументами — test принимает
+      # не больше трёх и падает с «too many arguments». Шаг не под кэшем и
+      # выполняется на каждом прогоне, так что ошибка была не про холодный кэш,
+      # а про проверку: джоба падала до шага валидации.
       - name: Install CR schemas
         run: |
           set -euo pipefail
@@ -59,7 +66,8 @@ jobs:
           fi
           mkdir -p "$HOME/.cache/kubeconform-schemas/crds"
           tar -xzf /tmp/crds.tar.gz -C "$HOME/.cache/kubeconform-schemas/crds"
-          test -f "$HOME/.cache/kubeconform-schemas/crds"/*/*.json
+          find "$HOME/.cache/kubeconform-schemas/crds" -name '*.json' -print -quit \
+            | grep -q .
           echo "схемы CR взяты из зеркала"
       # Бинарь и набор схем Kubernetes берём из зеркала RustFS (issue #149).
       # У скачанного бинаря сверяем sha256 с clusters/casa/apps/rustfs/manifests/artifacts.tsv; схемы
@@ -68,10 +76,12 @@ jobs:
       #
       # Схемы Kubernetes нужны локальными ради привязки к версии: kubeconform
       # подставляет {{.NormalizedKubernetesVersion}} из -kubernetes-version, то
-      # есть проверяет манифесты по API 1.36.3, а не по master. Зеркало
-      # публикует только нестрогий набор, поэтому строгий скрипт добирает по
-      # HTTPS — как и схемы CR, которые выведены из CRD конкретной версии
-      # оператора (issue #791).
+      # есть проверяет манифесты по API 1.36.3, а не по master. Ставятся оба
+      # набора, standalone и standalone-strict: скрипт зовёт kubeconform со
+      # -strict, и имя каталога схемы меняется на standalone-strict, поэтому
+      # одного нестрогого набора недостаточно — при отсутствии строгого
+      # kubeconform не откатывается на нестрогий, а падает с «could not find
+      # schema». Схемы CR выведены из CRD конкретной версии оператора (#791).
       - name: Install kubeconform
         if: steps.kubeconform.outputs.cache-hit != 'true'
         run: |
@@ -88,10 +98,14 @@ jobs:
         if: steps.schemas.outputs.cache-hit != 'true'
         run: |
           set -euo pipefail
-          url="http://rustfs.rustfs.svc.cluster.local/mirror/kubeconform-schemas/1.36.3/kubernetes-json-schema_1.36.3_standalone.tar.gz"
+          base="http://rustfs.rustfs.svc.cluster.local/mirror/kubeconform-schemas/1.36.3"
           mkdir -p "$HOME/.cache/kubeconform-schemas"
-          curl -fsSL -o /tmp/schemas.tar.gz "$url"
-          tar -xzf /tmp/schemas.tar.gz -C "$HOME/.cache/kubeconform-schemas"
+          for set in standalone standalone-strict; do
+            curl -fsSL -o "/tmp/schemas-$set.tar.gz" \
+              "$base/kubernetes-json-schema_1.36.3_$set.tar.gz"
+            tar -xzf "/tmp/schemas-$set.tar.gz" -C "$HOME/.cache/kubeconform-schemas"
+          done
+          test -f "$HOME/.cache/kubeconform-schemas/v1.36.3-standalone-strict/configmap.json"
       - name: Add kubeconform to PATH
         run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
       # Второй -schema-location — схемы CR из datreeio/CRDs-catalog: они не в
