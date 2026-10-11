@@ -19,6 +19,9 @@ metadata:
 spec:
   project: upstream
   sources:
+    - repoURL: ssh://git@forgejo.biplane.casa:2222/artemiy/homelab.git
+      targetRevision: main
+      path: clusters/casa/platform/longhorn/manifests
     - repoURL: https://charts.longhorn.io
       chart: longhorn
       targetRevision: 1.12.1

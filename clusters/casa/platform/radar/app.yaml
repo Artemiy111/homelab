@@ -18,6 +18,9 @@ metadata:
 spec:
   project: upstream
   sources:
+    - repoURL: ssh://git@forgejo.biplane.casa:2222/artemiy/homelab.git
+      targetRevision: main
+      path: clusters/casa/platform/radar/manifests
     - repoURL: https://skyhook-io.github.io/helm-charts
       chart: radar
       targetRevision: 1.14.1
