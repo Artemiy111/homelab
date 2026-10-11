@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
   - headlamp-admins.clusterrolebinding.yaml
   - headlamp-oidc.vaultstaticsecret.yaml
+  - namespace.yaml
   - networkpolicy.yaml
   - ratelimit-default.middleware.yaml
   - route.yaml

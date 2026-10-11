@@ -4,6 +4,7 @@ namespace: dawarich
 resources:
   - homelab-config.yaml
   - app.service.yaml
+  - namespace.yaml
   - redis.service.yaml
   - app.deployment.yaml
   - sidekiq.deployment.yaml
