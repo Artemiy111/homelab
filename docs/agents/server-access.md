@@ -130,7 +130,7 @@ ssh homelab-agent 'sudo -u artlab bash -lc "cd /home/artlab/projects/homelab && 
 
 Секреты живут в HashiCorp Vault. В кластер их доставляет
 External Secrets Operator: `VaultStaticSecret`
-(`clusters/casa/apps/<сервис>/k8s/vaultstaticsecret.yaml`) создаёт и обновляет обычный
+(`clusters/casa/apps/<сервис>/manifests/vaultstaticsecret.yaml`) создаёт и обновляет обычный
 Secret, который читает приложение. Значение задаёт пользователь в Vault по
 пути из `docs/adr/0006-vault-secret-path-layout.md`.
 
@@ -247,27 +247,21 @@ ssh homelab-agent 'systemctl is-active k0scontroller; dig +short @<node1-ip> upt
 KUBECONFIG=~/.kube/configs/homelab.yaml kubectl apply -k clusters/casa/apps/grafana/ --dry-run=server
 ```
 
-Ручной `kubectl apply` нужен для маршрутов, которые Argo не синхронизирует
+Ручной `kubectl apply` нужен для маршрута, который Argo не синхронизирует
 (см. таблицу ниже), и когда Argo ещё не подхватил коммит. Тогда команда идёт
 на сервере, в оболочке `artlab`, потому что файлы берутся из серверной копии
 репозитория:
 
 ```sh
-ssh homelab-agent 'sudo -u artlab bash -lc "cd /home/artlab/projects/homelab && kubectl apply -f clusters/casa/platform/longhorn/route.yaml"'
+ssh homelab-agent 'sudo -u artlab bash -lc "cd /home/artlab/projects/homelab && kubectl apply -f clusters/casa/platform/argocd/route.yaml"'
 ```
 
-В Helm-чарте `clusters/casa/platform/homelab` живут `homelab-config`, Gateway, GatewayClass,
-`Certificate` и `ClusterIssuer`, два Service и конфигмапы Element Web,
-Home Assistant и Structurizr. Домен и адрес сервера берутся из
-`externalIPs` в values Traefik, который лежит в репозитории
-(`docs/adr/0009`) — отдельного приватного values-файла нет. Values тоже
-в git, поэтому рендер делается локально:
-
-```sh
-helm template clusters/casa/platform/homelab | KUBECONFIG=~/.kube/configs/homelab.yaml kubectl apply -f -
-```
-
-HTTPRoute в этом чарте **нет** — их применение описано ниже отдельно.
+Чарта `platform/homelab` больше нет: он распущен на `platform/traefik` и
+`platform/cert-manager`, Gateway и GatewayClass живут в
+`clusters/casa/platform/traefik/manifests/`, `Certificate` и `ClusterIssuer` —
+в `clusters/casa/platform/cert-manager/manifests/`. Домен и адрес сервера
+берутся из `externalIPs` в values Traefik, который лежит в репозитории
+(`docs/adr/0009`) — отдельного приватного values-файла нет.
 
 Не перезапускать все сервисы, если изменение касается только одного. После
 применения дождаться, пока поды перейдут в `Running`/`Ready`, прежде чем
@@ -280,23 +274,38 @@ HTTPRoute в этом чарте **нет** — их применение опи
 
 | Файл | Кто применяет |
 |---|---|
-| `clusters/casa/apps/<сервис>/k8s/route.yaml` | Argo, `spec.sources[].path` у Application |
+| `clusters/casa/apps/<сервис>/manifests/route.yaml` | Argo, `spec.sources[].path` у Application |
 | `clusters/casa/apps/3x-ui/chart/templates/route.yaml`, `clusters/casa/apps/element/chart/templates/route.yaml` | Argo, `chart` в Application |
-| `clusters/casa/apps/seafile/k8s/onlyoffice.route.yaml` | Argo, вместе с каталогом `clusters/casa/apps/seafile` |
-| `clusters/casa/platform/radar/route.yaml`, `clusters/casa/platform/headlamp/route.yaml` | Argo, `spec.sources[].path` |
-| `clusters/casa/platform/longhorn/route.yaml` | вручную |
-| `clusters/casa/platform/traefik/dashboard.route.yaml` | вручную |
-| `clusters/casa/platform/argocd/route.yaml` | вручную |
+| `clusters/casa/apps/seafile/manifests/onlyoffice.route.yaml` | Argo, вместе с каталогом `clusters/casa/apps/seafile/manifests` |
+| `clusters/casa/platform/radar/manifests/route.yaml`, `clusters/casa/platform/headlamp/manifests/route.yaml`, `clusters/casa/platform/longhorn/manifests/route.yaml` | Argo, `spec.sources[].path` |
+| `clusters/casa/platform/traefik/manifests/dashboard.route.yaml` | Argo, `spec.sources[].path` |
+| `clusters/casa/platform/argocd/route.yaml` | **вручную** |
 
-У `longhorn`, `traefik` и `argocd` в `spec.sources` только чарт и `ref: values`:
-файлы маршрутов не указаны нигде, и Argo их не синхронизирует. В кластере они
-есть потому, что применялись вручную при развёртывании. После правки такого
-маршрута в git нужен ручной apply, иначе `git` и кластер разойдутся без
-признака в Argo. Как это убрать — #858.
+Остался один маршрут вне Argo — `platform/argocd/route.yaml`. У юнита `argocd`
+нет `Application`, и это осознанно: Argo под управлением Argo не должен,
+иначе ошибка в юните отрежет доступ к самому GitOps, а чинить придётся через
+`kubectl`. Маршрут применяется руками, и это единственное место в
+`clusters/casa/`, где правка git требует ручного apply.
+
+Проверяется это так — вывести все каталоги, которые Argo берёт как источники,
+и найти среди них каталог маршрута:
 
 ```sh
-ssh homelab-agent 'sudo -u artlab bash -lc "cd /home/artlab/projects/homelab && kubectl apply -f clusters/casa/platform/longhorn/route.yaml"'
-ssh homelab-agent 'sudo -u artlab bash -lc "cd /home/artlab/projects/homelab && kubectl apply -f clusters/casa/platform/traefik/dashboard.route.yaml"'
+kubectl -n argocd get application -o \
+  jsonpath='{range .items[*].spec.sources[*]}{.path}{"\n"}{end}' | sort -u
+```
+
+Маршрут внутри `chart/templates/` в этом списке не появится: его рендерит чарт,
+а не каталог. Такие проверяются наличием соответствующего `chart:` в источниках
+того же Application.
+
+Имя каталога не всегда совпадает с именем Application, поэтому по имени
+каталога искать Application нельзя: `apps/forgejo` — это Application
+`forgejo-extras`, `apps/vault` — `vault-extras`, `platform/eck-operator` —
+`elastic-operator`. Первые два разведены по имени, чтобы не столкнуться с
+`platform/forgejo` и `platform/vault`.
+
+```sh
 ssh homelab-agent 'sudo -u artlab bash -lc "cd /home/artlab/projects/homelab && kubectl apply -f clusters/casa/platform/argocd/route.yaml"'
 ```
 
