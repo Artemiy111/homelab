@@ -6,9 +6,6 @@
 # пользователя, границей сети остаётся NetworkPolicy в
 # clusters/casa/platform/headlamp/networkpolicy.yaml.
 #
-# Маршрут и NetworkPolicy namespace headlamp живут вне Application
-# (clusters/casa/platform/headlamp/route.yaml, clusters/casa/platform/headlamp/networkpolicy.yaml).
-#
 # Значения вынесены из `spec.source.helm.valuesObject` в
 # `clusters/casa/platform/headlamp/values.yaml`, Application подключает их через `$values` —
 # второй источник в `spec.sources`.
@@ -20,6 +17,9 @@ metadata:
 spec:
   project: upstream
   sources:
+    - repoURL: ssh://git@forgejo.biplane.casa:2222/artemiy/homelab.git
+      targetRevision: main
+      path: clusters/casa/platform/headlamp/manifests
     - repoURL: https://kubernetes-sigs.github.io/headlamp/
       chart: headlamp
       targetRevision: 0.45.0

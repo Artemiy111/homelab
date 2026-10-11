@@ -65,6 +65,7 @@ resources:
   - platform/headlamp/app.yaml
   - platform/kube-state-metrics/app.yaml
   - platform/local-path-provisioner/app.yaml
+  - platform/local-storage/app.yaml
   - platform/longhorn/app.yaml
   - platform/mariadb-operator/app.yaml
   - platform/radar/app.yaml

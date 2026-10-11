@@ -1,0 +1,11 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - headlamp-admins.clusterrolebinding.yaml
+  - headlamp-oidc.vaultstaticsecret.yaml
+  - networkpolicy.yaml
+  - ratelimit-default.middleware.yaml
+  - route.yaml
+  - secure-headers.middleware.yaml
+  - vso-headlamp.serviceaccount.yaml
+  - vso-headlamp.vaultauth.yaml
