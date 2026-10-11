@@ -1,0 +1,64 @@
+---
+# Пользователь Samba.
+#
+# Пароль SMB не связан с Unix-паролем: своя база `tdbsam`. Значение
+# лежит в Vault по пути `kv/samba/storage` и доставляется на хост
+# файлом-секретом. Сам секрет в git и в манифестах не лежит.
+#
+# Пользователь пересоздаётся при каждом запуске: `smbpasswd` идемпотентен
+# применительно к этой задаче, и так ротация пароля в Vault не требует
+# правок в репозитории.
+
+- name: Прочитать пароль Samba из файла-секрета
+  # smbpasswd без пароля создаёт непригодную запись: вход будет
+  # невозможен, и заметить это можно только по жалобам клиентов.
+  ansible.builtin.slurp:
+    src: "{{ ntfs_samba_password_file }}"
+  register: ntfs_samba_secret
+  no_log: true
+
+- name: Убедиться, что секрет с паролем непустой
+  ansible.builtin.assert:
+    that:
+      - ntfs_samba_secret.content | length > 0
+    fail_msg: >-
+      Файл-секрет {{ ntfs_samba_password_file }} пуст. Задай значение в
+      Vault по пути kv/samba/storage и дождись его доставки на хост.
+    quiet: true
+
+- name: Создать пользователя Samba
+  # -s читает пароль из stdin: в списке процессов и в журнале пароль не
+  # остаётся. `command` со stdin вместо `shell` с конвейером — из-за
+  # отсутствия pipefail ошибка smbpasswd в конце конвейера иначе
+  # маскировалась бы кодом printf.
+  ansible.builtin.command:
+    cmd: "smbpasswd -s -a {{ ntfs_samba_user }}"
+    stdin: "{{ ntfs_samba_password }}\n{{ ntfs_samba_password }}\n"
+  vars:
+    ntfs_samba_password: "{{ ntfs_samba_secret.content | b64decode | trim }}"
+  no_log: true
+  register: ntfs_samba_user_result
+  changed_when: true
+  failed_when:
+    - ntfs_samba_user_result.rc != 0
+    - "'Failed to add entry' not in ntfs_samba_user_result.stderr"
+
+- name: Прочитать базу пользователей Samba
+  ansible.builtin.command:
+    cmd: pdbedit -L
+  register: ntfs_samba_passdb
+  changed_when: false
+  no_log: true
+
+- name: Проверить наличие пользователя в passdb
+  # smbpasswd может отработать без ошибки, не записав запись, если том с
+  # passdb недоступен. Пустой вывод означает, что клиенты не смогут
+  # аутентифицироваться, и это надо поймать здесь, а не по жалобам
+  # пользователя.
+  ansible.builtin.assert:
+    that:
+      - ntfs_samba_user in ntfs_samba_passdb.stdout
+    fail_msg: >-
+      Пользователь {{ ntfs_samba_user }} отсутствует в базе Samba
+      (pdbedit -L). Клиенты не смогут войти.
+    success_msg: "Пользователь {{ ntfs_samba_user }} есть в базе Samba"
