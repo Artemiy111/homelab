@@ -64,6 +64,23 @@ configs:
       jqPathExpressions:
         - .spec.listeners[]?.tls.certificateRefs[]?.group
 
+    resource.customizations.health.bitnami.com_SealedSecret: |
+      hs = {}
+      if obj.status ~= nil then
+        if obj.status.conditions ~= nil then
+          for i, condition in ipairs(obj.status.conditions) do
+            if condition.type == 'Synced' and condition.status ~= 'True' then
+              hs.status = 'Degraded'
+              hs.message = 'SealedSecret is not synced: ' .. (condition.message or 'no message')
+              return hs
+            end
+          end
+        end
+      end
+      hs.status = 'Healthy'
+      hs.message = 'SealedSecret is synced'
+      return hs
+
   ssh:
     knownHosts: |
       [ssh.github.com]:443 ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBEmKSENjQEezOmxkZMy7opKgwFB9nkt5YRrYMjNuG5N87uRgg6CLrbo5wAdT/y6v0mKV0U2w0WZ2YB/++Tpockg=
