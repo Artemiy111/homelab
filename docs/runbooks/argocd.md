@@ -196,6 +196,13 @@ argocd app diff traefik               # пусто
 | | Зачем |
 |---|---|
 | `automated.prune: true` | удалённый из git `Application` исчезает из кластера |
+| `FailOnSharedResource=true` | root не перехватывает ресурсы, принадлежащие другому `Application`, а падает |
+| `PruneLast=true` | обновление раньше удаления: ресурс появляется до исчезновения старого |
+
+`PruneLast` защищает только от удаления при замене. От prune сирот — когда
+ресурс не входит в desired state вовсе — он не помогает: такой ресурс всё
+равно удаляется, просто позже. Против него нужен запрет самого `prune`,
+а это решение #931.
 | `selfHeal` не включён | отладочные правки Application в кластере не откатываются |
 | finalizer не задан | удаление root не сносит компоненты каскадом |
 | `retry` с backoff | компенсирует «упавший sync не повторяется сам» для самого root |
@@ -218,7 +225,9 @@ argocd app diff traefik               # пусто
   (Argo документирует, как убрать из него все права), root откажется работать —
   тогда ему нужен собственный проект.
 - **`prune: true` у root, а finalizer у `Application` в манифестах не задан.**
-  Это осознанно: на одном узле ошибка в prune — простой. Но есть исключение,
+  Это осознанно: на одном узле ошибка в prune бьёт по одному сервису. Проверьте
+  цену этой ошибки на инциденте 0009 ниже, прежде чем считать её небольшой.
+  Но есть исключение,
   о котором надо знать: Argo добавляет `pre-delete-finalizer.argocd.argoproj.io`
   сам, когда в рендере чарта появляется `PreDelete`-хук. На 2026-10-04 это
   произошло с `longhorn` и `vault-secrets-operator`, и удаление спеки из git у
@@ -231,6 +240,23 @@ argocd app diff traefik               # пусто
   kubectl -n argocd get application -o \
     custom-columns='NAME:.metadata.name,FINALIZERS:.metadata.finalizers'
   ```
+- **Ошибка в prune у root стоит дороже, чем кажется.** На 2026-10-10 в 18:37
+  UTC за две секунды были пересозданы 22 объекта `Application` и 14 namespace'ов
+  ([инцидент 0009](../incidents/0009-applications-and-namespaces-recreated.md)).
+  Тринадцать namespace'ов вернулись сами — их содержимое лежит в `manifests/`.
+  `uptime-kuma` не вернулся: его MariaDB применяется руками (#902), CR исчез
+  вместе с namespace, PVC — вместе с ним, сервис стоял 15,5 часов, данные
+  потеряны. **Всё, что не под Argo, не переживает пересоздание namespace.**
+  Увидеть такое можно по датам создания:
+  ```sh
+  kubectl get ns --sort-by=.metadata.creationTimestamp \
+    -o custom-columns='NS:.metadata.name,CREATED:.metadata.creationTimestamp'
+  kubectl -n argocd get application \
+    -o custom-columns='NAME:.metadata.name,CREATED:.metadata.creationTimestamp' \
+    --sort-by=.metadata.creationTimestamp
+  ```
+  Массовое пересоздание в пределах минуты — признак того, что что-то удалило
+  объекты, а не что-то их обновило.
 
 ### Внутренние значения (домен, externalIPs)
 

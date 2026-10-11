@@ -25,6 +25,8 @@ spec:
   syncPolicy:
     syncOptions:
       - RespectIgnoreDifferences=true
+      - FailOnSharedResource=true
+      - PruneLast=true
     retry:
       limit: 5
       backoff:
