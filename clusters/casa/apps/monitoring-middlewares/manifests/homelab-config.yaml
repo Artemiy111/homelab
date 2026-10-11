@@ -1,9 +1,3 @@
-# Конфиг общего окружения стенда в namespace monitoring.
-#
-# Владелец — этот юнит, а не те, кто его читает: namespace общий на двенадцать
-# юнитов, и копия ConfigMap у каждого означала бы SharedResourceWarning и
-# драку за объект при selfHeal. Тот же принцип, что у middleware ниже: они тоже
-# общие для всего namespace.
 apiVersion: v1
 kind: ConfigMap
 metadata:
