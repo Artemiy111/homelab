@@ -33,6 +33,7 @@ spec:
     namespace: radar
   syncPolicy:
     syncOptions:
+      - ServerSideApply=true
       - CreateNamespace=true
     automated:
       selfHeal: true
