@@ -45,6 +45,5 @@ spec:
       - ServerSideApply=true
       # CRD и кластеры баз кластерные: prune вместе с приложением снёс бы их.
       - Prune=false
-      - CreateNamespace=true
     automated:
       selfHeal: true

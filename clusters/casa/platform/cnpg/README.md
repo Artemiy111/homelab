@@ -233,8 +233,11 @@ CRI-O 1.31+, чарт CNPG 0.26.0+. Расширение объявляется 
 тестовый, для боевых баз так нельзя.
 
 ```sh
-# 0. Namespace'ы: databases, zitadel, immich, dawarich
-kubectl apply -f clusters/casa/platform/cnpg/namespaces.yaml
+# 0. Namespace'ы: databases, zitadel, immich, dawarich.
+#    Их объявляет clusters/casa/platform/namespaces/, а не этот каталог:
+#    каталог cnpg под Argo не стоит, и объявления из ручного apply в git
+#    не доходили. Если Argo ещё не поднят — применяй руками:
+kubectl apply -f clusters/casa/platform/namespaces/manifests/namespaces.yaml
 
 # 1. Оператор: в Argo приложение и sync, либо
 kubectl apply -f clusters/casa/platform/cloudnative-pg/app.yaml
@@ -283,7 +286,8 @@ kubectl delete -f clusters/casa/platform/cnpg/test18.secret.yaml
 ## Предусловия
 
 1. Оператор установлен и CRD есть: `kubectl -n cnpg-system get deploy`.
-2. Namespace'ы созданы: `kubectl apply -f clusters/casa/platform/cnpg/namespaces.yaml`.
+2. Namespace'ы созданы — приложение `namespaces` в `Synced`, либо
+   `kubectl apply -f clusters/casa/platform/namespaces/manifests/namespaces.yaml`.
 3. Созданы basic-auth Secret'ы ролей — запечатаны в `db-auth.sealedsecrets.yaml`
    и применяются в **namespace своего кластера**:
    - `databases`: `nextcloud-db-auth`, `forgejo-db-auth`, `element-db-auth`
@@ -310,7 +314,7 @@ kubectl delete -f clusters/casa/platform/cnpg/test18.secret.yaml
 `applied: false` (см. «Грабли»).
 
 ```sh
-kubectl apply -f clusters/casa/platform/cnpg/namespaces.yaml
+kubectl apply -f clusters/casa/platform/namespaces/manifests/namespaces.yaml
 kubectl apply -f clusters/casa/platform/cnpg/db-auth.sealedsecrets.yaml     # пароли ролей
 kubectl apply -f clusters/casa/platform/cloudnative-pg/app.yaml          # оператор (+ sync в Argo)
 kubectl -n cnpg-system get pods -w

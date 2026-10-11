@@ -11,6 +11,13 @@ node_modules
 
 __pycache__/
 
+# Кэш discovery kubectl. Обычно он живёт в ~/.kube/cache, но если в окружении
+# процесса нет HOME, kubectl пишет его в текущий каталог — так он попадает
+# в корень репозитория. В именах каталогов лежит адрес API-сервера, в
+# serverresources.json — перечень group/version/kind кластера. Для публичного
+# зеркала это лишнее, поэтому игнорируем в любом месте дерева.
+.kube/
+
 # Кэш ansible-lint (автоустановка collections, fact cache).
 infra/ansible/.ansible/
 

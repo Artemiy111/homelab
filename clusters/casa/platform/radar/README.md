@@ -130,10 +130,10 @@ kubectl apply -f clusters/casa/platform/radar/
 helm template clusters/casa/platform/homelab | kubectl apply -f -
 ```
 
-Порядок важен: Application создаёт namespace `radar` (`CreateNamespace=true`),
-и только после этого применяются остальные манифесты и маршрут из общего чарта.
-Секреты в `radar-auth` должны появиться **до** синка: иначе Radar стартует без
-`RADAR_OIDC_CLIENT_SECRET`.
+Порядок важен: namespace `radar` объявлен в `clusters/casa/platform/namespaces/`,
+и только после его появления применяются остальные манифесты и маршрут из общего
+чарта. Секреты в `radar-auth` должны появиться **до** синка: иначе Radar стартует
+без `RADAR_OIDC_CLIENT_SECRET`.
 
 ## Проверка
 

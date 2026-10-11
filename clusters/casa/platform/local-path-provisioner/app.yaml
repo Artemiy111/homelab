@@ -27,8 +27,6 @@ spec:
     server: https://kubernetes.default.svc
     namespace: local-path-storage
   syncPolicy:
-    syncOptions:
-      - CreateNamespace=true
     automated:
       prune: true
       selfHeal: true

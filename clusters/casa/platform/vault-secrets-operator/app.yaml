@@ -40,6 +40,5 @@ spec:
       # вместе со всеми VaultAuth/VaultStaticSecret во всех неймспейсах.
       - ServerSideApply=true
       - Prune=false
-      - CreateNamespace=true
     automated:
       selfHeal: true

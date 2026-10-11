@@ -32,6 +32,5 @@ spec:
       # apply. Как у cloudnative-pg и snapshot-controller.
       - ServerSideApply=true
       - Prune=false
-      - CreateNamespace=true
     automated:
       selfHeal: true
