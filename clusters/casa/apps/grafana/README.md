@@ -383,7 +383,7 @@ git без `deleteRules`, то есть **остались вычислятьс�
 - **`scrape-target-down` не ловит недоступный таргет.** Если vmagent упал, его
   метрики станут stale и исчезнут из TSDB, а `up == 0` не сработает — читать
   алерт будет некому. Этот случай закрывают HTTP-проверки Gatus
-  (`victoriametrics`, `vmagent`, `grafana` в `clusters/casa/apps/gatus/config/config.yaml`):
+  (`victoriametrics`, `vmagent`, `grafana` в `clusters/casa/apps/gatus/manifests/config/config.yaml`):
   Gatus не зависит от VictoriaMetrics и переживает её падение.
 - **Grafana — точка отказа самого алертинга.** Пока evaluation живёт в процессе
   Grafana, её рестарт = пауза в оценке правил. При `replicas: 1` и дефолтном

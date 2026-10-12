@@ -2,7 +2,7 @@
 # пишет в VictoriaMetrics; секретов в файле нет — значения подставляются из
 # окружения по ссылкам %{VAR} (поддержка env в -promscrape.config:
 # https://docs.victoriametrics.com/victoriametrics/vmagent/#how-to-collect-metrics-in-prometheus-format).
-# Окружение приходит из k8s Secrets/ConfigMap (см. clusters/casa/apps/victoria-metrics/k8s/vmagent.deployment.yaml).
+# Окружение приходит из k8s Secrets/ConfigMap (см. clusters/casa/apps/victoria-metrics/manifests/vmagent.deployment.yaml).
 #
 # Цели адресуются по именам Service'ов кластера. Приложения без аутентификации
 # отдают метрики внутри кластера открыто; креды нужны только помеченным целям.

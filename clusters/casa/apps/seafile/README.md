@@ -91,7 +91,7 @@ Seafile CE делает две вещи, ломающие нормальный S
 ### Применение в k8s
 
 Патчи накладываются при старте пода. Контейнер `seafile` обёрнут в
-`clusters/casa/apps/seafile/prepare-seahub.sh` (override `command` в
+`clusters/casa/apps/seafile/manifests/prepare-seahub.sh` (override `command` в
 Deployment); скрипт до запуска seahub:
 
 1. подключает `seahub_oauth.py` / `seahub_onlyoffice.py` в `seahub_settings.py`

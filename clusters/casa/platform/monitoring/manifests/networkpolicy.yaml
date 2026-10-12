@@ -58,9 +58,8 @@ spec:
           protocol: TCP
     # Grafana Operator управляет инстансом через его API, поэтому нужен вход
     # из его namespace. Порт 3000 — тот, что operator-генерируемый Service
-    # grafana-service отдаёт наружу (у ручного Service это 80, см.
-    # clusters/casa/apps/grafana/k8s/grafana.service.yaml); правило пригодится с переездом
-    # clusters/casa/apps/grafana/ на Grafana CR.
+    # grafana-service отдаёт наружу (у ручного Service это 80); правило пригодится
+    # с переездом на Grafana CR.
     - from:
         - namespaceSelector:
             matchLabels:

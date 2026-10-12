@@ -23,7 +23,7 @@ domain = "example.com"
 
 `domain` — корневой домен стенда, а не адрес инстанса: в блок `provider`
 подставляется `id.${var.domain}`, ровно как `ZITADEL_EXTERNALDOMAIN` в
-`clusters/casa/apps/zitadel/k8s/zitadel.deployment.yaml`. Из того же `var.domain` собираются
+`clusters/casa/apps/zitadel/manifests/zitadel.deployment.yaml`. Из того же `var.domain` собираются
 домен организации (`homelab.id.<домен>`) и redirect URI приложений. Реальное
 значение — в `terraform.tfvars`, который не коммитится; без него Terraform
 спросит его интерактивно.

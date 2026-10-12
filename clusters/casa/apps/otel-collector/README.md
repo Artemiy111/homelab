@@ -27,7 +27,7 @@ Open WebUI шлёт метрики по OTLP/gRPC (`ENABLE_OTEL*` в его Depl
 (gRPC): короткое имя `otel-collector` резолвится только внутри namespace
 `monitoring`. Отдельный scrape-job не нужен — метрики придут в job
 `otel-collector`. Дополнительно namespace приложения надо внести в
-`clusters/casa/platform/monitoring/networkpolicy.yaml` (default-deny ingress) на порты
+`clusters/casa/platform/monitoring/manifests/networkpolicy.yaml` (default-deny ingress) на порты
 4317/4318. Трейсы принимаются на тот же эндпоинт и уходят в Tempo
 (`clusters/casa/apps/tempo/`).
 

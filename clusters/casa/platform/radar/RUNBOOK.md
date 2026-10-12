@@ -40,13 +40,12 @@ kubectl apply -f clusters/casa/platform/radar/app.yaml
 kubectl -n radar get pods
 argocd app get radar
 
-kubectl apply -f clusters/casa/platform/radar/
-helm template clusters/casa/platform/homelab | kubectl apply -f -
+kubectl apply -f clusters/casa/platform/radar/manifests
 ```
 
 Порядок важен: namespace `radar` объявлен в `clusters/casa/platform/namespaces/`,
-и только после его появления применяются остальные манифесты и маршрут из общего
-чарта. Секреты в `radar-auth` должны появиться **до** синка: иначе Radar стартует
+и только после его появления применяются остальные манифесты и маршрут.
+Секреты в `radar-auth` должны появиться **до** синка: иначе Radar стартует
 без `RADAR_OIDC_CLIENT_SECRET`.
 
 ## Проверка
@@ -79,7 +78,7 @@ kubectl auth can-i list pods -n radar --as=<email> --as-group=oidc:admin
 ```
 
 Gatus проверяет `http://radar.radar.svc.cluster.local/api/health` из namespace
-`monitoring` (правка `clusters/casa/apps/gatus/config/config.yaml` плюс `kubectl apply -k
+`monitoring` (правка `clusters/casa/apps/gatus/manifests/config/config.yaml` плюс `kubectl apply -k
 clusters/casa/apps/gatus/` сама перезапускает под: ConfigMap с конфигом собирается с хэшем
 содержимого). `/api/health` exempt даже при включённой аутентификации.
 
@@ -95,6 +94,6 @@ https://github.com/skyhook-io/radar/releases
 
 ```sh
 kubectl -n argocd delete application radar
-kubectl delete -f clusters/casa/platform/radar/networkpolicy.yaml
+kubectl delete -f clusters/casa/platform/radar/manifests/networkpolicy.yaml
 kubectl delete ns radar
 ```

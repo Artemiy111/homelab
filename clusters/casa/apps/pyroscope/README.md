@@ -34,7 +34,7 @@ eBPF-профилирование требует root и CAP_SYS_ADMIN, поэт
 
 ### Профили не скрейпятся
 
-vmagent не имеет job'а `pyroscope` в `clusters/casa/apps/victoria-metrics/config/vmagent/scrape.yml`,
+vmagent не имеет job'а `pyroscope` в `clusters/casa/apps/victoria-metrics/manifests/config/vmagent/scrape.yml`,
 поэтому метрик у сервиса нет и в VM не попадает. Пока это так, ориентироваться
 надо на состояние пода и логи, а не на дашборд.
 
@@ -46,7 +46,7 @@ vmagent не имеет job'а `pyroscope` в `clusters/casa/apps/victoria-metri
 переход «трейс → профиль» не работает.
 
 В Grafana: datasource Pyroscope умеет искать спаны по `service.name` профиля
-(настроено в `clusters/casa/apps/grafana/config/datasources.yaml`, `tracesToProfiles`).
+(настроено в `clusters/casa/apps/grafana/manifests/datasources.yaml`, `tracesToProfiles`).
 
 ## Цена
 

@@ -14,7 +14,7 @@ spec:
     # Issuer обязан совпадать с тем, что Zitadel объявляет в
     # /.well-known/openid-configuration: apiserver сверяет claim iss и отклоняет
     # токен при расхождении. Домен — ZITADEL_EXTERNALDOMAIN из
-    # clusters/casa/apps/zitadel/k8s/zitadel.deployment.yaml, он же config.domain в
+    # clusters/casa/apps/zitadel/manifests/zitadel.deployment.yaml, он же config.domain в
     # раньше жил в config.serverIp чарта platform/homelab, который распущен.
     #
     # Инициализация issuer асинхронная (retry каждые 10 с), поэтому apiserver

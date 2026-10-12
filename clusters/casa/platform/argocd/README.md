@@ -15,7 +15,7 @@ API, и лимит 100/50 срабатывает при обычном прос�
 
 `secure-headers` продублирован в каждом namespace, где его использует
 `ExtensionRef`: ссылка в `HTTPRoute` ищет `Middleware` рядом с маршрутом, а не
-в `traefik`. Оригинал — `clusters/casa/platform/traefik/oauth2-proxy.middleware.yaml`.
+в `traefik`. Оригинал — `clusters/casa/platform/traefik/manifests/oauth2-proxy.middleware.yaml`.
 
 Установка, бутстрап, обновление релиза, правила проектов и разборы — в
 `RUNBOOK.md`.

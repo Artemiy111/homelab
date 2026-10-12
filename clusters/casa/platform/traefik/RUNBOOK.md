@@ -8,5 +8,5 @@
 (#858):
 
 ```sh
-kubectl apply -f clusters/casa/platform/traefik/dashboard.route.yaml
+kubectl apply -f clusters/casa/platform/traefik/manifests/dashboard.route.yaml
 ```

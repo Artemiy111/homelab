@@ -150,7 +150,7 @@ persistence:
   size: 5Gi
 
 # Серверный шаблон merge-сообщения (ConfigMap лежит рядом, в
-# clusters/casa/apps/forgejo/k8s/merge-message.configmap.yaml): задаёт пустое тело вместо
+# clusters/casa/apps/forgejo/manifests/merge-message.configmap.yaml): задаёт пустое тело вместо
 # `Reviewed-on: <url>` (#25). Forgejo читает {CustomPath}/default_merge_message
 # при старте, поэтому после правки нужен рестарт пода.
 extraVolumes:
@@ -176,7 +176,7 @@ service:
     externalIPs:
       - 192.168.1.254
 
-# Ingress — свой файл (clusters/casa/apps/forgejo/k8s/route.yaml), как у остальных
+# Ingress — свой файл (clusters/casa/apps/forgejo/manifests/route.yaml), как у остальных
 # сервисов. Встроенный выключен: он собирал ROOT_URL из наличия ingress.tls, а
 # Argo считал объект нездоровым, потому что Traefik не пишет
 # status.loadBalancer. Поэтому ROOT_URL и PROTOCOL заданы явно и не зависят от

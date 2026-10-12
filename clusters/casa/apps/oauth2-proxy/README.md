@@ -14,7 +14,7 @@ Forward auth перед приложениями без своей автори�
 ## Как подключено
 
 - Traefik middleware `oauth2-proxy@file` (см.
-  `clusters/casa/platform/traefik/oauth2-proxy.middleware.yaml`) делает forwardAuth на
+  `clusters/casa/platform/traefik/manifests/oauth2-proxy.middleware.yaml`) делает forwardAuth на
   `http://oauth2-proxy:4180`.
 - Роутер защищаемого сервиса добавляет этот middleware; сейчас подключён к
   Structurizr и к WUD.

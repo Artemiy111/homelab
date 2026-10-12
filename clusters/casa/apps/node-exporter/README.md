@@ -9,6 +9,6 @@
 написаны готовые Grafana-дашборды и Prometheus-правила.
 
 Скрейпится vmagent'ом (job `node-exporter` в
-`clusters/casa/apps/victoria-metrics/config/vmagent/scrape.yml`).
+`clusters/casa/apps/victoria-metrics/manifests/config/vmagent/scrape.yml`).
 
 Проверка — в `RUNBOOK.md`.

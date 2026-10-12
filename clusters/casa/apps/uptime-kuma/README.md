@@ -62,14 +62,14 @@ Kuma 2.x всегда записывает параметры подключен
 
 Kuma отдаёт Prometheus-метрики на `:80/metrics`. Доступ — по API-ключу
 (Настройки → API Keys, без срока действия): ключ хранится как
-`UPTIME_KUMA_METRICS_API_KEY`, netdata скрейпит их как цель `uptime-kuma`
-(см. `clusters/casa/apps/netdata/README.md`). После добавления первого API-ключа basic auth на
+`UPTIME_KUMA_METRICS_API_KEY`, vmagent скрейпит их как цель `uptime-kuma`.
+После добавления первого API-ключа basic auth на
 `/metrics` отключается навсегда.
 
 ## Декларативные мониторы
 
 Желаемое состояние мониторов живёт в Terraform: `infra/terraform/uptime-kuma/`.
-Gatus (`clusters/casa/apps/gatus/config/config.yaml`) — источник правды, Kuma зеркалит его там,
+Gatus (`clusters/casa/apps/gatus/manifests/config/config.yaml`) — источник правды, Kuma зеркалит его там,
 где это возможно.
 
 Раньше мониторы описывались в этом каталоге: `monitors.yaml` плюс

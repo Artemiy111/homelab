@@ -6,7 +6,7 @@
 # infisical, glitchtip, postgres (pgweb), authentik, sure, nextcloud, open-webui,
 # gatus, grafana (под gatus/grafana из общего namespace monitoring) и element
 # (synapse).
-# Egress не ограничивается — см. комментарий в clusters/casa/apps/lute/k8s/networkpolicy.yaml.
+# Egress не ограничивается — см. комментарий в clusters/casa/apps/lute/manifests/networkpolicy.yaml.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:

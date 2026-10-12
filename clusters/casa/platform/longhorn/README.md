@@ -86,7 +86,7 @@ Longhorn — thin provisioning: он *выделяет* больше, чем з�
    firewalld (`infra/host/k0s/firewalld/`) — список портов в Longhorn docs, раздел Networking.
 2. В Longhorn появится вторая нода с диском (`defaultDataPath` тот же). Диск — из отдельного
    раздела или диска, не из корня.
-3. Поднять `numberOfReplicas: "2"` в `clusters/casa/platform/longhorn/storageclasses.yaml` и применить.
+3. Поднять `numberOfReplicas: "2"` в `clusters/casa/platform/longhorn/manifests/storageclasses.yaml` и применить.
    Существующие тома придётся пересоздать/восстановить: изменить число реплик у живого тома
    можно только в UI (Volume → attach/detach связаны с PVC).
 4. Пороги диска (`storageReservedPercentageForDefaultDisk`, `storageMinimalAvailablePercentage`)

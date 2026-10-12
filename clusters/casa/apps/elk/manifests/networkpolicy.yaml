@@ -5,7 +5,7 @@
 # локальной сети, в которой живёт узел. Адрес узла в манифест не дублируется,
 # поэтому переезд узла правило не ломает.
 # Оператор Elastic в elastic-system управляет Elasticsearch через API (9200).
-# Egress не ограничивается — см. clusters/casa/apps/lute/k8s/networkpolicy.yaml.
+# Egress не ограничивается — см. clusters/casa/apps/lute/manifests/networkpolicy.yaml.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:

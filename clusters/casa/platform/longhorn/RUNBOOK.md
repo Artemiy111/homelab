@@ -19,16 +19,16 @@ kubectl -n argocd get application longhorn -o wide
 kubectl -n longhorn-system get pods --watch
 
 # 5. Классы и снапшот-класс
-kubectl apply -f clusters/casa/platform/longhorn/storageclasses.yaml
-kubectl apply -f clusters/casa/platform/longhorn/volumesnapshotclass.yaml
+kubectl apply -f clusters/casa/platform/longhorn/manifests/storageclasses.yaml
+kubectl apply -f clusters/casa/platform/longhorn/manifests/volumesnapshotclass.yaml
 
 # 5a. Доступ vmagent к метрикам Longhorn (дополняет чартовую NetworkPolicy)
-kubectl apply -f clusters/casa/platform/longhorn/networkpolicy-metrics.yaml
+kubectl apply -f clusters/casa/platform/longhorn/manifests/networkpolicy-metrics.yaml
 
 # 6. Маршрут UI за oauth2-proxy. Argo его не синхронизирует: у Application
 # longhorn в spec.sources только чарт и ref: values, файла маршрута там нет.
 # После правки в git применять руками, иначе разойдётся с кластером (#858).
-kubectl apply -f clusters/casa/platform/longhorn/route.yaml
+kubectl apply -f clusters/casa/platform/longhorn/manifests/route.yaml
 ```
 
 DNS трогать не нужно: в зоне есть wildcard `*.example.com`.
@@ -309,8 +309,7 @@ kubectl get pv pvc-<uuid>          # обычно уже NotFound
 # 1. Приложения с их ресурсами (иначе финалайзеры подвесят удаление namespace)
 kubectl -n argocd delete application longhorn
 kubectl -n argocd delete application snapshot-controller
-kubectl delete -f clusters/casa/platform/longhorn/storageclasses.yaml -f clusters/casa/platform/longhorn/volumesnapshotclass.yaml
-helm template clusters/casa/platform/homelab | kubectl delete -f -
+kubectl delete -f clusters/casa/platform/longhorn/manifests
 
 # 2. Данные: удалить PVC/PV (в `longhorn-retain` PV остаётся Released — убирать вручную),
 #    тома в UI, потом ноды Longhorn.

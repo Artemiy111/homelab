@@ -186,7 +186,7 @@ CRI-O 1.31+, чарт CNPG 0.26.0+. Расширение объявляется 
 
 - **Метрики.** У оператора нет CRD prometheus-operator, поэтому PodMonitor не
   используется. Вместо него — job `cnpg` в
-  `clusters/casa/apps/victoria-metrics/config/vmagent/scrape.yml`: service discovery по подам,
+  `clusters/casa/apps/victoria-metrics/manifests/config/vmagent/scrape.yml`: service discovery по подам,
   keep по порту `metrics`, лейблы `cluster`/`role` из `cnpg.io/cluster` и
   `cnpg.io/podRole`, служебные базы (`template*`, `postgres`, `app`) отброшены
   по `datname`. Для баз на CNPG отдельные экспортёры больше не нужны: они сняты

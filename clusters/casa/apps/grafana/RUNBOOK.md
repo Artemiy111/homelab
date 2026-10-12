@@ -64,7 +64,7 @@ kubectl -n grafana-operator logs deploy/grafana-operator --since=30s | grep -c G
 таблице в `README.md`.
 
 ```sh
-curl -s -o clusters/casa/apps/grafana/config/dashboards/traefik-official.json \
+curl -s -o clusters/casa/apps/grafana/manifests/config/dashboards/traefik-official.json \
   https://grafana.com/api/dashboards/17346/revisions/latest/download
 ```
 

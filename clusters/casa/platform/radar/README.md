@@ -9,7 +9,7 @@ TLS-сертификаты и встроенный MCP-сервер для AI-а
 
 Здесь Radar служит второй (после Headlamp) панелью обзора кластера и ставится
 официальным чартом под Argo CD — тем же способом, что `headlamp` и `longhorn`
-(см. `docs/runbooks/argocd.md`).
+(см. `clusters/casa/platform/argocd/RUNBOOK.md`).
 
 ## Аутентификация
 
@@ -21,7 +21,7 @@ ServiceAccount. Схема по шагам:
 |---|---|
 | Приложение OIDC в Zitadel | `infra/terraform/zitadel/applications.tf` (`zitadel_application_v2.radar`) |
 | Claim `role` (`admin`/`user`) | `infra/terraform/zitadel/actions.tf` |
-| `cluster-admin` для группы `oidc:admin` | `clusters/casa/platform/headlamp/headlamp-admins.clusterrolebinding.yaml` |
+| `cluster-admin` для группы `oidc:admin` | `clusters/casa/platform/headlamp/manifests/headlamp-admins.clusterrolebinding.yaml` |
 | clientSecret, redirectURL | Vault `kv/radar/oidc` |
 | clientID, issuer | `valuesObject` Application |
 | Отдельный HMAC-ключ сессий | Vault `kv/radar/oidc`, ключ `auth-secret` |
@@ -97,6 +97,6 @@ cluster-admin — Headlamp через apiserver, Radar через имперсо
 метрик ворклоада и обзор стоимости работают без автодискавери. Автодискавери
 Radar ищет well-known имена и не распознаёт сервис `victoriametrics`, поэтому
 адрес задан явно. Доступ из `radar` в `monitoring` открыт точечно в
-`clusters/casa/platform/monitoring/networkpolicy.yaml` (порт 8428).
+`clusters/casa/platform/monitoring/manifests/networkpolicy.yaml` (порт 8428).
 
 Установка, проверка, обновление версии и удаление — в `RUNBOOK.md`.

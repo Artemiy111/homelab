@@ -17,7 +17,7 @@ postgres, ...) и ~10 Gi RAM. Если понадобится «как в про
 
 ## Как развёрнуто
 
-`clusters/casa/platform/homelab-config/configmap.yaml` содержит документ для namespace
+`configmap.yaml` содержит документ для namespace
 `gitlab` (DOMAIN, TZ) — оттуда Deployment берёт env, а `gitlab.rb` подставляет
 их как `ENV['DOMAIN']` и `ENV['TZ']`.
 

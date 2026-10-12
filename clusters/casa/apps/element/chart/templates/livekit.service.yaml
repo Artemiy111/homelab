@@ -5,7 +5,7 @@ metadata:
   namespace: element
   annotations:
     # hostNetwork: без nativeLB Traefik dial-ит адрес узла и попадает в себя.
-    # Подробности в clusters/casa/apps/home-assistant/k8s/service.yaml.
+    # Подробности в clusters/casa/apps/home-assistant/manifests/service.yaml.
     traefik.io/service.nativelb: "true"
 spec:
   type: ClusterIP

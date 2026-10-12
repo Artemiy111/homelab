@@ -11,8 +11,8 @@ kubectl -n cert-manager get pods    # controller, webhook, cainjector
 kubectl apply -f clusters/casa/platform/dns01-webhook/app.yaml
 kubectl -n cert-manager get pods    # dns01-webhook-...
 
-# 3. Эмитенты и Certificate — из чарта (зоны, почта из values)
-helm template clusters/casa/platform/homelab | kubectl apply -f -
+# 3. Эмитенты и Certificate
+kubectl apply -f clusters/casa/platform/cert-manager/manifests
 ```
 
 ## Секреты
@@ -32,7 +32,7 @@ VSO через `VaultStaticSecret`. Единственная копия знач
 
 Имена ключей совпадают с ключами destination Secret'а в чарте webhook'а —
 доставка не переименовывает ключи, поэтому при других именах правится
-`clusters/casa/platform/cert-manager/vaultstaticsecret.yaml`, а не Vault.
+`clusters/casa/platform/cert-manager/manifests/vaultstaticsecret.yaml`, а не Vault.
 
 ## Доставка секретов и ротация
 

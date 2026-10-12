@@ -2,7 +2,7 @@
 
 Prometheus-экспортеры для баз homelab, которые ещё не переехали в CloudNativePG:
 по одному маленькому поду на каждый инстанс. Метрики забирает vmagent (job'ы
-`postgres`, `redis`, `mysql` в `clusters/casa/apps/victoria-metrics/config/vmagent/scrape.yml`)
+`postgres`, `redis`, `mysql` в `clusters/casa/apps/victoria-metrics/manifests/config/vmagent/scrape.yml`)
 и пишет в VictoriaMetrics.
 
 Каждый экспортер живёт в namespace своего сервиса.
