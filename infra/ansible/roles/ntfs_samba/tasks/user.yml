@@ -9,6 +9,20 @@
 # применительно к этой задаче, и так ротация пароля в Vault не требует
 # правок в репозитории.
 
+- name: Создать системную учётку для Samba, если её нет
+  # `smbpasswd -a` отказывает с «Failed to add entry», если учётки нет в
+  # /etc/passwd, — база tdbsam хранит только пароль, а привязка к
+  # системной учётке обязательна. Это технический аккаунт: без шелла, без
+  # домашнего каталога, вход невозможен. Файлами он не владеет — за это
+  # отвечает `force user` в секциях шар.
+  ansible.builtin.user:
+    name: "{{ ntfs_samba_user }}"
+    system: true
+    create_home: false
+    shell: /usr/sbin/nologin
+    comment: "Samba share access"
+    state: present
+
 - name: Прочитать пароль Samba из файла-секрета
   # smbpasswd без пароля создаёт непригодную запись: вход будет
   # невозможен, и заметить это можно только по жалобам клиентов.
@@ -39,9 +53,10 @@
   no_log: true
   register: ntfs_samba_user_result
   changed_when: true
-  failed_when:
-    - ntfs_samba_user_result.rc != 0
-    - "'Failed to add entry' not in ntfs_samba_user_result.stderr"
+  # Ошибка smbpasswd не должна оставаться незамеченной: раньше условие
+  # разрешало ровно то сообщение, которым Samba отвечает на отсутствие
+  # системной учётки, — задача проходила как успешная, а в базе пусто.
+  failed_when: ntfs_samba_user_result.rc != 0
 
 - name: Прочитать базу пользователей Samba
   ansible.builtin.command:

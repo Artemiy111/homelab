@@ -26,7 +26,7 @@
   loop: "{{ ntfs_samba_volumes }}"
   loop_control:
     label: "{{ item.name }}"
-  when: not (item.mountpoint in ansible_mounts)
+  when: item.mountpoint not in ansible_facts['mounts'] | map(attribute='mount') | list
 
 # --- Монтирования ---
 
@@ -45,11 +45,10 @@
   loop: "{{ ntfs_samba_volumes }}"
   loop_control:
     label: "{{ item.name }}"
-  when: not (item.mountpoint in ntfs_samba_mounted_points)
+  when: item.mountpoint not in ntfs_samba_mounted_points
   vars:
     ntfs_samba_mounted_points: >-
-      {{ ansible_mounts.values() | map(attribute='mount')
-         | map('regex_replace', '/$', '') | list }}
+      {{ ansible_facts['mounts'] | map(attribute='mount') | list }}
   register: ntfs_samba_mount_result
 
 - name: Обновить fstab
