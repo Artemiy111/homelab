@@ -28,6 +28,7 @@
   ansible.builtin.find:
     paths: /usr/local/src
     patterns: "kubeseal-*"
+    file_type: any
   register: cli_tools_kubeseal_src
 
 - name: Удалить загрузки kubeseal
