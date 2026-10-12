@@ -55,6 +55,8 @@ step "секреты в коммитах ветки" gitleaks git --config .gitl
   --log-opts="origin/main..HEAD"
 step "числа в docs/status соответствуют репозиторию" ./scripts/status-badges.sh --check
 step "список юнитов Argo соответствует дереву" ./scripts/argocd-units.sh --check
+step "проверка томов Samba отвергает поломки" \
+  ./clusters/casa/apps/samba/tests/verify-mounts.test.sh
 
 if optional kubeconform; then
   # Полный набор каталогов и схем: те же, что в гейте kubeconform.yml и в

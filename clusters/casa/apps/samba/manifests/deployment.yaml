@@ -56,7 +56,6 @@ spec:
           volumeMounts:
             - name: ntfs1
               mountPath: /mnt/ntfs1
-              readOnly: true
             - name: ntfs2
               mountPath: /mnt/ntfs2
               readOnly: true
@@ -145,12 +144,13 @@ spec:
             seccompProfile:
               type: RuntimeDefault
           volumeMounts:
-            # ro на первых двух томах — не дублирование `read only = yes`:
+            # ro на ntfs2 — не дублирование `read only = yes` в секции шары:
             # режим монтирования на хосте у ntfs3-тома в грязном состоянии
             # трогать нельзя, и под не должен получать такую возможность.
+            # ntfs1 отформатирован и смонтирован rw, поэтому смонтирован в под
+            # на запись.
             - name: ntfs1
               mountPath: /mnt/ntfs1
-              readOnly: true
             - name: ntfs2
               mountPath: /mnt/ntfs2
               readOnly: true

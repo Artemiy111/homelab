@@ -14,14 +14,17 @@
 ntfs_samba_volumes:
   - name: ntfs1
     mountpoint: /mnt/ntfs1
-    uuid: 36447F8E447F4F9B
-    # Том помечен ядром «It is recommended to use chkdsk»: Windows не
-    # завершила запись метаданных. rw до `chkdsk` в Windows означает
-    # переигровку журнала NTFS средствами Linux — менее проверенный путь,
-    # чем штатное восстановление Windows.
-    mode: ro
+    # Том пересоздан `mkntfs` — ядро сгенерировало новый серийный номер, и он
+    # не совпадает с прежним. Форматирование сняло признак незавершённой
+    # записи, поэтому том монтируется на запись.
+    uuid: 4E17FFBC5209D652
+    mode: rw
   - name: ntfs2
     mountpoint: /mnt/ntfs2
+    # Том помечен ядром «It is recommended to use chkdsk»: Windows не
+    # завершила запись метаданных. Ядро отказывает в монтировании rw, пока
+    # флаг стоит, — ждать «force» не нужно, нужен `chkdsk` в Windows либо
+    # пересоздание тома `mkntfs`, как у ntfs1.
     uuid: F49090CD909097A6
     mode: ro
   - name: ntfs3
