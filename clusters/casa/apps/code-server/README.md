@@ -3,13 +3,6 @@
 Code-server предоставляет VS Code-подобную IDE в браузере.
 URL: `https://code.example.com/`
 
-Разворачивается манифестами в clusters/casa/apps/code-server/k8s/.
-
-## Запуск
-
-Пароль от IDE хранится в `/home/coder/.config/code-server/config.yaml`. После
-первого запуска его следует сохранить в менеджере паролей.
-
 ## Безопасность
 
 - Не подключайте Docker socket без отдельной необходимости: это даёт IDE
@@ -26,3 +19,5 @@ URL: `https://code.example.com/`
 capabilities и с запретом setuid `fixuid` не может сделать `chown`, и контейнер
 падает. Поэтому контейнер запускается от не-root пользователя, а code-server
 стартует напрямую, минуя entrypoint.
+
+Эксплуатация — в `RUNBOOK.md`.

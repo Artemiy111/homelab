@@ -5,8 +5,7 @@ Prometheus-экспортеры для баз homelab, которые ещё н�
 `postgres`, `redis`, `mysql` в `clusters/casa/apps/victoria-metrics/config/vmagent/scrape.yml`)
 и пишет в VictoriaMetrics.
 
-Экспортеры развёрнуты в Kubernetes (`clusters/casa/apps/db-exporters/k8s/`), каждый в
-namespace своего сервиса.
+Каждый экспортер живёт в namespace своего сервиса.
 
 **Базы в CloudNativePG сюда не входят.** Встроенный экспортёр instance-manager
 отдаёт `/metrics` на порту `metrics` (9187) каждого пода кластера, а vmagent
@@ -28,20 +27,14 @@ namespace своего сервиса.
 - **sidecar** (экспортер контейнером рядом с БД) — production-паттерн без
   лишних подов, но правит все DB-Deployment'ы и Service'ы и роллаутит базы.
 
-## Состав
+## Что покрыто
 
-Тип | Под | Порт | Инстансы
----|---|---|---
-Redis/Valkey | `redis-exporter` (`v1.91.1`) | 9121 | 9
-MariaDB | `mysqld-exporter` (`v0.20.0`) | 9104 | 2
+Redis/Valkey: `dawarich-redis`, `element-valkey`, `glitchtip-valkey`,
+`immich-valkey`, `infisical-redis`, `nextcloud-redis`, `paperless-broker`,
+`seafile-redis`, `sure-redis` — все без аутентификации, экспортеру нужен только
+`REDIS_ADDR`.
 
-### Redis/Valkey (9)
-
-`dawarich-redis`, `element-valkey`, `glitchtip-valkey`, `immich-valkey`,
-`infisical-redis`, `nextcloud-redis`, `paperless-broker`, `seafile-redis`,
-`sure-redis` — все без аутентификации, экспортеру нужен только `REDIS_ADDR`.
-
-### MariaDB (2)
+MariaDB:
 
 - `seafile-mariadb-exporter` → `seafile-mariadb:3306` (пользователь `root`,
   пароль из Secret `seafile`/`INIT_SEAFILE_MYSQL_ROOT_PASSWORD`);
@@ -49,22 +42,4 @@ MariaDB | `mysqld-exporter` (`v0.20.0`) | 9104 | 2
   `root`, пароль из Secret `uptime-kuma-mariadb-root`/
   `INIT_UPTIME_KUMA_MARIADB_ROOT_PASSWORD`).
 
-Проверка, что все экспортеры живы:
-
-```sh
-kubectl get pods -l 'app in (seafile-mariadb-exporter,uptime-kuma-mariadb-exporter,seafile-redis-exporter)'
-```
-
-Состояние целей в VictoriaMetrics (ожидаем `1` для всех инстансов):
-
-```sh
-kubectl exec deploy/victoriametrics -- wget -qO- \
-  'http://127.0.0.1:8428/api/v1/query?query=up{job=~"redis|mysql"}'
-```
-
-Экспортер, вернувший `mysql_up 0` при `up 1`, означает, что сам
-экспортер жив, но не может подключиться к базе — смотреть его логи:
-
-```sh
-kubectl logs deploy/seafile-mariadb-exporter
-```
+Эксплуатация — в `RUNBOOK.md`.

@@ -11,10 +11,10 @@ Zot — лёгкий OCI-реестр, используемый как **pull-th
 ## Как это работает
 
 - Zot слушает `:5000` в контейнере (это `targetPort` Service'а), а наружу
-  Service отдаёт его на стандартном порту 80. По конфигу (`configmap.yaml`)
-  Zot знает upstream-реестры
-  (`extensions.sync.registries`), каждый с `onDemand: true` — это и есть
-  pull-through: образ скачивается при первом запросе, затем отдаётся локально.
+  Service отдаёт его на стандартном порту 80. По конфигу Zot знает
+  upstream-реестры (`extensions.sync.registries`), каждый с `onDemand: true` —
+  это и есть pull-through: образ скачивается при первом запросе, затем отдаётся
+  локально.
 - `http.compat: ["docker2s2"]` + `preserveDigest: true` сохраняют исходный
   формат и дайджест образов, поэтому пины раннера по дайджесту остаются
   валидными.
@@ -24,20 +24,12 @@ Zot — лёгкий OCI-реестр, используемый как **pull-th
   `/v2/` для Docker-клиентов и анонимный pull ломается
   ([authn-authz](https://zotregistry.dev/v2.1.21/articles/authn-authz/)).
 - Так как Zot отдаётся по http, его хост помечен `insecure-registries` в
-  `clusters/casa/apps/forgejo/k8s/runner-dind.configmap.yaml`.
-
-Проверка, что API жив (конфиг anonymous-only, поэтому `/v2/` отдаёт 403 — это
-нормально, а pull при этом работает):
-
-```sh
-kubectl -n zot logs deploy/zot --tail=20
-```
+  конфиге dockerd раннера.
 
 ## Как подключён раннер
 
-Метки (`runs-on`) в `clusters/casa/apps/forgejo/k8s/runner.configmap.yaml` ссылаются на образ
-**через путь кэша** (`zot.zot.svc.cluster.local/<реестр>/...`), а DinD
-тянет его из Zot. Пример:
+Метки (`runs-on`) раннера ссылаются на образ **через путь кэша**
+(`zot.zot.svc.cluster.local/<реестр>/...`), а DinD тянет его из Zot. Пример:
 
 ```
 ubuntu-latest:docker://zot.zot.svc.cluster.local/ghcr.io/catthehacker/ubuntu@sha256:...
@@ -55,18 +47,4 @@ Docker-демон умеет `registry-mirrors` **только для Docker Hub
 Hub, несовместимый с path-prefix раскладкой Zot. Если понадобится — делать
 отдельным шагом.
 
-## Добавление upstream-реестра
-
-Дописать запись в `extensions.sync.registries` (`config/config.json`) и применить:
-
-```json
-{
-  "urls": ["https://quay.io"],
-  "onDemand": true,
-  "tlsVerify": true,
-  "preserveDigest": true,
-  "content": [{ "prefix": "**", "destination": "/quay.io" }]
-}
-```
-
-Для приватных upstream'ов нужен `credentialsFile` из Secret'а, а не из ConfigMap.
+Эксплуатация — в `RUNBOOK.md`.

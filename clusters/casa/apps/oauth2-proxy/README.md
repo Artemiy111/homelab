@@ -22,15 +22,6 @@ Forward auth перед приложениями без своей автори�
   общий (`cookie-domain=.example.com`), поэтому повторный вход в другие
   сервисы не требуется.
 
-## Настройка
-
-1. В ZITADEL создать OIDC-приложение с redirect URI
-   `https://oauth.example.com/oauth2/callback`.
-2. В Vault по путям `kv/oauth2-proxy/cookie` (`OAUTH2_PROXY_COOKIE_SECRET`),
-   `kv/oauth2-proxy/oidc` (client_id и client_secret из шага 1).
-
-Разворачивается манифестами в clusters/casa/apps/oauth2-proxy/k8s/.
-
 ## Что получает upstream
 
 - `X-Auth-Request-User`, `X-Auth-Request-Email` — прокидываются Traefik'ом через
@@ -41,3 +32,5 @@ Forward auth перед приложениями без своей автори�
 Приложение обязано доверять этим заголовкам только от прокси: прямой доступ к
 upstream должен быть закрыт, а заголовки — перезаписываться. Проверку отрицательного
 сценария см. в `docs/research/authentication-services.md` (этап 3).
+
+Эксплуатация — в `RUNBOOK.md`.

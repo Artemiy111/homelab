@@ -11,14 +11,6 @@ Apache Traffic Server (ATS) — обратный прокси с **дисков�
 из **allowlist**. Обоснование выбора ATS — в
 `docs/research/generic-http-cache-mirrors.md`.
 
-| | |
-|---|---|
-| Namespace | `ats` |
-| Образ | `trafficserver/trafficserver:10.2.0` (пин по тегу и дайджесту, amd64) |
-| Данные | PVC `ats-cache` на `longhorn` 5Gi (кэш, потеря не страшна) |
-| API | `http://ats.ats.svc.cluster.local` — внутри кластера |
-| Потребитель | CI, Ansible-провижининг хоста |
-
 ## Как это работает
 
 - ATS отдаётся через Service на `:80`. Клиент адресует **наш** хост с префиксом
@@ -46,20 +38,10 @@ Apache Traffic Server (ATS) — обратный прокси с **дисков�
 
 ## Конфигурация
 
-Файлы в `config/` собираются в ConfigMap через `configMapGenerator` в
-`kustomization.yaml`: kustomize добавляет хэш содержимого к имени и переписывает
-ссылку в Deployment, поэтому правка конфига сама запускает rollout (SoT — файл
-в git, а не ConfigMap в кластере).
-
-| Файл | Назначение |
-|---|---|
-| `records.yaml` | follow редиректов, политика кэша, TLS к origin |
-| `remap.config` | allowlist origin'ов (префикс → HTTPS-база) |
-| `cache.config` | TTL по `dest_domain` |
-| `storage.config` | путь и размер дискового кэша |
-| `plugin.config` | `stats_over_http.so` (метрики) |
-| `ip_allow.yaml` | ACL методов (PURGE из приватных сетей) |
-| `run.sh` | entrypoint: копирует конфиги и подставляет секрет PURGE |
+Файлы в `config/` собираются в ConfigMap через `configMapGenerator`: kustomize
+добавляет хэш содержимого к имени и переписывает ссылку в Deployment, поэтому
+правка конфига сама запускает rollout (SoT — файл в git, а не ConfigMap в
+кластере).
 
 ATS читает конфиги из **`/opt/etc/trafficserver`** (там они лежат в образе, не
 в `/etc/trafficserver`). Опцией `--conf_dir` этот каталог подменить нельзя: по
@@ -86,12 +68,10 @@ PURGE реально попадает в загружаемый `remap.config`, 
 `@plugin=` (он remap-плагин, не глобальный — в `plugin.config` его быть не
 должно). Ему обязательны `--secret` и `--state-file`; без них он не
 инициализируется. Секрета в git быть не должно, поэтому `run.sh` на старте
-подставляет `$(ATS_PURGE_TOKEN)` из Secret в `remap.config` (см. «Конфигурация»
-выше).
+подставляет `$(ATS_PURGE_TOKEN)` из Secret в `remap.config`.
 
-Secret `ats-purge-token` синхронизируется из Vault по
-`k8s/vaultstaticsecret.yaml` (путь `kv/ats/purge-token`); имя ключа —
-`ATS_PURGE_TOKEN`.
+Secret `ats-purge-token` синхронизируется из Vault по пути `kv/ats/purge-token`;
+имя ключа — `ATS_PURGE_TOKEN`.
 
 `PURGE` защищён секретом, но по умолчанию `ip_allow.yaml` образа разрешает
 этот метод только с localhost (иначе — `403`). Свой `config/ip_allow.yaml`
@@ -110,34 +90,6 @@ purge-<origin>`), поэтому переживает рестарт пода. �
 `ERROR Can not open file`, если файла нет; `run.sh` предсоздаёт пустые файлы от
 имени `nobody`, чтобы этот штатный случай не засорял лог.
 
-## Как добавить origin
-
-Добавить строку в `config/remap.config` (префикс → HTTPS-база) и, если origin
-отдаёт файлы без `Cache-Control`, — `dest_domain=<хост> ttl-in-cache=<срок>` в
-`config/cache.config`. Если origin редиректит на другой хост (как
-`github.com` → CDN), хост-цель тоже должен быть в `cache.config`. Достаточно
-закоммитить — rollout произойдёт сам.
-
-## Как подключить клиента
-
-Подставить базовый адрес кэша вместо публичного хоста, сохранив путь:
-
-```
-# вместо https://github.com/cli/cli/releases/download/...
-curl http://ats.ats.svc.cluster.local/github/cli/cli/releases/download/...
-```
-
-Там, где инструмент умеет менять источник целиком, удобнее задать его целиком:
-
-```
-GO_DOWNLOAD_BASE_URL=http://ats.ats.svc.cluster.local/godev          # go.dev/dl
-RUSTUP_DIST_SERVER=http://ats.ats.svc.cluster.local/rust             # static.rust-lang.org
-```
-
-Кэш доступен только внутри кластера (ClusterIP). Внешний маршрут Traefik
-намеренно не заведён: профиль нагрузки — CI и провижининг, а открытый кэш
-наружу расширяет поверхность атаки без пользы.
-
 ## Ограничения
 
 - **Только allowlist.** URL, которых нет в `remap.config`, не обслуживаются.
@@ -154,37 +106,4 @@ RUSTUP_DIST_SERVER=http://ats.ats.svc.cluster.local/rust             # static.ru
   записей. При переполнении проще увеличить PVC и размер в `storage.config`
   либо удалить `ats-cache` (кэш восстановим).
 
-## Размер кэша и очистка
-
-Том — `longhorn`, 5Gi, без `Retain`. Удалить объект из кэша (токен взять из секрета сервиса):
-
-```sh
-curl -X PURGE -H "X-ATS-Purge: $ATS_PURGE_TOKEN" \
-  http://ats.ats.svc.cluster.local/github/<path>
-```
-
-Плагин привязывает PURGE ко всему правилу remap: запрос с секретом удаляет
-содержимое этого origin'а.
-
-Удалить весь кэш: удалить PVC `ats-cache` (ATS заполнит заново).
-
-## Проверка на живом стенде
-
-1. `kubectl -n ats get pods,pvc,svc` — под `Running`, PVC `Bound`.
-2. Холодный запрос через кэш:
-
-   ```sh
-   curl -fsS -o /tmp/bun.zip -w '%{http_code} %{size_download}\n' \
-     http://ats.ats.svc.cluster.local/github/oven-sh/bun/releases/download/bun-v1.4.0/bun-linux-x64.zip
-   sha256sum /tmp/bun.zip
-   ```
-
-   Ожидаемый sha256 совпадает с `clusters/casa/apps/rustfs/manifests/artifacts.tsv`
-   (`2d03fb5f...2fe452`). Важно, что вернулся **файл**, а не `302`.
-3. Повторный запрос — быстрее, из кэша: `GET2 t≈0.15s` против `GET1 t≈1.0s`,
-   счётчик `traffic_ctl metric get proxy.process.http.cache_hit_fresh` растёт.
-4. `curl -X PURGE -H "X-ATS-Purge: <секрет>" <url>` возвращает `200` с телом
-   `PURGED <origin>`, и следующий запрос снова идёт в upstream. Проверить
-   персистентность: `/var/cache/trafficserver/purge-<origin>` на PVC содержит
-   выросший generation id, и после рестарта пода он читается (ошибок
-   `remap_purge` в `diags.log` для этого origin'а нет).
+Эксплуатация — в `RUNBOOK.md`.

@@ -14,39 +14,6 @@ VLESS, VMess, Trojan, Shadowsocks, WireGuard, Hysteria2, HTTP/SOCKS и неск�
 Панель читает `homelab-config` (`TZ`) из своего namespace — ConfigMap создаёт
 платформенный чарт, чарт 3x-ui от него зависит и сам его не создаёт.
 
-## Подготовка
-
-Панель будет доступна по адресу, составленному из `XUI_HOST` и
-`XUI_WEB_BASE_PATH` в секретах сервиса, например:
-
-```text
-https://xui.example.com/<случайный-путь>/
-```
-
-Логин и пароль находятся в тех же секретах: случайный пароль администратора и
-случайный URL-путь панели генерируются при инициализации. После первого входа
-включить 2FA. Внутренний TLS панели включать не нужно: HTTPS завершается на
-Traefik.
-
-## Создание первого inbound
-
-Снаружи доступен только заранее опубликованный порт `XUI_INBOUND_PORT`
-(`8443` по умолчанию); добавленный в UI произвольный порт сам по себе снаружи не
-появится. Поэтому для первого inbound указать порт из `XUI_INBOUND_PORT`. Один
-порт нельзя одновременно назначить двум несовместимым inbound-конфигурациям.
-
-Для подключения через интернет отдельно потребуются:
-
-1. NAT на роутере с выбранного внешнего порта на `<node1-ip>:8443` с нужным
-   протоколом TCP и/или UDP.
-2. Разрешающее правило firewalld на сервере для `8443/tcp` и/или `8443/udp`.
-3. Публичный адрес или DNS-имя, доступное клиенту извне.
-
-Не публиковать порт панели `2053`, домен `XUI_HOST` или Traefik `80/443` на
-роутере. Если удалённым клиентам достаточно Tailnet, NAT не нужен, но текущая
-привязка inbound-порта к LAN-адресу рассчитана именно на перенаправление с
-роутера.
-
 ## Egress-прокси (порт 8440)
 
 На порту `XUI_EGRESS_PORT` (по умолчанию `8440`) работает HTTP forward proxy.
@@ -76,8 +43,7 @@ Gatus использует этот прокси для:
 
 Значение хранится в Vault по пути `kv/3x-ui/@gatus/egress` с ключами
 `XUI_EGRESS_USERNAME` и `XUI_EGRESS_PASSWORD` и доставляется в namespace
-`monitoring` как Secret `xui-egress`
-(`clusters/casa/apps/gatus/k8s/vaultstaticsecret.yaml`). Сегмент `@gatus` — потому что кред
+`monitoring` как Secret `xui-egress`. Сегмент `@gatus` — потому что кред
 выдан отдельному потребителю и должен отзываться независимо от секретов 3x-ui
 (`docs/adr/0006-vault-secret-path-layout.md`).
 
@@ -89,16 +55,7 @@ auth на неё нельзя: её пароль скомпрометирова�
 URL.
 
 Учётная запись `dns01-webhook` — по пути `kv/3x-ui/@dns01-webhook/egress`,
-Secret `dns01-webhook-egress` в namespace `cert-manager`
-(`clusters/casa/platform/cert-manager/vaultstaticsecret.yaml`).
+Secret `dns01-webhook-egress` в namespace `cert-manager`.
 
 Значение существует в двух местах — в базе панели и в Vault, — поэтому ротация
-это два шага. Сначала новая пара в UI панели, затем Vault и форс-синк VSO:
-
-```sh
-kubectl -n monitoring annotate vaultstaticsecret xui-egress \
-  vso.secrets.hashicorp.com/force-sync="$(date +%s)" --overwrite
-```
-
-Обратный порядок оставит Gatus без рабочего прокси, и Telegram-уведомления
-перестанут ходить.
+это два шага. Порядок и команды — в `RUNBOOK.md`.

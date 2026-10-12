@@ -5,15 +5,6 @@ Athens — прокси Go-модулей по официальному прот
 идёт в upstream (`proxy.golang.org`), дальше модуль отдаётся из локального
 хранилища — недоступность внешнего прокси или GitHub не ломает сборку.
 
-| | |
-|---|---|
-| Namespace | `athens` |
-| Образ | `gomods/athens:v0.18.1` (пин по тегу и дайджесту, amd64) |
-| Данные | PVC `athens-data` на `longhorn` (кэш, потеря не страшна) |
-| API | `http://athens.athens.svc.cluster.local` — внутри кластера (порт 80) |
-| Маршрут | `https://goproxy.<домен>` (Traefik, чарт `clusters/casa/platform/homelab`) |
-| Потребитель | CI (`actions/setup-go`), сборка Go на хосте |
-
 ## Как это работает
 
 - Athens реализует протокол `GOPROXY`: `GET /<module>/@v/list`, `<ver>.info`,
@@ -32,12 +23,10 @@ Athens — прокси Go-модулей по официальному прот
 
 ## Как подключить клиента
 
-В job'е (или на хосте, где есть доступ к сервису) выставить:
-
-```
-GOPROXY=http://athens.athens.svc.cluster.local
-GOSUMDB=sum.golang.org http://athens.athens.svc.cluster.local/sumdb/sum.golang.org
-```
+Внутри кластера Athens доступен по `http://athens.athens.svc.cluster.local`
+(порт 80), с хоста — по внешнему маршруту Traefik `https://goproxy.<домен>`.
+Маршрут без аутентификации: `go` не умеет forward auth, а `/` и `/catalog`
+доступны только в LAN/Tailscale.
 
 `GOSUMDB` в формате `<имя> <url>` заставляет `go` проверять контрольные суммы
 через Athens, а не напрямую в `sum.golang.org`; путь `/sumdb/<host>` — это и есть
@@ -49,47 +38,6 @@ sumdb-прокси Athens. Если проверка сумм не нужна (�
 у upstream список версий, поэтому для полностью офлайновых сборок пинить версию
 (`@vX.Y.Z`) или собирать из `go.mod`.
 
-С хоста (Ansible-сборка `vals` из `cli_tools`) Athens доступен по внешнему
-маршруту Traefik (`clusters/casa/apps/athens/k8s/route.yaml`):
+Ничего добавлять вручную не нужно: модуль кэшируется при первом обращении.
 
-```
-GOPROXY=https://goproxy.<домен>
-GOSUMDB=sum.golang.org https://goproxy.<домен>/sumdb/sum.golang.org
-```
-
-Маршрут без аутентификации: `go` не умеет forward auth, а `/` и `/catalog`
-доступны только в LAN/Tailscale.
-
-## Добавление модулей
-
-Ничего добавлять не нужно: модуль кэшируется при первом обращении. Прогреть
-кэш заранее можно ручным запросом, например:
-
-```
-GOPROXY=http://athens.athens.svc.cluster.local \
-  go install golang.org/x/tools/cmd/stringer@latest
-```
-
-## Размер кэша и очистка
-
-Том — `longhorn`, 1Gi, без `Retain`: кэш восстановим. Если том переполнится,
-проще увеличить PVC или удалить `athens-data` (Athens скачает нужное заново).
-
-## Проверка на живом стенде
-
-1. `kubectl -n athens get pods,pvc,svc` — под `Running`.
-2. Прогреть модуль изнутри кластера (пустой модульный кэш, образ `golang`):
-
-   ```sh
-   kubectl -n athens run athens-check --rm -it --restart=Never \
-     --image=golang:1.26-alpine -- \
-     sh -c 'GOPROXY=http://athens.athens.svc.cluster.local \
-       GOSUMDB="sum.golang.org http://athens.athens.svc.cluster.local/sumdb/sum.golang.org" \
-       go install golang.org/x/tools/cmd/stringer@v0.50.0'
-   ```
-
-   В логах Athens виден запрос к upstream.
-3. Повторить в свежем поде — модуль отдаётся из хранилища, в логах Athens нет
-   обращения к `proxy.golang.org`.
-4. Симуляция падения upstream: временно сломать `GOPROXY` в конфиге Athens (или
-   закрыть egress) — уже закэшированный модуль всё равно отдаётся.
+Эксплуатация — в `RUNBOOK.md`.

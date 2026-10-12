@@ -35,29 +35,7 @@ Root-креденшелы хранилища — в Vault (`kv/rustfs/credential
 
 - Образ запускается под uid/gid `1000:1000` (вместо родного uid 10001),
   чтобы писать в том без chown под root.
-- Данные хранятся в томе сервиса.
 - Секреты: `kv/rustfs/credentials` (Vault).
-
-## Использование
-
-Пример с AWS CLI (path-style обязателен, регион произвольный):
-
-```sh
-aws --endpoint-url https://s3.${DOMAIN} \
-    --no-verify-ssl s3 ls
-```
-
-Для самоподписанных сценариев вне браузера CA letsencrypt публичный, поэтому
-достаточно стандартного доверия; флаг `--no-verify-ssl` нужен только при
-обращении по IP.
-
-## Эксплуатация
-
-Смена root-креденшелов: обновить значение в Vault по пути `kv/rustfs/credentials`,
-дождаться синка VSO и пересоздать под.
-Учтите: креды применяются только при инициализации пустого `/data`; для смены
-на существующих данных создать нового пользователя через консоль/API, а не
-переопределять env.
 
 ## Зеркало артефактов для CI
 
@@ -69,7 +47,7 @@ http://rustfs.rustfs.svc.cluster.local/mirror/<path>
 ```
 
 Публичный адрес `https://s3.<домен>/mirror/<path>` тоже работает: безусловное
-правило в `k8s/route.yaml` отдаёт анонимные запросы в S3 API, и public-read
+правило маршрута отдаёт анонимные запросы в S3 API, и public-read
 политика бакета их допускает. Правило без `matches` должно оставаться
 **последним** в списке: Gateway API неявный, приоритет отдаёт более
 специфичным правилам (заголовок `Authorization`, префиксы `/rustfs/admin` и
@@ -78,10 +56,38 @@ http://rustfs.rustfs.svc.cluster.local/mirror/<path>
 переписывании маршрута уже случилась (#728, `docs/incidents/0007`) и выглядит как
 404 на существующем объекте.
 
+Что зеркалировать — `artifacts.tsv` (`<path> <sha256> <url>`).
+Скачивает и складывает CronJob `mirror-sync` (образ `amazon/aws-cli`); схемы
+kubeconform он же собирает из git. Артефакты с известным sha256 проверяются
+перед загрузкой, а CI — после скачивания. Бакет append-only: чтобы заменить
+версию, удалить объект и перезапустить.
+
+Схемы CR в зеркале нет: kubeconform тянет их с
+`raw.githubusercontent.com/datreeio/CRDs-catalog` напрямую (issue #791). У job'ов
+egress есть — проверено `wget` из контейнера `dind` пода `forgejo-runner`.
+Зеркалом остаются бинарники и схемы Kubernetes: первое ради сверки sha256,
+второе ради привязки к версии кластера, которой у схем CR нет.
+
+Бакет `mirror` и его public-read policy — код в `infra/terraform/rustfs`: правка бакета
+в консоли будет перезаписана на следующем `terraform apply`, а CronJob
+`mirror-sync` только заливает объекты.
+
+Скрипт (`mirror-sync.sh`) и манифест (`artifacts.tsv`) едут в ConfigMap
+`mirror-sync` через kustomize — отдельного шага нет.
+
+Доступ из job'ов CI обеспечивает NetworkPolicy `allow-ingress` (namespace
+`forgejo` → порт 9000).
+
+Часть артефактов со временем уходит на прозрачный кэш ATS (`clusters/casa/apps/ats`): он сам
+разворачивает `302` с GitHub Releases, поэтому версию не нужно сопровождать
+руками. Для таких артефактов запись в `artifacts.tsv` остаётся оффлайн-фолбэком
+(в бакете объект уже есть), а workflow тянет файл из ATS. Так сделано для `bun`
+(workflow `commitlint`).
+
 ## Вход в консоль и редирект с корня хоста
 
 Консоль после входа ходит в API по пути `/rustfs/admin/v3` — этот базовый URL
-зашит в её собранный JS. Поэтому в `k8s/route.yaml` стоят два префиксных правила
+зашит в её собранный JS. Поэтому в маршруте стоят два префиксных правила
 на порт 9001:
 
 | префикс | что это |
@@ -114,49 +120,11 @@ S3 API, где подпись проверяется как надо. `GET /` п
 ([rustfs/rustfs#2433](https://github.com/rustfs/rustfs/issues/2433)), но закрыл
 как `question` без фикса.
 
-Что зеркалировать — `clusters/casa/apps/rustfs/manifests/artifacts.tsv` (`<path> <sha256> <url>`).
-Скачивает и складывает CronJob `mirror-sync` (образ `amazon/aws-cli`); схемы
-kubeconform он же собирает из git. Артефакты с известным sha256 проверяются
-перед загрузкой, а CI — после скачивания. Бакет append-only: чтобы заменить
-версию, удалить объект и перезапустить.
-
-Схемы CR в зеркале нет: kubeconform тянет их с
-`raw.githubusercontent.com/datreeio/CRDs-catalog` напрямую (issue #791). У job'ов
-egress есть — проверено `wget` из контейнера `dind` пода `forgejo-runner`.
-Зеркалом остаются бинарники и схемы Kubernetes: первое ради сверки sha256,
-второе ради привязки к версии кластера, которой у схем CR нет.
-
-Бакет `mirror` и его public-read policy — код в `infra/terraform/rustfs`: правка бакета
-в консоли будет перезаписана на следующем `terraform apply`, а CronJob
-`mirror-sync` только заливает объекты.
-
-Скрипт (`mirror-sync.sh`) и манифест (`artifacts.tsv`) едут в ConfigMap
-`mirror-sync` через kustomize — отдельного шага нет. Форсировать прогон:
-
-```sh
-kubectl -n rustfs create job --from=cronjob/mirror-sync mirror-sync-manual
-```
-
-Проверка анонимного доступа:
-
-```sh
-kubectl -n rustfs exec deploy/rustfs -- \
-  curl -fsS -o /dev/null -w '%{http_code}\n' \
-  http://rustfs/mirror/kubeconform/0.8.0/kubeconform_0.8.0_linux_amd64.tar.gz
-```
-
-Доступ из job'ов CI обеспечивает NetworkPolicy `allow-ingress` (namespace
-`forgejo` → порт 9000).
-
-Часть артефактов со временем уходит на прозрачный кэш ATS (`clusters/casa/apps/ats`): он сам
-разворачивает `302` с GitHub Releases, поэтому версию не нужно сопровождать
-руками. Для таких артефактов запись в `artifacts.tsv` остаётся оффлайн-фолбэком
-(в бакете объект уже есть), а workflow тянет файл из ATS. Так сделано для `bun`
-(workflow `commitlint`).
-
 ## Ограничения текущей схемы
 
 - Single-node single-disk: нет ни репликации, ни erasure coding.
 - Хранилище не включено в бэкапы платформы; большие объёмы объектов
   бэкапировать побайтовым копированием каталога бессмысленно — использовать
   S3-репликацию или `rclone sync` на внешнее хранилище при необходимости.
+
+Эксплуатация — в `RUNBOOK.md`.

@@ -3,30 +3,21 @@
 Forgejo — лёгкая self-hosted Git-платформа (форк Gitea), которая задумана как
 основной дом для этого репозитория.
 
-| | |
-|---|---|
-| URL | `https://forgejo.example.com/` |
-| Git over SSH | `ssh://git@forgejo.example.com:2222/OWNER/REPO.git` |
-| Namespace | `forgejo` |
-| Развёртывание | Argo CD: `clusters/casa/platform/forgejo/app.yaml`, чарт `forgejo-helm` |
-| Данные | PVC `forgejo-data` на `longhorn-retain` (Longhorn) |
-| База | CNPG-кластер `shared` в namespace `databases`, роль и база `forgejo` |
-| Actions | включены; runner `homelab-runner` (Deployment + DinD), instance-wide; экшены — из локального зеркала |
-| Вход | Zitadel (OIDC) поверх локальных паролей, см. [Вход через Zitadel](#вход-через-zitadel-oidc) |
+URL — `https://forgejo.example.com/`, Git over SSH —
+`ssh://git@forgejo.example.com:2222/OWNER/REPO.git`.
 
 Самостоятельная регистрация выключена, новые репозитории и профили приватны.
 
 Домен, `service.ssh.externalIPs` и discovery URL Zitadel заданы прямо в
-`clusters/casa/platform/forgejo/app.yaml` в `valuesObject` (см. `docs/adr/0009`).
-Credentials — пароль админа, `client-secret` — приходят из Vault и в values не
-попадают: в Application лежат ссылки `existingSecret`.
+`valuesObject` (см. `docs/adr/0009`). Credentials — пароль админа,
+`client-secret` — приходят из Vault и в values не попадают: в Application лежат
+ссылки `existingSecret`.
 
 ## Как развёрнуто
 
 Официального Helm-чарта у Forgejo нет; де-факто стандарт — **forgejo-helm** из
 организации `forgejo-contrib` на Codeberg (форк чарта Gitea под Forgejo:
 внешняя база, rootless-образ, admin-пользователь и метрики из коробки).
-Application ставит его как git-источник с `path: .`, как local-path-provisioner.
 
 Две вещи, которые важно знать про этот чарт:
 
@@ -42,16 +33,7 @@ Application ставит его как git-источник с `path: .`, как
 
 Forgejo Actions — CI/CD из `.forgejo/workflows/`, синтаксис близок к GitHub
 Actions. Сервер только планирует задачи и хранит логи с артефактами; исполняет
-их отдельный процесс **Forgejo Runner** (`clusters/casa/apps/forgejo/k8s/runner.*`).
-
-| | |
-|---|---|
-| Deployment | `clusters/casa/apps/forgejo/k8s/runner.deployment.yaml` |
-| Конфиг | `clusters/casa/apps/forgejo/k8s/runner.configmap.yaml` |
-| Секрет регистрации | `clusters/casa/apps/forgejo/k8s/vaultstaticsecret.yaml` (`forgejo-runner`) |
-| Конфиг dockerd | `clusters/casa/apps/forgejo/k8s/runner-dind.configmap.yaml` |
-| Том dockerd | PVC `forgejo-runner-dind` (`local-path`, 10Gi) |
-| Область | instance-wide (`--scope ""`), раннер `homelab-runner` |
+их отдельный процесс **Forgejo Runner**.
 
 Два контейнера в одном поде: `runner` и `dind` (`docker:dind`). Они делят
 сетевой namespace, поэтому раннер ходит к dockerd по `tcp://127.0.0.1:2375`, а
@@ -74,20 +56,6 @@ ConfigMap'е (сейчас `4`); параллельные job'ы делят dock
 создаёт внутренний dockerd, и лимиты контейнеров runner/dind на них не
 распространяются.
 
-Регистрация оффлайн (без UI), идемпотентно:
-
-```sh
-SECRET=$(openssl rand -hex 20)   # 40 hex-символов
-kubectl -n forgejo exec -i deploy/forgejo -c forgejo -- \
-  forgejo forgejo-cli actions register --name homelab-runner \
-  --secret-stdin --scope ""
-```
-
-Команда печатает UUID (это не случайное значение, а UUID из первых 16 символов
-секрета) — он идёт в `runner.configmap.yaml`; сам секрет — `token` в пути
-`kv/forgejo/runner`. Токен в ConfigMap не попадает: раннер читает его из файла
-(`server.connections.forgejo.token_url`), смонтированного из Secret'а.
-
 **Метки** (`runs-on`) и образы заданы в ConfigMap'е. `ubuntu-latest` и
 `ubuntu-22.04` указывают на `ghcr.io/catthehacker/ubuntu:act-22.04` —
 GitHub-подобный образ с git, docker CLI, python и build-essential. Голый
@@ -97,18 +65,25 @@ GitHub-подобный образ с git, docker CLI, python и build-essential
 **Кэш образов.** Job-образы тянутся не напрямую из внешних реестров, а через
 pull-through кэш **Zot** (`clusters/casa/apps/zot`): в метках указан путь
 `zot.zot.svc.cluster.local/<реестр>/...` с тем же дайджестом. Zot отдаётся
-по http, поэтому его хост добавлен в `insecure-registries` через
-`runner-dind.configmap.yaml` (монтируется в сайдкар `dind`). Дайджесты и
-ограничения (Docker-демон умеет mirror только для Docker Hub) — в
+по http, поэтому его хост добавлен в `insecure-registries` через конфиг
+dockerd раннера (монтируется в сайдкар `dind`). Дайджесты и ограничения
+(Docker-демон умеет mirror только для Docker Hub) — в
 `clusters/casa/apps/zot/README.md`.
+
+Безопасность: раннер — это RCE по определению. Область instance-wide означает,
+что workflow любого репозитория инстанса может запускать job'ы; при появлении
+внешних контрибьюторов раннер надо сузить до репозитория/организации или
+вынести на отдельную ВМ. Кэш держит сам раннер (`emptyDir`, теряется при
+рестарте), логи и артефакты — Forgejo (ретеншн `actions.LOG_RETENTION_DAYS` /
+`ARTIFACT_RETENTION_DAYS`, по умолчанию 365/90 дней). Том dind растёт от
+образов — очистка в `RUNBOOK.md`.
 
 ### Зеркало экшенов
 
 Раннер забирает экшены (`uses: actions/...`) **с локального инстанса**, а не с
 `data.forgejo.org`: тот периодически недоступен (мониторится в Gatus), и job
 падает на загрузке экшена ещё до старта шагов. Задаёт источник
-`actions.DEFAULT_ACTIONS_URL` в `clusters/casa/platform/forgejo/app.yaml`
-(`http://forgejo-http`).
+`actions.DEFAULT_ACTIONS_URL` в `valuesObject` (`http://forgejo-http`).
 
 Настройка **instance-wide**: любой `uses: <owner>/<repo>` без схемы
 разворачивается в `<URL>/<owner>/<repo>`, поэтому под локальным инстансом должен
@@ -125,16 +100,7 @@ Forgejo глобально включает `transfer.fsckObjects=true`, а ис
 полной истории падает. В дереве `v4` длинных путей нет, поэтому репозиторий
 собран одним коммитом из `git archive` тега `v4` и запушен
 (`receive.fsckObjects=false`, поэтому push проходит). Обновление — вручную при
-выходе нового `v4.x`:
-
-```sh
-tmp=$(mktemp -d)
-git clone --depth 1 --branch v4 https://data.forgejo.org/actions/cache.git "$tmp"
-git -C "$tmp" checkout --orphan snapshot
-git -C "$tmp" add -A && git -C "$tmp" commit -m "actions/cache v4 (offline snapshot)"
-git -C "$tmp" tag -f v4
-git -C "$tmp" push --force https://forgejo.example.com/actions/cache.git HEAD:refs/heads/main refs/tags/v4
-```
+выходе нового `v4.x`; команды — в `RUNBOOK.md`.
 
 ### Релизы и пакеты
 
@@ -170,78 +136,6 @@ Settings → Actions → Secrets репозитория. Детали:
   `write:package`) либо вручную: версия пакета → Settings → выбор репозитория.
   Для повторных версий привязка сохраняется — линковать нужно один раз.
 
-### Что проверено на живом стенде
-
-Прогон workflow в `user/test` (`.forgejo/workflows/smoke.yml`), 14 job'ов:
-работают `actions/checkout@v6`, node-экшены, `docker build`/`docker run` внутри
-dind, сервис-контейнеры (`services:`), матрицы, `needs`/outputs, кэш
-(`actions/cache@v4` save/restore), `jobs.<id>.container`, доступ к API через
-`${{ github.token }}`.
-
-Там же проверены `release.yml` (тег + опубликованный релиз с ассетами) и
-`packages.yml` (push образа в реестр контейнеров и generic-пакет через PAT).
-
-### Сборка языков
-
-В `user/test` лежат hello-world проекты со своими workflow'ами: `go/`,
-`node/`, `python/`, `java/`, `rust/`, `bun/` и одноимённые `build-*.yml`. Все
-собираются и тестируются на раннере.
-
-Общие грабли:
-
-- **Неявного checkout у раннера нет.** Без `actions/checkout` рабочая директория
-  пустая (`/workspace/<owner>/<repo>`), так что checkout нужен везде.
-- **`actions/checkout` — node-экшен.** В языковых образах (`rust:1`,
-  `python:3.x`, `oven/bun`) node нет, поэтому там он не отработает. Либо ставить
-  тулчейн шагом в стандартный образ (где node есть), либо брать языковой образ и
-  клонировать репозиторий вручную (в `rust`/`python` git есть).
-
-По языкам:
-
-- **Go** — `actions/setup-go@v5` работает, тулчейн качается с go.dev.
-- **Node** — `actions/setup-node` зависает: с мажорной версией не может получить
-  список версий (`actions-versions.githubusercontent.com` отдаёт 500), с точной
-  скачивает Node и всё равно висит на `dist/setup/index.js`. Берём образ
-  job-контейнера `node:NN-bookworm`.
-- **Python** — 3.10 уже в образе; тест на stdlib `unittest`, ставить нечего.
-- **Java** — `actions/setup-java` в зеркале нет. Через `apt` доступен **JDK 25**,
-  но Maven из Ubuntu 22.04 (3.6.3) для него слишком старый — качаем Maven 3.9.9
-  с archive.apache.org. Плагины в `pom.xml` нужно пинить
-  (`maven-compiler-plugin` 3.13.0 с `release`, `surefire` 3.5.x), иначе дефолтный
-  компилятор 3.1 падает с «Source option 5 is no longer supported».
-- **Rust** — `rustup` тянет тулчейн со `static.rust-lang.org`, и это периодически
-  таймаутит. Берём образ `rust:1-bookworm` и клонируем репо сами.
-- **Bun** — скрипт `bun.sh/install` качает бинарь из GitHub-релиза и падает по
-  таймауту; `npm install -g bun` берёт тот же бинарь из registry.npmjs.org.
-
-Грабли:
-
-- **Артефакты только `@v3`.** `upload-artifact`/`download-artifact` `@v4+`
-  используют `@actions/artifact v2` и новый API, которого в Forgejo нет —
-  падают с `GHESNotSupportedError`. Использовать `@v3`.
-- **`GITHUB_SERVER_URL` внутренний.** Job'ы получают `http://forgejo-http`
-  (адрес из `server.connections`), а не публичный URL. Checkout и API по нему
-  работают, но ссылки, которые экшены печатают в лог, будут внутренними.
-  Публичный URL в конфиге даст красивее ссылки, но добавит зависимость от
-  Traefik и DNS.
-
-Проверка:
-
-```sh
-kubectl -n forgejo get pods -l app=forgejo-runner
-kubectl -n forgejo logs deploy/forgejo-runner -c runner
-```
-
-Раннер виден в UI: `/admin/actions/runners` (idle — значит зарегистрирован).
-
-Безопасность: раннер — это RCE по определению. Область instance-wide означает,
-что workflow любого репозитория инстанса может запускать job'ы; при появлении
-внешних контрибьюторов раннер надо сузить до репозитория/организации или
-вынести на отдельную ВМ. Кэш держит сам раннер (`emptyDir`, теряется при
-рестарте), логи и артефакты — Forgejo (ретеншн `actions.LOG_RETENTION_DAYS` /
-`ARTIFACT_RETENTION_DAYS`, по умолчанию 365/90 дней). Том dind растёт от
-образов: чистить `kubectl -n forgejo exec deploy/forgejo-runner -c dind -- docker system prune -af`.
-
 ## Хранилище
 
 `persistence.claimName: forgejo-data`, класс `longhorn-retain`, 5Gi. Стратегия
@@ -269,8 +163,7 @@ app.ini через `FORGEJO__database__PASSWD` из `gitea.additionalConfigFromE
 Тело merge/squash-коммита задаёт серверный шаблон
 `{CustomPath}/default_merge_message/SQUASH_TEMPLATE.md` (`CustomPath` — это
 `/data/gitea`, не `/data/git`). Файл приезжает из ConfigMap
-`forgejo-merge-message` (`clusters/casa/apps/forgejo/k8s/merge-message.configmap.yaml`) через
-`extraVolumes`/`extraContainerVolumeMounts` в `clusters/casa/platform/forgejo/app.yaml`
+`forgejo-merge-message` через `extraVolumes`/`extraContainerVolumeMounts`
 и делает тело пустым: без него Forgejo дописывает `Reviewed-on: <url>`, а это
 внутренний домен, которого не должно быть в публичной истории (#25).
 
@@ -293,8 +186,7 @@ app.ini через `FORGEJO__database__PASSWD` из `gitea.additionalConfigFromE
 | `kv/forgejo/runner` | `token` | `forgejo-runner` | регистрация раннера |
 | `kv/forgejo/oidc` | `key`, `secret` | `forgejo-oidc` | чарт (init-контейнер) |
 
-Все пять — `VaultStaticSecret` в `clusters/casa/apps/forgejo/k8s/vaultstaticsecret.yaml`,
-значения в Vault заводит человек.
+Все пять — `VaultStaticSecret`, значения в Vault заводит человек.
 
 **Про админа:** это служебная учётка (`forgejo-admin`, почта
 `admin@example.com`), а не личный аккаунт человека: роль в сервисе и
@@ -324,9 +216,9 @@ Zitadel недоступен или сломан issuer, и она же дока
 привязываются к существующим.
 
 Источник создаёт не человек, а init-контейнер чарта: блок `gitea.oauth[]` в
-`clusters/casa/platform/forgejo/app.yaml` превращается в `forgejo admin auth
-add-oauth`, а если источник уже есть — в `update-oauth`. Значит значения живут
-в GitOps, а правка источника в UI будет затёрта следующим sync.
+`valuesObject` превращается в `forgejo admin auth add-oauth`, а если источник
+уже есть — в `update-oauth`. Значит значения живут в GitOps, а правка источника
+в UI будет затёрта следующим sync.
 
 | | |
 |---|---|
@@ -337,12 +229,7 @@ add-oauth`, а если источник уже есть — в `update-oauth`. 
 | Client id/secret | `kv/forgejo/oidc` → Secret `forgejo-oidc` |
 | Секция app.ini | `[oauth2_client]` — `ENABLE_AUTO_REGISTRATION`, `ACCOUNT_LINKING`, `OPENID_CONNECT_SCOPES` |
 
-```sh
-kubectl -n forgejo exec deploy/forgejo -c forgejo -- forgejo admin auth list
-```
-
-Ожидается строка `zitadel` с типом `OAuth2` — значит init-контейнер источник
-создал.
+Проверить, что источник создан, и увидеть список — команда в `RUNBOOK.md`.
 
 ### Как привязываются учётки
 
@@ -359,28 +246,13 @@ Zitadel>`. По ней он находит пользователя при ка�
 по имени, ни по почте не сверяясь. Поэтому привязка делается один раз и
 переживает смену почты; отвязать можно в Settings → Linked accounts.
 
-Порядок ручных действий — по одному на учётку: зайти в Zitadel логином
-`homelab admin`, нажать в Forgejo «Sign in with Zitadel», на странице привязки
-ввести локальные `forgejo-admin` и его пароль (лежит в `kv/forgejo/admin`).
-То же для `artemiy` — только учётка и пароль свои.
+Порядок привязки — в `RUNBOOK.md`.
 
 Почему не `ACCOUNT_LINKING: auto`: Forgejo тогда сначала ищет совпадение по
 имени, потом по почте, и при совпадении привязывает учётку **молча**, без
 пароля и без 2FA. Для публично доступного identity-провайдера с
 `allow_register` это значит, что контроль над почтой в Zitadel даёт контроль
 над чужой учёткой Forgejo.
-
-### Порядок включения
-
-1. `terraform apply` в `infra/terraform/vault` — иначе VSO не прочитает
-   `kv/forgejo/oidc` (политика `app/forgejo`).
-2. `terraform apply` в `infra/terraform/zitadel` — в выводе `client_id` и
-   `client_secret` приложения `Forgejo`. В state и в git секрета нет
-   (см. `infra/terraform/zitadel/README.md`), значения живут только в Vault.
-3. Vault: `kv/forgejo/oidc` с ключами `key` и `secret`.
-4. `clusters/casa/platform/forgejo/app.yaml`, поверх — приватный merge-patch с
-   реальным discovery URL, затем sync и рестарт пода.
-5. Привязать учётки (см. выше) — по одной на логин.
 
 ### Грабли
 
@@ -405,21 +277,6 @@ Zitadel>`. По ней он находит пользователя при ка�
   проверяет отдельный флаг), поэтому включать `ENABLE_AUTO_REGISTRATION` без
   отдельного решения нельзя.
 
-## Проверка
-
-```sh
-kubectl -n argocd get application forgejo
-kubectl -n forgejo get pods,pvc,svc,ingress
-
-curl -fsS --resolve forgejo.example.com:443:<node1-ip> \
-  https://forgejo.example.com/api/healthz   # status: pass, database:ping: pass
-
-kubectl -n forgejo exec deploy/forgejo -- forgejo admin user list --admin
-
-# SSH: порт открыт и отдаёт баннер Forgejo
-ssh -T -p 2222 -o StrictHostKeyChecking=no git@<node1-ip>
-```
-
 ## Резервное копирование
 
 Пока **не настроено**, и это главный незакрытый пункт: под `shared` задуман
@@ -431,18 +288,6 @@ ObjectStore + ScheduledBackup в rustfs (Barman Cloud Plugin), см.
 Когда база будет покрыта бэкапами, для репозиториев останется второй путь:
 push-зеркало в GitHub — git распределённый, и код переживёт потерю сервера даже
 без бэкапов. Планируемый порядок: сначала зеркало, потом перенос `origin`.
-
-## Обновление
-
-1. Посмотреть release notes Forgejo и тег чарта (`forgejo-helm` на Codeberg).
-2. В `clusters/casa/platform/forgejo/app.yaml` поднять `targetRevision` (тег чарта) и
-   `image.tag`/`image.digest` (образ Forgejo) — это две независимые вещи.
-3. Дождаться sync: правка в git доезжает сама, отдельная команда не нужна.
-4. Миграции схемы выполняет init-контейнер чарта (`forgejo migrate`); если он
-   циклится, смотреть его логи: обычно это недоступная база.
-
-Откат — вернуть прежние теги в values коммитом. Образ и чарт пинятся по
-версии/дайджесту, поэтому откат детерминированный.
 
 ## Грабли, проверенные на живом стенде
 
@@ -464,3 +309,5 @@ push-зеркало в GitHub — git распределённый, и код п
   patch-тегом с digest: `docker.io/library/docker:29.8.2-dind@sha256:7dcdfc4a…`.
   Обновление — руками: новый тег, новый digest, тег в манифесте приводится в
   соответствие.
+
+Эксплуатация — в `RUNBOOK.md`.
