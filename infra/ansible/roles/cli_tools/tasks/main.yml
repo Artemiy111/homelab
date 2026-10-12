@@ -4,16 +4,39 @@
 
 # --- sops и kubeseal ---
 # Больше не ставятся: SealedSecrets удалены, SOPS-реестр снят. Задачи убирают
-# то, что осталось от прошлых прогонов.
-- name: Удалить sops
+# то, что осталось от прошлых прогонов. Бинарники лежат в нескольких местах:
+# RPM кладёт sops в /usr/bin, kubeseal ставился в /usr/local/bin, а от прежних
+# установок остались копии в sbin.
+- name: Удалить пакет sops
   ansible.builtin.dnf5:
     name: sops
     state: absent
 
-- name: Удалить kubeseal
+- name: Удалить оставшиеся бинарники sops и kubeseal
   ansible.builtin.file:
-    path: /usr/local/bin/kubeseal
+    path: "{{ item }}"
     state: absent
+  loop:
+    - /usr/bin/sops
+    - /usr/sbin/sops
+    - /usr/local/bin/sops
+    - /usr/local/sbin/sops
+    - /usr/local/bin/kubeseal
+    - /usr/local/sbin/kubeseal
+
+- name: Найти загрузки kubeseal в /usr/local/src
+  ansible.builtin.find:
+    paths: /usr/local/src
+    patterns: "kubeseal-*"
+  register: cli_tools_kubeseal_src
+
+- name: Удалить загрузки kubeseal
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ cli_tools_kubeseal_src.files }}"
+  loop_control:
+    label: "{{ item.path }}"
 
 # --- vals: сборка из исходного кода ---
 
