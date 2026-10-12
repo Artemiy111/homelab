@@ -59,13 +59,14 @@ deploy_files() {
 }
 
 # manifest_files — область CI-гейта kubeconform: clusters/casa/apps/<сервис>/manifests/, clusters/casa/platform/,
-# bootstrap/ без values.yaml, Chart.yaml и шаблонов чарта. Только по ней считается
-# число манифестов, чтобы оно совпадало с тем, что реально проверяет CI.
+# bootstrap/ без values.yaml, Chart.yaml, manifests/config/ и kustomization.yaml.
+# Только по ней считается число манифестов, чтобы оно совпадало с тем, что реально
+# проверяет CI.
 manifest_files() {
   repo_files '*.yaml' '*.yml' |
     grep -E '^(clusters/casa/apps/[^/]+/manifests|clusters/casa/platform|bootstrap)/' |
     grep -vE '(values|Chart)\.yaml$' |
-    grep -vE '^clusters/casa/apps/' |
+    grep -vE 'kustomization\.yaml$' |
     grep -vE '/manifests/config/' || true
 }
 
