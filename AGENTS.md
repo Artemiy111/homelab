@@ -99,6 +99,11 @@ The repository uses the five standard triage labels. See `docs/agents/triage-lab
 
 This is a single-context repository. See `docs/agents/domain.md`.
 
+### Документация юнитов
+
+Что писать в `README.md` юнита, что — в `RUNBOOK.md` рядом с ним, а что не писать
+ни там ни там: `docs/agents/unit-docs.md`.
+
 ### Доступ к серверу
 
 Способ подключения к серверу в `docs/agents/server-access.md`. 

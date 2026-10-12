@@ -26,7 +26,7 @@ namespace'ов закрыто NetworkPolicy. Все они считаются и
 | Число | Метод | Границы |
 |---|---|---|
 | services | каталоги под `clusters/casa/apps/`, где есть хотя бы один YAML | включает `clusters/casa/apps/elk`, выведенный из эксплуатации: манифесты ещё не удалены |
-| manifests | файлы в области гейта kubeconform: `clusters/casa/apps/<сервис>/k8s/`, `clusters/casa/platform/`, `argocd/` без `values.yaml`, `Chart.yaml` и шаблонов чарта | ровно то, что проверяет CI |
+| manifests | файлы в области гейта kubeconform: `clusters/casa/apps/<сервис>/manifests/`, `clusters/casa/platform/`, `bootstrap/` без `values.yaml`, `Chart.yaml` и шаблонов чарта | ровно то, что проверяет CI |
 | images pinned | `image: <ref>` одной строкой; в знаменателе только формы, где значение стоит на той же строке | многострочные формы (`image:` + `repository`/`tag` в CNPG и чартах Argo) не считаются: их нельзя объявить незакреплёнными без разбора YAML |
 | netpol coverage | namespace'ы, где есть манифест с `kind: NetworkPolicy`, делённые на все namespace'ы из манифестов: `metadata.namespace` и `spec.destination.namespace` у `Application` | вложенные `namespace:` из subject'ов RBAC и service-ссылок вебхуков не считаются |
 | ADR / postmortems | количество файлов в `docs/adr/` и `docs/incidents/NNNN-*.md` | — |
@@ -35,7 +35,7 @@ namespace'ов закрыто NetworkPolicy. Все они считаются и
 
 Число считается по области, известной только репозиторию, поэтому это нижняя
 оценка, и она расходится с кластером в обе стороны. Замер на 2026-09-29 после
-применения `clusters/casa/apps/vault/k8s/networkpolicy-vso.yaml`:
+применения `clusters/casa/apps/vault/manifests/networkpolicy-vso.yaml`:
 
 | | репозиторий | кластер |
 |---|---|---|
@@ -55,9 +55,9 @@ namespace'ов закрыто NetworkPolicy. Все они считаются и
   объявлен в `clusters/casa/apps/elk/`. Пока
   `clusters/casa/apps/elk` не удалён (#617), репозиторий считает его как обычный namespace.
 - **`networkpolicy-vso.yaml` был объявлен, но не применён.** Манифест
-  `clusters/casa/apps/vault/k8s/networkpolicy-vso.yaml` лежал в репозитории, а в кластере
-  политики для `vault-secrets-operator` не было: `clusters/casa/apps/*/k8s` применяется
-  вручную, и ничто не проверяет, что файл доехал. Обнаружила сверка чисел с
+  `clusters/casa/apps/vault/manifests/networkpolicy-vso.yaml` лежал в репозитории, а в кластере
+  политики для `vault-secrets-operator` не было: тогда манифесты юнитов применялись
+  вручную, и ничто не проверяло, что файл доехал. Обнаружила сверка чисел с
   кластером, закрыта применением в тот же день. Вывод для процесса: у
   вручную применяемых манифестов нет проверки — см. отдельную задачу.
 
