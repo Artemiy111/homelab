@@ -20,7 +20,7 @@
 set -eu
 
 # точка:режим:UUID — значения из /etc/fstab хоста
-SHARES="ntfs1 rw 4E17FFBC5209D652
+SHARES="ntfs1 rw 552B11675F65D551
 ntfs2 ro F49090CD909097A6
 ntfs3 rw 962A2DEC2A2DC9D7"
 
