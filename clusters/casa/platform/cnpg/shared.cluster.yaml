@@ -29,9 +29,9 @@
 #
 # Пароли. Роли ссылаются на <app>-db-auth (kubernetes.io/basic-auth, ключи
 # username/password) в ЭТОМ namespace: Secret читается только из namespace
-# кластера, а потребители ходят cross-namespace. Secret'ы создаются на сервере,
-# где лежит приватный ключ SOPS, и коммитятся зашифрованными. До их появления
-# роли и базы не отреконсилятся.
+# кластера, а потребители ходят cross-namespace. Secret'ы создаёт
+# VaultStaticSecret из пути kv/<app>/db. Пока значения нет в Vault, роли и базы
+# не отреконсилятся.
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:

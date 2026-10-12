@@ -12,8 +12,8 @@
 ходить по SSH ради них не нужно.
 
 **Сервер** доступен по SSH от имени пользователя **`ai-agent`** — это
-изолированный аккаунт: домашний каталог `artlab` (а с ним репозиторий,
-`sops`-ключ и приватные ключи) ему недоступен. Всё, что лежит на диске сервера,
+изолированный аккаунт: домашний каталог `artlab` (а с ним репозиторий и
+приватные ключи) ему недоступен. Всё, что лежит на диске сервера,
 выполняется от имени **`artlab`** через `sudo -u artlab` (пароль не требуется).
 Перед записью агент запрашивает разрешение пользователя.
 
@@ -22,7 +22,7 @@
 | Кластер: `kubectl`, `argocd`, состояние подов и ресурсов | macOS | `KUBECONFIG=~/.kube/configs/homelab.yaml kubectl …` |
 | Рендер и apply чартов, чьи values в git | macOS | `helm template … \| kubectl apply -f -` |
 | Проверки хоста: DNS с узла, `systemctl`, `tailscale` | SSH | `ssh homelab-agent` |
-| Приватный слой: `sops`, `terraform`, ключи `artlab` | SSH | `sudo -u artlab bash -lc "…"` |
+| Приватный слой: `terraform`, ключи `artlab` | SSH | `sudo -u artlab bash -lc "…"` |
 
 Правило выбора: **если проверку можно сделать через API-сервер — делать её с
 macOS, без SSH.** SSH нужен только для того, что через API не видно: состояние
@@ -132,16 +132,15 @@ ssh homelab-agent 'sudo -u artlab bash -lc "cd /home/artlab/projects/homelab && 
 
 ## Секреты
 
-Секреты живут в HashiCorp Vault. В кластер их доставляет
-External Secrets Operator: `VaultStaticSecret`
+Секреты живут в HashiCorp Vault. В кластер их доставляет Vault Secrets
+Operator (VSO): `VaultStaticSecret`
 (`clusters/casa/apps/<сервис>/manifests/vaultstaticsecret.yaml`) создаёт и обновляет обычный
 Secret, который читает приложение. Значение задаёт пользователь в Vault по
 пути из `docs/adr/0006-vault-secret-path-layout.md`.
 
 Само значение секрета агент не читает: `kubectl describe`/`get -o yaml` на
 VaultStaticSecret и destination Secret показывают только имена ключей и
-метаданные. Расшифровывать — только если задача этого требует, и тогда
-результат не попадает в вывод.
+метаданные.
 
 Изменение секрета:
 
@@ -177,12 +176,12 @@ KUBECONFIG=~/.kube/configs/homelab.yaml kubectl -n <ns> get vaultstaticsecret -o
 ## Kubernetes и права
 
 `kubectl` на macOS работает с `KUBECONFIG=~/.kube/configs/homelab.yaml` и имеет
-те же права, что `artlab` на сервере. `helm`, `argocd` и `kubeseal` на macOS
+те же права, что `artlab` на сервере. `helm` и `argocd` на macOS
 тоже стоят.
 
 Серверные `kubectl` и `helm` (`/usr/local/sbin/kubectl`) остаются для сценариев,
 где команда идёт вместе с `git pull` и `helm template` в одной оболочке
-`artlab`. `sops` и приватный слой — только на сервере, ключи лежат там.
+`artlab`. Приватный слой — только на сервере, ключи лежат там.
 
 SELinux находится в режиме enforcing, firewalld включён. Не отключать их ради
 обхода ошибок доступа.
@@ -205,7 +204,7 @@ macOS и `kubectl get pods` через `sudo -u artlab bash -lc` дают оди
 
 ```sh
 # Плохо: только часть обёрнута, остаток уйдёт от ai-agent.
-ssh homelab-agent 'sudo -u artlab bash -lc "git pull" && cat ~/.config/sops/age/keys.txt'
+ssh homelab-agent 'sudo -u artlab bash -lc "git pull" && cat ~/.ssh/id_ed25519'
 
 # Хорошо: единая оболочка artlab.
 ssh homelab-agent 'sudo -u artlab bash -lc "cd /home/artlab/projects/homelab && git pull && kubectl get pods"'

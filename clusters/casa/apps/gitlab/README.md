@@ -64,7 +64,7 @@ kubectl -n gitlab exec deploy/gitlab -- cat /etc/gitlab/initial_root_password
 сохранить. Хранить постоянный пароль в секрете здесь намеренно не заведено:
 для теста достаточно сгенерированного. Если нужен фиксированный — добавить в
 `gitlab.rb` `gitlab_rails['initial_root_password'] = File.read('/run/secrets/...')`
-и смонтировать SealedSecret.
+и смонтировать Secret из Vault.
 
 ## Ресурсы
 

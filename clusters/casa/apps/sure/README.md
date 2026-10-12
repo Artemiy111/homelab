@@ -12,7 +12,7 @@ HTTP, `worker` (Sidekiq) — фоновые задачи; оба пишут вл
 эндпоинт `shared-rw.databases.svc.cluster.local:5432`). Роль `sure`, база `sure`
 и NetworkPolicy объявлены в `clusters/casa/platform/cnpg/`. Пароль лежит в пути `kv/sure/db`
 и подаётся в два Secret'а: `sure/sure-db-auth` (читает под) и
-`databases/sure-db-auth` (читает CNPG, ещё SealedSecret — перенос в фазе 2).
+`databases/sure-db-auth` (читает CNPG).
 Secret читается только из своего namespace, а потребитель ходит
 cross-namespace.
 

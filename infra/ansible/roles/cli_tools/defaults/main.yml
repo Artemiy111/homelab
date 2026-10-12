@@ -1,26 +1,9 @@
 ---
-# --- Шифрование секретов (SOPS) ---
-
-# Официального репозитория sops в Fedora нет — RPM из релиза GitHub.
-cli_tools_sops_version: "3.13.3"
-cli_tools_sops_url_base: "https://github.com/getsops/sops/releases/download/v"
-cli_tools_sops_rpm: "sops-{{ cli_tools_sops_version }}-1.x86_64.rpm"
-cli_tools_sops_rpm_url: "{{ cli_tools_sops_url_base }}{{ cli_tools_sops_version }}/{{ cli_tools_sops_rpm }}"
-
 # --- vals: рендер шаблонов конфигов с подстановкой секретов ---
 
 # Ставим из исходного кода, пин по тегу релиза (нужны golang и git).
 cli_tools_vals_version: "v0.46.0"
 cli_tools_vals_repo: "https://github.com/helmfile/vals.git"
-
-# --- kubeseal: клиент sealed-secrets (шифрование секретов для Kubernetes) ---
-# Версия обязана совпадать с версией контроллера (чарт sealed-secrets).
-cli_tools_kubeseal_version: "0.40.0"
-cli_tools_kubeseal_url_base: "https://github.com/bitnami/sealed-secrets/releases/download/v"
-cli_tools_kubeseal_tarball: "kubeseal-{{ cli_tools_kubeseal_version }}-linux-amd64.tar.gz"
-cli_tools_kubeseal_url: "{{ cli_tools_kubeseal_url_base }}{{ cli_tools_kubeseal_version }}/{{ cli_tools_kubeseal_tarball }}"
-# SHA256 из sealed-secrets_0.40.0_checksums.txt (целостность при скачивании).
-cli_tools_kubeseal_checksum: "sha256:9314c35916646e9d59c8f06b1314574b4e79c4d76f079433607ed7b697bb5eb7"
 
 # --- argocd: CLI для пробного стенда (argocd) ---
 # Версия обязана совпадать с версией сервера Argo CD. Сейчас это appVersion

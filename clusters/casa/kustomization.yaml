@@ -72,7 +72,6 @@ resources:
   - platform/monitoring/app.yaml
   - platform/namespaces/app.yaml
   - platform/radar/app.yaml
-  - platform/sealed-secrets/app.yaml
   - platform/snapshot-controller/app.yaml
   - platform/traefik/app.yaml
   - platform/vault-secrets-operator/app.yaml

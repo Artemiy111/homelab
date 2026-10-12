@@ -391,8 +391,8 @@ kubectl -n databases exec shared-1 -c postgres -- \
   до переноса реальных данных.
 - **Namespace'ы сервисов.** Пока переехали только кластеры баз; сами сервисы
   остаются в `default` и ходят cross-namespace. Переезд инкрементальный:
-  SealedSecret перешифровать, Ingress и TLS-секрет положить в свой namespace,
-  PVC пересоздать.
+  манифесты и Secret'ы пересоздать, Ingress и TLS-секрет положить в свой
+  namespace, PVC пересоздать.
 - **NetworkPolicy.** Default-deny в каждом namespace плюс явные разрешения
   «сервис → его база» в обе стороны. Сейчас политик нет вообще.
 - **Helm-чарты.** Сервисы переезжают на чарты (Immich — официальный

@@ -27,9 +27,9 @@ ClusterRole), общий kernel и узел.
 
 - `databases` хранит **только** общий кластер `shared`; выделенные кластеры
   (`zitadel`, `immich`, `dawarich`) — в namespace своих сервисов.
-- Переезд сервиса в свой namespace дорог и делается инкрементально:
-  SealedSecret привязан к namespace и имени и подлежит перешифровке, Ingress и
-  TLS-секрет обязаны лежать в namespace сервиса, PVC пересоздаётся.
+- Переезд сервиса в свой namespace дорог и делается инкрементально: Ingress,
+  TLS-секрет и `VaultStaticSecret` обязаны лежать в namespace сервиса, PVC
+  пересоздаётся.
 - Потребители `shared` подключаются cross-namespace
   (`shared-rw.databases.svc`), поэтому пароль нужен в двух namespace — один
   источник правды плюс синхронизация.

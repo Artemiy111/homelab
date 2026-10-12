@@ -12,7 +12,7 @@
 # База — внешняя: кластер CNPG shared в namespace databases, роль и база forgejo
 # (clusters/casa/platform/cnpg/shared.cluster.yaml, shared.databases.yaml). Пароль роли лежит в
 # Secret'е databases/forgejo-db-auth, и он же — в forgejo/forgejo (один
-# плейнтекст, два запечатанных SealedSecret'а; так решено в clusters/casa/platform/cnpg/README.md).
+# путь kv/forgejo/db, два VaultStaticSecret; так решено в clusters/casa/platform/cnpg/README.md).
 # Здесь он подставляется в app.ini через FORGEJO__database__PASSWD, поэтому
 # секрет чарту не нужен.
 #

@@ -22,7 +22,7 @@
 | Роль | Зона ответственности |
 | --- | --- |
 | `base` | Репозитории dnf, пакеты, группы пакетов, `autoremove` |
-| `cli_tools` | `sops`, `vals` (сборка), `kubeseal`, `argocd`, `kubectl-cnpg` |
+| `cli_tools` | `vals` (сборка), `argocd`, `kubectl-cnpg`; `sops` и `kubeseal` удаляются |
 | `docker` | `/etc/docker/daemon.json` |
 | `autoupdates` | `dnf-automatic` (таймер + конфиг) |
 | `fail2ban` | `jail.local` |
@@ -131,8 +131,8 @@ ansible-playbook artlab.yml --check --diff
   `"@development-tools"`).
 - Инструмент, которого нет в репозиториях Fedora — пин версии и checksum в
   `roles/cli_tools/defaults/main.yml`, задача установки в
-  `roles/cli_tools/tasks/main.yml`: так сделаны `sops`, `vals`, `kubeseal`,
-  `argocd`, `kubectl-cnpg`.
+  `roles/cli_tools/tasks/main.yml`: так сделаны `vals`, `argocd`,
+  `kubectl-cnpg`.
 - Новый системный конфиг — файл в `infra/host/etc/`, отдельная роль, копирующая его по
   `{{ repo_root }}/infra/host/etc/...`, при необходимости handler на перезапуск сервиса.
 - Новый dotfile пользователя `artlab` — запись в `artlab_managed_files`

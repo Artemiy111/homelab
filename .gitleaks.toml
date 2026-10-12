@@ -4,14 +4,6 @@ title = "homelab gitleaks config"
 useDefault = true
 
 [[allowlists]]
-description = "Зашифрованные артефакты: SOPS и SealedSecrets — это шифротекст, а не секрет"
-paths = [
-  '''(^|/)secrets\.enc\.env$''',
-  '''\.enc\.yaml$''',
-  '''sealedsecret.*\.yaml$''',
-]
-
-[[allowlists]]
 description = "Плейсхолдеры в примерах и документации"
 regexTarget = "match"
 regexes = [

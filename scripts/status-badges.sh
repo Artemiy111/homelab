@@ -144,7 +144,6 @@ netpol_exceptions="$(comm -23 <(namespace_names) <(netpol_namespaces))"
 netpol_objects="$(deploy_files | xargs grep -hE '^kind: NetworkPolicy$' | count_lines)"
 
 vault_static="$(deploy_files | xargs grep -hE '^kind: VaultStaticSecret$' | count_lines || true)"
-sealed="$(deploy_files | xargs grep -hE '^kind: SealedSecret$' | count_lines || true)"
 
 adr="$(repo_files 'docs/adr/*.md' | grep -v '/README.md$' | count_lines)"
 postmortems="$(repo_files 'docs/incidents/*.md' | grep -cE '/[0-9]{4}-' || true)"
@@ -251,8 +250,7 @@ write_artifacts() {
     "exceptions": $(printf '%s' "$netpol_exceptions" | json_array)
   },
   "secrets": {
-    "vault_static_secret": $vault_static,
-    "sealed_secret": $sealed
+    "vault_static_secret": $vault_static
   },
   "docs": {
     "adr": $adr,

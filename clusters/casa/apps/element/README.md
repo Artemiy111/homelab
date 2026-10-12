@@ -71,8 +71,7 @@ coturn и livekit, а не Kubernetes. При ротации в Vault эти ф�
 (`shared-rw.databases.svc.cluster.local`): роль `synapse` и база объявлены в
 `clusters/casa/platform/cnpg/`. Пароль лежит в пути `kv/element/db` и подаётся в два
 Secret'а: `element/element-db-auth` (читает synapse) и
-`databases/element-db-auth` (читает CNPG) — второй ещё SealedSecret, перенос в
-фазе 2. Строка подключения задана в
+`databases/element-db-auth` (читает CNPG). Строка подключения задана в
 `homeserver.yaml` в конфиге сервиса.
 
 Push-уведомления Sygnal не настроены: для них необходимы реальные FCM

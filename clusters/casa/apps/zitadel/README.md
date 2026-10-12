@@ -36,8 +36,7 @@ Postgres поднимается кластером CloudNativePG: суперпо
   потребителя (ADR 0006, правило 2).
 - Masterkey контейнер получает переменной `ZITADEL_MASTERKEY`
   (`--masterkeyFromEnv`). Ключ менять нельзя: им зашифрованы секреты, замена
-  делает данные нечитаемыми. Копия лежит и в `secrets.enc.env` (ключ
-  `MASTERKEY`).
+  делает данные нечитаемыми. Единственная копия — Vault.
 - login-client аутентифицируется X.509-парой вместо PAT-файла:
   `zitadel-login-service-key` (`tls.crt`/`tls.key`). Публичная часть монтируется в
   `zitadel` и описана в `config/zitadel.yaml` (`SystemAPIUsers`), приватная — в

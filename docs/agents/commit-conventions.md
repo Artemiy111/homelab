@@ -14,7 +14,7 @@ type(scope): subject
 | Часть | Правило |
 | --- | --- |
 | `type` | один из `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert` |
-| `scope` | необязательно; подсистема или сервис в нижнем регистре (`argocd`, `traefik`, `forgejo`, `sealed-secrets`, `dotfiles`, имя приложения из `clusters/casa/apps/`) |
+| `scope` | необязательно; подсистема или сервис в нижнем регистре (`argocd`, `traefik`, `forgejo`, `vault`, `dotfiles`, имя приложения из `clusters/casa/apps/`) |
 | `subject` | императив на английском, нижний регистр (имена собственные допустимы: `Zitadel`, `DoH`, `GLITCHTIP`), без точки в конце |
 | header | ≤ 72 символов, включая `type(scope): ` (для заголовка PR — с учётом ` (#<n>)`, см. ниже) |
 | body | **запрещено** (правило `body-empty`) |

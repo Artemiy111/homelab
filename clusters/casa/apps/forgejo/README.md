@@ -258,8 +258,8 @@ kubectl -n forgejo logs deploy/forgejo-runner -c runner
 Подключение идёт на `shared-rw.databases.svc.cluster.local:5432`, доступ
 разрешён в `clusters/casa/platform/cnpg/networkpolicy.yaml` (`allow-shared-from-consumers`).
 
-Пароль роли лежит в `databases/forgejo-db-auth` (ещё SealedSecret, перенос в
-фазе 2 #345) и он же — в `forgejo/forgejo-db`, оба из пути `kv/forgejo/db`.
+Пароль роли лежит в `databases/forgejo-db-auth` и он же — в `forgejo/forgejo-db`,
+оба из пути `kv/forgejo/db`.
 Подставляется в
 app.ini через `FORGEJO__database__PASSWD` из `gitea.additionalConfigFromEnvs`,
 поэтому секрет чарту не нужен.
