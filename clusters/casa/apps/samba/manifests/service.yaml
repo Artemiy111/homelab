@@ -1,0 +1,18 @@
+# Service нужен не для клиентов LAN: они приходят на hostPort 445 узла. Он
+# существует как сетевой идентификатор шары внутри кластера и как точка, на
+# которую ссылаются проверки. ClusterIP, а не NodePort: публикация порта на
+# узле уже сделана hostPort'ом у контейнера, второй путь не нужен.
+apiVersion: v1
+kind: Service
+metadata:
+  name: samba
+  namespace: samba
+spec:
+  type: ClusterIP
+  selector:
+    app: samba
+  ports:
+    - name: smb
+      port: 445
+      targetPort: smb
+      protocol: TCP

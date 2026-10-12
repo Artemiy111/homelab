@@ -102,6 +102,15 @@ resource "vault_policy" "app_pdf" {
   EOT
 }
 
+resource "vault_policy" "app_samba" {
+  name = "app/samba"
+
+  policy = <<-EOT
+    path "kv/data/samba/storage"      { capabilities = ["read"] }
+    path "kv/metadata/samba/storage"  { capabilities = ["read", "list"] }
+  EOT
+}
+
 resource "vault_policy" "app_radar" {
   name = "app/radar"
 

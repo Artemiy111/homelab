@@ -1,10 +1,13 @@
 ---
 # Пакеты и точки монтирования.
 
-- name: Установить Samba и ntfs3
+- name: Установить samba-common-tools и ntfs3
   ansible.builtin.package:
     name:
-      - samba
+      # samba-common-tools, а не samba: сам сервер теперь в кластере, а
+      # smbclient нужен на хосте для проверки раздачи. Полный пакет samba
+      # ставить незачем — он поднял бы второй smbd, конкурирующий с подом за
+      # порт 445.
       - samba-common-tools
       # ntfs-3g оставлен: FUSE-драйвер для томов, которые не берёт
       # ntfs3 (например, сжатых). Основной путь монтирования — ntfs3,
@@ -105,6 +108,3 @@
 
 - name: Import samba tasks
   ansible.builtin.import_tasks: samba.yml
-
-- name: Import samba user tasks
-  ansible.builtin.import_tasks: user.yml

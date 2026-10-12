@@ -1,0 +1,201 @@
+# Samba, раздающая тома внешнего NTFS-диска.
+#
+# Тома монтирует хост (systemd, fstab из роли ntfs_samba), кластер только
+# читает точки через hostPath. Разделение не из удобства: systemd умеет
+# монтировать NTFS с опциями `uid`/`gid`/`context`, которых у Kubernetes нет,
+# и ждать появления USB-устройства, не вводя узел в emergency.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: samba
+  namespace: samba
+  annotations:
+    ignore-check.kube-linter.io/hostpath: "томы NTFS отдаются клиентам по SMB по замыслу; на узле они лежат в /mnt, а не в /storage"
+spec:
+  # RWO-том состояния и hostPort 445: два пода при rolling update делили бы
+  # один hostPort и одну базу паролей.
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
+  replicas: 1
+  selector:
+    matchLabels:
+      app: samba
+  template:
+    metadata:
+      labels:
+        app: samba
+    spec:
+      enableServiceLinks: false
+      securityContext:
+        fsGroup: 1000
+      initContainers:
+        - name: provision
+          image: "docker.io/crazymax/samba:4.23.8@sha256:b37f7af97c773eddb593537f64da6389e5ee6695bcecf44f3ba1a8a6bcf34125"
+          # Порядок задан аргументом: сначала тома, потом учётка. Пароль не
+          # применяется к базе, пока не подтверждено, что шары вообще есть
+          # куда отдавать.
+          command: ["/bin/sh", "/scripts/provision.sh"]
+          env:
+            - name: SMB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: samba-storage
+                  key: storage
+          securityContext:
+            # SETUID/SETGID — adduser и smbpasswd заводят учётки; CHOWN и
+            # FOWNER — запись в базу на пустом томе; DAC_OVERRIDE — доступ к
+            # корню тома. NET_BIND_SERVICE не нужен: initContainer порт не
+            # слушает.
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+              add: ["SETUID", "SETGID", "CHOWN", "FOWNER", "DAC_OVERRIDE"]
+            seccompProfile:
+              type: RuntimeDefault
+          volumeMounts:
+            - name: ntfs1
+              mountPath: /mnt/ntfs1
+              readOnly: true
+            - name: ntfs2
+              mountPath: /mnt/ntfs2
+              readOnly: true
+            - name: ntfs3
+              mountPath: /mnt/ntfs3
+            - name: state
+              mountPath: /var/lib/samba
+            - name: scripts
+              mountPath: /scripts
+              readOnly: true
+      containers:
+        - name: smbd
+          image: "docker.io/crazymax/samba:4.23.8@sha256:b37f7af97c773eddb593537f64da6389e5ee6695bcecf44f3ba1a8a6bcf34125"
+          command: ["/bin/sh", "/scripts/entrypoint.sh"]
+          ports:
+            # hostPort, а не NodePort: имя smb.<домен> резолвится в адрес
+            # узла, и клиенты подключаются к 445. На NodePort порт ушёл бы в
+            # 32445, и подключение по имени сломалось бы без правки DNS.
+            #
+            # hostPort в этом кластере работает: CNI-конфиг содержит плагин
+            # portmap с portMappings, поэтому порт публикуется на узле.
+            # Комментарий в jitsi о неработающем hostPort в Calico этому
+            # противоречит и перепроверен пробой.
+            - name: smb
+              containerPort: 445
+              hostPort: 445
+              protocol: TCP
+          env:
+            - name: TZ
+              valueFrom:
+                configMapKeyRef:
+                  name: samba-config
+                  key: TZ
+          # SMB не имеет HTTP-эндпоинта, поэтому проверка готовности и
+          # живости — TCP до порта 445. Проверять листинг шар из probe нельзя:
+          # для этого нужен пароль, а любой способ его передать в пробу означает
+          # либо секрет в описании пода, либо файл с паролем, который придётся
+          # обновлять вместе с ротацией. Фактическую работоспособность шар
+          # проверяют снаружи, smbclient с клиента — см. README.
+          startupProbe:
+            tcpSocket:
+              port: smb
+            # Привод поднимается по x-systemd.automount, и первый запрос к
+            # диску USB 2.0 занимает секунды. 30 попыток по 5 секунд —
+            # две с половиной минуты на старт.
+            failureThreshold: 30
+            periodSeconds: 5
+          readinessProbe:
+            tcpSocket:
+              port: smb
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            tcpSocket:
+              port: smb
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          resources:
+            # Запросы обязательны независимо от ограничений: smb обслуживает
+            # файловые операции на USB 2.0 диске, и без requests планировщик
+            # не знает, что под размещает — при вытеснении под первым уйдёт
+            # тот, чьи запросы не объявлены.
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              # Диск отдаёт 41 МБ/с, упирается в него, а не в CPU. Потолок
+              # не даёт smbd съесть узел при всплеске.
+              cpu: "2"
+              memory: 1Gi
+          securityContext:
+            # root обязателен: smbd слушает 445 (привилегированный порт) и
+            # переключает процессы на учётку шары через setuid. Ограничение —
+            # набор возможностей, а не uid.
+            #
+            # NET_BIND_SERVICE — для 445 внутри netns пода. SETUID/SETGID —
+            # сброс привилегий на учётку шары; без них smbd не может работать
+            # с файлами и клиент получает отказ. CHOWN/FOWNER/DAC_OVERRIDE —
+            # запись на ntfs3.
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+              add: ["NET_BIND_SERVICE", "SETUID", "SETGID", "CHOWN", "FOWNER", "DAC_OVERRIDE"]
+            seccompProfile:
+              type: RuntimeDefault
+          volumeMounts:
+            # ro на первых двух томах — не дублирование `read only = yes`:
+            # режим монтирования на хосте у ntfs3-тома в грязном состоянии
+            # трогать нельзя, и под не должен получать такую возможность.
+            - name: ntfs1
+              mountPath: /mnt/ntfs1
+              readOnly: true
+            - name: ntfs2
+              mountPath: /mnt/ntfs2
+              readOnly: true
+            - name: ntfs3
+              mountPath: /mnt/ntfs3
+            # База паролей tdbsam и состояние smbd. emptyDir переживает
+            # перезапуск контейнера, но не удаление пода: initContainer
+            # пересоздаёт учётку заново, поэтому ротация пароля в Vault
+            # доезжает рестартом.
+            - name: state
+              mountPath: /var/lib/samba
+            - name: smbconf
+              mountPath: /etc/samba/smb.conf
+              subPath: smb.conf
+              readOnly: true
+            - name: scripts
+              mountPath: /scripts
+              readOnly: true
+      volumes:
+        # type: Directory — точка обязана существовать, и это осознанно.
+        # DirectoryOrCreate создал бы пустой каталог на корневом разделе
+        # ровно в том случае, когда диска нет: под стартовал бы и раздавал
+        # пустую шару. Отсутствие точки означает отсутствие пода, а не пустую
+        # шару.
+        - name: ntfs1
+          hostPath:
+            path: /mnt/ntfs1
+            type: Directory
+        - name: ntfs2
+          hostPath:
+            path: /mnt/ntfs2
+            type: Directory
+        - name: ntfs3
+          hostPath:
+            path: /mnt/ntfs3
+            type: Directory
+        - name: state
+          emptyDir: {}
+        - name: smbconf
+          configMap:
+            name: samba-config
+            items:
+              - key: smb.conf
+                path: smb.conf
+        - name: scripts
+          configMap:
+            name: samba-scripts
+            defaultMode: 0555

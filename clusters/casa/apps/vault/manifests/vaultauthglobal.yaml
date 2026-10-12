@@ -37,6 +37,7 @@ spec:
     - postgres
     - radar
     - rustfs
+    - samba
     - seafile
     - sure
     - talk-hpb
