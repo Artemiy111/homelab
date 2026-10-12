@@ -2,11 +2,6 @@
 
 Seafile CE в Kubernetes k0s с SSO через Zitadel и OnlyOffice.
 
-Источник истины — манифесты в `clusters/casa/apps/seafile/k8s/`. Скрипт
-`clusters/casa/apps/seafile/prepare-seahub.sh`, конфиги `seahub_oauth.py` /
-`seahub_onlyoffice.py` и каталог `patches/` собираются в ConfigMap
-(`kustomization.yaml`) и монтируются в под.
-
 ## Архитектура
 
 ```
@@ -16,17 +11,17 @@ Zitadel (id.example.com)
 Seafile (seafile.example.com)          ── seahub_oauth.py
    │  файлы                                  ── seahub_onlyoffice.py
    ▼
-OnlyOffice (seafile/k8s/onlyoffice.*)
+OnlyOffice
 
 MariaDB seafile-mariadb  ←  mariadb-operator
 ```
 
 - **Zitadel** — IdP. Приложение типа «generic OAuth» (не Seafile-специфичное),
   потому что Seafile CE умеет только generic OAuth2, а не OIDC-дискавери.
-- **Seafile** — `seafileltd/seafile-mc:13.0.25`, Deployment `seafile`.
+- **Seafile** — `seafileltd/seafile-mc`, Deployment `seafile`.
 - **OnlyOffice** — отдельный Deployment в этом же namespace; подключается через
   примонтированный `seahub_onlyoffice.py`.
-- **Redis** — `valkey/valkey:9-alpine`, Deployment `seafile-redis`.
+- **Redis** — `valkey/valkey`, Deployment `seafile-redis`.
 - **БД** — MariaDB-инстанс `seafile-mariadb` под mariadb-operator.
 
 Конфиги `seahub_oauth.py` и `seahub_onlyoffice.py` примонтированы read-only из
@@ -41,11 +36,6 @@ Seahub отдаёт `/metrics` (Prometheus) под HTTP Basic при
 Secret'а `seafile-metrics`, который VSO синхронизирует из Vault по пути
 `kv/seafile/@monitoring/seafile-metrics-password` (ключ
 `SEAFILE_METRICS_PASSWORD`). Тот же путь читает vmagent (job `seafile`).
-
-```sh
-kubectl -n monitoring exec deploy/victoriametrics -- wget -qO- \
-  'http://127.0.0.1:8428/api/v1/query?query=up%7Bjob%3D%22seafile%22%7D'
-```
 
 ## База данных (mariadb-operator)
 
@@ -70,24 +60,6 @@ kubectl -n monitoring exec deploy/victoriametrics -- wget -qO- \
 Раньше БД была обычным Deployment `seafile-db` на hostPath
 `/storage/apps/seafile/mysql`. Мигрировано на оператор (logical dump → restore),
 старый Deployment/Service и каталог удалены.
-
-### Бэкап и восстановление
-
-Дамп (на сервере):
-
-```sh
-kubectl -n seafile exec -i seafile-mariadb-0 -- sh -c \
-  'mariadb-dump -uroot -p"$MARIADB_ROOT_PASSWORD" --single-transaction \
-   --routines --events --triggers --databases ccnet_db seafile_db seahub_db' \
-  > /storage/apps/seafile/backups/seafile-$(date +%F).sql
-```
-
-Восстановление в уже существующие БД (root-пароль доступен в поде через env):
-
-```sh
-kubectl -n seafile exec -i seafile-mariadb-0 -- sh -c \
-  'mariadb -uroot -p"$MARIADB_ROOT_PASSWORD"' < <dump>.sql
-```
 
 ## Почему нужны патчи
 
@@ -120,7 +92,7 @@ Seafile CE делает две вещи, ломающие нормальный S
 
 Патчи накладываются при старте пода. Контейнер `seafile` обёрнут в
 `clusters/casa/apps/seafile/prepare-seahub.sh` (override `command` в
-`clusters/casa/apps/seafile/k8s/seafile.deployment.yaml`); скрипт до запуска seahub:
+Deployment); скрипт до запуска seahub:
 
 1. подключает `seahub_oauth.py` / `seahub_onlyoffice.py` в `seahub_settings.py`
    (идемпотентно, по маркерам);
@@ -132,7 +104,7 @@ Init-контейнером это не сделать: код seahub лежит
 томе, поэтому подменяется `command` основного контейнера. Патч promotion читает
 `INIT_SEAFILE_ADMIN_EMAIL` из env — переменная обязана оставаться в манифесте.
 
-### Патч-файлы (`clusters/casa/apps/seafile/patches/`)
+### Патч-файлы
 
 Патчи — это настоящие unified diff, сгенерированные из ванильного кода образа и
 пропатченного. Версия Seafile: **13.0.25**.
@@ -164,8 +136,10 @@ Init-контейнером это не сделать: код seahub лежит
   (`seahub/settings.py`, `seafevents`), а не из `seafile.conf`/`seahub_settings.py`.
   Смена `SEAFILE_MYSQL_DB_HOST` + рестарт пода достаточна для переключения БД.
 - **NetworkPolicy `seafile` — default-deny.** Оператор ходит в БД из namespace
-  `mariadb-system`; ему нужен явный ingress на 3306 (см. `clusters/casa/apps/seafile/k8s/networkpolicy.yaml`),
-  иначе SQL-ресурсы не сходятся с `i/o timeout`.
+  `mariadb-system`; ему нужен явный ingress на 3306, иначе SQL-ресурсы не
+  сходятся с `i/o timeout`.
 - **`kubectl exec -i` в `bash -s`-скрипте съедает остаток stdin.** Если гоняешь
   многошаговый скрипт через `ssh ... bash -s`, не используй `-i` без явного
   `< /dev/null`/`< file`, иначе следующие строки скрипта уйдут в stdin команды.
+
+Бэкап, восстановление и проверка метрик — в `RUNBOOK.md`.

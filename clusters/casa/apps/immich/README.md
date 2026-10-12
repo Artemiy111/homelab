@@ -2,33 +2,6 @@
 
 Фотографии и видео. Пароль БД приходит из Vault через External Secrets Operator.
 
-## Вход
-
-OIDC через Zitadel. Настраивается **в интерфейсе** — Administration →
-Settings → Authentication → OAuth Authentication.
-
-Значения, заданные в UI:
-
-| Поле | Значение |
-|---|---|
-| Issuer URL | `https://id.<домен>` |
-| Client ID | `388541482971234332` |
-| Scope | `openid email profile` |
-| Storage label claim | `preferred_username` |
-| Role claim | `role` |
-| Auto register | вкл. |
-| Mobile redirect URI override | вкл. |
-| Mobile redirect URI | `https://immich.<домен>/api/oauth/mobile-redirect` |
-
-Client ID соответствует приложению `immich` в Zitadel
-(`infra/terraform/zitadel/applications.tf`), там же объявлены redirect URI:
-`/auth/login`, `/user-settings`, `/api/oauth/mobile-redirect`.
-
-`<домен>` — плейсхолдер: реальный корневой домен лежит в
-`infra/terraform/zitadel/terraform.tfvars` (untracked) и по
-`docs/agents/information-handling.md` в git не пишется. `client_id` в таблице
-при этом настоящий — он не секрет и в state лежит открытым текстом.
-
 ## Почему это не в Terraform
 
 OIDC-конфиг Immich хранится в БД приложения, а не в конфигурации развёртывания.
@@ -51,8 +24,6 @@ OIDC-конфиг Immich хранится в БД приложения, а не 
 Секрет Zitadel при этом в `infra/terraform/zitadel` отсутствует — как и у остальных
 приложений, он лежит в Vault (`kv/immich/oidc`).
 
-Дрейф возможен: если перенастроить OIDC в UI, поправь таблицу выше.
-
 ## Роль `admin` из Zitadel
 
 `roleClaim: role` заставляет Immich читать claim `role` из токена Zitadel.
@@ -67,21 +38,4 @@ Claim кладёт action `addRole` (`infra/terraform/zitadel/actions.tf`) на 
 триггер, `PRE_USERINFO_CREATION`, потому что apiserver проверяет подпись и
 читает claim из самого токена.
 
-## Проверка настройки
-
-```sh
-kubectl -n immich logs deploy/immich-server --since=5m | grep -i oauth
-```
-
-Значения в UI: Administration → Settings → Authentication.
-
-## Диагностика
-
-```sh
-kubectl -n immich get pods
-kubectl -n immich logs deploy/immich-server --since=10m
-kubectl -n immich get vaultstaticsecret immich-db
-```
-
-Если вход не работает, проверь в Zitadel, что у пользователя есть роль в
-проекте Homelab: без неё `addRole` кладёт `user`, и Immich не пустит в админку.
+Вход и диагностика — в `RUNBOOK.md`.

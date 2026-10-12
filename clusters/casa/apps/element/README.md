@@ -43,12 +43,6 @@ Talk и Element работают одновременно и не конкури
 LiveKit рекламирует LAN-адрес сервера (`<node1-ip>`), а не автоматически
 найденный публичный IP. Это необходимо для стабильных звонков из LAN/Tailscale.
 
-## Первый администратор
-
-Публичная регистрация отключена. Первого администратора создают вручную;
-пользователь входит в Element под своим логином и паролем, а его Matrix ID
-получает вид `@YOUR_LOGIN:example.com`.
-
 ## Обычные пользователи
 
 Администратор сервера создаёт обычные учётные записи без включения публичной
@@ -56,9 +50,9 @@ LiveKit рекламирует LAN-адрес сервера (`<node1-ip>`), а 
 
 ## Обслуживание
 
-Секреты приходят из Vault пятью путями (`k8s/vaultstaticsecret.yaml`): `db`,
-`registration`, `@fcm/fcm-server-key`, `@livekit/livekit-credentials`,
-`@turn/turn-credentials`.
+Секреты приходят из Vault пятью путями (`db`, `registration`,
+`@fcm/fcm-server-key`, `@livekit/livekit-credentials`,
+`@turn/turn-credentials`).
 
 Креды TURN и LiveKit дублируются в конфигах на узле
 (`/storage/apps/element/turn/turnserver.conf`, `livekit/config.yaml`): их читает
@@ -77,12 +71,4 @@ Secret'а: `element/element-db-auth` (читает synapse) и
 Push-уведомления Sygnal не настроены: для них необходимы реальные FCM
 credentials.
 
-## Проверка
-
-```sh
-curl -fsS https://element.example.com/_matrix/client/versions
-curl -fsS https://element.example.com/livekit/jwt/healthz
-```
-
-Полная проверка Element Call требует двух авторизованных клиентов в LAN или
-tailnet: создать комнату, начать звонок и проверить аудио/видео.
+Первый администратор и проверка — в `RUNBOOK.md`.

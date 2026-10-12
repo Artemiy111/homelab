@@ -1,7 +1,7 @@
 # Structurizr
 
 Structurizr vNext (open-core) — инструмент для диаграмм C4. Сервис развёрнут
-в Kubernetes (`clusters/casa/apps/structurizr/k8s/`) и доступен через Traefik кластера по
+в Kubernetes и доступен через Traefik кластера по
 адресу `https://structurizr.example.com/` (за oauth2-proxy).
 
 ## Образ
@@ -14,19 +14,6 @@ Upstream сделал on-premises заглушкой: `structurizr/onpremises:la
 клонирует upstream на теге `v2026.06.28`, собирает `server` и кладёт его в
 runtime-образ на `eclipse-temurin:21-alpine`.
 
-Готового образа в registry нет, а сервис работает в k8s, поэтому после сборки
-образ нужно загрузить в containerd k0s и перезапустить деплоймент:
-
-```sh
-docker tag structurizr-structurizr:latest localhost/structurizr:2026.06.28
-docker save localhost/structurizr:2026.06.28 \
-  | sudo ctr -a /run/k0s/containerd.sock -n k8s.io images import -
-kubectl rollout restart deploy/structurizr
-```
-
-Тег `localhost/structurizr:<версия>` должен совпадать с `image` в
-`clusters/casa/apps/structurizr/k8s/deployment.yaml`.
-
 Контейнер запускается от `user: "1000:1000"` — совпадает с владельцем
 `/storage/apps/structurizr` на хосте (artlab), поэтому привилегии root не нужны
 (в отличие от старого on-premises-образа). PNG/SVG-экспорт через Playwright в
@@ -35,23 +22,11 @@ kubectl rollout restart deploy/structurizr
 ## Конфигурация
 
 Настройки (браузерный DSL-редактор + базовый URL за Traefik) заданы в ConfigMap
-`structurizr-properties` (`clusters/casa/apps/structurizr/manifests/structurizr-properties.yaml`),
-который монтируется в `/usr/local/structurizr/structurizr.properties`.
+`structurizr-properties`, который монтируется в
+`/usr/local/structurizr/structurizr.properties`.
 
 Доступ закрыт forward auth (`oauth2-proxy`) на IngressRoute — своей
 аутентификации у open-core сборки нет.
-
-## Развёртывание в Kubernetes
-
-Сервис описан манифестами в `clusters/casa/apps/structurizr/k8s/`:
-
-- `deployment.yaml` — образ `localhost/structurizr:2026.06.28`
-  (`imagePullPolicy: IfNotPresent`), uid/gid 1000, `Recreate`, hostPath-данные
-  `/storage/apps/structurizr` + ConfigMap `structurizr-properties`;
-- `service.yaml` — ClusterIP, порт 80 → 8080 (Gatus ходит по `http://structurizr/`);
-- `clusters/casa/apps/structurizr/k8s/route.yaml` — `Host(structurizr…)` за
-  `oauth2-proxy` (у open-core нет своей аутентификации) + `secure-headers` +
-  `ratelimit-default`.
 
 DNS-запись `structurizr.${DOMAIN} → <node1-ip>` (IP узла) указывает на
 Traefik кластера, поэтому forward auth больше не обходится: он единственная
@@ -71,27 +46,10 @@ Traefik кластера, поэтому forward auth больше не обхо
 
 Сервер не читает DSL напрямую из каталога данных — содержимое публикуется через
 workspace API. Сейчас воркспейс `HomeLab` имеет `<id> = 1` и доступен по адресу
-`https://structurizr.example.com/workspace/1/diagrams`. Создание нового
-воркспейса и запоминание его `<id>` выполняется один раз:
+`https://structurizr.example.com/workspace/1/diagrams`.
 
-1. Открыть `https://structurizr.example.com/workspace/create`
-   (встроенной аутентификации нет — воркспейс создаётся сразу).
-2. Запомнить `<id>` из URL `/workspace/<id>`.
+При push сервер обратно отдаёт layout, нарисованный в UI, — перерисовка диаграмм
+вручную не теряется. Правки модели делаются только в `homelab.dsl` (Git —
+источник правды), иначе следующий push их перезапишет.
 
-Публикация (после изменения `homelab.dsl`, локально или на сервере после
-`git pull --ff-only`):
-
-```sh
-# проверка синтаксиса (Structurizr CLI, тот же парсер, что у сервера)
-structurizr validate -workspace structurizr/homelab.dsl
-
-# выгрузить воркспейс на сервер
-structurizr push -url https://structurizr.example.com/api \
-  -id <id> -workspace structurizr/homelab.dsl
-```
-
-CLI скачивается с https://github.com/structurizr/cli (jar) либо запускается в
-контейнере `eclipse-temurin:21-alpine`. При push сервер обратно отдаёт layout,
-нарисованный в UI, — перерисовка диаграмм вручную не теряется. Правки модели
-делаются только в `homelab.dsl` (Git — источник правды), иначе следующий push
-их перезапишет.
+Сборка и загрузка образа, создание воркспейса и публикация — в `RUNBOOK.md`.

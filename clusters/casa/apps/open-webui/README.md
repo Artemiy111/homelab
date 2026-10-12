@@ -30,8 +30,6 @@ OpenAI-совместимый API не подключены (`ENABLE_OLLAMA_API=
 - свой Ollama: добавить сервис в манифесты с
   `OLLAMA_MODELS=/storage/media/ai/models`, тогда веса будут в общей папке.
 
-Значения задаются в манифестах в `clusters/casa/apps/open-webui/k8s/`.
-
 ## Безопасность
 
 Корневая файловая система контейнера read-only: запись возможна только в
@@ -39,11 +37,4 @@ memory-backed `/tmp`. Контейнер работает от непривил�
 (1000:1000), сбрасывает все Linux capabilities, не может получать новые
 привилегии и ограничен по памяти (4g), CPU (4.0) и PIDs (512).
 
-## Проверка
-
-```sh
-curl --resolve ai.example.com:443:<node1-ip> \
-  https://ai.example.com/health
-```
-
-Ожидаемый ответ: `{"status":true}`.
+Проверка — в `RUNBOOK.md`.

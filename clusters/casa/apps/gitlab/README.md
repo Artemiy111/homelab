@@ -4,14 +4,7 @@ GitLab CE одним подом из образа `gitlab/gitlab-ce` — для 
 эксплуатации. Внутри пода сразу всё: nginx, puma (Rails), sidekiq, Gitaly,
 встроенные PostgreSQL и Redis.
 
-| | |
-|---|---|
-| URL | `https://gitlab.example.com/` |
-| Namespace | `gitlab` |
-| Деплой | `clusters/casa/apps/gitlab/app.yaml` |
-| Образ | `gitlab/gitlab-ce:19.4.0-ce.0` |
-| Данные | PVC `gitlab-data` (10Gi) и `gitlab-config` (1Gi), класс `local-path` |
-| Логин | `root` |
+URL: `https://gitlab.example.com/`
 
 ## Почему одним подом
 
@@ -52,45 +45,10 @@ postgres, ...) и ~10 Gi RAM. Если понадобится «как в про
   пода. Без явных значений Postgres мог бы зарезервировать несколько GiB
   shared_buffers и получить OOM.
 
-## Вход
-
-Пароль root генерируется на первом запуске в файл в PVC:
-
-```sh
-kubectl -n gitlab exec deploy/gitlab -- cat /etc/gitlab/initial_root_password
-```
-
-Файл удаляется при рестарте пода после первых 24 часов, так что пароль надо
-сохранить. Хранить постоянный пароль в секрете здесь намеренно не заведено:
-для теста достаточно сгенерированного. Если нужен фиксированный — добавить в
-`gitlab.rb` `gitlab_rails['initial_root_password'] = File.read('/run/secrets/...')`
-и смонтировать Secret из Vault.
-
 ## Ресурсы
 
-| | requests | limits |
-|---|---|---|
-| CPU | 500m | 4 |
-| Память | 2Gi | 5Gi |
-
 На узле свободно ~5 Gi, поэтому GitLab с остальными сервисами помещается
-впритык. При проблемах с памятью — посмотреть `kubectl -n gitlab top pod` и
-ужать `sidekiq['max_concurrency']` / лимиты. Первый старт (initdb, миграции,
-reconfigure) идёт 5–15 минут; `startupProbe` это учитывает.
-
-## Проверка
-
-```sh
-kubectl -n gitlab get pods,pvc,svc,ingress
-kubectl -n gitlab logs deploy/gitlab -f
-
-curl -fsS --resolve gitlab.example.com:443:<node1-ip> \
-  https://gitlab.example.com/-/health
-
-kubectl -n gitlab exec deploy/gitlab -- gitlab-rake gitlab:check
-```
-
-Ожидаемо `/-/health` отдаёт `GitLab OK`. `5xx` и transport error — ошибка.
+впритык.
 
 ## Ограничения тестового стенда
 
@@ -104,8 +62,4 @@ kubectl -n gitlab exec deploy/gitlab -- gitlab-rake gitlab:check
   default-deny заблокирует http-пробы kubelet (они идут с IP узла, а не пода).
 - Резервных копий нет. Для теста — ок; для нужных данных это отдельная задача.
 
-## Удаление
-
-`local-path` держит reclaimPolicy `Retain`, поэтому PV и каталоги на диске
-останутся (`/storage/apps/k8s/local-path/`). Чтобы вычистить полностью —
-сначала удалить PVC, затем PV, затем данные на диске.
+Вход, проверка и удаление — в `RUNBOOK.md`.

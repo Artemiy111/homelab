@@ -3,8 +3,8 @@
 sure — self-hosted учёт личных финансов.
 URL: `https://sure.example.com/`
 
-Разворачивается манифестами в clusters/casa/apps/sure/k8s/. `web` (Rails) обслуживает
-HTTP, `worker` (Sidekiq) — фоновые задачи; оба пишут вложения в один том.
+`web` (Rails) обслуживает HTTP, `worker` (Sidekiq) — фоновые задачи; оба пишут
+вложения в один том.
 
 ## Хранилище
 
@@ -26,11 +26,4 @@ cross-namespace.
 Вложения (Active Storage) лежат на Longhorn-PVC `sure-storage`, общем для `web` и
 `worker`; Redis — брокер Sidekiq (PVC `sure-redis`, потеря очереди допустима).
 
-## Проверка
-
-```sh
-curl -sk --resolve sure.example.com:443:<node1-ip> \
-  -o /dev/null -sS -w '%{http_code}\n' https://sure.example.com/
-```
-
-Ожидаемый ответ: `302` на `/sessions/new` (форма входа).
+Проверка — в `RUNBOOK.md`.
