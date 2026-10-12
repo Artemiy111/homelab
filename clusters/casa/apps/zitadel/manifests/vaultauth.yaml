@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: vso-zitadel
+  namespace: zitadel
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultAuth
+metadata:
+  name: vso-zitadel
+  namespace: zitadel
+spec:
+  vaultAuthGlobalRef:
+    name: vso-global
+    namespace: vault-secrets-operator
+  kubernetes:
+    role: zitadel
+    serviceAccount: vso-zitadel

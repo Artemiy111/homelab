@@ -76,3 +76,18 @@ resource "vault_policy" "app_postgres" {
     path "kv/metadata/postgres/pgweb"       { capabilities = ["read", "list"] }
   EOT
 }
+
+resource "vault_policy" "app_zitadel" {
+  name = "app/zitadel"
+
+  policy = <<-EOT
+    path "kv/data/zitadel/db"                     { capabilities = ["read"] }
+    path "kv/metadata/zitadel/db"                 { capabilities = ["read", "list"] }
+    path "kv/data/zitadel/admin"                  { capabilities = ["read"] }
+    path "kv/metadata/zitadel/admin"              { capabilities = ["read", "list"] }
+    path "kv/data/zitadel/masterkey"              { capabilities = ["read"] }
+    path "kv/metadata/zitadel/masterkey"          { capabilities = ["read", "list"] }
+    path "kv/data/zitadel/login-service-key"      { capabilities = ["read"] }
+    path "kv/metadata/zitadel/login-service-key"  { capabilities = ["read", "list"] }
+  EOT
+}

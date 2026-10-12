@@ -143,8 +143,8 @@ netpol_percent=$((netpol_namespaces_total * 100 / namespaces_total))
 netpol_exceptions="$(comm -23 <(namespace_names) <(netpol_namespaces))"
 netpol_objects="$(deploy_files | xargs grep -hE '^kind: NetworkPolicy$' | count_lines)"
 
-vault_static="$(deploy_files | xargs grep -hE '^kind: VaultStaticSecret$' | count_lines)"
-sealed="$(deploy_files | xargs grep -hE '^kind: SealedSecret$' | count_lines)"
+vault_static="$(deploy_files | xargs grep -hE '^kind: VaultStaticSecret$' | count_lines || true)"
+sealed="$(deploy_files | xargs grep -hE '^kind: SealedSecret$' | count_lines || true)"
 
 adr="$(repo_files 'docs/adr/*.md' | grep -v '/README.md$' | count_lines)"
 postmortems="$(repo_files 'docs/incidents/*.md' | grep -cE '/[0-9]{4}-' || true)"

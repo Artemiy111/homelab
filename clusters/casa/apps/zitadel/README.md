@@ -14,18 +14,31 @@ Postgres поднимается кластером CloudNativePG: суперпо
 
 Админ логинится как `admin@zitadel.id.<домен>` (org по умолчанию —
 `zitadel`). Принудительная смена пароля выключена
-(`PASSWORDCHANGEREQUIRED=false`): пароль генерируется случайно и лежит в
-зашифрованных секретах, менять его при первом входе не требуется.
+(`PASSWORDCHANGEREQUIRED=false`): пароль генерируется случайно и лежит в Vault,
+менять его при первом входе не требуется.
 
 `ZITADEL_FIRSTINSTANCE_*` применяется только на пустой базе.
 
 ## Секреты
 
-- Masterkey — SealedSecret `zitadel-masterkey` (ключ `masterkey`); контейнер
-  получает его переменной `ZITADEL_MASTERKEY` (`--masterkeyFromEnv`). Ключ менять
-  нельзя: им зашифрованы секреты, замена делает данные нечитаемыми. Значение
-  лежит и в `secrets.enc.env` (ключ `MASTERKEY`) — восстановимая копия.
-- login-client аутентифицируется X.509-парой вместо PAT-файла: SealedSecret
+Доставляются из Vault через VSO: `VaultAuth` `vso-zitadel` и четыре
+`VaultStaticSecret` в `manifests/`.
+
+| Путь в Vault | Secret | Ключи |
+|---|---|---|
+| `kv/zitadel/db` | `zitadel-db-auth` | `username`, `password` managed-роли CNPG |
+| `kv/zitadel/admin` | `zitadel-admin` | `ADMIN_PASSWORD` |
+| `kv/zitadel/masterkey` | `zitadel-masterkey` | `masterkey` |
+| `kv/zitadel/login-service-key` | `zitadel-login-service-key` | `tls.crt`, `tls.key` |
+
+- `zitadel-db-auth` читает и приложение, и CNPG для managed-роли `zitadel`
+  (`platform/cnpg/zitadel-db.cluster.yaml`): один путь, один Secret, два
+  потребителя (ADR 0006, правило 2).
+- Masterkey контейнер получает переменной `ZITADEL_MASTERKEY`
+  (`--masterkeyFromEnv`). Ключ менять нельзя: им зашифрованы секреты, замена
+  делает данные нечитаемыми. Копия лежит и в `secrets.enc.env` (ключ
+  `MASTERKEY`).
+- login-client аутентифицируется X.509-парой вместо PAT-файла:
   `zitadel-login-service-key` (`tls.crt`/`tls.key`). Публичная часть монтируется в
   `zitadel` и описана в `config/zitadel.yaml` (`SystemAPIUsers`), приватная — в
   `zitadel-login` (`ZITADEL_LOGINCLIENT_KEYFILE`).

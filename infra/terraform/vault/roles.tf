@@ -38,6 +38,7 @@ locals {
     "technitium"     = { namespace = "technitium", policy = "app/technitium" },
     "uptime-kuma"    = { namespace = "uptime-kuma", policy = "app/uptime-kuma" },
     "vmagent"        = { namespace = "monitoring", policy = "app/vmagent" },
+    "zitadel"        = { namespace = "zitadel", policy = "app/zitadel" },
   }
   # Сторона CNPG в неймспейсе databases: по роли на приложение, чтобы
   # токен оператора для одной роли не доставал пароли других.
