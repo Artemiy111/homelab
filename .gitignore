@@ -38,3 +38,8 @@ crash-*.log
 infra/terraform/*/terraform.tfvars
 
 .worktrees
+
+# Бэкапы от `sed -i.bak` и подобных правок: в репозитории они только мусор,
+# а нужный файл всегда возвращается из git.
+*.bak
+*.orig

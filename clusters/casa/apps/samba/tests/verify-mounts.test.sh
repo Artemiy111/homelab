@@ -55,6 +55,14 @@ $tmp/mnt/ntfs3 2a2dc9d7962a2dec
 EOF
 }
 
+# Правка файла на месте без `sed -i`: у BSD и GNU разные требования к
+# аргументу `-i`, а `-i.bak` оставляет файлы бэкапа. Запись через
+# промежуточный файл переносима и мусора не создаёт.
+subst() {
+  sed "$2" "$1" > "$1.new"
+  mv "$1.new" "$1"
+}
+
 expect_ok() {
   mounts_ok
   rc=0
@@ -90,17 +98,17 @@ expect_reject "отсутствующий том"
 # сценарий, который старая версия пропускала.
 mkdir -p "$tmp/mnt/ntfs2"
 mounts_ok
-sed -i.bak "s|^/dev/sdbc2 $tmp/mnt/ntfs2 ntfs3|/dev/sdbc2 $tmp/mnt/ntfs2 xfs|" "$tmp/mounts"
+subst "$tmp/mounts" "s|^/dev/sdbc2 $tmp/mnt/ntfs2 ntfs3|/dev/sdbc2 $tmp/mnt/ntfs2 xfs|"
 expect_reject "xfs вместо ntfs3"
 
 # Режим разошёлся с fstab: том смонтирован ro, а объявлен rw.
 mounts_ok
-sed -i.bak "s|^/dev/sdbc2 $tmp/mnt/ntfs2 ntfs3 ro|/dev/sdbc2 $tmp/mnt/ntfs2 ntfs3 rw|" "$tmp/mounts"
+subst "$tmp/mounts" "s|^/dev/sdbc2 $tmp/mnt/ntfs2 ntfs3 ro|/dev/sdbc2 $tmp/mnt/ntfs2 ntfs3 rw|"
 expect_reject "режим не совпал"
 
 # Серийник не тот: другой диск даёт тот же fstype и тот же режим.
 mounts_ok
-sed -i.bak "s|^$tmp/mnt/ntfs3 .*|$tmp/mnt/ntfs3 deadbeefdeadbeef|" "$tmp/ids"
+subst "$tmp/ids" "s|^$tmp/mnt/ntfs3 .*|$tmp/mnt/ntfs3 deadbeefdeadbeef|"
 expect_reject "другой диск"
 
 # Отказ на последнем томе тоже валит под: цель — отсутствие шар, а не
