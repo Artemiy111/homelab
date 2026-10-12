@@ -17,7 +17,7 @@ URL: `https://localai.example.com`
 `syncPolicy.automated` у `Application` убран намеренно: Argo создаёт приложение,
 но сервис не разворачивает, поэтому namespace `local-ai` и поды появятся только
 после ручного синка. Выключенное состояние видно как постоянный `OutOfSync` —
-тот же приём, что у `alloy-profiler` (`docs/runbooks/argocd.md`). Включение —
+тот же приём, что у `alloy-profiler` (`clusters/casa/platform/argocd/RUNBOOK.md`). Включение —
 вернуть блок `automated` и синкнуть приложение.
 
 Запуск и проверка — в `RUNBOOK.md`.

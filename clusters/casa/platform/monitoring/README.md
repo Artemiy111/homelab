@@ -1,14 +1,12 @@
 # monitoring
 
-Базовый NetworkPolicy для всего namespace `monitoring`: `default-deny` на
-ingress плюс явные разрешения. Egress не ограничивается.
-
 Юнит владеет namespace `monitoring` и базовым NetworkPolicy для него:
 `default-deny` на ingress плюс явные разрешения. Egress не ограничивается.
 
-Namespace объслуживает больше десятка приложений, но правило прежнее: владелец
+Namespace обслуживает больше десятка приложений, но правило прежнее: владелец
 объявляет свой namespace в своём каталоге, а не отдаёт его потребителям.
-Промежуточные middleware Traefik живут отдельно, в `apps/monitoring-middlewares/`.
+Промежуточные middleware Traefik живут отдельно, в
+`clusters/casa/apps/monitoring-middlewares/`.
 
 До появления этого юнита `namespace.yaml` и `networkpolicy.yaml` лежали в
 каталоге без `app.yaml`, и root их не видел: файлы были в git, а Argo о них

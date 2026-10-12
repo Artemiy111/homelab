@@ -10,7 +10,7 @@
 | `argocd-values.yaml` | значения чарта Argo CD, только отклонения от дефолтов |
 
 Разборы подводных камней, версии и диагностика — в
-[runbook](../docs/runbooks/argocd.md). Каталог одноразовый: при переходе на
+[runbook](../clusters/casa/platform/argocd/RUNBOOK.md). Каталог одноразовый: при переходе на
 Flux сносится целиком.
 
 ## С нуля до GitOps
