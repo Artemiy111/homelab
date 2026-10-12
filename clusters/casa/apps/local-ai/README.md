@@ -8,7 +8,15 @@ URL: `https://localai.example.com`
 логических ядер сервера остаются вне его квоты. GPU-устройства намеренно не
 пробрасываются.
 
-Разворачивается манифестами в clusters/casa/apps/local-ai/k8s/.
+## Состояние
+
+Манифесты лежат в `clusters/casa/apps/local-ai/manifests/`, `Application` —
+`clusters/casa/apps/local-ai/app.yaml`. Блок `syncPolicy.automated` там убран
+намеренно: Argo создаёт `Application`, но сервис не разворачивает, поэтому
+namespace `local-ai` и поды появятся только после ручного синка. Приложение
+при этом постоянно `OutOfSync`, и это индикатор выключенного состояния — тот же
+приём, что у `alloy-profiler` (`docs/runbooks/argocd.md`). Включение — вернуть
+блок `automated` в `app.yaml` и синкнуть приложение.
 
 ## Первый запуск
 

@@ -27,6 +27,7 @@ resources:
   - apps/infisical/app.yaml
   - apps/jellyfin/app.yaml
   - apps/jitsi/app.yaml
+  - apps/local-ai/app.yaml
   - apps/loki/app.yaml
   - apps/lute/app.yaml
   - apps/mailserver/app.yaml

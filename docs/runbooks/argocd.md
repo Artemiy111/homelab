@@ -434,10 +434,14 @@ kubectl -n <ns> get pods
 автоматически, `netdata` удалён из репозитория целиком. Актуальное состояние —
 по `app.yaml` сервиса, а не по этой таблице.
 
+С 2026-10-12 в списке `local-ai`: юнит лежал в git без `Application` вовсе
+(#949), поэтому его не было видно ни в `argocd app list`, ни по `attachedRoutes`
+Gateway.
+
 | Сервис | Как выключен | Включение |
 |---|---|---|
 | `alloy-profiler` | Application без `syncPolicy.automated` | вернуть блок `automated` |
-| `local-ai` | манифесты в git, Application нет | завести Application, вернуть namespace сервиса |
+| `local-ai` | Application без `syncPolicy.automated` | вернуть блок `automated` |
 | `vmagent` | `replicas: 0` в `clusters/casa/apps/victoria-metrics` (#888) | снять `replicas: 0`, вернуть проверку в Gatus |
 
 Проверки выключенных сервисов удалены из `clusters/casa/apps/gatus/manifests/config/config.yaml`, а не
