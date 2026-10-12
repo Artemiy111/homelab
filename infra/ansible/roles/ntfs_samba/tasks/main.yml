@@ -71,9 +71,13 @@
   # loop в fstab без nofail/x-systemd.automount блокирует загрузку хоста
   # при не воткнутом диске, а ntfs3 на rw-томе в грязном состоянии
   # способен зависнуть на journal replay.
+  #
+  # Сопоставление по точке монтирования, а не по UUID: серийный номер меняется
+  # при каждом `mkntfs`, и по UUID строка не находилась бы — lineinfile добавил
+  # бы вторую запись для той же точки, со старым номером и старым режимом.
   ansible.builtin.lineinfile:
     path: /etc/fstab
-    regexp: "^UUID={{ item.uuid }} "
+    regexp: '^UUID=\S+\s+{{ item.mountpoint }}\s'
     line: "UUID={{ item.uuid }} {{ item.mountpoint }} ntfs3 {{ item.mode }},{{ ntfs_samba_mount_options | join(',') }} {{ ntfs_samba_fstab_tail }}"
     state: present
     create: false
@@ -120,6 +124,17 @@
   notify: Применить sysctl
 
 # --- Samba на хосте ---
+#
+# Сервер Samba на хосте выведен из эксплуатации: он в кластере
+# (clusters/casa/apps/samba/). Роль ставит только `samba-common-tools` ради
+# `smbclient`, поэтому юнита `smb` на хосте может не быть, а конфиг
+# `/etc/samba/smb.conf` остаётся от пакета `samba-common`. Раздел убирает
+# остатки и страхует от возврата второй Samba на порт 445.
+
+- name: Собрать сведения о службах хоста
+  # Нужны, чтобы не трогать юнит smb, которого может не быть: пакет `samba` на
+  # хосте не ставится, только `samba-common-tools`.
+  ansible.builtin.service_facts:
 
 - name: Остановить и отключить smb
   # Порт 445 держит Samba в кластере (hostPort), поэтому хостовая не должна
@@ -130,6 +145,7 @@
     enabled: false
     state: stopped
     daemon_reload: true
+  when: (ntfs_samba_service ~ '.service') in ansible_facts.services
 
 - name: Убрать правило firewalld для samba
   # `--permanent` пишет правило в зону, --reload применяет. Правило нужно
@@ -185,6 +201,12 @@
     path: /etc/samba/smb.conf.d/homelab.conf
     state: absent
 
+- name: Проверить, есть ли конфиг Samba
+  # Файл принадлежит пакету `samba-common`; если его нет, правки ниже упадут.
+  ansible.builtin.stat:
+    path: /etc/samba/smb.conf
+  register: ntfs_samba_host_conf
+
 - name: Убрать include шар из smb.conf
   # Без этого `testparm` на хосте продолжит видеть секции из файла, которого
   # уже нет, и проверка «шары на месте» на хосте врёт.
@@ -193,6 +215,7 @@
     regexp: '^[[:space:]]*include = /etc/samba/smb\.conf\.d/homelab\.conf[[:space:]]*$'
     state: absent
     mode: "0644"
+  when: ntfs_samba_host_conf.stat.exists
 
 - name: Закомментировать секцию homes
   # Дистрибутив по умолчанию отдаёт домашний каталог каждому
@@ -202,6 +225,7 @@
     path: /etc/samba/smb.conf
     regexp: '^\[homes\]$'
     replace: '#[HOMES] выключено: домашние каталоги не раздаются'
+  when: ntfs_samba_host_conf.stat.exists
 
 - name: Удалить каталог подключаемых конфигов
   ansible.builtin.file:

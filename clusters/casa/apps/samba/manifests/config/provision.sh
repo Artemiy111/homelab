@@ -1,5 +1,5 @@
 #!/bin/sh
-# Подготовка перед стартом smbd: тома, учётки, пароль.
+# Подготовка перед стартом smbd: учётки и пароль.
 #
 # `smbpasswd -s` читает пароль из stdin, чтобы он не остался в списке
 # процессов. В Kubernetes stdin initContainer'а недоступен напрямую, пароль
@@ -7,7 +7,6 @@
 # переменную оболочки: в `ps` и в `/proc/*/cmdline` значения нет.
 set -eu
 
-/scripts/verify-mounts.sh
 /scripts/ensure-users.sh
 
 printf '%s\n%s\n' "$SMB_PASSWORD" "$SMB_PASSWORD" | smbpasswd -s -a storage

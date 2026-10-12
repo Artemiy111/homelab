@@ -18,7 +18,6 @@ configMapGenerator:
       - config/smb.conf
   - name: samba-scripts
     files:
-      - config/verify-mounts.sh
       - config/ensure-users.sh
       - config/provision.sh
       - config/entrypoint.sh
