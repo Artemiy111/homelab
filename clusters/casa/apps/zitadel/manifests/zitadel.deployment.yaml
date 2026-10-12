@@ -64,8 +64,8 @@ spec:
             - name: POSTGRES_ZITADEL_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: zitadel
-                  key: POSTGRES_ZITADEL_PASSWORD
+                  name: zitadel-db-auth
+                  key: password
             - name: ZITADEL_MASTERKEY
               valueFrom:
                 secretKeyRef:
@@ -74,7 +74,7 @@ spec:
             - name: ADMIN_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: zitadel
+                  name: zitadel-admin
                   key: ADMIN_PASSWORD
             - name: ZITADEL_PORT
               value: "8080"

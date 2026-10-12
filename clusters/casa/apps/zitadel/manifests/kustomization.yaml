@@ -4,9 +4,6 @@ namespace: zitadel
 resources:
   - homelab-config.yaml
   - namespace.yaml
-  - zitadel.sealedsecret.yaml
-  - zitadel-masterkey.sealedsecret.yaml
-  - zitadel-login-service-key.sealedsecret.yaml
   - vaultauth.yaml
   - vaultstaticsecret.yaml
   - login.deployment.yaml

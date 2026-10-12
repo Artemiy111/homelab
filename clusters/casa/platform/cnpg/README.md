@@ -68,9 +68,8 @@ Namespace — граница владения (`docs/adr/0001`). Выделен�
 cross-namespace** на `shared-rw.databases.svc.cluster.local`, а секрет роли
 (`<app>-db-auth`) читается только из namespace кластера, то есть из
 `databases`. Пароль нужен и в namespace сервиса — значит один источник правды и
-синхронизация (Infisical, External Secrets или reflector), либо два
-запечатанных SealedSecret'а из одного plaintext'а: `kubeseal` привязан к
-namespace и имени.
+синхронизация. Её даёт Vault: `VaultStaticSecret` читает один путь `kv/<app>/db`
+в каждый namespace отдельно (ADR 0006, правило 2).
 
 Доступ приложение → база придётся разрешать явно: Calico NetworkPolicy
 работает, но политик пока нет.
@@ -205,9 +204,8 @@ CRI-O 1.31+, чарт CNPG 0.26.0+. Расширение объявляется 
   тот же рецепт, что в `immich-app/immich-charts`.
 - **Пароли.** Роли ссылаются на `<app>-db-auth` (basic-auth, ключи
   `username`/`password`, label `cnpg.io/reload: "true"`) **в namespace
-  кластера**. Так при миграции у сервиса меняется только хост. Secret'ы
-  создаются на сервере, где лежит приватный ключ SOPS, и коммитятся
-  зашифрованными.
+  кластера**. При миграции у сервиса меняется только хост. Значения лежат в
+  Vault (`kv/<app>/db`), в манифестах — `VaultStaticSecret`.
 
 ## Грабли
 
@@ -288,20 +286,19 @@ kubectl delete -f clusters/casa/platform/cnpg/test18.secret.yaml
 1. Оператор установлен и CRD есть: `kubectl -n cnpg-system get deploy`.
 2. Namespace'ы созданы — приложение `namespaces` в `Synced`, либо
    `kubectl apply -f clusters/casa/platform/namespaces/manifests/namespaces.yaml`.
-3. Созданы basic-auth Secret'ы ролей — запечатаны в `db-auth.sealedsecrets.yaml`
-   и применяются в **namespace своего кластера**:
+3. В Vault заведены пароли ролей, VSO синхронизирует их в basic-auth Secret'ы
+   (`VaultStaticSecret`), **в namespace своего кластера**:
    - `databases`: `nextcloud-db-auth`, `forgejo-db-auth`, `element-db-auth`
      (роль `synapse`), `paperless-db-auth`, `glitchtip-db-auth`,
      `infisical-db-auth`, `postgres-db-auth` (роль `playground`), `gatus-db-auth`,
-     `grafana-db-auth`, `openwebui-db-auth`, `authentik-db-auth`, `sure-db-auth`;
-   - `zitadel`: `zitadel-db-auth`;
-   - `immich`: `immich-db-auth`;
-   - `dawarich`: `dawarich-db-auth`.
+     `grafana-db-auth`, `openwebui-db-auth`, `authentik-db-auth`, `sure-db-auth` —
+     `db-auth.vaultstaticsecrets.yaml`;
+   - `zitadel`: `zitadel-db-auth` — в юните `clusters/casa/apps/zitadel/`;
+   - `immich`: `immich-db-auth` — в юните `clusters/casa/apps/immich/`;
+   - `dawarich`: `dawarich-db-auth` — в юните `clusters/casa/apps/dawarich/`.
 
    Пароли переиспользованы из Secret'ов сервисов, чтобы при миграции менялся
-   только хост. Перезапечатать можно только на сервере: `kubeseal` привязан к
-   namespace и имени, а приватный ключ контроллера доступен лишь там
-   (`docs/agents/server-access.md`).
+   только хост.
 
 Без Secret'ов кластер поднимется, а роли и базы останутся неотреконсиленными —
 это видно в `kubectl -n <ns> get cluster <name> -o yaml` и в статусе
@@ -315,7 +312,8 @@ kubectl delete -f clusters/casa/platform/cnpg/test18.secret.yaml
 
 ```sh
 kubectl apply -f clusters/casa/platform/namespaces/manifests/namespaces.yaml
-kubectl apply -f clusters/casa/platform/cnpg/db-auth.sealedsecrets.yaml     # пароли ролей
+kubectl apply -f clusters/casa/platform/cnpg/db-auth.vaultauth.yaml           # SA и VaultAuth ролей
+kubectl apply -f clusters/casa/platform/cnpg/db-auth.vaultstaticsecrets.yaml  # пароли ролей из Vault
 kubectl apply -f clusters/casa/platform/cloudnative-pg/app.yaml          # оператор (+ sync в Argo)
 kubectl -n cnpg-system get pods -w
 
