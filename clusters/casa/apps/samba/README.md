@@ -108,12 +108,19 @@ nc -z smb.example.com 445
 ```
 
 Режим записи соответствует монтированию — в `ntfs2` запись отклоняется, в
-`ntfs3` проходит:
+`ntfs1` и `ntfs3` проходит:
 
 ```sh
 smbclient //smb.example.com/ntfs2 -U storage -c 'put /etc/hostname .probe'
+smbclient //smb.example.com/ntfs1 -U storage -c 'put /etc/hostname .probe'
 smbclient //smb.example.com/ntfs3 -U storage -c 'put /etc/hostname .probe'
 ```
+
+Режим задан в двух местах — `verify-mounts.sh` (как смонтирован том) и
+`smb.conf`, `read only` (что разрешено клиенту). Они обязаны совпадать:
+расхождение даёт отказ, который со стороны клиента читается как «том только
+для чтения» при том, что смонтирован он на запись. Совпадение проверяет
+`tests/share-modes.test.sh`.
 
 ### Тест отсутствующего диска
 

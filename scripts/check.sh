@@ -57,6 +57,8 @@ step "числа в docs/status соответствуют репозитори�
 step "список юнитов Argo соответствует дереву" ./scripts/argocd-units.sh --check
 step "проверка томов Samba отвергает поломки" \
   ./clusters/casa/apps/samba/tests/verify-mounts.test.sh
+step "режим шар Samba совпадает с монтированием" \
+  ./clusters/casa/apps/samba/tests/share-modes.test.sh
 
 if optional kubeconform; then
   # Полный набор каталогов и схем: те же, что в гейте kubeconform.yml и в
