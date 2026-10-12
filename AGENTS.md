@@ -83,7 +83,7 @@ Commit messages follow Conventional Commits, are written in English, and are che
 эта итоговая строка линтится в CI. Поэтому:
 
 ```sh
-# 72 - len(" (#<n>)") = 65 для номеров #100-#999
+# 70 - len(" (#<n>)") = 63 для номеров #100-#999
 printf '%s' "fix(element): json web logs, coturn metrics (#537)" | wc -c
 ```
 
