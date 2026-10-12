@@ -33,7 +33,7 @@ One node: Ryzen 7 6800H, 8C/16T, Radeon 680M iGPU, 32 GiB RAM (≈27 GiB usable)
 flowchart TB
     CLIENTS["LAN devices<br/>Tailscale peers"]
 
-    subgraph host["Homelab server<br/>k0s, single node"]
+    subgraph host["Homelab server"]
         EDGE["Traefik<br/>Gateway API :80 / :443<br/>wildcard TLS"]
         AUTH["oauth2-proxy<br/>forward auth<br/>Zitadel — OIDC"]
         APPS["~50 services<br/>clusters/casa/apps/"]

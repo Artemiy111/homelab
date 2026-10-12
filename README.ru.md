@@ -33,7 +33,7 @@
 flowchart TB
     CLIENTS["Локальная сеть<br/>и узлы Tailscale"]
 
-    subgraph host["Домашний сервер<br/>k0s, один узел"]
+    subgraph host["Домашний сервер"]
         EDGE["Traefik<br/>Gateway API :80 / :443<br/>wildcard-сертификат"]
         AUTH["oauth2-proxy<br/>forward auth<br/>Zitadel — OIDC"]
         APPS["~50 сервисов<br/>clusters/casa/apps/"]
