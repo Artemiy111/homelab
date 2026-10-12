@@ -31,29 +31,37 @@
 
 ```mermaid
 flowchart TB
-    CLIENTS["Локальная сеть<br/>и узлы Tailscale"]
-
-    subgraph host["Домашний сервер"]
-        EDGE["Traefik<br/>Gateway API :80 / :443<br/>wildcard-сертификат"]
-        AUTH["oauth2-proxy<br/>forward auth<br/>Zitadel — OIDC"]
-        APPS["~50 сервисов<br/>clusters/casa/apps/"]
-        OPS["Argo CD — GitOps<br/>cert-manager<br/>ACME DNS-01<br/>Vault Operator<br/>Longhorn CSI"]
-        DATA["CloudNativePG<br/>PostgreSQL<br/>MariaDB Operator"]
-        OBS["OTel Collector<br/>Beyla · Alloy<br/>VictoriaMetrics · Loki<br/>Tempo · Pyroscope"]
-        CACHE["RustFS · ATS · Athens<br/>Verdaccio · Zot<br>/зеркала для CI"]
-        DNS["Technitium DNS<br/>:53 + блокировка"]
+    subgraph outside["Снаружи"]
+        direction LR
+        LAN["Локальная сеть"]
+        TS["Узлы Tailscale"]
     end
 
-    CLIENTS --> EDGE
-    EDGE --> AUTH
-    AUTH --> APPS
-    CACHE -.->|CI тянет| OPS
-    OPS -.->|деплоит| APPS
-    OPS -.->|ACME DNS-01| DNS
-    APPS --> DATA
-    APPS -.-> OBS
-    APPS -.->|резолвит| DNS
+    subgraph host["Домашний сервер"]
+        direction TB
+        EDGE["Traefik<br/>Gateway API :80 / :443<br/>wildcard-сертификат"]
+        AUTH["oauth2-proxy<br/>forward auth"]
+        APPS["~50 сервисов<br/>clusters/casa/apps/"]
+        ZIT["Zitadel<br/>OIDC"]
+        DATA["CloudNativePG<br/>MariaDB"]
+        STORE["Longhorn CSI"]
+    end
+
+    LAN -->|HTTPS :443| EDGE
+    TS -->|HTTPS :443| EDGE
+    EDGE -->|нативный вход| APPS
+    EDGE -->|своего входа нет| AUTH
+    AUTH -->|авторизован| APPS
+    AUTH -.->|OIDC| ZIT
+    APPS -.->|OIDC| ZIT
+    APPS -->|SQL| DATA
+    APPS -->|PVC| STORE
 ```
+
+Сплошные стрелки — путь запроса, пунктирные — вызовы OIDC. Всё остальное — Argo CD,
+синхронизирующий `clusters/casa/`, cert-manager с wildcard через ACME DNS-01, Vault Secrets
+Operator и четыре сигнала наблюдаемости — описано в разделах «Платформа», «Supply chain» и
+«Наблюдаемость» ниже.
 
 ## Платформа
 

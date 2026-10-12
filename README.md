@@ -31,29 +31,37 @@ One node: Ryzen 7 6800H, 8C/16T, Radeon 680M iGPU, 32 GiB RAM (≈27 GiB usable)
 
 ```mermaid
 flowchart TB
-    CLIENTS["LAN devices<br/>Tailscale peers"]
-
-    subgraph host["Homelab server"]
-        EDGE["Traefik<br/>Gateway API :80 / :443<br/>wildcard TLS"]
-        AUTH["oauth2-proxy<br/>forward auth<br/>Zitadel — OIDC"]
-        APPS["~50 services<br/>clusters/casa/apps/"]
-        OPS["Argo CD — GitOps<br/>cert-manager<br/>ACME DNS-01<br/>Vault Operator<br/>Longhorn CSI"]
-        DATA["CloudNativePG<br/>PostgreSQL<br/>MariaDB Operator"]
-        OBS["OTel Collector<br/>Beyla · Alloy<br/>VictoriaMetrics · Loki<br/>Tempo · Pyroscope"]
-        CACHE["RustFS · ATS · Athens<br/>Verdaccio · Zot<br/>CI mirrors"]
-        DNS["Technitium DNS<br/>:53 + ad blocking"]
+    subgraph outside["Outside"]
+        direction LR
+        LAN["LAN devices"]
+        TS["Tailscale peers"]
     end
 
-    CLIENTS --> EDGE
-    EDGE --> AUTH
-    AUTH --> APPS
-    CACHE -.->|CI pulls| OPS
-    OPS -.->|deploys| APPS
-    OPS -.->|ACME DNS-01| DNS
-    APPS --> DATA
-    APPS -.-> OBS
-    APPS -.->|resolves| DNS
+    subgraph host["Homelab server"]
+        direction TB
+        EDGE["Traefik<br/>Gateway API :80 / :443<br/>wildcard TLS"]
+        AUTH["oauth2-proxy<br/>forward auth"]
+        APPS["~50 services<br/>clusters/casa/apps/"]
+        ZIT["Zitadel<br/>OIDC"]
+        DATA["CloudNativePG<br/>MariaDB"]
+        STORE["Longhorn CSI"]
+    end
+
+    LAN -->|HTTPS :443| EDGE
+    TS -->|HTTPS :443| EDGE
+    EDGE -->|native login| APPS
+    EDGE -->|no login of its own| AUTH
+    AUTH -->|authorized| APPS
+    AUTH -.->|OIDC| ZIT
+    APPS -.->|OIDC| ZIT
+    APPS -->|SQL| DATA
+    APPS -->|PVC| STORE
 ```
+
+Solid arrows are the request path, dashed ones are OIDC calls. Everything else — Argo CD syncing
+`clusters/casa/`, cert-manager issuing the wildcard through ACME DNS-01, the Vault Secrets Operator,
+and the four observability signals — is described in the Platform, Supply chain and Observability
+sections below.
 
 ## Platform
 
