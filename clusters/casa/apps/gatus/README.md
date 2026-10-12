@@ -3,11 +3,6 @@
 Gatus — основной декларативный монитор доступности homelab.
 URL: `https://uptime.example.com/`.
 
-`config/config.yaml` лежит в исходном виде, а `configMapGenerator` собирает из
-него ConfigMap `gatus-config` (имя получает hash-суффикс от содержимого) и
-монтирует в под как `/config/config.yaml`. Правка конфига меняет pod-template и
-сама запускает rollout — отдельный `kubectl rollout restart` не нужен.
-
 ## Хранилище
 
 История проверок — PostgreSQL в общем кластере CNPG `shared` (namespace

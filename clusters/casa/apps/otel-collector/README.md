@@ -11,17 +11,12 @@ Open WebUI ──OTLP/gRPC──> otel-collector:4317
 Traefik ──OTLP──> otel-collector:4318 ──OTLP──> tempo:4317
 ```
 
-## Состав
+## Как устроен
 
-- `config/config.yaml` — pipeline: receiver `otlp` (gRPC 4317, HTTP 4318) →
-  exporter `prometheus` (8889) с `resource_to_telemetry_conversion`, чтобы
-  resource-атрибуты (напр. `service_name`) становились лейблами, и exporter
-  `otlp/tempo` для трейсов; processors `memory_limiter` и `batch`; extension
-  `health_check` (13133);
-- `kustomization.yaml` — собирает `config/config.yaml` в ConfigMap
-  `otel-collector` (kustomize добавляет хэш содержимого к имени);
-- `k8s/deployment.yaml` — один под, образ зафиксирован по digest;
-- `k8s/service.yaml` — ClusterIP, порты 4317/4318 (приём) и 8889 (скрейп).
+Pipeline: receiver `otlp` (gRPC 4317, HTTP 4318) → exporter `prometheus` (8889) с
+`resource_to_telemetry_conversion`, чтобы resource-атрибуты (напр. `service_name`)
+становились лейблами, и exporter `otlp/tempo` для трейсов; processors
+`memory_limiter` и `batch`; extension `health_check` (13133).
 
 ## Подключение приложения
 
@@ -36,21 +31,4 @@ Open WebUI шлёт метрики по OTLP/gRPC (`ENABLE_OTEL*` в его Depl
 4317/4318. Трейсы принимаются на тот же эндпоинт и уходят в Tempo
 (`clusters/casa/apps/tempo/`).
 
-## Проверка
-
-Метрики:
-
-```sh
-kubectl exec deploy/victoriametrics -- wget -qO- \
-  'http://127.0.0.1:8428/api/v1/label/__name__/values?match[]={job="otel-collector"}'
-```
-
-`up{job="otel-collector"}=1` и наличие `rustfs_*` метрик с лейблом
-`service_name="rustfs"`.
-
-Принятые трейсы (растёт при запросах через Traefik) видны в Tempo:
-
-```sh
-kubectl -n monitoring exec deploy/grafana-deployment -- \
-  curl -s 'http://tempo:3200/api/search?limit=5'
-```
+Проверка — в `RUNBOOK.md`.

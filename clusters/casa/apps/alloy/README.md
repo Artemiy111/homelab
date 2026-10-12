@@ -16,23 +16,18 @@ API сервера ──(pods/log)──> alloy ──push──> loki:3100
 по `spec.nodeName`, поэтому каждый под Alloy обрабатывает только свою ноду — без
 этого DaemonSet дублировал бы логи всего кластера.
 
-## Состав
+## Как устроен сбор
 
-- `config/config.alloy` — `discovery.kubernetes` (роль pod, фильтр по ноде) →
-  `discovery.relabel` (лейблы `namespace`/`pod`/`container`/`job`) →
-  `loki.source.kubernetes` → `loki.process` → `loki.write` в
-  `loki.monitoring.svc:3100`; логи узла — `loki.source.journal` (systemd).
-  В `loki.process` сначала редактируются секреты (значения после ключей
+- `discovery.kubernetes` (роль pod, фильтр по ноде) → `discovery.relabel` (лейблы
+  `namespace`/`pod`/`container`/`job`) → `loki.source.kubernetes` → `loki.process`
+  → `loki.write` в `loki.monitoring.svc:3100`; логи узла — `loki.source.journal`
+  (systemd). В `loki.process` сначала редактируются секреты (значения после ключей
   password/token/... , Bearer-токены, JWT), затем строки разбираются:
-  `level`/`trace_id`/`span_id` и поля Gatus/klog уходят в structured metadata;
-- `kustomization.yaml` — собирает конфиг в ConfigMap `alloy-config`;
-- `k8s/alloy.daemonset.yaml` — DaemonSet (`grafana/alloy`, образ по digest),
-  env `NODE_NAME` из Downward API, non-root; для journald — hostPath
-  `/var/log/journal`, `/run/log/journal`, `/etc/machine-id` и
-  `supplementalGroups: [190]` (группа systemd-journal);
-- `k8s/alloy-rbac.yaml` — ServiceAccount + ClusterRole на `pods`/`namespaces`/
-  `nodes` (list/watch) и `pods/log` (get);
-- `k8s/alloy.service.yaml` — Service для скрейпа `/metrics` (:12345) vmagent'ом.
+  `level`/`trace_id`/`span_id` и поля Gatus/klog уходят в structured metadata.
+- Имя ноды приходит через Downward API, контейнер работает non-root. Для journald
+  смонтированы hostPath `/var/log/journal`, `/run/log/journal`, `/etc/machine-id`
+  и задан `supplementalGroups: [190]` (группа systemd-journal).
+- Доступ к API: `pods`/`namespaces`/`nodes` (list/watch) и `pods/log` (get).
 
 Ошибок чтения логов и записи в Loki быть не должно; в Loki появляются потоки с
 лейблами `namespace`, `pod`, `container`, `job`.

@@ -11,31 +11,10 @@
 Alloy (DaemonSet) ──push──> loki:3100 <── Grafana (Explore)
 ```
 
-## Состав
+## Хранилище
 
-- `config/loki.yaml` — конфиг: `auth_enabled: false`, схема `tsdb`/`v13`,
-  filesystem-хранилище, retention 168 ч (7 суток);
-- `kustomization.yaml` — собирает `config/loki.yaml` в ConfigMap `loki-config`
-  (kustomize добавляет хэш содержимого к имени);
-- `k8s/loki.deployment.yaml` — один под, образ зафиксирован по digest,
-  runAsUser/fsGroup `10001`;
-- `k8s/loki.pvc.yaml` — PVC `loki-data` (Longhorn, `longhorn-retain`, 10 Ги);
-- `k8s/loki.service.yaml` — ClusterIP, порт 3100.
+Конфиг: `auth_enabled: false`, схема `tsdb`/`v13`, filesystem-хранилище,
+retention 168 ч (7 суток). Данные лежат на PVC `loki-data` (Longhorn,
+`longhorn-retain`, 10 Ги).
 
-## Проверка
-
-Под и готовность:
-
-```sh
-kubectl -n monitoring get pods -l app=loki
-kubectl -n monitoring exec deploy/grafana-deployment -- curl -s http://loki:3100/ready
-```
-
-Есть ли потоки (например, `namespace="monitoring"`):
-
-```sh
-kubectl -n monitoring exec deploy/grafana-deployment -- \
-  curl -s 'http://loki:3100/loki/api/v1/label/namespace/values'
-```
-
-В Grafana — Explore, datasource `Loki`, запрос `{namespace="monitoring"}`.
+Проверка — в `RUNBOOK.md`.

@@ -30,9 +30,9 @@ auth method `CODE` (Basic), grant Authorization Code. Init-контейнер п
 старте синхронизирует SocialApp с переменными окружения; если переменные
 пустые — пропуск.
 
-При первом входе зарегистрировать учётную запись администратора. Регистрация
-новых пользователей закрыта (`ENABLE_USER_REGISTRATION=false`), создание
-организаций разрешено любому вошедшему (`ENABLE_ORGANIZATION_CREATION=true`).
+Регистрация новых пользователей закрыта (`ENABLE_USER_REGISTRATION=false`),
+создание организаций разрешено любому вошедшему
+(`ENABLE_ORGANIZATION_CREATION=true`).
 
 ## Подключение приложений
 
@@ -44,12 +44,4 @@ https://<public-key>@glitchtip.example.com/<project-id>
 
 и указать его в Sentry SDK приложения.
 
-## Проверка
-
-```sh
-curl --resolve glitchtip.example.com:443:<node1-ip> \
-  -o /dev/null -sS -w '%{http_code}\n' \
-  https://glitchtip.example.com/auth/login/
-```
-
-Ожидаемый ответ: `200`.
+Первый вход и проверка — в `RUNBOOK.md`.

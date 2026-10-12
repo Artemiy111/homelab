@@ -32,20 +32,6 @@ unprivileged-примера: `BPF`, `SYS_ADMIN`, `SYS_PTRACE`, `NET_RAW`,
 Это осознанное расширение поверхности безопасности кластера: eBPF требует
 привилегий. Обоснование и альтернативы — в #542.
 
-## Проверка
-
-```sh
-# поды
-kubectl -n monitoring get pods -l app=beyla
-
-# RED-метрики дошли до VictoriaMetrics
-up{job="otel-collector"}                       # otel-collector уже скрейпится
-http_server_request_duration_seconds_count     # метрики Beyla
-
-# трейсы дошли до Tempo
-# в Grafana: Explore → Tempo → service name: element-livekit / element-synapse
-```
-
 ## Ограничения
 
 - `hostPID: true` — единственное lint-исключение (`ignore-check.kube-linter.io/host-pid`).
@@ -55,3 +41,5 @@ http_server_request_duration_seconds_count     # метрики Beyla
   `default_exclude_instrument` — дублей телеметрии с коллектором нет.
 - Объём eBPF-проб зависит от числа инструментируемых процессов. Сейчас
   ограничены одним namespace через `discovery.instrument`.
+
+Проверка — в `RUNBOOK.md`.

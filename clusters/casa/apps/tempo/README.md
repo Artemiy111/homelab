@@ -25,28 +25,4 @@ Traefik ──OTLP/HTTP:4318──> otel-collector ──OTLP/gRPC:4317──> t
 (у homelab для этого есть RustFS): это позволяет переживать потерю узла и не
 ограничиваться локальным диском. Переезд на S3 — отдельная задача.
 
-kustomize собирает `config/tempo.yaml` в ConfigMap `tempo-config` с хэшем
-содержимого, поэтому правка конфига сама запускает rollout.
-
-## Проверка
-
-Под и сервис:
-
-```sh
-kubectl get pod,svc -n monitoring -l app=tempo
-```
-
-Готовность:
-
-```sh
-kubectl -n monitoring exec deploy/grafana-deployment -- curl -s http://tempo:3200/ready
-```
-
-Трейсы доходят до Tempo (после нескольких запросов через Traefik):
-
-```sh
-kubectl -n monitoring exec deploy/grafana-deployment -- \
-  curl -s 'http://tempo:3200/api/search?limit=5'
-```
-
-В Grafana — Explore, datasource `Tempo`.
+Проверка — в `RUNBOOK.md`.

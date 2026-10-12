@@ -38,9 +38,8 @@ Kuma 2.x не использует SQLite: переменные `UPTIME_KUMA_DB_
   `cleanupPolicy: Skip`, чтобы опечатка в манифесте не удалила данные;
 - `clusters/casa/platform/mariadb/uptime-kuma-mariadb.users.yaml` — пользователь
   `uptime_kuma` и его права, пароль из Secret;
-- `clusters/casa/apps/uptime-kuma/k8s/vaultstaticsecret-mariadb.yaml` — два пути в Vault:
-  `kv/uptime-kuma/db` (учётные данные приложения) и `kv/uptime-kuma/root`
-  (root-пароль для оператора).
+- два пути в Vault: `kv/uptime-kuma/db` (учётные данные приложения) и
+  `kv/uptime-kuma/root` (root-пароль для оператора).
 
 Почему одна реплика, а не три: кластер на Galera на одной ноде не даёт
 отказоустойчивости — реплики всё равно жили бы на том же узле, а потеря ноды
