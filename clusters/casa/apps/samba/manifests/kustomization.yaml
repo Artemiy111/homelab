@@ -3,10 +3,26 @@ kind: Kustomization
 namespace: samba
 resources:
   - namespace.yaml
-  - smbconf.yaml
-  - scripts.yaml
   - deployment.yaml
   - service.yaml
   - networkpolicy.yaml
   - vaultauth.yaml
   - vaultstaticsecret.yaml
+configMapGenerator:
+  # smb.conf и скрипты инициализации лежат файлами в config/ и собираются
+  # здесь. Хэш содержимого попадает в имя ConfigMap'а, а kustomize переписывает
+  # ссылку в Deployment: правка конфига или скрипта сама запускает rollout,
+  # без ручного рестарта.
+  - name: samba-config
+    files:
+      - config/smb.conf
+  - name: samba-scripts
+    files:
+      - config/verify-mounts.sh
+      - config/ensure-users.sh
+      - config/provision.sh
+      - config/entrypoint.sh
+  # Часовой пояс общий для приложений стенда; значение читает deployment.
+  - name: samba-homelab-config
+    literals:
+      - TZ=Asia/Yekaterinburg

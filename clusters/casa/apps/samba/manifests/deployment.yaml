@@ -88,7 +88,7 @@ spec:
             - name: TZ
               valueFrom:
                 configMapKeyRef:
-                  name: samba-config
+                  name: samba-homelab-config
                   key: TZ
           # SMB не имеет HTTP-эндпоинта, поэтому проверка готовности и
           # живости — TCP до порта 445. Проверять листинг шар из probe нельзя:
@@ -163,8 +163,12 @@ spec:
             - name: state
               mountPath: /var/lib/samba
             - name: smbconf
-              mountPath: /etc/samba/smb.conf
-              subPath: smb.conf
+              # Каталог целиком, а не один файл через subPath: в ConfigMap
+              # лежит только smb.conf, поэтому подмена /etc/samba не
+              # оставляет рядом дистрибутивную заглушку. И subPath здесь
+              # нежелателен — он замораживает файл на момент старта пода, и
+              # обновление ConfigMap не доехало бы до работающего smbd.
+              mountPath: /etc/samba
               readOnly: true
             - name: scripts
               mountPath: /scripts
@@ -192,10 +196,11 @@ spec:
         - name: smbconf
           configMap:
             name: samba-config
-            items:
-              - key: smb.conf
-                path: smb.conf
         - name: scripts
           configMap:
             name: samba-scripts
+            # Скрипты запускаются initContainer'ом и точкой входа smbd, поэтому
+            # им нужен бит исполнения; ConfigMap по умолчанию монтируется с
+            # 0644. Задаётся здесь, а не в configMapGenerator: у генератора
+            # нет такого поля, и потерялся бы вместе с ключом хэша.
             defaultMode: 0555
