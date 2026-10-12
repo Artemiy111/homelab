@@ -35,5 +35,3 @@
       tags: [longhorn_prereqs]
     - role: k0s_config
       tags: [k0s_config]
-    - role: ntfs_samba
-      tags: [ntfs_samba]

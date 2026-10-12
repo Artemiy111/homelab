@@ -1,9 +1,9 @@
 # Samba, раздающая тома внешнего NTFS-диска.
 #
-# Тома монтирует хост (systemd, fstab из роли ntfs_samba), кластер только
-# читает точки через hostPath. Разделение не из удобства: systemd умеет
-# монтировать NTFS с опциями `uid`/`gid`/`context`, которых у Kubernetes нет,
-# и ждать появления USB-устройства, не вводя узел в emergency.
+# Тома монтирует хост (systemd, /etc/fstab), кластер только читает точки
+# через hostPath. Разделение не из удобства: systemd умеет монтировать NTFS с
+# опциями `uid`/`gid`/`context`, которых у Kubernetes нет, и ждать появления
+# USB-устройства, не вводя узел в emergency.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -41,7 +41,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: samba-storage
-                  key: storage
+                  key: SMB_PASSWORD
           securityContext:
             # SETUID/SETGID — adduser и smbpasswd заводят учётки; CHOWN и
             # FOWNER — запись в базу на пустом томе; DAC_OVERRIDE — доступ к
