@@ -13,3 +13,5 @@ resources:
   - route.yaml
   - vaultauth.yaml
   - vaultstaticsecret.yaml
+  - jellyfin.vpa.yaml
+  - jellyfin-exporter.vpa.yaml
