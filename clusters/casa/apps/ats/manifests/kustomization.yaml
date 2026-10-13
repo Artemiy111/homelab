@@ -9,6 +9,7 @@ resources:
   - networkpolicy.yaml
   - vaultauth.yaml
   - vaultstaticsecret.yaml
+  - ats.vpa.yaml
 configMapGenerator:
   - name: ats
     files:
