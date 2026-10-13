@@ -10,3 +10,4 @@ resources:
   - route.yaml
   - vaultauth.yaml
   - vaultstaticsecret.yaml
+  - talk-hpb.vpa.yaml
