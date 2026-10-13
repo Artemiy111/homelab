@@ -11,7 +11,7 @@ spec:
       path: clusters/casa/platform/trivy-operator/manifests
     - repoURL: https://aquasecurity.github.io/helm-charts/
       chart: trivy-operator
-      targetRevision: 0.23.0
+      targetRevision: 0.25.0
       helm:
         releaseName: trivy-operator
         valueFiles:
