@@ -16,15 +16,31 @@ kubectl -n forgejo exec -i deploy/forgejo -c forgejo -- \
 `kv/forgejo/runner`. Токен в ConfigMap не попадает: раннер читает его из файла
 (`server.connections.forgejo.token_url`), смонтированного из Secret'а.
 
-## Обновление снапшота actions/cache
+## Обновление actions/cache
+
+`actions/cache` — не mirror, а репозиторий с **реальной историей** апстрима,
+долитой вручную: mirror-миграцию Forgejo валит объект `largePathname` в старой
+истории `cache` (`fsck error in packed object`), а обычный `git fetch` fsck не
+включает. Историю затягиваем изнутри пода:
 
 ```sh
-tmp=$(mktemp -d)
-git clone --depth 1 --branch v4 https://data.forgejo.org/actions/cache.git "$tmp"
-git -C "$tmp" checkout --orphan snapshot
-git -C "$tmp" add -A && git -C "$tmp" commit -m "actions/cache v4 (offline snapshot)"
-git -C "$tmp" tag -f v4
-git -C "$tmp" push --force https://forgejo.example.com/actions/cache.git HEAD:refs/heads/main refs/tags/v4
+kubectl -n forgejo exec deploy/forgejo -- sh -c '
+cd /data/git/gitea-repositories/actions/cache.git &&
+git remote remove upstream 2>/dev/null;
+git remote add upstream https://github.com/actions/cache.git &&
+git fetch --prune upstream "+refs/heads/*:refs/heads/*" "+refs/tags/*:refs/tags/*" &&
+git remote remove upstream'
+```
+
+Теги нужны целиком: экшены (`setup-trivy`, `trivy-action`) пинят `actions/cache`
+по конкретному SHA (`v5.0.1`, `v5.0.5`, `v6.1.0` …), а снапшот одного коммита их
+теряет. Автообновления нет — это не mirror; новые теги подтягиваются тем же
+`git fetch`.
+
+Проверка:
+
+```sh
+git ls-remote https://forgejo.example.com/actions/cache.git | grep -E 'refs/tags/v[456]$'
 ```
 
 ## Порядок включения OIDC

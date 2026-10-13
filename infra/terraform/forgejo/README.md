@@ -11,7 +11,7 @@ pull-зеркалами экшенов в организациях `actions`, `o
 | --- | --- | --- |
 | `forgejo_repository.homelab` | репозиторий `artemiy/homelab` | squash — единственный стиль merge, набор unit'ов, wiki, трекер |
 | `forgejo_branch_protection.main` | ветка `main` | запрет прямого push, обязательные status checks |
-| `forgejo_organization.aquasecurity` | организация `aquasecurity` | владелец зеркал `trivy`, `trivy-action`, `setup-trivy` |
+| `forgejo_organization.aquasecurity` | организация `aquasecurity` | владелец зеркал `trivy-action`, `setup-trivy` |
 | `forgejo_repository.mirror["..."]` | pull-зеркала `actions/*`, `oven-sh/*`, `aquasecurity/*` | upstream и интервал синхронизации |
 
 ## Запуск
@@ -100,10 +100,10 @@ curl -fsS -H "Authorization: token $FORGEJO_API_TOKEN" \
 ## Зеркала экшенов
 
 `mirrors.tf` описывает pull-зеркала картой `local.mirrors` (имя репозитория →
-`owner` и upstream): сейчас это 19 зеркал в трёх организациях. `actions/*` — из
+`owner` и upstream): сейчас это 18 зеркал в трёх организациях. `actions/*` — из
 `data.forgejo.org` и `code.forgejo.org`, `oven-sh/setup-bun`,
-`aquasecurity/trivy-action`, `aquasecurity/setup-trivy` и `aquasecurity/trivy` —
-из `github.com`. Ключ карты — имя репозитория, оно
+`aquasecurity/trivy-action` и `aquasecurity/setup-trivy` — из `github.com`. Ключ
+карты — имя репозитория, оно
 должно быть уникально между организациями. Добавление зеркала — запись в карте
 плюс блок `import`, если репозиторий уже создан вручную. `actions/cache` в карту
 не входит: это не зеркало, а ручной снапшот
