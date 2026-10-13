@@ -90,6 +90,27 @@ Create a Forgejo issue with `fj issue create`.
 Run `fj issue view <number> comments` (and `fj issue view <number>` for the title
 and body).
 
+## Зависимости между issue
+
+`fj` этого не умеет — только REST API:
+
+```sh
+TOKEN=$(jq -r '.hosts["forgejo.biplane.casa"].token' \
+  "$HOME/Library/Application Support/forgejo-cli.forgejo-cli/keys.json")
+API=https://forgejo.biplane.casa/api/v1/repos/artemiy/homelab
+```
+
+```sh
+# «#1004 зависит от #1005»: owner и repo обязательны в теле
+curl -sS -X POST -H "Authorization: token $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"index":1005,"owner":"artemiy","repo":"homelab"}' \
+  "$API/issues/1004/dependencies"
+
+# проверка: обе стороны связи
+curl -sS -H "Authorization: token $TOKEN" "$API/issues/1004/dependencies" | jq -r 'length'
+curl -sS -H "Authorization: token $TOKEN" "$API/issues/1005/blocks"         | jq -r 'length'
+```
+
 ## Wayfinding operations
 
 Used by `/wayfinder`. The map is a single issue with child issues as tickets.
@@ -98,6 +119,7 @@ Used by `/wayfinder`. The map is a single issue with child issues as tickets.
 - Child labels: `wayfinder:research`, `wayfinder:prototype`, `wayfinder:grilling`, or `wayfinder:task`.
 - Use Forgejo sub-issues and native issue dependencies if the instance supports
   them; otherwise fall back to a task list in the map body plus `Part of #<map>`
-  and `Blocked by: #<n>` lines.
+  and `Blocked by: #<n>` lines. Под-issue в API этого инстанса нет, зависимости
+  есть — команды в разделе «Зависимости между issue».
 - Claim work with `fj issue assign <n> <username>`.
 - Resolve by commenting with the result and closing the issue.
