@@ -1,0 +1,12 @@
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: glitchtip
+  namespace: glitchtip
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: glitchtip
+  updatePolicy:
+    updateMode: "Off"

@@ -14,3 +14,5 @@ resources:
   - route.yaml
   - vaultauth.yaml
   - vaultstaticsecret.yaml
+  - glitchtip.vpa.yaml
+  - glitchtip-worker.vpa.yaml
