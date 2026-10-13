@@ -12,3 +12,5 @@ resources:
   - route.yaml
   - vaultauth.yaml
   - vaultstaticsecret.yaml
+  - authentik.vpa.yaml
+  - authentik-worker.vpa.yaml
