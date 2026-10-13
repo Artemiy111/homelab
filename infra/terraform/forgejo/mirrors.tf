@@ -60,6 +60,10 @@ locals {
       owner    = "actions"
       upstream = "https://data.forgejo.org/actions/setup-python.git"
     }
+    setup-trivy = {
+      owner    = forgejo_organization.aquasecurity.name
+      upstream = "https://github.com/aquasecurity/setup-trivy"
+    }
     trivy-action = {
       owner    = forgejo_organization.aquasecurity.name
       upstream = "https://github.com/aquasecurity/trivy-action"
