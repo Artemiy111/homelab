@@ -22,9 +22,15 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: trivy-system
+  ignoreDifferences:
+    - group: aquasecurity.github.io
+      kind: ClusterComplianceReport
+      jsonPointers:
+        - /spec
   syncPolicy:
     syncOptions:
       - ServerSideApply=true
       - Prune=false
+      - RespectIgnoreDifferences=true
     automated:
       selfHeal: true
