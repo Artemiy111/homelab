@@ -11,3 +11,4 @@ resources:
   - route.yaml
   - vaultauth.yaml
   - vaultstaticsecret.yaml
+  - oauth2-proxy.vpa.yaml
