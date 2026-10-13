@@ -7,3 +7,4 @@ resources:
   - networkpolicy.yaml
   - route.yaml
   - service.yaml
+  - code-server.vpa.yaml
