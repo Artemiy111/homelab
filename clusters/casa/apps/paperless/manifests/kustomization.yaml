@@ -17,3 +17,6 @@ resources:
   - route.yaml
   - vaultauth.yaml
   - vaultstaticsecret.yaml
+  - paperless.vpa.yaml
+  - paperless-gotenberg.vpa.yaml
+  - paperless-tika.vpa.yaml
