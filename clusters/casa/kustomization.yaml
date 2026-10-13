@@ -78,6 +78,7 @@ resources:
   - platform/vault-secrets-operator/app.yaml
   - platform/vault/app.yaml
   - platform/victoria-metrics-operator/app.yaml
+  - platform/vpa/app.yaml
   - projects/homelab-cluster-readers.yaml
   - projects/homelab.yaml
   - projects/upstream.yaml
