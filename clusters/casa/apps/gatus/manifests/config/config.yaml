@@ -138,6 +138,15 @@ endpoints:
       - "[BODY] == OK"
     alerts: *alerts-all
 
+  - name: vmagent
+    group: Monitoring
+    url: http://vmagent.monitoring.svc.cluster.local/health
+    interval: 60s
+    client: *docker-client
+    conditions:
+      - "[STATUS] == 200"
+    alerts: *alerts-all
+
   - name: Grafana
     group: Monitoring
     # Публичный маршрут закрыт forward auth (302 без авторизации), поэтому

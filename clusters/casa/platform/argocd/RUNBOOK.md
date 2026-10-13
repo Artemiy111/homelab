@@ -442,7 +442,6 @@ Gateway.
 |---|---|---|
 | `alloy-profiler` | Application без `syncPolicy.automated` | вернуть блок `automated` |
 | `local-ai` | Application без `syncPolicy.automated` | вернуть блок `automated` |
-| `vmagent` | `replicas: 0` в `clusters/casa/apps/victoria-metrics` (#888) | снять `replicas: 0`, вернуть проверку в Gatus |
 
 Проверки выключенных сервисов удалены из `clusters/casa/apps/gatus/manifests/config/config.yaml`, а не
 помечены `enabled: false`. `enabled: false` останавливает опрос, но Gatus хранит
