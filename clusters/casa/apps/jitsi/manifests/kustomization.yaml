@@ -16,3 +16,7 @@ resources:
   - route.yaml
   - vaultauth.yaml
   - vaultstaticsecret.yaml
+  - jitsi-web.vpa.yaml
+  - jitsi-prosody.vpa.yaml
+  - jitsi-jicofo.vpa.yaml
+  - jitsi-jvb.vpa.yaml
