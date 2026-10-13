@@ -37,6 +37,32 @@ kubectl -n immich logs deploy/immich-server --since=5m | grep -i oauth
 
 Значения в UI: Administration → Settings → Authentication.
 
+## Рекомендации VPA
+
+Для `immich-server` и `immich-machine-learning` включён режим наблюдения:
+рекомендации собираются, поды не меняются.
+
+```sh
+kubectl -n immich get vpa
+kubectl -n immich describe vpa immich-server | sed -n '/Recommendation/,/Events/p'
+kubectl -n immich describe vpa immich-machine-learning | sed -n '/Recommendation/,/Events/p'
+```
+
+Ожидаемо: в каждом — блок `Recommendation` с `Target`, `Lower Bound` и
+`Upper Bound` по `cpu` и `memory`. Пустой блок — либо под молодой (рекомендация
+набирается часами), либо недоступен Metrics API: `kubectl top pods -n immich`.
+
+Сравнивать рекомендацию с тем, что реально стоит в поде:
+
+```sh
+kubectl -n immich get pod -l app=immich-server -o jsonpath='{.items[0].spec.containers[0].resources}{"\n"}'
+kubectl -n immich get pod -l app=immich-machine-learning -o jsonpath='{.items[0].spec.containers[0].resources}{"\n"}'
+```
+
+Пока `updateMode` остаётся `"Off"`, источник правды — цифры в деплойменте:
+рекомендация на них не влияет. Переносить её в манифест имеет смысл вручную и
+осознанно: у сервера это ещё и перезапуск (`strategy: Recreate`).
+
 ## Диагностика
 
 ```sh

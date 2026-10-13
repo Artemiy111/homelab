@@ -10,6 +10,8 @@ resources:
   - server.deployment.yaml
   - ml.deployment.yaml
   - valkey.deployment.yaml
+  - server.vpa.yaml
+  - ml.vpa.yaml
   - library.pvc.yaml
   - networkpolicy.yaml
   - route.yaml
