@@ -20,9 +20,6 @@ spec:
   ingress:
     - from:
         - podSelector: {}
-    - from:
-        - ipBlock:
-            cidr: 192.168.0.0/16
-      ports:
+    - ports:
         - port: 8000
           protocol: TCP
