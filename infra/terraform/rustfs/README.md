@@ -1,6 +1,6 @@
 # RustFS (Terraform)
 
-Бакет `mirror` и его public-read policy. Развёртывание самого хранилища —
+Бакет `mirror`. Развёртывание самого хранилища —
 `clusters/casa/apps/rustfs/`, здесь только бакет через S3 API: AWS-провайдер против кастомного
 эндпоинта RustFS.
 
@@ -46,25 +46,22 @@ domain = "example.com"   # тот же домен, что в clusters/casa/platf
 
 | Ресурс | Что |
 | --- | --- |
-| `aws_s3_bucket.mirror` | бакет `mirror` |
-| `aws_s3_bucket_policy.mirror` | public-read: анонимный `s3:GetObject` на `mirror/*` |
+| `aws_s3_bucket.mirror` | бакет `mirror`, приватный: policy на нём нет, читает его только CI изнутри кластера |
 
 Заливка объектов остаётся у CronJob `mirror-sync`
 (`clusters/casa/apps/rustfs/manifests/mirror-sync.sh`, манифест `artifacts.tsv`); из скрипта убран
-`ensure_bucket`, потому что бакет и policy теперь принадлежат Terraform.
+`ensure_bucket`, потому что бакет теперь принадлежит Terraform.
 
 ## Первый apply
 
-Бакет и policy уже существуют, поэтому `imports.tf` переносит их в state.
-Проверять надо план:
+Бакет уже существует, поэтому `imports.tf` переносит его в state. Проверять надо
+план:
 
 ```sh macOS
 terraform plan
 ```
 
-Ожидается `No changes`. Если plan предлагает править policy — сравнить форму
-JSON с тем, что положил скрипт, и не применять наугад. После apply `terraform
-plan` обязан быть пустым.
+Ожидается `No changes`. После apply `terraform plan` обязан быть пустым.
 
 ## Чего модуль не делает
 
