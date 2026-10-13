@@ -105,8 +105,4 @@ resource "forgejo_repository" "mirror" {
   has_pull_requests = false
   has_releases      = true
   has_wiki          = false
-
-  lifecycle {
-    prevent_destroy = true
-  }
 }

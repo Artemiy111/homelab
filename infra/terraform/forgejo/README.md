@@ -88,8 +88,9 @@ curl -fsS -H "Authorization: token $FORGEJO_API_TOKEN" \
 
 `forgejo_repository` пересоздаёт репозиторий при изменении create-only полей —
 `auto_init`, `gitignores`, `license`, `readme`, `issue_labels`, `template`,
-`clone_addr`, `mirror`, `mirror_interval`. На ресурсе стоит
-`lifecycle.prevent_destroy` как страховка.
+`clone_addr`, `mirror`, `mirror_interval`. У зеркал `lifecycle.prevent_destroy`
+не стоит: они воспроизводимы из upstream, а страховка блокировала осознанное
+удаление зеркала. Организация остаётся со страховкой.
 
 Для `homelab` эти поля не заданы (они `Optional + Computed`), поэтому обычная
 правка репозитория их не трогает. Поле `auth_token` содержит секрет и не задаётся.
