@@ -75,6 +75,7 @@ resources:
   - platform/radar/app.yaml
   - platform/snapshot-controller/app.yaml
   - platform/traefik/app.yaml
+  - platform/trivy-operator/app.yaml
   - platform/vault-secrets-operator/app.yaml
   - platform/vault/app.yaml
   - platform/victoria-metrics-operator/app.yaml
