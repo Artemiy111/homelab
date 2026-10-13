@@ -1,0 +1,71 @@
+name: security
+
+on:
+  push:
+    branches: [main]
+    paths: &paths
+      - "clusters/casa/**"
+      - "infra/terraform/**"
+      - ".forgejo/workflows/trivy.yml"
+  pull_request:
+    paths: *paths
+  workflow_dispatch:
+
+jobs:
+  trivy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      # Бинарь ставим сами: setup-trivy клонирует исходник aquasecurity/trivy,
+      # а git-клон с раннера с github.com упирается в SSL timeout. trivy-action
+      # зовёт trivy из PATH, поэтому ему передаём skip-setup-trivy.
+      - name: Cache trivy
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/trivy
+          key: trivy-0.75.0-${{ runner.os }}
+      - name: Install trivy
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          set -euo pipefail
+          ver="0.75.0"
+          asset="trivy_${ver}_Linux-64bit.tar.gz"
+          expected="c6e65abddb348e25f10549df887045629cf28cc72453cd1c63acb717316b3f3f"
+          url="https://github.com/aquasecurity/trivy/releases/download/v${ver}/${asset}"
+          mkdir -p "$HOME/.local/trivy" /tmp/trivy
+          curl -fsSL --retry 5 --retry-delay 5 -o "/tmp/trivy/${asset}" "$url"
+          echo "$expected  /tmp/trivy/${asset}" | sha256sum -c -
+          tar -xzf "/tmp/trivy/${asset}" -C /tmp/trivy trivy
+          install -m 0755 "/tmp/trivy/trivy" "$HOME/.local/trivy/trivy"
+      - name: Add trivy to PATH
+        run: echo "$HOME/.local/trivy" >> "$GITHUB_PATH"
+      # Report-only: exit-code 0, job на находках не падает — сначала смотрим
+      # набор, гейт включается отдельным PR (issue #1072).
+      # TRIVY_SKIP_CHECK_UPDATE берёт встроенный набор политик, без похода за
+      # бандлом проверок в ghcr.io.
+      - name: Report Terraform
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: config
+          scan-ref: infra/terraform
+          severity: HIGH,CRITICAL
+          exit-code: "0"
+          cache: "false"
+          skip-setup-trivy: "true"
+          hide-progress: "true"
+        env:
+          TRIVY_SKIP_CHECK_UPDATE: "true"
+      - name: Report manifests
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: config
+          scan-ref: clusters/casa
+          severity: HIGH,CRITICAL
+          exit-code: "0"
+          cache: "false"
+          skip-setup-trivy: "true"
+          hide-progress: "true"
+        env:
+          TRIVY_SKIP_CHECK_UPDATE: "true"
