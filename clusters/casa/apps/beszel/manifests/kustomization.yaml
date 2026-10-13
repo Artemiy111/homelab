@@ -12,3 +12,5 @@ resources:
   - hub.deployment.yaml
   - hub.service.yaml
   - route.yaml
+  - beszel.vpa.yaml
+  - beszel-agent.vpa.yaml
