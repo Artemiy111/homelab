@@ -8,14 +8,13 @@ resources:
   - vaultstaticsecret.yaml
   - login.deployment.yaml
   - login.service.yaml
+  - login.vpa.yaml
   - networkpolicy.yaml
   - zitadel.deployment.yaml
   - zitadel.service.yaml
+  - zitadel.vpa.yaml
   - route.yaml
 configMapGenerator:
-  # config/zitadel.yaml собирается в ConfigMap `zitadel-config`; kustomize
-  # добавляет хэш содержимого к имени и переписывает ссылку в Deployment,
-  # поэтому правка конфига сама запускает rollout.
   - name: zitadel-config
     files:
       - config/zitadel.yaml

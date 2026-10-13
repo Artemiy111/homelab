@@ -1,7 +1,6 @@
 # Zitadel
 
-Zitadel — IdP homelab. Доступен через Traefik по `https://id.<домен>/`,
-где `<домен>` — литерал в манифестах юнита;
+Zitadel — IdP homelab. Доступен по `https://id.biplane.casa/`,
 - консоль — `/ui/console`
 - вход — `/ui/v2/login`.
 
@@ -25,17 +24,6 @@ Postgres поднимается кластером CloudNativePG: суперпо
 | `kv/zitadel/admin` | `zitadel-admin` | `ADMIN_PASSWORD` |
 | `kv/zitadel/masterkey` | `zitadel-masterkey` | `masterkey` |
 | `kv/zitadel/login-service-key` | `zitadel-login-service-key` | `tls.crt`, `tls.key` |
-
-- `zitadel-db-auth` читает и приложение, и CNPG для managed-роли `zitadel`
-  (`platform/cnpg/zitadel-db.cluster.yaml`): один путь, один Secret, два
-  потребителя (ADR 0006, правило 2).
-- Masterkey контейнер получает переменной `ZITADEL_MASTERKEY`
-  (`--masterkeyFromEnv`). Ключ менять нельзя: им зашифрованы секреты, замена
-  делает данные нечитаемыми. Единственная копия — Vault.
-- login-client аутентифицируется X.509-парой вместо PAT-файла:
-  `zitadel-login-service-key` (`tls.crt`/`tls.key`). Публичная часть монтируется в
-  `zitadel` и описана в `config/zitadel.yaml` (`SystemAPIUsers`), приватная — в
-  `zitadel-login` (`ZITADEL_LOGINCLIENT_KEYFILE`).
 
 ## OIDC-клиент для oauth2-proxy
 

@@ -9,12 +9,6 @@
 
 ## Passkey-only
 
-См. `docs/research/authentication-services.md` (этап 2). Коротко: в
-Organization Settings → Login Behavior and Security поставить «Passkey Login» =
-Allowed; пользователей регистрировать только passkey (отдельная ссылка
-регистрации), пароль не задавать. «Local authentication allowed» не выключать —
-это отключит и passkey.
-
 Одноразовую ссылку на регистрацию passkey без SMTP выдаёт
 `zitadel/zitadel-passkey-link.sh` (нужен PAT администратора). Домен передаётся
 переменной `DOMAIN` — тот же, что в бывшем чарте platform/homelab; вместо

@@ -2,18 +2,12 @@
 #
 # Получить одноразовую ссылку для регистрации passkey (WebAuthn) у пользователя ZITADEL.
 #
-# Работает без SMTP: вызывает UserService.CreatePasskeyRegistrationLink с
-# returnCode и сам собирает URL, который можно отправить пользователю любым
-# каналом (Telegram, QR, лично).
-#
 # Требует PAT администратора (Console → Users → <admin> → Personal Access Tokens).
 # PAT передаётся переменной окружения ZITADEL_PAT или спрашивается интерактивно.
 #
-# Домен передаётся переменной окружения DOMAIN, тот же что у ZITADEL_EXTERNALDOMAIN.
-# Либо сразу ZITADEL_HOST, если нужен нестандартный хост.
-#
 # Пример:
-#   DOMAIN=example.com ZITADEL_PAT=... ./zitadel/zitadel-passkey-link.sh
+#   read -rs ZITADEL_PAT
+#   ./zitadel/zitadel-passkey-link.sh
 
 set -euo pipefail
 
@@ -23,7 +17,7 @@ warn() { printf '\033[1;33m%s\033[0m\n' "$*" >&2; }
 die()  { printf '\033[1;31mОшибка: %s\033[0m\n' "$*" >&2; exit 1; }
 
 # --- Хост ------------------------------------------------------------------
-DOMAIN="${DOMAIN:?укажите DOMAIN — тот же домен, что в бывшем чарте platform/homelab}"
+DOMAIN="${DOMAIN:-biplane.casa}"
 ZITADEL_HOST="${ZITADEL_HOST:-id.$DOMAIN}"
 
 API_BASE="https://${ZITADEL_HOST}/v2"
