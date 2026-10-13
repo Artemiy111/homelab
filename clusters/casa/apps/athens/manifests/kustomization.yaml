@@ -8,6 +8,7 @@ resources:
   - deployment.yaml
   - data.pvc.yaml
   - networkpolicy.yaml
+  - athens.vpa.yaml
 configMapGenerator:
   - name: athens
     files:
