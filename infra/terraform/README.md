@@ -13,7 +13,7 @@
 | `zitadel/` | Организация, проект, OIDC-приложения, роли, членства, гранты и политика логина Zitadel | `infra/terraform/zitadel/README.md` |
 | `tailscale/` | DNS tailnet: MagicDNS и split DNS на домашний домен | `infra/terraform/tailscale/README.md` |
 | `technitium/` | DNS-записи зоны стенда и bootstrap-зоны `cloudflare-dns.com` | `infra/terraform/technitium/README.md` |
-| `rustfs/` | Бакет `mirror` | `infra/terraform/rustfs/README.md` |
+| `rustfs/` | Бакет `mirror` и его policy | `infra/terraform/rustfs/README.md` |
 
 ## Запуск
 
