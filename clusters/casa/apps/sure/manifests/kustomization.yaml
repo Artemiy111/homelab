@@ -14,3 +14,5 @@ resources:
   - route.yaml
   - vaultauth.yaml
   - vaultstaticsecret.yaml
+  - sure.vpa.yaml
+  - sure-worker.vpa.yaml
