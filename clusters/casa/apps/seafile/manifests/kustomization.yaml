@@ -9,11 +9,13 @@ resources:
   - route.yaml
   - networkpolicy.yaml
   - onlyoffice.deployment.yaml
+  - onlyoffice.vpa.yaml
   - onlyoffice.service.yaml
   - pvcs.yaml
   - redis.deployment.yaml
   - redis.service.yaml
   - seafile.deployment.yaml
+  - seafile.vpa.yaml
   - seafile.service.yaml
   - vaultauth.yaml
   - vaultstaticsecret.yaml
