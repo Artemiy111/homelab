@@ -16,3 +16,6 @@ resources:
   - route.yaml
   - vaultauth.yaml
   - vaultstaticsecret.yaml
+  - nextcloud.vpa.yaml
+  - nextcloud-cron.vpa.yaml
+  - nextcloud-exporter.vpa.yaml
