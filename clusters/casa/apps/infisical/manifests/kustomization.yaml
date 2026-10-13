@@ -12,3 +12,4 @@ resources:
   - route.yaml
   - vaultauth.yaml
   - vaultstaticsecret.yaml
+  - infisical.vpa.yaml
