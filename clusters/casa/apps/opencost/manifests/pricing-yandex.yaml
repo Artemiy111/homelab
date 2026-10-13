@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: custom-pricing-yandex
+  namespace: opencost
+data:
+  provider: custom
+  description: "Yandex Cloud, регион Россия, Intel Ice Lake. Цены в рублях, действуют с 30 апреля 2026."
+  CPU: "1.24"
+  spotCPU: "0.34"
+  RAM: "0.33"
+  spotRAM: "0.083"
+  GPU: "70.27"
+  storage: "0.0199"
+  zoneNetworkEgress: "0"
+  regionNetworkEgress: "0"
+  internetNetworkEgress: "1.42"
+  natGatewayEgress: "0"
+  natGatewayIngress: "0"

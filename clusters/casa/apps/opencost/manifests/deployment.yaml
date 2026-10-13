@@ -1,0 +1,94 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opencost
+  namespace: opencost
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: opencost
+  template:
+    metadata:
+      labels:
+        app: opencost
+    spec:
+      enableServiceLinks: false
+      serviceAccountName: opencost
+      containers:
+        - name: opencost
+          image: "ghcr.io/opencost/opencost:1.121.3@sha256:4cdd173253e5abba048dfe2cfa968707a5b59d774157d5356940d0d923a6c281"
+          ports:
+            - name: http
+              containerPort: 9003
+          env:
+            - name: API_PORT
+              value: "9003"
+            - name: LOG_LEVEL
+              value: info
+            - name: CLUSTER_ID
+              value: casa
+            - name: CONFIG_PATH
+              value: /tmp/custom-config
+            - name: PRICING_CONFIGMAP_NAME
+              value: custom-pricing-aws
+            - name: PROMETHEUS_SERVER_ENDPOINT
+              value: http://victoriametrics.monitoring.svc.cluster.local:8428
+            - name: KUBECOST_SCRAPE_INTERVAL
+              value: 15s
+            - name: PROMETHEUS_QUERY_RESOLUTION_SECONDS
+              value: "300"
+            - name: RESOLUTION_1D_RETENTION
+              value: "15"
+            - name: RESOLUTION_1H_RETENTION
+              value: "49"
+            - name: CLOUD_COST_ENABLED
+              value: "false"
+            - name: MCP_SERVER_ENABLED
+              value: "false"
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          securityContext:
+            runAsUser: 1001
+            runAsGroup: 1001
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          volumeMounts:
+            - name: custom-config
+              mountPath: /tmp/custom-config
+      volumes:
+        - name: custom-config
+          emptyDir: {}

@@ -38,6 +38,7 @@ resources:
   - apps/node-exporter/app.yaml
   - apps/oauth2-proxy/app.yaml
   - apps/open-webui/app.yaml
+  - apps/opencost/app.yaml
   - apps/otel-collector/app.yaml
   - apps/paperless/app.yaml
   - apps/pdf/app.yaml

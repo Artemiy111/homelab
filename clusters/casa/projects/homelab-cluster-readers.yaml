@@ -9,9 +9,10 @@ spec:
   destinations:
     - server: https://kubernetes.default.svc
       namespace: "*"
-  # Пять сервисов читают кластер целиком и без ClusterRole не работают вовсе:
+  # Сервисы читают кластер целиком и без ClusterRole не работают вовсе:
   # alloy и alloy-profiler читают логи всех подов, vmagent — метрики ноды,
-  # beyla — eBPF-профили. Шестой, elk, добавляется в волне 3 — filebeat читает
+  # beyla — eBPF-профили, opencost — состояние объектов кластера ради расчёта
+  # стоимости. Шестой, elk, добавляется в волне 3 — filebeat читает
   # логи всех подов тоже, поэтому его запись добавлена заранее.
   # Перечислены конкретные имена, а не вид целиком: схема
   # ClusterResourceRestrictionItem допускает name с glob-паттернами, а без name
@@ -24,13 +25,16 @@ spec:
   # создать, ни удалить. Поэтому prune у этих приложений физически не может
   # задеть чужой кластерный объект.
   clusterResourceWhitelist:
-    # Свой Namespace нужен сервису, который приносит namespace.yaml в своих
-    # манифестах: homepage — единственный такой в этом проекте. Остальные
-    # четыре живут в уже существующем monitoring. Без этой записи синк
-    # homepage падает с «Namespace is not permitted in project».
+    # Свой Namespace нужен сервисам, которые приносят namespace.yaml в своих
+    # манифестах: homepage и opencost. Остальные живут в уже существующих
+    # namespace'ах кластера. Без этой записи синк падает с
+    # «Namespace is not permitted in project».
     - group: ""
       kind: Namespace
       name: homepage
+    - group: ""
+      kind: Namespace
+      name: opencost
     - group: rbac.authorization.k8s.io
       kind: ClusterRole
       name: alloy-logs
@@ -61,6 +65,12 @@ spec:
     - group: rbac.authorization.k8s.io
       kind: ClusterRoleBinding
       name: homepage
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: opencost
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRoleBinding
+      name: opencost
     - group: rbac.authorization.k8s.io
       kind: ClusterRole
       name: vmagent-node-metrics

@@ -1,18 +1,18 @@
 {
   "schema": 1,
   "source": "scripts/status-badges.sh",
-  "services": 56,
-  "manifests": 554,
+  "services": 57,
+  "manifests": 561,
   "images": {
-    "pinned": 132,
-    "total": 133,
+    "pinned": 133,
+    "total": 134,
     "percent": 99,
     "exceptions": ["clusters/casa/apps/structurizr/manifests/deployment.yaml"]
   },
   "network_policy": {
-    "objects": 94,
-    "namespaces": 48,
-    "namespaces_total": 60,
+    "objects": 96,
+    "namespaces": 49,
+    "namespaces_total": 61,
     "percent": 80,
     "exceptions": ["argocd", "cert-manager", "cnpg-system", "default", "elastic-system", "gitlab", "grafana-operator", "kube-system", "local-path-storage", "mariadb-system", "traefik", "victoria-metrics-operator"]
   },

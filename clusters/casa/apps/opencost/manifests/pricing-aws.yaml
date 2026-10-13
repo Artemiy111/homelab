@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: custom-pricing-aws
+  namespace: opencost
+data:
+  provider: custom
+  description: "AWS on-demand, us-east-1. Copy of opencost configs/aws.json."
+  CPU: "0.031611"
+  spotCPU: "0.006655"
+  RAM: "0.004237"
+  spotRAM: "0.000892"
+  GPU: "0.95"
+  storage: "0.00005479452"
+  zoneNetworkEgress: "0.01"
+  regionNetworkEgress: "0.01"
+  internetNetworkEgress: "0.143"
+  natGatewayEgress: "0.045"
+  natGatewayIngress: "0.045"
