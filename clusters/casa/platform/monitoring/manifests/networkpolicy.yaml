@@ -2,7 +2,8 @@
 # явные разрешения. traefik — UI (grafana, vm, wud); gatus и
 # uptime-kuma проверяют внутренние сервисы (victoriametrics, vmagent,
 # grafana, wud) напрямую по к8s-именам; kube-state-metrics приходит из default;
-# radar читает метрики ворклоадов из victoriametrics; grafana-operator ходит в
+# radar читает метрики ворклоадов из victoriametrics; opencost — метрики для
+# расчёта стоимости; grafana-operator ходит в
 # API инстанса Grafana, которым сам же управляет (#645).
 # Egress не ограничивается.
 apiVersion: networking.k8s.io/v1
@@ -53,6 +54,14 @@ spec:
           podSelector:
             matchLabels:
               app: victoriametrics
+      ports:
+        - port: 8428
+          protocol: TCP
+    # OpenCost читает те же метрики для расчёта стоимости.
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: opencost
       ports:
         - port: 8428
           protocol: TCP
