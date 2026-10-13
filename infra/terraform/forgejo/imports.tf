@@ -54,6 +54,11 @@ import {
 }
 
 import {
+  to = forgejo_repository.mirror["setup-bun"]
+  id = "oven-sh/setup-bun"
+}
+
+import {
   to = forgejo_repository.mirror["setup-forgejo"]
   id = "actions/setup-forgejo"
 }

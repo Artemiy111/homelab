@@ -1,7 +1,8 @@
 # Forgejo (Terraform)
 
-Управляет настройками репозитория `artemiy/homelab`, защитой его ветки `main` и
-пилотным pull-зеркалом `actions/checkout`. Развёртывание самого инстанса —
+Управляет настройками репозитория `artemiy/homelab`, защитой его ветки `main`,
+pull-зеркалами экшенов в организациях `actions`, `oven-sh` и `aquasecurity` и
+самой организацией `aquasecurity`. Развёртывание самого инстанса —
 `clusters/casa/apps/forgejo/` (Argo CD + `forgejo-helm`), здесь только его содержимое.
 
 ## Что управляется
@@ -10,7 +11,8 @@
 | --- | --- | --- |
 | `forgejo_repository.homelab` | репозиторий `artemiy/homelab` | squash — единственный стиль merge, набор unit'ов, wiki, трекер |
 | `forgejo_branch_protection.main` | ветка `main` | запрет прямого push, обязательные status checks |
-| `forgejo_repository.mirror["..."]` | pull-зеркала `actions/*` | upstream и интервал синхронизации |
+| `forgejo_organization.aquasecurity` | организация `aquasecurity` | владелец зеркала `trivy-action` |
+| `forgejo_repository.mirror["..."]` | pull-зеркала `actions/*`, `oven-sh/*`, `aquasecurity/*` | upstream и интервал синхронизации |
 
 ## Запуск
 
@@ -52,7 +54,7 @@ domain = "example.com"
 
 ## Импорт
 
-`imports.tf` переносит в state три уже существующих объекта. Id импорта —
+`imports.tf` переносит в state четыре уже существующих объекта. Id импорта —
 человекочитаемые, числовые ID из базы не нужны:
 
 | Ресурс | Id |
@@ -60,10 +62,11 @@ domain = "example.com"
 | `forgejo_repository.homelab` | `artemiy/homelab` |
 | `forgejo_branch_protection.main` | `artemiy/homelab/main` |
 | `forgejo_repository.mirror["checkout"]` | `actions/checkout` |
+| `forgejo_repository.mirror["setup-bun"]` | `oven-sh/setup-bun` |
 
 ```sh macOS
 terraform init
-terraform plan     # 3 to import
+terraform plan     # 4 to import
 terraform apply    # импорт + правка write-only полей (см. ниже)
 terraform plan     # No changes
 ```
@@ -92,27 +95,31 @@ curl -fsS -H "Authorization: token $FORGEJO_API_TOKEN" \
 правка репозитория их не трогает. Поле `auth_token` содержит секрет и не задаётся.
 
 Для зеркал `clone_addr` и `mirror` заданы намеренно и обязаны совпадать с
-сервером символ в символ — см. «Зеркала actions/».
+сервером символ в символ — см. «Зеркала экшенов».
 
-## Зеркала actions/
+## Зеркала экшенов
 
-`mirrors.tf` описывает pull-зеркала организации `actions` картой `local.mirrors`
-(имя → upstream): сейчас это 15 зеркал. Добавление зеркала — запись в карте плюс
-блок `import`. `actions/cache` в карту не входит: это не зеркало, а ручной
-снапшот (`clusters/casa/apps/forgejo/README.md`).
+`mirrors.tf` описывает pull-зеркала картой `local.mirrors` (имя репозитория →
+`owner` и upstream): сейчас это 17 зеркал в трёх организациях. `actions/*` — из
+`data.forgejo.org` и `code.forgejo.org`, `oven-sh/setup-bun` и
+`aquasecurity/trivy-action` — из `github.com`. Ключ карты — имя репозитория, оно
+должно быть уникально между организациями. Добавление зеркала — запись в карте
+плюс блок `import`, если репозиторий уже создан вручную. `actions/cache` в карту
+не входит: это не зеркало, а ручной снапшот
+(`clusters/casa/apps/forgejo/README.md`).
 
-Upstream большей части зеркал — `data.forgejo.org/actions/*`, у
-`renovate-config` — `code.forgejo.org/actions/renovate-config`. Интервал у всех
-`8h0m0s` и вынесен в `local.mirror_interval`. Описание генерируется из upstream:
-`Mirror of <host>/actions/<name> for offline CI`.
+Интервал у всех `8h0m0s` и вынесен в `local.mirror_interval`. Описание
+генерируется из upstream: `Mirror of <host>/<owner>/<name> for offline CI`.
 
 Значения берутся из дампа сервера, потому что `mirror` и `clone_addr` —
 create-only (`RequiresReplaceIfConfigured`): любое расхождение даёт
 destroy+recreate. Поэтому `clone_addr` — это ровно `original_url` с сервера
-(вместе с `.git`), а `mirror_interval` — гошная строка (`8h0m0s`).
+символ в символ (у зеркал `actions/*` он с `.git`, у `oven-sh/setup-bun` — без),
+а `mirror_interval` — гошная строка (`8h0m0s`).
 
-Организация `actions` при этом не управляется (см. ниже): репозитории
-импортируются независимо от неё.
+Организации `actions` и `oven-sh` модулем не управляются: их нельзя
+импортировать (см. ниже), репозитории импортируются независимо от них.
+Организацию `aquasecurity` модуль создаёт сам — она новая.
 
 Ненужные зеркалу unit'ы (issues, wiki, projects, packages, actions) и PR
 выключены, а merge-настройки не заданы вовсе: у них статичные дефолты, а
@@ -127,8 +134,10 @@ destroy+recreate. Поэтому `clone_addr` — это ровно `original_ur
 **`forgejo_organization` не импортируется.** В `organization_resource.go` нет
 `ResourceWithImportState`, поэтому `import` падает с `Resource Import Not
 Implemented` ещё до обращения к API (это не про скоупы токена). Существующую
-организацию, в частности `actions` с зеркалами экшенов, под Terraform завести
-нельзя — только создавать новые. Пока организация вне модуля.
+организацию, в частности `actions` и `oven-sh` с зеркалами экшенов, под
+Terraform завести нельзя — только создавать новые. Поэтому те две остаются вне
+модуля, а новая `aquasecurity` создаётся ресурсом
+`forgejo_organization.aquasecurity`.
 
 **У `forgejo_repository` часть полей write-only.** Их провайдер не читает
 обратно в `Read`: `default_delete_branch_after_merge`, `wiki_branch`,

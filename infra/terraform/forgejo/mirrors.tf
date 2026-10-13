@@ -1,34 +1,96 @@
 locals {
   mirrors = {
-    cascading-pr      = "https://data.forgejo.org/actions/cascading-pr.git"
-    checkout          = "https://data.forgejo.org/actions/checkout.git"
-    download-artifact = "https://data.forgejo.org/actions/download-artifact.git"
-    forgejo-release   = "https://data.forgejo.org/actions/forgejo-release.git"
-    git-backporting   = "https://data.forgejo.org/actions/git-backporting.git"
-    git-pages         = "https://data.forgejo.org/actions/git-pages.git"
-    go-hashfiles      = "https://data.forgejo.org/actions/go-hashfiles.git"
-    go-versions       = "https://data.forgejo.org/actions/go-versions.git"
-    renovate-config   = "https://code.forgejo.org/actions/renovate-config.git"
-    setup-forgejo     = "https://data.forgejo.org/actions/setup-forgejo.git"
-    setup-go          = "https://data.forgejo.org/actions/setup-go.git"
-    setup-java        = "https://data.forgejo.org/actions/setup-java.git"
-    setup-node        = "https://data.forgejo.org/actions/setup-node.git"
-    setup-python      = "https://data.forgejo.org/actions/setup-python.git"
-    upload-artifact   = "https://data.forgejo.org/actions/upload-artifact.git"
+    cascading-pr = {
+      owner    = "actions"
+      upstream = "https://data.forgejo.org/actions/cascading-pr.git"
+    }
+    checkout = {
+      owner    = "actions"
+      upstream = "https://data.forgejo.org/actions/checkout.git"
+    }
+    download-artifact = {
+      owner    = "actions"
+      upstream = "https://data.forgejo.org/actions/download-artifact.git"
+    }
+    forgejo-release = {
+      owner    = "actions"
+      upstream = "https://data.forgejo.org/actions/forgejo-release.git"
+    }
+    git-backporting = {
+      owner    = "actions"
+      upstream = "https://data.forgejo.org/actions/git-backporting.git"
+    }
+    git-pages = {
+      owner    = "actions"
+      upstream = "https://data.forgejo.org/actions/git-pages.git"
+    }
+    go-hashfiles = {
+      owner    = "actions"
+      upstream = "https://data.forgejo.org/actions/go-hashfiles.git"
+    }
+    go-versions = {
+      owner    = "actions"
+      upstream = "https://data.forgejo.org/actions/go-versions.git"
+    }
+    renovate-config = {
+      owner    = "actions"
+      upstream = "https://code.forgejo.org/actions/renovate-config.git"
+    }
+    setup-bun = {
+      owner    = "oven-sh"
+      upstream = "https://github.com/oven-sh/setup-bun"
+    }
+    setup-forgejo = {
+      owner    = "actions"
+      upstream = "https://data.forgejo.org/actions/setup-forgejo.git"
+    }
+    setup-go = {
+      owner    = "actions"
+      upstream = "https://data.forgejo.org/actions/setup-go.git"
+    }
+    setup-java = {
+      owner    = "actions"
+      upstream = "https://data.forgejo.org/actions/setup-java.git"
+    }
+    setup-node = {
+      owner    = "actions"
+      upstream = "https://data.forgejo.org/actions/setup-node.git"
+    }
+    setup-python = {
+      owner    = "actions"
+      upstream = "https://data.forgejo.org/actions/setup-python.git"
+    }
+    trivy-action = {
+      owner    = forgejo_organization.aquasecurity.name
+      upstream = "https://github.com/aquasecurity/trivy-action"
+    }
+    upload-artifact = {
+      owner    = "actions"
+      upstream = "https://data.forgejo.org/actions/upload-artifact.git"
+    }
   }
 
   mirror_interval = "8h0m0s"
 }
 
+resource "forgejo_organization" "aquasecurity" {
+  name       = "aquasecurity"
+  visibility = "public"
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+
 resource "forgejo_repository" "mirror" {
   for_each = local.mirrors
 
-  owner = "actions"
+  owner = each.value.owner
   name  = each.key
 
-  description     = "Mirror of ${trimsuffix(trimprefix(each.value, "https://"), ".git")} for offline CI"
+  description     = "Mirror of ${trimsuffix(trimprefix(each.value.upstream, "https://"), ".git")} for offline CI"
   private         = false
-  clone_addr      = each.value
+  clone_addr      = each.value.upstream
   mirror          = true
   mirror_interval = local.mirror_interval
 
