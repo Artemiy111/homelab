@@ -10,3 +10,4 @@ resources:
   - networkpolicy.yaml
   - vaultauth.yaml
   - vaultstaticsecret.yaml
+  - open-webui.vpa.yaml
