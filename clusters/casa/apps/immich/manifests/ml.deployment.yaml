@@ -24,6 +24,9 @@ spec:
           ports:
             - name: http
               containerPort: 3003
+          env:
+            - name: MACHINE_LEARNING_MODEL_REVISION
+              value: v2
           startupProbe:
             tcpSocket:
               port: http
