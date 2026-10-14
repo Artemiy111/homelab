@@ -13,7 +13,7 @@ library:
     enabled: true
 machineLearning:
   ocr:
-    modelName: ESLAV__PP-OCRv5_mobile
+    modelName: PP-OCRv6_small
 oauth:
   enabled: true
   clientId: "388541482971234332"
