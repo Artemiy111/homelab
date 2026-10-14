@@ -32,6 +32,19 @@ spec:
       backendRefs:
         - name: zitadel-login
           port: 80
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /logout
+      filters:
+        - type: URLRewrite
+          urlRewrite:
+            path:
+              type: ReplacePrefixMatch
+              replacePrefixMatch: /ui/v2/login/logout
+      backendRefs:
+        - name: zitadel-login
+          port: 80
     # API/gRPC-шлюз: strip /api.
     - matches:
         - path:
