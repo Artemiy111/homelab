@@ -2,8 +2,8 @@
 
 ## Вход
 
-OIDC через Zitadel. Объявлен в `manifests/system-config.yaml` и приезжает в под
-файлом: интерфейс (Administration → Settings → Authentication → OAuth
+OIDC через Zitadel. Объявлен в `manifests/config/system-config.yaml` и приезжает в
+под файлом: интерфейс (Administration → Settings → Authentication → OAuth
 Authentication) показывает те же значения, но менять их оттуда нельзя —
 `IMMICH_CONFIG_FILE` делает конфиг файловым и правки в UI отклоняются.
 
@@ -31,16 +31,17 @@ Client ID соответствует приложению `immich` в Zitadel
 Дрейф возможен: если значения в файле разъедутся с таблицей, прав файл.
 
 Смена домена стенда — это правка `oauth.issuerUrl` и `oauth.mobileRedirectUri` в
-`manifests/system-config.yaml` плюс перезапуск сервера:
+`manifests/config/system-config.yaml`. Файл читается только при старте, но
+перезапускать под руками не нужно: kustomize собирает имя ConfigMap вместе с
+хешем содержимого файла, поэтому ссылка в деплойменте меняется вместе с конфигом
+и под перекатывается сам. Остаётся дождаться:
 
 ```sh
-kubectl -n immich rollout restart deploy/immich-server
 kubectl -n immich rollout status deploy/immich-server
 ```
 
-Файл читается только при старте, поэтому без перезапуска правка не подхватится, а
-невалидный YAML не даст серверу подняться — проверять его лучше схемой из образа
-до мержа.
+Невалидный YAML не даст серверу подняться вовсе, поэтому проверять файл лучше
+схемой из образа до мержа.
 
 Команды `immich-admin enable-password-login` и `disable-oauth-login` пишут конфиг
 в БД, а файл её перекрывает: с `IMMICH_CONFIG_FILE` они молча не влияют ни на что,

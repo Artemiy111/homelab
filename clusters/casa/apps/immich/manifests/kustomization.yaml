@@ -3,7 +3,6 @@ kind: Kustomization
 namespace: immich
 resources:
   - homelab-config.yaml
-  - system-config.yaml
   - namespace.yaml
   - server.service.yaml
   - ml.service.yaml
@@ -18,3 +17,7 @@ resources:
   - route.yaml
   - vaultauth.yaml
   - vaultstaticsecret.yaml
+configMapGenerator:
+  - name: immich-system-config
+    files:
+      - config/system-config.yaml

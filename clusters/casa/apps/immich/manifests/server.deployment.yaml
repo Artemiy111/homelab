@@ -88,7 +88,7 @@ spec:
             - name: IMMICH_TELEMETRY_INCLUDE
               value: all
             - name: IMMICH_CONFIG_FILE
-              value: /etc/immich/config.yaml
+              value: /etc/immich/system-config.yaml
             - name: IMMICH_LOG_FORMAT
               value: json
           startupProbe:
