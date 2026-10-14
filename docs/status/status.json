@@ -2,7 +2,7 @@
   "schema": 1,
   "source": "scripts/status-badges.sh",
   "services": 57,
-  "manifests": 561,
+  "manifests": 562,
   "images": {
     "pinned": 133,
     "total": 134,
