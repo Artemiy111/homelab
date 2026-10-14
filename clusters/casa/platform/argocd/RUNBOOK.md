@@ -264,7 +264,7 @@ argocd app diff traefik               # пусто
 | `selfHeal` не включён | отладочные правки Application в кластере не откатываются |
 | finalizer не задан | удаление root не сносит компоненты каскадом |
 | `retry` с backoff | компенсирует «упавший sync не повторяется сам» для самого root |
-| `ignoreDifferences` на `/spec/syncPolicy/automated` | ручное отключение автосинка не считается дрейфом |
+| `ignoreDifferences` у `Application` | нет: политика синка (в том числе `prune`) принадлежит git, и правка в `app.yaml` доезжает |
 
 Ограничения, которые надо знать до того, как что-то сломается:
 
