@@ -50,6 +50,14 @@ done < <(git ls-files 'clusters/casa/*.yaml')
 resources=$(awk '{ sum += $1 } END { print sum + 0 }' "${TMPDIR:-/tmp}/argocd-prune-seen.$$" 2>/dev/null || echo 0)
 rm -f "${TMPDIR:-/tmp}/argocd-prune-seen.$$"
 
+# 3. Политика обязана доезжать до кластера. С `ignoreDifferences` на
+# `/spec/syncPolicy/automated` у root `prune` из `app.yaml` не применяется —
+# приложения при этом выглядят исправными, и Synced ничего не значит.
+if grep -q '/spec/syncPolicy/automated' bootstrap/root.yaml; then
+  printf 'bootstrap/root.yaml: ignoreDifferences на /spec/syncPolicy/automated глушит prune из app.yaml\n' >&2
+  failures=$((failures + 1))
+fi
+
 if [ "$failures" -ne 0 ]; then
   printf 'нарушений политики prune: %d\n' "$failures" >&2
   exit 1

@@ -58,9 +58,11 @@ metadata:
   автоматической синхронизации (`alloy`, `alloy-profiler`, `authentik`, `beyla`,
   `gitlab`, `local-ai`) тоже вне политики: у них синка нет вовсе.
 - Соответствие держит гейт `scripts/argocd-prune.sh --check` — в `pre-commit`,
-  в `scripts/check.sh` и в workflow `gitops.yml`. Без гейта политика расходится
-  молча: новый юнит копирует соседний манифест, и разница видна только тем, что
-  Argo удалит ресурс, которого нет в git.
+  в `scripts/check.sh` и в workflow `gitops.yml`. Он проверяет три вещи:
+  приложение юнита с `automated` несёт `prune: true`, каждый PVC и namespace —
+  аннотацию, а root не глушит политику синка `ignoreDifferences`. Без гейта
+  политика расходится молча: новый юнит копирует соседний манифест, и разница
+  видна только тем, что Argo удалит ресурс, которого нет в git.
 - Политика синка принадлежит git целиком. У root стояло `ignoreDifferences` на
   `/spec/syncPolicy/automated`, и `prune` из `app.yaml` не доезжал до кластера —
   правка была вхолостую. Правило снято (вместе с мёртвым правилом для
