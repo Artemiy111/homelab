@@ -63,5 +63,11 @@ Namespace объявляется в юните, чьи объекты в нём 
 namespace'а может быть state — `Cluster` CNPG со своим PVC, — и prune
 удалит его вместе с базой.
 
+У юнитов политика обратная (`docs/adr/0013`): prune там включён, а namespace'ы
+защищены аннотацией `argocd.argoproj.io/sync-options: Prune=false` — у этого
+юнита объявления namespace и есть его содержимое, поэтому prune остаётся
+снятым на уровне приложения, а аннотация дублирует защиту на случай, если юнит
+когда-нибудь переключат.
+
 В Flux то же делает `spec.prune: false` на `Kustomization` плюс
 `deletionPolicy: Orphan`, чтобы удаление объекта тоже не унесло namespace.

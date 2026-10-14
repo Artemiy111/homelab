@@ -55,6 +55,7 @@ step "секреты в коммитах ветки" gitleaks git --config .gitl
   --log-opts="origin/main..HEAD"
 step "числа в docs/status соответствуют репозиторию" ./scripts/status-badges.sh --check
 step "список юнитов Argo соответствует дереву" ./scripts/argocd-units.sh --check
+step "политика prune у Argo" ./scripts/argocd-prune.sh --check
 
 if optional kubeconform; then
   # Полный набор каталогов и схем: те же, что в гейте kubeconform.yml и в

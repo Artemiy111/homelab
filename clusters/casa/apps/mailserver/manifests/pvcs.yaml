@@ -3,6 +3,8 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false
   name: mailserver-data
   namespace: mailserver
 spec:
@@ -18,6 +20,8 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false
   name: mailserver-etc
   namespace: mailserver
 spec:
@@ -32,6 +36,8 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false
   name: mailserver-mail
   namespace: mailserver
 spec:

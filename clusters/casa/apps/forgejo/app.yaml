@@ -18,7 +18,7 @@ spec:
     namespace: forgejo
   syncPolicy:
     automated:
-      prune: false
+      prune: true
       selfHeal: true
     syncOptions:
       - ServerSideApply=true

@@ -5,6 +5,8 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false
   name: local-ai-backends
   namespace: local-ai
 spec:
@@ -20,6 +22,8 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false
   name: local-ai-configuration
   namespace: local-ai
 spec:
@@ -34,6 +38,8 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false
   name: local-ai-data
   namespace: local-ai
 spec:

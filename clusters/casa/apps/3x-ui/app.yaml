@@ -21,7 +21,7 @@ spec:
     namespace: 3x-ui
   syncPolicy:
     automated:
-      prune: false
+      prune: true
       selfHeal: true
     syncOptions:
       - ServerSideApply=true

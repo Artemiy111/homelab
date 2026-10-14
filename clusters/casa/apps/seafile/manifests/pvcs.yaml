@@ -4,6 +4,8 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false
   name: seafile-shared
   namespace: seafile
 spec:
@@ -19,6 +21,8 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false
   name: seafile-onlyoffice-data
   namespace: seafile
 spec:
@@ -33,6 +37,8 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false
   name: seafile-onlyoffice-lib
   namespace: seafile
 spec:

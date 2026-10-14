@@ -14,7 +14,7 @@ spec:
     namespace: seafile
   syncPolicy:
     automated:
-      prune: false
+      prune: true
       selfHeal: true
     syncOptions:
       - ServerSideApply=true
