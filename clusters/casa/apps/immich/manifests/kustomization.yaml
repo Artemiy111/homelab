@@ -3,6 +3,7 @@ kind: Kustomization
 namespace: immich
 resources:
   - homelab-config.yaml
+  - system-config.yaml
   - namespace.yaml
   - server.service.yaml
   - ml.service.yaml

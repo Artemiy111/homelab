@@ -2,10 +2,12 @@
 
 ## Вход
 
-OIDC через Zitadel. Настраивается **в интерфейсе** — Administration →
-Settings → Authentication → OAuth Authentication.
+OIDC через Zitadel. Объявлен в `manifests/system-config.yaml` и приезжает в под
+файлом: интерфейс (Administration → Settings → Authentication → OAuth
+Authentication) показывает те же значения, но менять их оттуда нельзя —
+`IMMICH_CONFIG_FILE` делает конфиг файловым и правки в UI отклоняются.
 
-Значения, заданные в UI:
+Значения, объявленные в файле:
 
 | Поле | Значение |
 |---|---|
@@ -22,12 +24,28 @@ Client ID соответствует приложению `immich` в Zitadel
 (`infra/terraform/zitadel/applications.tf`), там же объявлены redirect URI:
 `/auth/login`, `/user-settings`, `/api/oauth/mobile-redirect`.
 
-`<домен>` — плейсхолдер: реальный корневой домен лежит в
-`infra/terraform/zitadel/terraform.tfvars` (untracked) и по
-`docs/agents/information-handling.md` в git не пишется. `client_id` в таблице
-при этом настоящий — он не секрет и в state лежит открытым текстом.
+`<домен>` в таблице — плейсхолдер для читателя: в самом файле домен стоит
+буквально, как и в остальных манифестах стенда (`docs/adr/0009`). `client_id`
+настоящий — он не секрет и лежит в state открытым текстом.
 
-Дрейф возможен: если перенастроить OIDC в UI, поправь таблицу выше.
+Дрейф возможен: если значения в файле разъедутся с таблицей, прав файл.
+
+Смена домена стенда — это правка `oauth.issuerUrl` и `oauth.mobileRedirectUri` в
+`manifests/system-config.yaml` плюс перезапуск сервера:
+
+```sh
+kubectl -n immich rollout restart deploy/immich-server
+kubectl -n immich rollout status deploy/immich-server
+```
+
+Файл читается только при старте, поэтому без перезапуска правка не подхватится, а
+невалидный YAML не даст серверу подняться — проверять его лучше схемой из образа
+до мержа.
+
+Команды `immich-admin enable-password-login` и `disable-oauth-login` пишут конфиг
+в БД, а файл её перекрывает: с `IMMICH_CONFIG_FILE` они молча не влияют ни на что,
+и аварийный вход тоже делается правкой файла. Пароля это не касается —
+`immich-admin reset-admin-password` работает как обычно.
 
 ## Проверка настройки
 
