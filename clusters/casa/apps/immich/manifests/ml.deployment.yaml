@@ -20,7 +20,7 @@ spec:
       enableServiceLinks: false
       containers:
         - name: immich-machine-learning
-          image: "ghcr.io/immich-app/immich-machine-learning:v3@sha256:5a0839dc5303cd7215bcd2180a26aed3af41675aefb3e75e5157e9f10ad16e6e"
+          image: "ghcr.io/immich-app/immich-machine-learning:v3.3.1@sha256:513c831cfb010ad319341a0c86b42c575a0d5b688d3e8cae346ee624074a58ed"
           ports:
             - name: http
               containerPort: 3003
