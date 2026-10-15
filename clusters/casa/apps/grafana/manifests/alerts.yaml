@@ -78,7 +78,7 @@ spec:
 # 2. condition обязан указывать на ВЫРАЖЕНИЕ (refId C), а не на сам запрос.
 #    Цепочка A (запрос) -> B (reduce, reducer: last) -> C (threshold, gt 0)
 #    разворачивает «вернулась серия» в решение «Alerting»: порог 0 отделяет
-#    сработавшее от не сработавшего, потому что сами выражения уже фильтруют.
+#    сработавшее от не сработавшего.
 #
 # noDataState: OK у всех правил: пустой вектор здесь означает «условие не
 # выполнено», а не «не знаю».
@@ -370,7 +370,7 @@ spec:
               type: prometheus
               uid: victoriametrics
             editorMode: code
-            expr: 'sum(rate(vm_http_requests_total{job="vmagent"}[10m])) == 0'
+            expr: 'sum(rate(vm_http_requests_total{job="vmagent"}[10m])) == bool 0'
             instant: true
             intervalMs: 1000
             maxDataPoints: 43200
@@ -456,7 +456,7 @@ spec:
               type: prometheus
               uid: victoriametrics
             editorMode: code
-            expr: 'sum(rate(tempo_distributor_spans_received_total{job="tempo"}[10m])) == 0'
+            expr: 'sum(rate(tempo_distributor_spans_received_total{job="tempo"}[10m])) == bool 0'
             instant: true
             intervalMs: 1000
             maxDataPoints: 43200
@@ -909,7 +909,7 @@ spec:
               type: prometheus
               uid: victoriametrics
             editorMode: code
-            expr: 'sum(rate(loki_distributor_lines_received_total{is_internal_stream="false"}[10m])) == 0'
+            expr: 'sum(rate(loki_distributor_lines_received_total{is_internal_stream="false"}[10m])) == bool 0'
             instant: true
             intervalMs: 1000
             maxDataPoints: 43200
