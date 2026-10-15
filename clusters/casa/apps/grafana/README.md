@@ -340,7 +340,7 @@ URL `https://ntfy.sh/<тема>?template=alertmanager`, а не только т�
 | `vm-storage-read-only` | critical | `vm_storage_is_read_only == 1` | 1m | TSDB не принимает запись |
 | `vm-pending-rows-backlog` | warning | `max(vm_pending_rows) > 1e6` | 30m | очередь не сбрасывается на диск |
 | `scrape-target-down` | warning | `count by (job) (up == 0) > 0` | 10m | таргет отвечает, но метрики не читаются |
-| `monium-write-stalled` | warning | `increase(vmagent_remotewrite_blocks_sent_total{url=~".*api\.cloud\.yandex\.net.*"}[15m]) == bool 0` | 15m | копия метрик в Monium не отправляется |
+| `monium-write-stalled` | warning | `increase(vmagent_remotewrite_blocks_sent_total{url=~".*cloud.yandex.net.*"}[15m]) == bool 0` | 15m | копия метрик в Monium не отправляется |
 
 Место на диске **не** проверяется отдельными правилами под VictoriaMetrics:
 это делает группа `storage` для всех PVC кластера разом — `pvc-low-free-space`
@@ -376,6 +376,14 @@ git без `deleteRules`, то есть **остались вычислятьс�
 `pipeline-*-stalled` до #1113. Правила с нулевым порогом пишутся как
 `X == bool 0`, остальным достаточно выражения со знаком (`>`, `<`) в роли
 условия.
+
+Вторая ловушка того же рода — экранирование внутри строк MetricsQL. В двойных
+кавычках обратный слэш читается как escape, поэтому regex с `\.` роняет
+вычисление с `cannot parse string literal`. Правило уходит в состояние Error:
+в UI оно выглядит созданным, в Grafana нет ни ошибки, ни уведомления, а в
+логах видно `Failed to evaluate rule`. В селекторах либо пишутся обычные точки
+(`url=~".*cloud.yandex.net.*"`), либо regex берётся в бэктики, где слэш
+литерален.
 
 Намеренно мало правил, а не полный набор: каждое лишнее правило растит шанс,
 что его начнут игнорировать, а алерт-фатиг обесценивает систему целиком.

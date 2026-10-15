@@ -714,7 +714,7 @@ spec:
               type: prometheus
               uid: victoriametrics
             editorMode: code
-            expr: 'increase(vmagent_remotewrite_blocks_sent_total{url=~".*api\.cloud\.yandex\.net.*"}[15m]) == bool 0'
+            expr: 'increase(vmagent_remotewrite_blocks_sent_total{url=~".*cloud.yandex.net.*"}[15m]) == bool 0'
             instant: true
             intervalMs: 1000
             maxDataPoints: 43200
