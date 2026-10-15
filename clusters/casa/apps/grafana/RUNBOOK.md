@@ -105,7 +105,7 @@ kubectl logs deploy/grafana-deployment -n monitoring --tail=200 | grep -i provis
 добраться до правила раньше, чем реестр плагинов datasource'а. Повтор
 проходит успешно, в устойчивом режиме ошибок нет. Если ошибка повторяется на
 каждом цикле — это уже не гонка старта, а отсутствие вложенного `datasource`
-в `model` (см. «Правила и пороги» в `README.md`).
+в `model` (см. «Правила» в `README.md`).
 
 **Правила вычисляются** — по таблице состояний в БД Grafana, а не по UI.
 Это единственная проверка, которая ловит правило, которое применилось, но
@@ -115,15 +115,22 @@ kubectl logs deploy/grafana-deployment -n monitoring --tail=200 | grep -i provis
 kubectl exec -i shared-1 -n databases -c postgres -- \
   psql -U postgres -d grafana -c \
   "SELECT count(*) AS evaluated,
-          count(*) FILTER (WHERE position('\x416c657274696e67' in data) > 0) AS firing
+          count(*) FILTER (WHERE position('\x416c657274696e67' in data) > 0) AS firing,
+          count(*) FILTER (WHERE position('\x4572726f72' in data) > 0) AS errored
      FROM alert_rule_state;"
 ```
 
-Ожидается `evaluated` = 14, `firing` — сколько правил сейчас в состоянии
-Alerting. Состояние лежит protobuf-блобом, поэтому читается поиском подстроки
-`Alerting` в hex; читаемой колонки нет. Расхождение с числом правил в
-наборе правил означает, что в Grafana попало лишнее (или потерялось нужное) —
-сверять надо с `SELECT count(*) FROM alert_rule`.
+Ожидается `evaluated`, равное числу правил в наборе, `firing` — сколько правил
+сейчас в состоянии Alerting, `errored` — сколько в состоянии Error. Состояние
+лежит protobuf-блобом, поэтому читается поиском подстроки `Alerting` в hex;
+читаемой колонки нет. Расхождение с числом правил в наборе означает, что в
+Grafana попало лишнее (или потерялось нужное) — сверять надо с
+`SELECT count(*) FROM alert_rule`.
+
+**Ненулевой `errored` означает, что правило не считается.** Сработать оно не
+сможет и об этом не уведомит: в UI оно выглядит созданным. Так выглядит
+выражение, которое не парсит приёмник, — ловушка с экранированием описана в
+README.
 
 **Ноль в `evaluated` означает, что ни одно правило не вычислилось** — при этом
 `alert_rule` в базе будет полной, а UI покажет созданные правила. Так выглядел

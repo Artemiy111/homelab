@@ -329,18 +329,34 @@ URL `https://ntfy.sh/<тема>?template=alertmanager`, а не только т�
 Вернуться к CR можно, если выполнить оба условия: завести в Vault путь с
 полным URL (`ntfy/url`) и не опускать лог оператора ниже `info`.
 
-### Правила и пороги
+### Правила
 
-Пороги подобраны под фактическую ёмкость тома VictoriaMetrics и измеренный темп
-роста данных; обе величины живут в манифестах юнита VictoriaMetrics и здесь не
-дублируются.
+Реестр правил: что какое правило означает и в какой группе живёт. Условия,
+пороги, `severity` и `for` здесь не дублируются — источник правды
+`manifests/alerts.yaml`, а соответствие реестра манифесту проверяет
+`scripts/alert-rules-docs.sh`.
 
-| uid | severity | Условие | `for` | Смысл |
-|---|---|---|---|---|
-| `vm-storage-read-only` | critical | `vm_storage_is_read_only == 1` | 1m | TSDB не принимает запись |
-| `vm-pending-rows-backlog` | warning | `max(vm_pending_rows) > 1e6` | 30m | очередь не сбрасывается на диск |
-| `scrape-target-down` | warning | `count by (job) (up == 0) > 0` | 10m | таргет отвечает, но метрики не читаются |
-| `monium-write-stalled` | warning | `increase(vmagent_remotewrite_blocks_sent_total{url=~".*cloud.yandex.net.*"}[15m]) == bool 0` | 15m | копия метрик в Monium не отправляется |
+| uid | Группа | Смысл |
+|---|---|---|
+| `vm-storage-read-only` | victoria-metrics | TSDB не принимает запись, новые метрики теряются |
+| `vm-pending-rows-backlog` | victoria-metrics | Очередь сброса на диск не разгружается — предвестник read-only |
+| `scrape-target-down` | victoria-metrics | Таргет отвечает, но метрики с него не читаются |
+| `pipeline-metrics-stalled` | victoria-metrics | Поток метрик в VictoriaMetrics остановился |
+| `pipeline-traces-stalled` | victoria-metrics | Поток трейсов в Tempo остановился |
+| `vmagent-data-loss` | victoria-metrics | vmagent выбрасывает данные из очереди |
+| `loki-active-streams-high` | victoria-metrics | Кардинальность Loki выросла выше привычной |
+| `monium-write-stalled` | victoria-metrics | Копия метрик в Monium не отправляется |
+| `logs-error-spike` | logs | Всплеск ошибок в логах приложений |
+| `logs-pipeline-stalled` | logs | Поток логов в Loki остановился |
+| `node-disk-low` | logs | Мало свободного места на корневом разделе узла |
+| `pvc-will-fill-in-3-days` | storage | По прогнозу том заполнится в ближайшие дни |
+| `pvc-low-free-space` | storage | Свободного места на томе меньше порога |
+| `certificate-expiring-in-14-days` | certificates | Срок сертификата подходит к концу |
+| `certificate-expired` | certificates | Сертификат истёк |
+
+Пороги группы `storage` подобраны под фактическую ёмкость тома VictoriaMetrics и
+измеренный темп роста данных; обе величины живут в манифестах юнита
+VictoriaMetrics и здесь не дублируются.
 
 Место на диске **не** проверяется отдельными правилами под VictoriaMetrics:
 это делает группа `storage` для всех PVC кластера разом — `pvc-low-free-space`
