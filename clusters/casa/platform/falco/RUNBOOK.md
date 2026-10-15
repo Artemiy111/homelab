@@ -51,15 +51,16 @@ kubectl delete pod falco-canary
 Ожидаемо: `Warning File execution detected from /dev/shm` с заполненными
 `k8s_pod_name=falco-canary`, `k8s_ns_name=default` и
 `container_image_repository=busybox`. Событие без метаданных pod'а — та же
-проблема плагина, что выше.
+проблема плагина, что выше. Если образа нет в кеше узла, событие придёт только
+после его загрузки: проверять с задержкой в минуту, а не одним заходом — иначе
+неудачная проверка выглядит как отсутствие детекта.
 
 ## Перевод ручного Helm-релиза под Argo
 
 Юнит рассчитан на то, что ресурсы namespace создаёт Argo, а не Helm. Если Falco
 оказался здесь после ручного `helm install`, порядок такой же, как в
 [`../argocd/RUNBOOK.md`](../argocd/RUNBOOK.md): применить `Application`,
-убедиться, что `argocd app diff falco` показывает только ожидаемое, синкнуть
-(серверный apply забирает владение объектами) и «забыть» Helm-релиз, чтобы
+посмотреть `argocd app diff falco`, синкнуть и «забыть» Helm-релиз, чтобы
 `helm upgrade` больше не конкурировал с Argo:
 
 ```sh
@@ -67,7 +68,25 @@ kubectl -n falco delete secret -l owner=helm,name=falco
 helm list -n falco
 ```
 
-Ожидаемо: `helm list` пуст, под и объекты на месте.
+Ожидаемо: `helm list` пуст, объекты на месте.
+
+Одного синка мало, и `Synced` после него ничего не доказывает. Helm 4 ставит
+объекты серверным apply, то есть объявленные им поля остаются за его field
+manager'ом; Argo применяет только свои поля, а в диффе чужие не показывает.
+Поэтому лишнее в живом объекте не исчезает: на этом стенде так остался
+init-контейнер `falco-driver-loader` от установки с `driver.kind: auto`, хотя
+состояние юнита его не содержит. Такой объект пересоздают — Argo вернёт его из
+манифеста сам:
+
+```sh
+kubectl -n falco delete ds falco
+kubectl -n falco get ds falco -o jsonpath='{.metadata.generation} {.spec.template.spec.initContainers[*].name}{"\n"}'
+```
+
+Ожидаемо: `generation` снова `1`, в init-контейнерах только
+`falcoctl-artifact-install`, и разошлось оно с манифестом только пересозданием.
+Так же стоит проверить остальные объекты релиза
+(`kubectl -n falco get all,cm,role,rolebinding,sa`).
 
 ## Обновление версии
 
