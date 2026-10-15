@@ -24,6 +24,13 @@ spec:
           args:
             - -promscrape.config=/etc/vmagent/scrape.yml
             - -remoteWrite.url=http://victoriametrics:8428/api/v1/write
+            - -remoteWrite.url=https://monitoring.api.cloud.yandex.net/prometheus/workspaces/monblfnu5416gjb9mgrg/api/v1/write
+            - -remoteWrite.showURL
+            - -remoteWrite.bearerTokenFile=,/etc/vmagent-monium/MONIUM_API_KEY
+            - -remoteWrite.urlRelabelConfig=,/etc/vmagent-remote-write/remote-write-relabel.yml
+            - -remoteWrite.streamAggr.dedupInterval=,5m
+            - -remoteWrite.disableMetadata=,true
+            - -remoteWrite.maxDiskUsagePerURL=0,2GiB
           ports:
             - name: http
               containerPort: 8429
@@ -132,7 +139,20 @@ spec:
             - name: scrape-config
               mountPath: /etc/vmagent
               readOnly: true
+            - name: remote-write-relabel
+              mountPath: /etc/vmagent-remote-write
+              readOnly: true
+            - name: monium-api-key
+              mountPath: /etc/vmagent-monium
+              readOnly: true
       volumes:
         - name: scrape-config
           configMap:
             name: vmagent-scrape
+        - name: remote-write-relabel
+          configMap:
+            name: vmagent-remote-write
+        - name: monium-api-key
+          secret:
+            secretName: vmagent-monium
+            optional: true

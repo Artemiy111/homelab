@@ -174,6 +174,8 @@ resource "vault_policy" "app_vmagent" {
     path "kv/metadata/navidrome/@monitoring/navidrome-metrics-path"        { capabilities = ["read", "list"] }
     path "kv/data/seafile/@monitoring/seafile-metrics-password"            { capabilities = ["read"] }
     path "kv/metadata/seafile/@monitoring/seafile-metrics-password"        { capabilities = ["read", "list"] }
+    path "kv/data/victoria-metrics/monium-api-key"                        { capabilities = ["read"] }
+    path "kv/metadata/victoria-metrics/monium-api-key"                    { capabilities = ["read", "list"] }
   EOT
 }
 

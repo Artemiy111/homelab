@@ -700,6 +700,92 @@ spec:
         description: >-
           Рост кардинальности — главный способ положить Loki: новый лейбл с высокой уникальностью в приложении создаёт поток серий. Проверить, какое приложение добавило лейблы.
         runbook: "clusters/casa/apps/loki/README.md"
+    - uid: monium-write-stalled
+      title: Копия метрик в Monium не отправляется
+      condition: C
+      data:
+        - refId: A
+          relativeTimeRange:
+            from: 900
+            to: 0
+          datasourceUid: victoriametrics
+          model:
+            datasource:
+              type: prometheus
+              uid: victoriametrics
+            editorMode: code
+            expr: 'increase(vmagent_remotewrite_blocks_sent_total{url=~".*api\.cloud\.yandex\.net.*"}[15m]) == bool 0'
+            instant: true
+            intervalMs: 1000
+            maxDataPoints: 43200
+            refId: A
+        - refId: B
+          relativeTimeRange:
+            from: 0
+            to: 0
+          datasourceUid: __expr__
+          model:
+            conditions:
+              - evaluator:
+                  params: []
+                  type: gt
+                operator:
+                  type: and
+                query:
+                  params:
+                    - A
+                reducer:
+                  params: []
+                  type: last
+                type: query
+            datasource:
+              type: __expr__
+              uid: __expr__
+            expression: A
+            intervalMs: 1000
+            maxDataPoints: 43200
+            reducer: last
+            refId: B
+            type: reduce
+        - refId: C
+          relativeTimeRange:
+            from: 0
+            to: 0
+          datasourceUid: __expr__
+          model:
+            conditions:
+              - evaluator:
+                  params:
+                    - 0
+                  type: gt
+                operator:
+                  type: and
+                query:
+                  params:
+                    - B
+                reducer:
+                  params: []
+                  type: last
+                type: query
+            datasource:
+              type: __expr__
+              uid: __expr__
+            expression: B
+            intervalMs: 1000
+            maxDataPoints: 43200
+            refId: C
+            type: threshold
+      noDataState: OK
+      execErrState: Error
+      for: 15m
+      isPaused: false
+      labels:
+        severity: warning
+      annotations:
+        summary: "vmagent не отправляет метрики в Yandex Monium"
+        description: >-
+          Облачная копия встала: за 15 минут ни одной отправленной пачки. Локальная запись в VictoriaMetrics обычно жива — проверять креды, доступность эндпоинта и квоты Monium по логам vmagent. Оператор `== bool` здесь обязателен: без него выражение возвращает значение счётчика (0), а не признак срабатывания, и правило не сработает никогда.
+        runbook: "clusters/casa/apps/victoria-metrics/RUNBOOK.md"
 ---
 # --- перенесено без изменений из config/alerting/logs.yaml ---
 #

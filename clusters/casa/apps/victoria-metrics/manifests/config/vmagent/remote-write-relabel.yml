@@ -1,0 +1,3 @@
+- action: keep
+  source_labels: [job]
+  regex: "node-exporter|kubelet|kube-state-metrics|longhorn|traefik|cert-manager|cert-manager-webhook|cert-manager-cainjector|gatus|uptime-kuma|victoriametrics|vmagent"

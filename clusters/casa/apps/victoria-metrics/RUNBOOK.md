@@ -17,6 +17,81 @@ curl --resolve vm.${DOMAIN}:443:<node1-ip> \
   https://vm.${DOMAIN}/
 ```
 
+## Копия в Monium
+
+Порядок шагов не влияет на доступность: том с ключом помечен `optional`, поэтому
+под vmagent стартует и без Secret — копия просто не отправляет данные, пока
+ключа нет, и это видно по алерту `monium-write-stalled`. Без `optional`
+отсутствующий Secret не дал бы поду встать, а `strategy: Recreate` остановил бы
+и локальный сбор метрик.
+
+1. Сервисный аккаунт с ролью `monitoring.editor` на каталог (её требует
+   инструкция Monium по remote write) и **API-ключ** к нему с областью действия
+   `yc.monium.metrics.write` — в консоли Yandex Cloud. Область действия там
+   обязательна, значения ключа показываются один раз. Статический ключ доступа и
+   авторизованный ключ не подходят: первый — для AWS-совместимых API, второй —
+   для обмена на IAM-токен.
+2. Ключ в Vault (ключ в теле запроса совпадает с именем файла в поде):
+
+```sh
+vault kv put kv/victoria-metrics/monium-api-key MONIUM_API_KEY=<api-ключ>
+```
+
+3. Политика `app/vmagent` (приватный слой):
+
+```sh
+cd infra/terraform/vault && terraform apply
+```
+
+4. Манифесты — обычным путём.
+
+Файл с ключом появляется в поде после того, как `VaultStaticSecret`
+синхронизируется с Vault. Если через пару минут файла всё ещё нет, под нужно
+перезапустить:
+
+```sh
+kubectl -n monitoring rollout restart deploy/vmagent
+```
+
+Проверка, что копия идёт:
+
+```sh
+kubectl -n monitoring exec deploy/vmagent -- wget -qO- 'http://127.0.0.1:8429/metrics' | \
+  grep -E '^vmagent_remotewrite_(blocks_sent_total|rows_pushed_after_relabel_total|relabel_metrics_dropped_total)'
+```
+
+Ожидаем: `blocks_sent_total` с облачным URL растёт, а
+`relabel_metrics_dropped_total` для него — большая часть потока: подмножество
+отсекается, это норма. Первые после включения строки могут появиться через
+пять минут работы дедупликации.
+
+```sh
+kubectl -n monitoring exec deploy/vmagent -- ls /etc/vmagent-monium
+```
+
+Ожидаем: файл `MONIUM_API_KEY`. Значение не печатать.
+
+Ротация ключа: выпустить новый, повторить `vault kv put`. Secret обновляется
+раз в час (`refreshAfter`), файл vmagent перечитывает раз в секунду — рестарт
+пода не нужен.
+
+Диагностика по коду ответа Monium (в логах vmagent и в
+`vmagent_remotewrite_requests_total` по лейблу `status_code`):
+
+| Код | Что значит |
+|---|---|
+| `401` | Ключ неверный, отозван или его область действия не подходит (ожидается `yc.monium.metrics.write`) |
+| `403` | У сервисного аккаунта нет `monitoring.editor` на каталог |
+| `404` | Неверный идентификатор воркспейса в URL |
+| `400` | Битый формат, в том числе больше 29 лейблов у метрики. Дропается молча — смотреть `vmagent_remotewrite_packets_dropped_total` |
+| `413` | Квота: больше 10 000 метрик в запросе или исчерпана квота уникальных рядов. Ретраится бесконечно, растёт очередь |
+| `429` | Превышена скорость записи, повторяется автоматически |
+
+Если растёт `vmagent_remotewrite_pending_data_bytes` по облачному URL, копия не
+успевает и очередь копится; при достижении `maxDiskUsagePerURL` vmagent начнёт
+выбрасывать старые данные копии. Локальная VictoriaMetrics и её данные от этого
+не страдают.
+
 ## Алёрты
 
 Правила живут в Grafana (группа `victoria-metrics`), доставляются в ntfy.
@@ -91,3 +166,17 @@ kubectl exec deploy/victoriametrics -n monitoring -- wget -qO- \
 отдельности: один и тот же образ экспортера, одна сетевая политика, один
 утёкший токен. Разовые обрывы лечатся увеличением `for` у правила, а не
 ослаблением селектора.
+
+### `monium-write-stalled`
+
+Копия метрик в Monium не отправила ни одной пачки дольше 15 минут. Локальная
+запись при этом обычно жива — правило следит только за облачным URL.
+
+```sh
+kubectl -n monitoring exec deploy/vmagent -- wget -qO- 'http://127.0.0.1:8429/metrics' | \
+  grep -E 'vmagent_remotewrite_(blocks_sent_total|requests_total|pending_data_bytes)'
+```
+
+Смотреть `status_code` в `vmagent_remotewrite_requests_total` по облачному URL и
+дальше — по таблице кодов в разделе «Копия в Monium». Лейбл `url` содержит
+адрес эндпоинта целиком, потому что vmagent запущен с `-remoteWrite.showURL`.
