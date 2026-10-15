@@ -1,0 +1,25 @@
+driver:
+  kind: modern_ebpf
+
+image:
+  tag: 0.45.1-rc1
+
+collectors:
+  containerEngine:
+    engines:
+      docker:
+        enabled: false
+      podman:
+        enabled: false
+      containerd:
+        enabled: false
+      cri:
+        sockets:
+          - /run/k0s/containerd.sock
+
+metrics:
+  enabled: true
+  interval: 1m
+
+webserver:
+  prometheus_metrics_enabled: true

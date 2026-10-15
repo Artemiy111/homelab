@@ -62,6 +62,7 @@ resources:
   - platform/cloudnative-pg/app.yaml
   - platform/dns01-webhook/app.yaml
   - platform/eck-operator/app.yaml
+  - platform/falco/app.yaml
   - platform/forgejo/app.yaml
   - platform/gateway-api/app.yaml
   - platform/grafana-operator/app.yaml

@@ -100,6 +100,11 @@ scrape_configs:
       - targets:
           - cert-manager-cainjector.cert-manager.svc.cluster.local:9402
 
+  - job_name: falco
+    static_configs:
+      - targets:
+          - falco-metrics.falco.svc.cluster.local:8765
+
   # Приложения, отдающие /metrics без аутентификации.
   - job_name: authentik
     static_configs:
