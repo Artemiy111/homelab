@@ -115,11 +115,11 @@ kubectl get pvc victoriametrics-vmdata -n monitoring
 
 ```sh
 kubectl patch pvc victoriametrics-vmdata -n monitoring -p \
-  '{"spec":{"resources":{"requests":{"storage":"16Gi"}}}}'
+  '{"spec":{"resources":{"requests":{"storage":"<новый размер, больше текущего>"}}}}'
 ```
 
-Если расширять некуда, снижать retention (см. «ёмкость не соответствует
-retention» в `README.md`): после смены `-retentionPeriod` нужен `kubectl rollout restart
+Если расширять некуда, снижать retention (см. «Ёмкость и retention» в
+`README.md`): после смены `-retentionPeriod` нужен `kubectl rollout restart
 deploy/victoriametrics`, и данные переживут перезапуск, но временный ряд
 станет короче.
 
