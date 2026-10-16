@@ -182,11 +182,11 @@ spec:
               type: RuntimeDefault
           resources:
             requests:
-              cpu: 100m
+              cpu: 30m
               memory: 512Mi
             limits:
-              cpu: "2"
-              memory: 2Gi
+              cpu: 500m
+              memory: 1224Mi
           volumeMounts:
             - name: shared
               mountPath: /shared

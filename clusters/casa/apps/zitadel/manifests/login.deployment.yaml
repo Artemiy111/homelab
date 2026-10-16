@@ -75,11 +75,11 @@ spec:
               type: RuntimeDefault
           resources:
             requests:
-              cpu: 50m
+              cpu: 35m
               memory: 128Mi
             limits:
-              cpu: "1"
-              memory: 256Mi
+              cpu: 60m
+              memory: 200Mi
           volumeMounts:
             - name: login-service-key
               mountPath: /login-service-key

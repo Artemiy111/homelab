@@ -80,11 +80,11 @@ spec:
               type: RuntimeDefault
           resources:
             requests:
-              cpu: 200m
+              cpu: 10m
               memory: 512Mi
             limits:
-              cpu: "2"
-              memory: 2Gi
+              cpu: 100m
+              memory: 750Mi
           volumeMounts:
             - name: config
               mountPath: /config

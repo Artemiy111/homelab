@@ -70,11 +70,11 @@ spec:
               type: RuntimeDefault
           resources:
             requests:
-              cpu: 200m
+              cpu: 50m
               memory: 512Mi
             limits:
-              cpu: "2"
-              memory: 2Gi
+              cpu: 500m
+              memory: 1Gi
           volumeMounts:
             - name: logs
               mountPath: /var/log/onlyoffice

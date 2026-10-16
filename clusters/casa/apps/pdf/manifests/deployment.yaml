@@ -98,8 +98,8 @@ spec:
               cpu: 10m
               memory: 896Mi
             limits:
-              cpu: 500m
-              memory: 1280Mi
+              cpu: 200m
+              memory: 1100Mi
           volumeMounts:
             - name: tessdata
               mountPath: /usr/share/tessdata

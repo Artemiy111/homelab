@@ -71,11 +71,11 @@ spec:
               type: RuntimeDefault
           resources:
             requests:
-              cpu: 100m
+              cpu: 10m
               memory: 384Mi
             limits:
-              cpu: "2"
-              memory: 2Gi
+              cpu: 100m
+              memory: 512Mi
           volumeMounts:
             - name: data
               mountPath: /usr/local/structurizr
