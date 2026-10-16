@@ -541,7 +541,7 @@ Linux-машин по SSH. Состоит из local plugin + Go stub на уд�
 
 ```
 ssh homelab
-cd /home/artlab/projects/homelab
+cd /home/ops/projects/homelab
 opencode   # или claude
 ```
 
@@ -725,7 +725,7 @@ ssh-keygen -t ed25519 -f ~/temp-keys/ai-agent-key -C "ai-agent-$(date +%Y%m%d)"
 
 ### Текущее состояние
 
-- SSH alias: `homelab` (<node1-ip>, user `artlab`)
+- SSH alias: `homelab` (<node1-ip>, user `ops`)
 - zsh (POSIX) shell, SELinux enforcing, Docker без sudo
 - Git-based deployment: local commit → push → `git pull --ff-only` on server
 - OpenCode доступен (terminal agent)
@@ -765,7 +765,7 @@ ssh-copy-id -i ~/.ssh/ai-agent-key.pub ai-agent@homelab
 
 # 4. Ограничить в authorized_keys (на сервере)
 # Добавить в ~/.ssh/authorized_keys пользователя ai-agent:
-command="cd /home/artlab/projects/homelab && bash -lc \"$SSH_ORIGINAL_COMMAND\"",no-port-forwarding,no-X11-forwarding ssh-ed25519 ...
+command="cd /home/ops/projects/homelab && bash -lc \"$SSH_ORIGINAL_COMMAND\"",no-port-forwarding,no-X11-forwarding ssh-ed25519 ...
 ```
 
 ### OpenCode remote setup (для удалённого доступа к OpenCode с phone/laptop)

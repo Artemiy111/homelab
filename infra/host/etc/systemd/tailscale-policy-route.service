@@ -1,6 +1,5 @@
 [Unit]
 Description=Tailscale policy routing: route tailnet destinations via table 52
-Documentation=file:/home/artlab/projects/homelab/docs/troubleshot/tailscale-k8s-ingress-access.md
 After=network-online.target tailscaled.service
 Wants=network-online.target
 PartOf=tailscaled.service

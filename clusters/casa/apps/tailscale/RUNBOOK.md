@@ -2,10 +2,16 @@
 
 ## Подключение сервера
 
-На сервере из корня репозитория выполнить:
+Скрипт ставит Tailscale на узел и читает файл репозитория
+(`99-tailscale.conf`), поэтому запускается с контроллера (macOS): файлы
+копируются во временный каталог на узле с сохранением раскладки `apps/tailscale/`,
+затем скрипт идёт под sudo.
 
 ```sh
-sudo bash clusters/casa/apps/tailscale/setup.sh
+ssh homelab 'mkdir -p /tmp/homelab-bootstrap/apps/tailscale'
+scp clusters/casa/apps/tailscale/setup.sh clusters/casa/apps/tailscale/99-tailscale.conf \
+  homelab:/tmp/homelab-bootstrap/apps/tailscale/
+ssh -t homelab 'cd /tmp/homelab-bootstrap && LAN_CIDR=<node1-lan-cidr> sudo -E bash apps/tailscale/setup.sh'
 ```
 
 Команда выведет ссылку для входа. После авторизации открыть страницу
@@ -31,7 +37,7 @@ sudo tailscale set --accept-routes
 
 ```sh
 tailscale ping homelab
-ssh artlab@homelab
+ssh ops@homelab
 dig +short uptime.example.com A   # ожидается <node1-ip>
 curl -I https://dns.example.com/
 ```

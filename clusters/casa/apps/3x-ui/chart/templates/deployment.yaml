@@ -51,7 +51,7 @@ spec:
             allowPrivilegeEscalation: false
             capabilities:
               drop: ["ALL"]
-              # root без DAC_OVERRIDE не пишет в 0700-каталоги artlab.
+              # root без DAC_OVERRIDE не пишет в 0700-каталоги ops.
               add: ["DAC_OVERRIDE", "CHOWN", "FOWNER"]
             seccompProfile:
               type: RuntimeDefault

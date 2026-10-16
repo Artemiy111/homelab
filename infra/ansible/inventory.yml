@@ -1,7 +1,10 @@
 ---
-# Инвентарь: плейбук запускается прямо на сервере homelab,
-# поэтому подключение локальное (без SSH в самого себя).
+# Инвентарь: контроллер — macOS, узлы — цели по SSH.
+# Адрес, пользователь и ключ узла берутся из ~/.ssh/config по алиасу `homelab`
+# (HostName + IdentityFile), поэтому здесь заданы только имя хоста и группа.
 all:
-  hosts:
-    homelab:
-      ansible_connection: local
+  children:
+    nodes:
+      hosts:
+        homelab:
+          ansible_user: ops

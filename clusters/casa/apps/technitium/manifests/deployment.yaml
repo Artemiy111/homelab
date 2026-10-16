@@ -76,7 +76,7 @@ spec:
             capabilities:
               drop: ["ALL"]
               # NET_BIND_SERVICE — порт 53 <1024 под root с drop ALL.
-              # DAC_OVERRIDE/CHOWN/FOWNER — запись в 0750-каталоги artlab.
+              # DAC_OVERRIDE/CHOWN/FOWNER — запись в 0750-каталоги ops.
               add: ["NET_BIND_SERVICE", "DAC_OVERRIDE", "CHOWN", "FOWNER"]
             seccompProfile:
               type: RuntimeDefault

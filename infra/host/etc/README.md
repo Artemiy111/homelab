@@ -5,28 +5,28 @@
 
 ## Развёртывание
 
-Предпочтительный способ — через Ansible:
+Предпочтительный способ — через Ansible с контроллера (macOS):
 
 ```sh
-cd infra/ansible && ansible-playbook host.yml
+cd infra/ansible && ansible-playbook host.yml --ask-become-pass
 ```
 
-Альтернативно (вручную, для отладки):
+Альтернативно (вручную, для отладки) — с контроллера: файл берётся из рабочей
+копии репозитория и уходит на узел через SSH.
 
 ```bash
-# На сервере (от root или через sudo):
-sudo cp /home/artlab/projects/homelab/infra/host/etc/docker/daemon.json /etc/docker/daemon.json
-sudo cp /home/artlab/projects/homelab/infra/host/etc/dnf/automatic.conf /etc/dnf/automatic.conf
-sudo cp /home/artlab/projects/homelab/infra/host/etc/fail2ban/jail.local /etc/fail2ban/jail.local
-sudo cp /home/artlab/projects/homelab/infra/host/etc/systemd/tailscale-policy-route.service /etc/systemd/system/
-sudo cp /home/artlab/projects/homelab/infra/host/etc/sysctl.d/99-inotify.conf /etc/sysctl.d/99-inotify.conf
+ssh homelab 'sudo tee /etc/docker/daemon.json' < infra/host/etc/docker/daemon.json
+ssh homelab 'sudo tee /etc/dnf/automatic.conf' < infra/host/etc/dnf/automatic.conf
+ssh homelab 'sudo tee /etc/fail2ban/jail.local' < infra/host/etc/fail2ban/jail.local
+ssh homelab 'sudo tee /etc/systemd/system/tailscale-policy-route.service' < infra/host/etc/systemd/tailscale-policy-route.service
+ssh homelab 'sudo tee /etc/sysctl.d/99-inotify.conf' < infra/host/etc/sysctl.d/99-inotify.conf
 
-sudo systemctl restart docker
-sudo systemctl enable --now dnf-automatic.timer
-sudo systemctl enable --now fail2ban
-sudo systemctl daemon-reload
-sudo systemctl enable --now tailscale-policy-route.service
-sudo sysctl --system
+ssh homelab 'sudo systemctl restart docker'
+ssh homelab 'sudo systemctl enable --now dnf-automatic.timer'
+ssh homelab 'sudo systemctl enable --now fail2ban'
+ssh homelab 'sudo systemctl daemon-reload'
+ssh homelab 'sudo systemctl enable --now tailscale-policy-route.service'
+ssh homelab 'sudo sysctl --system'
 ```
 
 ## Состав

@@ -1,5 +1,5 @@
 # ============================================================
-#  zsh — минимальный конфиг для homelab (artlab)
+#  zsh — минимальный конфиг для homelab (ops)
 #  ~/.zshrc читается каждой интерактивной сессией zsh
 # ============================================================
 
@@ -67,11 +67,11 @@ alias gp='git pull --ff-only'
 alias gc='git clone'
 
 # bun completions
-[ -s "/home/artlab/.bun/_bun" ] && source "/home/artlab/.bun/_bun"
+[ -s "/home/ops/.bun/_bun" ] && source "/home/ops/.bun/_bun"
 
 # kubectl (через k0s; автодополнение kubectl невозможно — k0s-сборка
 # не имеет внутренней команды __complete, нужной zsh-скрипту completion)
-export KUBECONFIG=/home/artlab/.kube/config
+export KUBECONFIG=/home/ops/.kube/config
 alias kubectl='k0s kubectl'
 alias k='kubectl'
 

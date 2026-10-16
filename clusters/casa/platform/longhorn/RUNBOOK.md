@@ -3,10 +3,10 @@
 ## Установка
 
 ```sh
-# 1. Подготовка узла (idempotent; сначала dry-run)
-cd /home/artlab/projects/homelab/ansible
-ansible-playbook host.yml --check --diff
-ansible-playbook host.yml
+# 1. Подготовка узла (idempotent; сначала dry-run), с контроллера — macOS
+cd infra/ansible
+ansible-playbook host.yml --check --diff --ask-become-pass
+ansible-playbook host.yml --ask-become-pass
 
 # 2. CSI-снапшоты (CRD + контроллер) — до того, как понадобится первый snapshot
 kubectl apply -f clusters/casa/platform/snapshot-controller/app.yaml

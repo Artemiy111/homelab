@@ -74,7 +74,7 @@ spec:
             capabilities:
               drop: ["ALL"]
               # NET_RAW — пассивный DHCP discovery/ICMP; DAC_OVERRIDE — запись
-              # в artlab-owned маунты /config без подгона владельцев под root.
+              # в ops-owned маунты /config без подгона владельцев под root.
               add: ["NET_RAW", "DAC_OVERRIDE"]
             seccompProfile:
               type: RuntimeDefault

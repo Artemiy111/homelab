@@ -8,10 +8,10 @@
 
 | Файл | Назначение |
 | --- | --- |
-| `inventory.yml` | Один хост `homelab` с локальным подключением (запуск на самом сервере) |
+| `inventory.yml` | Хосты: группа `nodes`, узел `homelab`; подключение по SSH с контроллера |
 | `group_vars/all.yml` | Общие переменные (`repo_root`); грузится автоматически для группы `all` |
 | `host.yml` | Плейбук хоста: список ролей, без задач |
-| `artlab.yml` | Плейбук: домашний каталог `artlab` (dotfiles) |
+| `ops.yml` | Плейбук: домашний каталог `ops` (dotfiles) |
 | `agent.yml` | Плейбук: пользователь `ai-agent` и его окружение |
 | `roles/` | Роли, по одной на зону ответственности (таблица ниже) |
 | `ansible.cfg` | Настройки по умолчанию (инвентарь, `roles_path`, читаемый вывод) |
@@ -31,7 +31,7 @@
 | `longhorn_prereqs` | `iscsid`, каталог данных, SELinux-модуль |
 | `k0s_config` | `ClusterConfig` k0s в `/etc/k0s/k0s.yaml`, рестарт `k0scontroller` |
 | `ai_agent` | Пользователь `ai-agent`: dotfiles, `authorized_keys`, sudoers |
-| `artlab` | Домашний каталог `artlab`: dotfiles из `infra/dotfiles/` |
+| `ops` | Домашний каталог `ops`: dotfiles из `infra/dotfiles/` |
 
 Параметры каждой роли — в её `roles/<имя>/defaults/main.yml`, задачи — в
 `tasks/`, перезапуски сервисов — в `handlers/`. Переменные и `register` внутри
@@ -41,15 +41,16 @@ Ansible единое глобальное пространство имён пе
 системных конфигов — каталог `infra/host/etc/`: роли копируют оттуда по
 `{{ repo_root }}/infra/host/etc/...`.
 
-## Запуск (на сервере homelab)
+## Запуск (с контроллера — macOS)
 
-Плейбуки выполняются на самом сервере от `artlab`:
+Ansible запускается с macOS: контроллер — рабочая копия репозитория, узлы
+кластера — цели по SSH (см. `inventory.yml`). Из корня репозитория:
 
 ```sh
-cd /home/artlab/projects/homelab/infra/ansible
+cd infra/ansible
 
-ansible-playbook artlab.yml    # dotfiles в домашний каталог, без sudo
-ansible-playbook host.yml      # подготовка хоста, нужен sudo
+ansible-playbook ops.yml       # dotfiles в домашний каталог, без sudo
+ansible-playbook host.yml      # подготовка узла, нужен sudo
 ansible-playbook agent.yml     # окружение ai-agent, нужен sudo
 ```
 
@@ -61,8 +62,8 @@ ansible-playbook agent.yml     # окружение ai-agent, нужен sudo
 ansible-playbook host.yml --ask-become-pass
 ```
 
-`artlab.yml` `become` не использует: он пишет в домашний каталог владельца
-из `artlab`, поэтому пароль не спрашивается.
+`ops.yml` `become` не использует: он пишет в домашний каталог владельца
+из `ops`, поэтому пароль не спрашивается.
 
 ## Доставка dotfiles
 
@@ -71,9 +72,9 @@ Dotfiles копируются из `{{ repo_root }}/infra/dotfiles/` в дома
 зависимым от того, где лежит репозиторий: переезд каталога в другую локацию
 оставляет пользователя с битыми файлами, а копия от этого не зависит.
 
-Цена решения: `git pull` на сервере сам по себе домашний каталог не
-обновляет, после него нужен прогон плейбука. Локальные правки файлов на
-сервере перезаписываются прогоном — источник правды один.
+Цена решения: `git pull` на контроллере сам по себе домашний каталог не
+обновляет, после него нужен прогон плейбука. Правки файлов прямо на узле
+перезаписываются прогоном — источник правды один.
 
 | Файл | Права | Проверка перед записью |
 |---|---|---|
@@ -105,7 +106,7 @@ ansible-playbook host.yml --list-tags
 ```sh
 ansible-playbook host.yml --check --diff --ask-become-pass
 ansible-playbook agent.yml --check --diff --ask-become-pass
-ansible-playbook artlab.yml --check --diff
+ansible-playbook ops.yml --check --diff
 ```
 
 ## Окружение ai-agent (`agent.yml`)
@@ -113,7 +114,7 @@ ansible-playbook artlab.yml --check --diff
 Роль `ai_agent` создаёт пользователя `ai-agent` (zsh, домашний каталог `0700`),
 копирует `.zshrc` из `infra/dotfiles/ai-agent/` (перед записью снимает симлинк
 на этом пути, если он есть), копирует `authorized_keys` (`0600`) и рендерит
-`/etc/sudoers.d/ai-agent` (`NOPASSWD: sudo -u artlab`) из шаблона
+`/etc/sudoers.d/ai-agent` (`NOPASSWD: sudo -u ops`) из шаблона
 `templates/sudoers.j2` с проверкой через `visudo`.
 
 Параметры роли (`ai_agent_user`, `ai_agent_sudo_runas`, шелл, список dotfiles) —
@@ -135,8 +136,8 @@ ansible-playbook artlab.yml --check --diff
   `kubectl-cnpg`.
 - Новый системный конфиг — файл в `infra/host/etc/`, отдельная роль, копирующая его по
   `{{ repo_root }}/infra/host/etc/...`, при необходимости handler на перезапуск сервиса.
-- Новый dotfile пользователя `artlab` — запись в `artlab_managed_files`
-  (`roles/artlab/defaults/main.yml`): путь источника, путь назначения, права и
+- Новый dotfile пользователя `ops` — запись в `ops_managed_files`
+  (`roles/ops/defaults/main.yml`): путь источника, путь назначения, права и
   необязательная команда проверки. Для `ai-agent` — в `ai_agent_dotfiles`
   (`roles/ai_agent/defaults/main.yml`), там права фиксированы в `0600`.
 

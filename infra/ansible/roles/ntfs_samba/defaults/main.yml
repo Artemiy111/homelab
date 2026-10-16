@@ -38,7 +38,7 @@ ntfs_samba_volumes:
 # переживает переподключение без переразметки.
 ntfs_samba_selinux_context: "system_u:object_r:samba_share_t:s0"
 
-# Владелец файлов на томах. 1000 — artlab; Samba работает от этого же
+# Владелец файлов на томах. 1000 — ops; Samba работает от этого же
 # пользователя, иначе клиент получает файлы, которые не может удалить.
 ntfs_samba_owner_uid: 1000
 ntfs_samba_owner_gid: 1000

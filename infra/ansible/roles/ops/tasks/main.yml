@@ -1,14 +1,14 @@
 ---
-# Домфайлы artlab копируются из репозитория тем же git-процессом, что и
+# Домфайлы ops копируются из репозитория тем же git-процессом, что и
 # остальная конфигурация хоста. Роль идемпотентна: файлы, совпадающие с
 # источником, повторный прогон не трогает.
 
 - name: Ограничить доступ к ~/.ssh
   ansible.builtin.file:
-    path: "{{ artlab_home }}/.ssh"
+    path: "{{ ops_home }}/.ssh"
     state: directory
-    owner: "{{ artlab_user }}"
-    group: "{{ artlab_group }}"
+    owner: "{{ ops_user }}"
+    group: "{{ ops_group }}"
     mode: "0700"
 
 # Симлинк на пути dotfiles удаляется до копирования: иначе запись уходит по
@@ -16,16 +16,16 @@
 - name: Собрать состояние управляемых файлов
   ansible.builtin.stat:
     path: "{{ item.dest }}"
-  loop: "{{ artlab_managed_files }}"
+  loop: "{{ ops_managed_files }}"
   loop_control:
     label: "{{ item.dest }}"
-  register: artlab_managed_stat
+  register: ops_managed_stat
 
 - name: Убрать симлинки на путях управляемых файлов
   ansible.builtin.file:
     path: "{{ item.stat.path }}"
     state: absent
-  loop: "{{ artlab_managed_stat.results }}"
+  loop: "{{ ops_managed_stat.results }}"
   loop_control:
     label: "{{ item.stat.path }}"
   when: item.stat.islnk | default(false)
@@ -36,10 +36,10 @@
   ansible.builtin.copy:
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
-    owner: "{{ artlab_user }}"
-    group: "{{ artlab_group }}"
+    owner: "{{ ops_user }}"
+    group: "{{ ops_group }}"
     mode: "{{ item.mode }}"
     validate: "{{ item.validate | default(omit) }}"
-  loop: "{{ artlab_managed_files }}"
+  loop: "{{ ops_managed_files }}"
   loop_control:
     label: "{{ item.dest }}"

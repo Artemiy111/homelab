@@ -1,7 +1,7 @@
 # Доступ агентов к серверу
 
-Инструкция для работы с домашним сервером без расхождения локальной и серверной
-копий репозитория.
+Инструкция для работы с домашним сервером. Рабочая копия репозитория одна — на
+macOS; на сервере её нет.
 
 ## Модель доступа
 
@@ -12,24 +12,25 @@
 ходить по SSH ради них не нужно.
 
 **Сервер** доступен по SSH от имени пользователя **`ai-agent`** — это
-изолированный аккаунт: домашний каталог `artlab` (а с ним репозиторий и
-приватные ключи) ему недоступен. Всё, что лежит на диске сервера,
-выполняется от имени **`artlab`** через `sudo -u artlab` (пароль не требуется).
-Перед записью агент запрашивает разрешение пользователя.
+изолированный аккаунт: домашний каталог `ops` (а с ним приватные ключи) ему
+недоступен. Всё, что лежит на диске сервера, выполняется от имени **`ops`**
+через `sudo -u ops` (пароль не требуется). Перед записью агент запрашивает
+разрешение пользователя.
 
 | Сценарий | Канал | Команда |
 |---|---|---|
 | Кластер: `kubectl`, `argocd`, состояние подов и ресурсов | macOS | `KUBECONFIG=~/.kube/configs/homelab.yaml kubectl …` |
 | Рендер и apply чартов, чьи values в git | macOS | `helm template … \| kubectl apply -f -` |
+| `terraform` | macOS | запуск в рабочей копии репозитория |
+| `ansible` (host, dotfiles, `ai-agent`) | macOS | `cd infra/ansible && ansible-playbook …` |
 | Проверки хоста: DNS с узла, `systemctl`, `tailscale` | SSH | `ssh homelab-agent` |
-| Приватный слой: `terraform`, ключи `artlab` | SSH | `sudo -u artlab bash -lc "…"` |
 
 Правило выбора: **если проверку можно сделать через API-сервер — делать её с
 macOS, без SSH.** SSH нужен только для того, что через API не видно: состояние
 юнитов systemd, `k0s status` (нужен root), резолв DNS с самого узла, `curl` с
-узла, состояние Tailscale, файлы репозитория и приватный слой.
+узла, состояние Tailscale и файлы на диске сервера.
 
-`sudo` у `ai-agent` ограничен только запуском команд от `artlab` (`NOPASSWD`);
+`sudo` у `ai-agent` ограничен только запуском команд от `ops` (`NOPASSWD`);
 root-прав у агента нет.
 
 ## Подключение
@@ -37,7 +38,7 @@ root-прав у агента нет.
 ### Кластер с macOS
 
 Kubeconfig: `~/.kube/configs/homelab.yaml`, контекст `k0s`. Права те же, что у
-`artlab` на сервере, — отдельного sudo не нужно. Чтобы не писать префикс в
+`ops` на сервере, — отдельного sudo не нужно. Чтобы не писать префикс в
 каждой команде:
 
 ```sh
@@ -50,23 +51,22 @@ Kubeconfig не в `~/.kube/config` намеренно: там лежат дру
 
 ### Сервер по SSH
 
-- SSH alias для artlab: `homelab`.
-- SSH alias для ai-agent: `homelab-agent`.
+- SSH alias для `ops`: `homelab`.
+- SSH alias для `ai-agent`: `homelab-agent`.
 - LAN-адрес: `<node1-ip>`.
 - Операционная система: Fedora Server 44.
-- Основной пользователь сервера: `artlab`.
+- Основной пользователь сервера: `ops`.
 - Пользователь агента: `ai-agent`.
-- Репозиторий на сервере: `/home/artlab/projects/homelab` (для `ai-agent` не
-  читается — работать с ним только через `sudo -u artlab`).
+- Чекаута репозитория на сервере нет: `git pull` и Ansible выполняются на macOS.
 - Постоянные данные: `/storage` (`apps`, `media`, `backups`).
 - Кластер: k0s, systemd unit `k0scontroller.service`. `k0s status` требует root.
 
 ## Команды для пользователя
 
-Пользователь обычно уже подключён к серверу как `artlab`. Поэтому в ответах,
+Пользователь обычно уже подключён к серверу как `ops`. Поэтому в ответах,
 предназначенных для ручного выполнения пользователем, ВСЕГДА давать только чистую
 команду для текущей оболочки: без `ssh homelab-agent`, `ssh homelab`,
-`sudo -u artlab bash -lc` и иной обвязки агента. Обёртки из этого документа
+`sudo -u ops bash -lc` и иной обвязки агента. Обёртки из этого документа
 нужны только когда команду выполняет сам агент через SSH.
 
 Оба канала требуют маршрута в домашнюю сеть. Перед любой записью сначала
@@ -80,17 +80,10 @@ KUBECONFIG=~/.kube/configs/homelab.yaml kubectl get nodes
 ssh homelab-agent 'hostname; systemctl is-active k0scontroller'
 ```
 
-Состояние рабочей копии на сервере — это SSH, на диске сервера (от `artlab`,
-только чтение):
-
-```sh
-ssh homelab-agent 'sudo -u artlab bash -lc "cd /home/artlab/projects/homelab && git status --short && git log -1 --oneline"'
-```
-
 ## Единственный процесс доставки
 
-Источником отслеживаемых изменений является рабочая копия на macOS. Правки
-попадают в `main` только через PR: ветка защищена, прямой push отклоняется
+Рабочая копия репозитория одна — на macOS. Правки попадают в `main` только
+через PR: ветка защищена, прямой push отклоняется
 (`docs/agents/commit-conventions.md`, `docs/agents/issue-tracker.md`). Порядок
 всегда следующий:
 
@@ -99,30 +92,18 @@ ssh homelab-agent 'sudo -u artlab bash -lc "cd /home/artlab/projects/homelab && 
 3. Проверить diff, манифесты и отсутствие секретов в открытом виде.
 4. Создать локальный commit в ветке дерева.
 5. Выполнить push ветки и merge PR в `main` (squash).
-6. На сервере выполнить `git checkout main` и `git pull --ff-only`.
-7. Применить затронутые манифесты (`kubectl apply`).
-8. Прогнать Ansible, если затронуты файлы хоста или dotfiles: `git pull`
-   обновляет репозиторий, но не копии в системные каталоги и домашний
-   каталог (`artlab.yml` — dotfiles, `host.yml` — системные конфиги,
-   `agent.yml` — окружение `ai-agent`).
-9. Проверить состояние подов, DNS, HTTP и логи.
-
-Сервер держит `main`: `git pull --ff-only origin main` без checkout, пока он
-не переключён на другую ветку, приведёт к отказу — историю `main` двигают
-только fast-forward.
-
-Команда обновления сервера:
-
-```sh
-ssh homelab-agent 'sudo -u artlab bash -lc "cd /home/artlab/projects/homelab && git checkout main && git pull --ff-only origin main"'
-```
+6. Кластер подхватывает изменение через Argo CD сам; что Argo не
+   синхронизирует, применить руками с macOS (см. «Применение манифестов»).
+7. Прогнать Ansible с macOS, если затронуты файлы узла или dotfiles
+   (`ops.yml` — dotfiles, `host.yml` — системные конфиги, `agent.yml` —
+   окружение `ai-agent`); на сервере плейбуки не запускаются.
+8. Проверить состояние подов, DNS, HTTP и логи.
 
 Запрещено:
 
-- редактировать отслеживаемые файлы непосредственно на сервере;
-- переносить отслеживаемые файлы между рабочими копиями через `rsync` или `scp`;
-- выполнять `git pull` при грязной серверной рабочей копии, не выяснив источник
-  изменений;
+- редактировать отслеживаемые файлы на сервере и держать там рабочую копию
+  репозитория (разовые bootstrap-скрипты копируются на узел только на время
+  запуска);
 - переписывать опубликованную историю для исправления развёртывания;
 - применять `git reset --hard`, `git clean` или удаление данных без явного
   разрешения пользователя.
@@ -148,8 +129,7 @@ VaultStaticSecret и destination Secret показывают только име
 2. Если меняется набор ключей или путь — обновить `VaultStaticSecret`,
    `deployment` и policy в `infra/terraform/vault/policies/`, затем выполнить
    `terraform apply` в `infra/terraform/`.
-3. Доставить через `git pull --ff-only` по схеме из «Единственный процесс
-   доставки».
+3. Доставить через merge в `main` по схеме из «Единственный процесс доставки».
 
 VSO перечитывает значение по `refreshAfter` (1 час). Форсировать
 перечитывание, не удаляя CR: удаление сносит и destination Secret, значение
@@ -176,12 +156,8 @@ KUBECONFIG=~/.kube/configs/homelab.yaml kubectl -n <ns> get vaultstaticsecret -o
 ## Kubernetes и права
 
 `kubectl` на macOS работает с `KUBECONFIG=~/.kube/configs/homelab.yaml` и имеет
-те же права, что `artlab` на сервере. `helm` и `argocd` на macOS
-тоже стоят.
-
-Серверные `kubectl` и `helm` (`/usr/local/sbin/kubectl`) остаются для сценариев,
-где команда идёт вместе с `git pull` и `helm template` в одной оболочке
-`artlab`. Приватный слой — только на сервере, ключи лежат там.
+те же права, что `ops` на сервере. `helm` и `argocd` на macOS тоже стоят; там же
+лежит и приватный слой (`terraform`, state).
 
 SELinux находится в режиме enforcing, firewalld включён. Не отключать их ради
 обхода ошибок доступа.
@@ -192,32 +168,32 @@ SELinux находится в режиме enforcing, firewalld включён. 
 пользователь или не то экранирование, а не доступы на сервере.
 
 **1. Не ходить по SSH ради того, что видно через API.** `kubectl get pods` с
-macOS и `kubectl get pods` через `sudo -u artlab bash -lc` дают одинаковый
-результат. Второй способ нужен только когда в той же команде участвует
-`git pull`, `helm template` или приватный файл.
+macOS и `kubectl get pods` через `sudo -u ops bash -lc` дают одинаковый
+результат. Второй способ нужен только когда команда трогает файлы на диске
+сервера или приватные ключи `ops`.
 
-**2. `sudo -u artlab` нужен на каждую команду целиком.** Пустая передача
-`bash -s` в ssh выполняется от `ai-agent`: доступ к репозиторию и приватным
-ключам `artlab` упадёт с `Permission denied`. Нельзя смешивать уровни — либо
-вся команда внутри `sudo -u artlab bash -lc "…"`, либо она от `ai-agent` и не
-трогает ресурсы `artlab`.
+**2. `sudo -u ops` нужен на каждую команду целиком.** Пустая передача
+`bash -s` в ssh выполняется от `ai-agent`: доступ к приватным ключам `ops`
+упадёт с `Permission denied`. Нельзя смешивать уровни — либо вся команда
+внутри `sudo -u ops bash -lc "…"`, либо она от `ai-agent` и не трогает ресурсы
+`ops`.
 
 ```sh
 # Плохо: только часть обёрнута, остаток уйдёт от ai-agent.
-ssh homelab-agent 'sudo -u artlab bash -lc "git pull" && cat ~/.ssh/id_ed25519'
+ssh homelab-agent 'sudo -u ops bash -lc "ls ~/.ssh" && cat ~/.ssh/config'
 
-# Хорошо: единая оболочка artlab.
-ssh homelab-agent 'sudo -u artlab bash -lc "cd /home/artlab/projects/homelab && git pull && kubectl get pods"'
+# Хорошо: единая оболочка ops.
+ssh homelab-agent 'sudo -u ops bash -lc "ls ~/.ssh && cat ~/.ssh/config"'
 ```
 
 **3. Многострочный ввод — через stdin, а не через вложенные кавычки.** В
-`ssh '…'` уже занят один слой одинарных кавычек, внутри `sudo -u artlab bash -lc
+`ssh '…'` уже занят один слой одинарных кавычек, внутри `sudo -u ops bash -lc
 "…"` — второй; текст со своими кавычками превращается в кашу из экранирований,
 а двойные кавычки становятся идентификаторами (`column "pg_catalog" does not
 exist`). Если строк несколько или внутри есть кавычки — передавать их на stdin:
 
 ```sh
-ssh homelab-agent 'sudo -u artlab bash -lc "kubectl exec -i POD -c postgres -- psql -U postgres -d db"' <<'SQL'
+ssh homelab-agent 'sudo -u ops bash -lc "kubectl exec -i POD -c postgres -- psql -U postgres -d db"' <<'SQL'
 select count(*) from pg_tables;
 SQL
 ```
@@ -225,7 +201,7 @@ SQL
 Тот же приём для файлов: инструменту, читающему stdin, данные передаются
 перенаправлением, а не аргументом командной строки.
 
-Для команд, требующих доступа от `artlab`, сначала выполнить доступные
+Для команд, требующих доступа от `ops`, сначала выполнить доступные
 read-only проверки локально через kubectl, затем запросить разрешение
 пользователя:
 
@@ -251,12 +227,11 @@ KUBECONFIG=~/.kube/configs/homelab.yaml kubectl apply -k clusters/casa/apps/graf
 ```
 
 Ручной `kubectl apply` нужен для маршрута, который Argo не синхронизирует
-(см. таблицу ниже), и когда Argo ещё не подхватил коммит. Тогда команда идёт
-на сервере, в оболочке `artlab`, потому что файлы берутся из серверной копии
-репозитория:
+(см. таблицу ниже), и когда Argo ещё не подхватил коммит. Команда идёт с macOS
+из рабочей копии репозитория:
 
 ```sh
-ssh homelab-agent 'sudo -u artlab bash -lc "cd /home/artlab/projects/homelab && kubectl apply -f clusters/casa/platform/argocd/route.yaml"'
+KUBECONFIG=~/.kube/configs/homelab.yaml kubectl apply -f clusters/casa/platform/argocd/route.yaml
 ```
 
 Чарта `platform/homelab` больше нет: он распущен на `platform/traefik` и
@@ -309,7 +284,7 @@ kubectl -n argocd get application -o \
 `platform/forgejo` и `platform/vault`.
 
 ```sh
-ssh homelab-agent 'sudo -u artlab bash -lc "cd /home/artlab/projects/homelab && kubectl apply -f clusters/casa/platform/argocd/route.yaml"'
+KUBECONFIG=~/.kube/configs/homelab.yaml kubectl apply -f clusters/casa/platform/argocd/route.yaml
 ```
 
 Проверить, что маршрут из git действительно применён:

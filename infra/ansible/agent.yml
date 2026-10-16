@@ -1,12 +1,12 @@
 ---
 # Плейбук: пользователь ai-agent и его окружение.
-# Запуск на сервере homelab:
-#   cd /home/artlab/projects/homelab/infra/ansible && ansible-playbook agent.yml
+# Запуск с контроллера — macOS, из каталога infra/ansible:
+#   ansible-playbook agent.yml --ask-become-pass
 # Dry-run (ничего не меняет):
-#   ansible-playbook agent.yml --check --diff
+#   ansible-playbook agent.yml --check --diff --ask-become-pass
 
 - name: Окружение пользователя ai-agent
-  hosts: homelab
+  hosts: nodes
   become: true
   gather_facts: false
   roles:

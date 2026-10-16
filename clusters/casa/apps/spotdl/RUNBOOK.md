@@ -2,26 +2,31 @@
 
 ## Подготовка и импорт
 
-На сервере один раз создайте доступные для записи каталоги:
+На узле один раз создайте доступные для записи каталоги:
 
 ```sh
-mkdir -p ${APPS_STORAGE_PATH:-/storage/apps}/spotdl/config /storage/media/music
-cd /home/artlab/projects/homelab/spotdl
-docker compose --profile tools config --quiet
+ssh homelab 'mkdir -p ${APPS_STORAGE_PATH:-/storage/apps}/spotdl/config /storage/media/music'
+```
+
+Compose запускается с контроллера (macOS) против Docker узла по SSH:
+
+```sh
+cd clusters/casa/apps/spotdl
+DOCKER_HOST=ssh://homelab docker compose --profile tools config --quiet
 ```
 
 Загрузите разрешённый трек, альбом или плейлист по URL:
 
 ```sh
-docker compose --profile tools run --rm spotdl download 'SPOTIFY_URL'
+DOCKER_HOST=ssh://homelab docker compose --profile tools run --rm spotdl download 'SPOTIFY_URL'
 ```
 
 Для плейлиста, который нужно обновлять в дальнейшем, сохраните состояние и
 затем синхронизируйте его:
 
 ```sh
-docker compose --profile tools run --rm spotdl save 'SPOTIFY_PLAYLIST_URL' --save-file playlist.spotdl
-docker compose --profile tools run --rm spotdl sync playlist.spotdl
+DOCKER_HOST=ssh://homelab docker compose --profile tools run --rm spotdl save 'SPOTIFY_PLAYLIST_URL' --save-file playlist.spotdl
+DOCKER_HOST=ssh://homelab docker compose --profile tools run --rm spotdl sync playlist.spotdl
 ```
 
 ## Обновление

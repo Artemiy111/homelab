@@ -5,7 +5,7 @@
 ai_agent_user: ai-agent
 ai_agent_shell: /bin/zsh
 ai_agent_home: "/home/{{ ai_agent_user }}"
-ai_agent_sudo_runas: artlab
+ai_agent_sudo_runas: ops
 
 # Источник правды — каталог в репозитории (infra/dotfiles/ai-agent), а не копия
 # внутри роли: файлы доставляются тем же git-процессом, что и остальные dotfiles,
