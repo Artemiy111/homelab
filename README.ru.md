@@ -161,6 +161,7 @@ Zitadel — основной OIDC-провайдер. Сервисы без на
 | [Nextcloud](clusters/casa/apps/nextcloud/) | Файлы, синхронизация, календарь, контакты |
 | [Seafile](clusters/casa/apps/seafile/) | Файловая синхронизация и обмен файлами, с OnlyOffice |
 | [Filestash](clusters/casa/apps/filestash/) | Веб-интерфейс к SMB-шаре, файлы «как есть» |
+| [OpenList](clusters/casa/apps/openlist/) | Веб-список файлов на SMB-шаре |
 | [Jitsi](clusters/casa/apps/jitsi/) | Приватные видеоконференции |
 | [Element](clusters/casa/apps/element/) | Matrix-чат и видеозвонки через LiveKit — [собственный Helm-чарт](clusters/casa/apps/element/chart/) |
 | [Talk HPB](clusters/casa/apps/talk-hpb/) | Signaling для Nextcloud Talk |

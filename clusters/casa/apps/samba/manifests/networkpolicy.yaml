@@ -1,7 +1,7 @@
 # Трафик к SMB идёт напрямую с хостов LAN и узла через hostPort, а не через
 # Traefik, поэтому разрешать вход от traefik здесь незачем — это была бы
 # дыра: любой маршрут в кластере получил бы доступ к дискам. Веб-морда над
-# шарой — не маршрут Traefik, а самостоятельный SMB-клиент, и она перечислена
+# шарой — не маршрут Traefik, а самостоятельный SMB-клиент, и они перечислены
 # поимённо: селектор по метке пустил бы к дискам любой namespace, который эту
 # метку себе поставит.
 #
@@ -39,6 +39,9 @@ spec:
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: filestash
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: openlist
       ports:
         - port: 445
           protocol: TCP

@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: openlist
+  namespace: openlist
+spec:
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 2
+  replicas: 1
+  selector:
+    matchLabels:
+      app: openlist
+  template:
+    metadata:
+      labels:
+        app: openlist
+    spec:
+      securityContext:
+        fsGroup: 1001
+      containers:
+        - name: openlist
+          image: "openlistteam/openlist:v4.2.7-lite@sha256:621a78386646a1795f22b17100a7d81da0280c50d5a42fd64a5d0a7260a9618c"
+          ports:
+            - name: http
+              containerPort: 5244
+          envFrom:
+            - configMapRef:
+                name: homelab-config
+          env:
+            - name: UMASK
+              value: "022"
+          startupProbe:
+            httpGet:
+              path: /ping
+              port: http
+            failureThreshold: 30
+            periodSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /ping
+              port: http
+            periodSeconds: 15
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /ping
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 10
+          securityContext:
+            runAsUser: 1001
+            runAsGroup: 1001
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          volumeMounts:
+            - name: data
+              mountPath: /opt/openlist/data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: openlist-data
