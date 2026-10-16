@@ -30,6 +30,7 @@ spec:
   # Одноинстансный кластер: PDB заблокировал бы drain ноды (switchover'а нет).
   enablePDB: false
   imageName: ghcr.io/cloudnative-pg/postgresql:18.4-standard-trixie
+  priorityClassName: platform-critical
 
   # Локаль окружения: без неё setlocale падает в POSIX/C и psql в поде
   # разваливает многобайтовый ввод. Локаль баз задана в bootstrap.initdb.

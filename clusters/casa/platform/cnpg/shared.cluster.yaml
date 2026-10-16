@@ -51,6 +51,7 @@ spec:
 
   # minimal достаточно: коллация ICU, а не локали из образа.
   imageName: ghcr.io/cloudnative-pg/postgresql:18.4-minimal-trixie
+  priorityClassName: platform-critical
 
   # Локаль окружения — только для процессов в поде. Без неё setlocale падает в
   # POSIX/C, и psql в интерактивном режиме разваливает многобайтовый ввод.

@@ -16,6 +16,7 @@ defaultVaultConnection:
 # clusters/casa/platform/cert-manager/values.yaml). Контроллер держит 86 VaultStaticSecret:
 # его вытеснение означает, что секреты перестанут обновляться.
 controller:
+  priorityClassName: platform-critical
   resources:
     requests:
       cpu: 50m

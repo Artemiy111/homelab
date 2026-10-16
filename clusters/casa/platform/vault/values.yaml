@@ -9,10 +9,13 @@
 # вообще Enterprise-only, поэтому тоже выключен.
 injector:
   enabled: false
+  priorityClassName: platform-critical
 csi:
   enabled: false
+  priorityClassName: platform-critical
 
 server:
+  priorityClassName: platform-critical
   # RWO-том на одной ноде: RollingUpdate StatefulSet поднял бы второй под на
   # тот же том. Recreate у StatefulSet недопустим (только OnDelete и
   # RollingUpdate), поэтому OnDelete — дефолт, и он тут единственно корректный.

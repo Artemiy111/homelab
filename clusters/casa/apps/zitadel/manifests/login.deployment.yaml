@@ -17,6 +17,7 @@ spec:
         app: zitadel-login
     spec:
       enableServiceLinks: false
+      priorityClassName: platform-critical
       containers:
         - name: zitadel-login
           image: "ghcr.io/zitadel/zitadel-login:v4.17.1@sha256:8035df2409afb35a3999482ee98e453261715f98d47e4b62e948e4a1ddf4345f"

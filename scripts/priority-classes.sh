@@ -26,13 +26,14 @@ declared="$(
 
 failures=0
 
-used="$(
+used_raw="$(
   git ls-files 'clusters/casa/*.yaml' 'bootstrap/*.yaml' |
     grep -v "^${classes_file}$" |
     xargs -r grep -hoE 'priorityClassName:[[:space:]]*"?[A-Za-z0-9][A-Za-z0-9.-]*' |
-    sed -E 's/^priorityClassName:[[:space:]]*"?([A-Za-z0-9][A-Za-z0-9.-]*).*$/\1/' |
-    sort -u || true
+    sed -E 's/^priorityClassName:[[:space:]]*"?([A-Za-z0-9][A-Za-z0-9.-]*).*$/\1/' || true
 )"
+used="$(printf '%s\n' "$used_raw" | sort -u)"
+refs="$(printf '%s\n' "$used_raw" | grep -c . || true)"
 
 for name in $used; do
   case "$external" in
@@ -40,6 +41,27 @@ for name in $used; do
   esac
   if ! grep -qx "$name" <<<"$declared"; then
     printf 'ссылка на необъявленный класс: %s (%s)\n' "$name" "$classes_file" >&2
+    failures=$((failures + 1))
+  fi
+done
+
+# Юниты, которые обязаны нести ярус: если компонент входит в ярус, а класса в
+# его дереве нет, ярус тихо теряет участника, и заметно это только тем, что под
+# снова конкурирует за память с остальными.
+critical=(
+  bootstrap/argocd-values.yaml
+  clusters/casa/apps/zitadel
+  clusters/casa/platform/cert-manager
+  clusters/casa/platform/cloudnative-pg
+  clusters/casa/platform/cnpg
+  clusters/casa/platform/traefik
+  clusters/casa/platform/vault
+  clusters/casa/platform/vault-secrets-operator
+)
+
+for unit in "${critical[@]}"; do
+  if ! grep -rq 'platform-critical' "$unit"; then
+    printf '%s: критичный юнит без platform-critical\n' "$unit" >&2
     failures=$((failures + 1))
   fi
 done
@@ -63,5 +85,4 @@ if [ "$failures" -ne 0 ]; then
   exit 1
 fi
 
-printf 'классов объявлено — %s, ссылок из манифестов — %s\n' \
-  "$classes" "$(printf '%s\n' "$used" | grep -c . || true)"
+printf 'классов объявлено — %s, ссылок на них — %s\n' "$classes" "$refs"

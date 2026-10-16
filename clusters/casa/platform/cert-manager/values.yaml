@@ -18,6 +18,9 @@
 # prometheus-operator (monitoring.coreos.com) в кластере нет, поэтому никаких
 # PodMonitor/ServiceMonitor не создаём.
 
+global:
+  priorityClassName: platform-critical
+
 # CRD ставим вместе с оператором: кластерные, и Prune=false не даёт удалить их
 # вместе с приложением (иначе снесло бы все Certificate/Issuer кластера).
 crds:

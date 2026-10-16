@@ -26,6 +26,7 @@ spec:
   enablePDB: false
   # minimal достаточно: коллация ICU, а не локали из образа.
   imageName: ghcr.io/cloudnative-pg/postgresql:18.6-minimal-trixie
+  priorityClassName: platform-critical
 
   # Локаль окружения: без неё setlocale падает в POSIX/C и psql в поде
   # разваливает многобайтовый ввод. Локаль баз задана в bootstrap.initdb.

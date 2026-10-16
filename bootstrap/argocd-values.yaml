@@ -17,6 +17,7 @@
 
 global:
   domain: argocd.biplane.casa
+  priorityClassName: platform-critical
 
 configs:
   # → argocd-cmd-params-cm. Ключ = имя флага без "--".
