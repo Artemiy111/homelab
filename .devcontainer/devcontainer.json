@@ -5,5 +5,20 @@
     "context": "."
   },
   "remoteUser": "vscode",
-  "postCreateCommand": "git config core.hooksPath .githooks"
+  "runArgs": ["--hostname", "homelab"],
+  "postCreateCommand": "git config core.hooksPath .githooks",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "bierner.markdown-mermaid",
+        "mhutchie.git-graph",
+        "mechatroner.rainbow-csv",
+        "ms-kubernetes-tools.vscode-kubernetes-tools",
+        "redhat.vscode-yaml",
+        "streetsidesoftware.code-spell-checker",
+        "streetsidesoftware.code-spell-checker-russian",
+        "timonwong.shellcheck"
+      ]
+    }
+  }
 }
