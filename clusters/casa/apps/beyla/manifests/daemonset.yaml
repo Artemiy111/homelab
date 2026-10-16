@@ -12,7 +12,7 @@ metadata:
     # явным списком, allowPrivilegeEscalation=false, rootfs read-only.
     ignore-check.kube-linter.io/privilege-escalation-container: "CAP_SYS_ADMIN обязателен для uprobes в eBPF (#542)"
 spec:
-  revisionHistoryLimit: 2
+  revisionHistoryLimit: 1
   selector:
     matchLabels:
       app: beyla

@@ -4,7 +4,7 @@ metadata:
   name: gatus
   namespace: monitoring
 spec:
-  revisionHistoryLimit: 2
+  revisionHistoryLimit: 1
   replicas: 1
   selector:
     matchLabels:

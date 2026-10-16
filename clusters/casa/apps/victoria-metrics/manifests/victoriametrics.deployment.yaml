@@ -7,7 +7,7 @@ spec:
   # RWO-том vmdata: два пода при rolling update пишут в один каталог.
   strategy:
     type: Recreate
-  revisionHistoryLimit: 2
+  revisionHistoryLimit: 1
   replicas: 1
   selector:
     matchLabels:

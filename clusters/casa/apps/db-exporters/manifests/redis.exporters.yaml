@@ -5,7 +5,7 @@ metadata:
   name: dawarich-redis-exporter
   namespace: dawarich
 spec:
-  revisionHistoryLimit: 2
+  revisionHistoryLimit: 1
   replicas: 1
   selector:
     matchLabels:
@@ -77,7 +77,7 @@ metadata:
   name: element-valkey-exporter
   namespace: element
 spec:
-  revisionHistoryLimit: 2
+  revisionHistoryLimit: 1
   replicas: 1
   selector:
     matchLabels:
@@ -149,7 +149,7 @@ metadata:
   name: glitchtip-valkey-exporter
   namespace: glitchtip
 spec:
-  revisionHistoryLimit: 2
+  revisionHistoryLimit: 1
   replicas: 1
   selector:
     matchLabels:
@@ -221,7 +221,7 @@ metadata:
   name: immich-valkey-exporter
   namespace: immich
 spec:
-  revisionHistoryLimit: 2
+  revisionHistoryLimit: 1
   replicas: 1
   selector:
     matchLabels:
@@ -293,7 +293,7 @@ metadata:
   name: infisical-redis-exporter
   namespace: infisical
 spec:
-  revisionHistoryLimit: 2
+  revisionHistoryLimit: 1
   replicas: 1
   selector:
     matchLabels:
@@ -365,7 +365,7 @@ metadata:
   name: nextcloud-redis-exporter
   namespace: nextcloud
 spec:
-  revisionHistoryLimit: 2
+  revisionHistoryLimit: 1
   replicas: 1
   selector:
     matchLabels:
@@ -437,7 +437,7 @@ metadata:
   name: paperless-broker-exporter
   namespace: paperless
 spec:
-  revisionHistoryLimit: 2
+  revisionHistoryLimit: 1
   replicas: 1
   selector:
     matchLabels:
@@ -509,7 +509,7 @@ metadata:
   name: seafile-redis-exporter
   namespace: seafile
 spec:
-  revisionHistoryLimit: 2
+  revisionHistoryLimit: 1
   replicas: 1
   selector:
     matchLabels:
@@ -581,7 +581,7 @@ metadata:
   name: sure-redis-exporter
   namespace: sure
 spec:
-  revisionHistoryLimit: 2
+  revisionHistoryLimit: 1
   replicas: 1
   selector:
     matchLabels:

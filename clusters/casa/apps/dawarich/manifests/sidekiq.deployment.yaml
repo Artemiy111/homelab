@@ -7,7 +7,7 @@ spec:
   # RWO-тома
   strategy:
     type: Recreate
-  revisionHistoryLimit: 2
+  revisionHistoryLimit: 1
   replicas: 1
   selector:
     matchLabels:

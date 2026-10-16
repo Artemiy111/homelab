@@ -10,7 +10,7 @@ metadata:
     ignore-check.kube-linter.io/host-pid: "eBPF-профилирование требует видимости процессов узла (#559)"
     ignore-check.kube-linter.io/privilege-escalation-container: "CAP_SYS_ADMIN обязателен для eBPF uprobe/perf_event (#559)"
 spec:
-  revisionHistoryLimit: 2
+  revisionHistoryLimit: 1
   selector:
     matchLabels:
       app: alloy-profiler

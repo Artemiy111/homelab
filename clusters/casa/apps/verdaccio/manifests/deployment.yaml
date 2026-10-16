@@ -7,7 +7,7 @@ spec:
   # RWO-том: два пода одновременно его не смонтируют.
   strategy:
     type: Recreate
-  revisionHistoryLimit: 2
+  revisionHistoryLimit: 1
   replicas: 1
   selector:
     matchLabels:

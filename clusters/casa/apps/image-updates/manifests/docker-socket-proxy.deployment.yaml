@@ -6,7 +6,7 @@ metadata:
   annotations:
     ignore-check.kube-linter.io/docker-sock: "сервис и есть прокси к docker.sock с ограниченным набором API (#161)"
 spec:
-  revisionHistoryLimit: 2
+  revisionHistoryLimit: 1
   replicas: 1
   selector:
     matchLabels:

@@ -8,7 +8,7 @@ spec:
     # RWO-том library нельзя монтировать двум подам сразу: rolling update поднял
     # бы новый под до остановки старого.
     type: Recreate
-  revisionHistoryLimit: 2
+  revisionHistoryLimit: 1
   replicas: 1
   selector:
     matchLabels:

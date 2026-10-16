@@ -30,7 +30,7 @@ spec:
   deployment:
     spec:
       replicas: 1
-      revisionHistoryLimit: 2
+      revisionHistoryLimit: 1
       template:
         spec:
           enableServiceLinks: false

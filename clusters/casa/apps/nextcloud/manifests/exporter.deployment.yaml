@@ -4,7 +4,7 @@ metadata:
   name: nextcloud-exporter
   namespace: nextcloud
 spec:
-  revisionHistoryLimit: 2
+  revisionHistoryLimit: 1
   replicas: 1
   selector:
     matchLabels:
