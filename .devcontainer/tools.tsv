@@ -14,3 +14,5 @@ yq/4.54.1/yq_linux_amd64 8e34fc298390875de416e6a4afcb8cabeceb25d9aa8506c1a2f9353
 yq/4.54.1/yq_linux_arm64 189088da0c6429ec5178dfaab1a114805f6cab0b61b165ab236efedf1d57a71b https://github.com/mikefarah/yq/releases/download/v4.54.1/yq_linux_arm64
 bun/1.4.0/bun-linux-x64.zip 2d03fb5fb83ac8b567aca0a281b2ce1a1a19d488f56c2968d88c3f25e92fe452 https://github.com/oven-sh/bun/releases/download/bun-v1.4.0/bun-linux-x64.zip
 bun/1.4.0/bun-linux-aarch64.zip 4b1a332ee861983eb93bcfe6f770fff94e3e31b2c388bdaea3c8ed35e58eed0e https://github.com/oven-sh/bun/releases/download/bun-v1.4.0/bun-linux-aarch64.zip
+terraform/1.16.4/terraform_1.16.4_linux_amd64.zip dc94af0eef1147718ad7c8daea792ed199e3e0492eec180d0adafa2a65a879df https://hashicorp-releases.yandexcloud.net/terraform/1.16.4/terraform_1.16.4_linux_amd64.zip
+terraform/1.16.4/terraform_1.16.4_linux_arm64.zip 8263f301cb1a24489a4adeed147bf28504053f77237b3ea97a0ef2972659de30 https://hashicorp-releases.yandexcloud.net/terraform/1.16.4/terraform_1.16.4_linux_arm64.zip

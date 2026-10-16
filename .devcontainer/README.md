@@ -29,6 +29,9 @@ Desktop. Кластер для него не нужен: это инструме
   `.githooks/commit-msg` находил его в `PATH`, как описано в
   [`docs/agents/commit-conventions.md`](../docs/agents/commit-conventions.md).
 - `jq`, `yq` — разбор вывода и манифестов руками.
+- `terraform`, `ansible` (`ansible-core`, `ansible-lint`) — прочитать,
+  отформатировать и проверить IaC: `terraform fmt` и `validate`, `ansible-lint`,
+  `ansible-playbook --syntax-check`. Границы — в разделе ниже.
 - `git`, `sudo`, `curl`, `unzip`, `zsh` — обычные пакеты из архива Ubuntu.
 
 ## Почему база — `ubuntu:26.04`
@@ -50,16 +53,30 @@ perl), локаль — `C.UTF-8` вместо `en_US.UTF-8`, нет `devcontain
 
 ## Чего в нём нет и почему
 
-- **`terraform` и `ansible`.** IaC-слой запускается только с macOS: приватный
-  слой (`terraform.tfvars`, state) в контейнер не попадает, а без него
-  `terraform plan` бессмысленен. Тянуть в образ инструмент, которым нельзя
-  воспользоваться, — только видимость покрытия.
 - **Доступа к кластеру.** Ни `kubeconfig`, ни Vault-токена: образ не монтирует
   ни `~/.kube`, ни хостовый `$HOME`. Расширять периметр из
   [`information-handling.md`](../docs/agents/information-handling.md) ради
   контейнера, который проверяет файлы в git, незачем.
 - **`k9s` и подобных интерактивных клиентов.** Им нужен кластер, которого у
   образа по построению нет.
+
+## Terraform и Ansible: что можно и чего нельзя
+
+Бинарники здесь — для чтения и проверок: `terraform fmt`, `terraform validate`,
+`ansible-lint`, `ansible-playbook --syntax-check`. Применять конфигурацию к
+стенду по-прежнему можно только с macOS (`AGENTS.md`): приватного слоя
+(`terraform.tfvars`, state) в контейнере нет, SSH-доступа к узлам тоже, поэтому
+`terraform apply` и плейбуки отсюда не запускаются. Это не мелочь удобства, а
+граница из [`information-handling.md`](../docs/agents/information-handling.md).
+
+Версии взяты оттуда же, откуда их берёт CI: `terraform` — 1.16.4, та же строка,
+что в `artifacts.tsv` и в `required_version = "~> 1.16"`; `ansible-core` и
+`ansible-lint` — те же, что в `.forgejo/workflows/010-ansible.yml`. Метапакет
+`ansible` целиком не ставится: он тянет все коллекции (465 МБ из 540 МБ venv), а
+репозиторий использует две — `community.general` и `ansible.posix`, и обе
+закреплены версиями из этого метапакета. Разница в питоне остаётся: в CI venv
+собран на 3.12, здесь на 3.14 — другого в Ubuntu 26.04 нет; версии инструментов
+совпадают, транзитивные зависимости могут отличаться.
 
 ## Как пользоваться
 
@@ -151,3 +168,8 @@ Dev Containers копирует его само (настройка `dev.contain
 - `yq` — исключение из правила про apt: в архиве Ubuntu под этим именем лежит
   другой инструмент (обёртка над `jq`), а не `mikefarah/yq`, поэтому он
   закреплён артефактом.
+- **`ansible`** ставится не пакетом и не артефактом, а `pip install` в venv
+  `/opt/ansible` — точными версиями, как в CI. Коллекции к нему —
+  `ansible-galaxy collection install` с явными версиями, теми же, что лежат
+  внутри метапакета `ansible` нужного релиза. При обновлении: сверить версии в
+  `.forgejo/workflows/010-ansible.yml`, поднять `ARG` и версии коллекций.

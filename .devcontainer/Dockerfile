@@ -13,6 +13,11 @@ ARG GITLEAKS_VERSION=8.30.1
 ARG YQ_VERSION=4.54.1
 ARG BUN_VERSION=1.4.0
 ARG COMMITLINT_VERSION=21.2.3
+ARG TERRAFORM_VERSION=1.16.4
+ARG ANSIBLE_CORE_VERSION=2.20.10
+ARG ANSIBLE_LINT_VERSION=26.8.0
+ARG COMMUNITY_GENERAL_VERSION=12.6.2
+ARG ANSIBLE_POSIX_VERSION=2.2.0
 
 ENV BUN_INSTALL=/usr/local
 ENV LANG=C.UTF-8
@@ -20,7 +25,7 @@ ENV LC_ALL=C.UTF-8
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
-      ca-certificates curl git jq kustomize shellcheck sudo unzip zsh \
+      ca-certificates curl git jq kustomize python3-venv shellcheck sudo unzip zsh \
  && rm -rf /var/lib/apt/lists/*
 
 RUN usermod --login vscode --home /home/vscode --move-home ubuntu \
@@ -86,6 +91,22 @@ RUN case "$(dpkg --print-architecture)" in \
 RUN bun add -g "@commitlint/cli@${COMMITLINT_VERSION}" "@commitlint/config-conventional@${COMMITLINT_VERSION}" \
  && printf '#!/bin/sh\nexec bun "%s" "$@"\n' "$(readlink -f /usr/local/bin/commitlint)" > /tmp/commitlint.sh \
  && install -m 0755 /tmp/commitlint.sh /usr/local/bin/commitlint
+
+RUN arch="$(dpkg --print-architecture)"; \
+    /tmp/install-tool.sh "terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_${arch}.zip" \
+      "https://hashicorp-releases.yandexcloud.net/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_${arch}.zip" \
+      /usr/local/bin/terraform terraform
+
+RUN python3 -m venv /opt/ansible \
+ && /opt/ansible/bin/pip install --quiet --no-cache-dir \
+      "ansible-core==${ANSIBLE_CORE_VERSION}" "ansible-lint==${ANSIBLE_LINT_VERSION}" \
+ && /opt/ansible/bin/ansible-galaxy collection install \
+      --collections-path /usr/share/ansible/collections \
+      "community.general:${COMMUNITY_GENERAL_VERSION}" "ansible.posix:${ANSIBLE_POSIX_VERSION}" \
+ && for binary in ansible ansible-playbook ansible-galaxy ansible-vault ansible-doc ansible-config ansible-inventory ansible-console ansible-lint; do \
+      ln -sf "/opt/ansible/bin/${binary}" "/usr/local/bin/${binary}"; \
+    done \
+ && rm -rf /root/.ansible
 
 RUN rm -f /tmp/tools.tsv /tmp/install-tool.sh /tmp/commitlint.sh
 
