@@ -44,7 +44,7 @@ spec:
               path: /
               port: http
             periodSeconds: 5
-            timeoutSeconds: 10
+            timeoutSeconds: 20
             failureThreshold: 12
           livenessProbe:
             httpGet:
