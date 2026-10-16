@@ -39,6 +39,7 @@ spec:
     - rustfs
     - samba
     - seafile
+    - structurizr
     - sure
     - talk-hpb
     - technitium
