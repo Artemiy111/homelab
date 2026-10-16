@@ -76,6 +76,7 @@ resources:
   - platform/mariadb-operator/app.yaml
   - platform/monitoring/app.yaml
   - platform/namespaces/app.yaml
+  - platform/priorityclasses/app.yaml
   - platform/radar/app.yaml
   - platform/snapshot-controller/app.yaml
   - platform/traefik/app.yaml

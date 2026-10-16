@@ -12,3 +12,5 @@ spec:
   clusterResourceWhitelist:
     - group: ""
       kind: Namespace
+    - group: scheduling.k8s.io
+      kind: PriorityClass

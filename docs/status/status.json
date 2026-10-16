@@ -2,7 +2,7 @@
   "schema": 1,
   "source": "scripts/status-badges.sh",
   "services": 59,
-  "manifests": 586,
+  "manifests": 588,
   "images": {
     "pinned": 135,
     "total": 136,
@@ -20,7 +20,7 @@
     "vault_static_secret": 92
   },
   "docs": {
-    "adr": 13,
+    "adr": 14,
     "postmortems": 10,
     "research": 52
   }

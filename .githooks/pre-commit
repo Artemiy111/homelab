@@ -13,6 +13,7 @@ fi
 gitleaks git --staged --config .gitleaks.toml --no-banner --redact
 ./scripts/status-badges.sh --check
 ./scripts/argocd-prune.sh --check
+./scripts/priority-classes.sh --check
 ./scripts/alert-rules-docs.sh --check
 
 # Схемы API для манифестов, попавших в индекс. Проверяем только staged, а не
