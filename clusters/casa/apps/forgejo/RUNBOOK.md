@@ -28,6 +28,11 @@ KUBECONFIG=~/.kube/configs/homelab.yaml kubectl -n forgejo rollout restart deplo
 KUBECONFIG=~/.kube/configs/homelab.yaml kubectl -n forgejo rollout status deploy/forgejo-runner
 ```
 
+Перезапуск обрывает job'ы, которые уже идут: их поды умирают вместе с раннером, а
+в UI прогон остаётся в статусе `running` навсегда. Поэтому перезапускать раннер
+перед сменой образа стоит, когда очередь пуста, а оборванные прогоны — заводить
+заново руками.
+
 Образ для job'ов тянет dind, а не containerd узла, поэтому проверяется он из
 сайдкара — дайджест должен совпасть с меткой в ConfigMap'е:
 
