@@ -9,6 +9,8 @@ resources:
   - deployment.yaml
   - data.pvc.yaml
   - networkpolicy.yaml
+  - vaultauth.yaml
+  - vaultstaticsecret.yaml
   - secure-headers.middleware.yaml
   - ratelimit-default.middleware.yaml
   - oauth2-proxy.middleware.yaml

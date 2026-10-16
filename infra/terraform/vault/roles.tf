@@ -33,6 +33,7 @@ locals {
     "rustfs"         = { namespace = "rustfs", policy = "app/rustfs" },
     "samba"          = { namespace = "samba", policy = "app/samba" },
     "seafile"        = { namespace = "seafile", policy = "app/seafile" },
+    "structurizr"    = { namespace = "structurizr", policy = "app/structurizr" },
     "sure"           = { namespace = "sure", policy = "app/sure" },
     "talk-hpb"       = { namespace = "talk-hpb", policy = "app/talk-hpb" },
     "technitium"     = { namespace = "technitium", policy = "app/technitium" },

@@ -128,6 +128,15 @@ resource "vault_policy" "app_seafile" {
   EOT
 }
 
+resource "vault_policy" "app_structurizr" {
+  name = "app/structurizr"
+
+  policy = <<-EOT
+    path "kv/data/yc/cloud-registry"      { capabilities = ["read"] }
+    path "kv/metadata/yc/cloud-registry"  { capabilities = ["read", "list"] }
+  EOT
+}
+
 resource "vault_policy" "app_sure" {
   name = "app/sure"
 
