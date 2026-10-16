@@ -22,7 +22,7 @@ jobs:
       # зовёт trivy из PATH, поэтому ему передаём skip-setup-trivy.
       - name: Cache trivy
         id: cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.local/trivy
           key: trivy-0.75.0-${{ runner.os }}

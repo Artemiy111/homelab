@@ -19,7 +19,7 @@ jobs:
       - uses: actions/checkout@v6
       - name: Cache tflint
         id: cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.local/bin
           key: tflint-0.64.0-mirror-${{ runner.os }}

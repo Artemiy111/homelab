@@ -108,7 +108,7 @@ kubectl -n forgejo exec deploy/forgejo-runner -c dind -- docker system prune -af
 Прогон workflow в `user/test` (`.forgejo/workflows/smoke.yml`), 14 job'ов:
 работают `actions/checkout@v6`, node-экшены, `docker build`/`docker run` внутри
 dind, сервис-контейнеры (`services:`), матрицы, `needs`/outputs, кэш
-(`actions/cache@v4` save/restore), `jobs.<id>.container`, доступ к API через
+(`actions/cache@v6` save/restore), `jobs.<id>.container`, доступ к API через
 `${{ github.token }}`.
 
 Там же проверены `release.yml` (тег + опубликованный релиз с ассетами) и

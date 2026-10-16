@@ -18,7 +18,7 @@ jobs:
       - uses: actions/checkout@v6
       - name: Cache shellcheck
         id: cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.local/shellcheck
           key: shellcheck-0.11.0-${{ runner.os }}

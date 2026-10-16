@@ -28,18 +28,18 @@ jobs:
       - uses: actions/checkout@v6
       - name: Cache kubeconform
         id: kubeconform
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.local/bin
           key: kubeconform-0.8.0-mirror-${{ runner.os }}
       - name: Cache schemas
         id: schemas
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/kubeconform-schemas
           key: kubeconform-schemas-1.36.3-mirror-${{ runner.os }}
       - name: Cache kubeconform HTTP responses
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/kubeconform-http
           key: kubeconform-cr-schemas-${{ env.CRD_SCHEMAS_REV }}-${{ runner.os }}

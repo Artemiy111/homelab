@@ -110,6 +110,11 @@ curl -fsS -H "Authorization: token $FORGEJO_API_TOKEN" \
 не входит: это не зеркало, а ручной снапшот
 (`clusters/casa/apps/forgejo/README.md`).
 
+Теги в этом снапшоте подтягиваются вручную из апстрима (`git fetch` внутри пода,
+команды — в `RUNBOOK.md`); сейчас там есть `v3`–`v6`, и workflow используют
+`actions/cache@v6`. Обновление до нового majors — тот же `git fetch`, иначе
+`uses: actions/cache@<версия>` не разрешится.
+
 Интервал у всех `8h0m0s` и вынесен в `local.mirror_interval`. Описание
 генерируется из upstream: `Mirror of <host>/<owner>/<name> for offline CI`.
 

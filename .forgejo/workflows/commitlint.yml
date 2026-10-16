@@ -25,7 +25,7 @@ jobs:
       # только на холодном пути.
       - name: Cache dependencies
         id: dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: node_modules
           key: node-modules-${{ runner.os }}-${{ hashFiles('bun.lock') }}

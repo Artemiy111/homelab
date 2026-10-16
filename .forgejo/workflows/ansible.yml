@@ -19,7 +19,7 @@ jobs:
       - uses: actions/checkout@v6
       - name: Cache venv
         id: cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.venvs/ansible
           key: ansible-lint-26.8.0-ansible-12.3.0-${{ runner.os }}
@@ -27,7 +27,7 @@ jobs:
       # версии python, а не по коммиту: содержимое не зависит от исходников,
       # иначе запись пересоздавалась бы на каждом пуше и не помогала.
       - name: Cache apt
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             /var/lib/apt/lists
