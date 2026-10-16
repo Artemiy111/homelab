@@ -40,17 +40,20 @@ spec:
               path: /-/ping
               port: http
             periodSeconds: 5
+            timeoutSeconds: 10
             failureThreshold: 30
           livenessProbe:
             httpGet:
               path: /-/ping
               port: http
             periodSeconds: 30
+            timeoutSeconds: 10
           readinessProbe:
             httpGet:
               path: /-/ping
               port: http
             periodSeconds: 30
+            timeoutSeconds: 5
           securityContext:
             runAsUser: 10001
             runAsGroup: 10001

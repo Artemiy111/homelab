@@ -35,6 +35,7 @@ spec:
               path: /
               port: http
             periodSeconds: 15
+            timeoutSeconds: 5
             failureThreshold: 3
           securityContext:
             # Максимальный харденнинг. Не root (nginx uid 101), без повышения прав,

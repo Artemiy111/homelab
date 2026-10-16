@@ -120,6 +120,7 @@ spec:
               command: ["python", "/code/healthcheck.py"]
             initialDelaySeconds: 15
             periodSeconds: 5
+            timeoutSeconds: 10
             failureThreshold: 24
           livenessProbe:
             exec:

@@ -119,6 +119,7 @@ spec:
               command: ["/bin/sh", "-c", "prosodyctl --config /run/prosody/config/prosody.cfg.lua status"]
             initialDelaySeconds: 15
             periodSeconds: 5
+            timeoutSeconds: 10
             failureThreshold: 60
           livenessProbe:
             exec:

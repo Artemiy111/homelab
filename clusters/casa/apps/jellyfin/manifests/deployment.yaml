@@ -51,6 +51,7 @@ spec:
               port: http
             initialDelaySeconds: 15
             periodSeconds: 5
+            timeoutSeconds: 10
             failureThreshold: 60
           livenessProbe:
             httpGet:

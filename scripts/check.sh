@@ -57,6 +57,7 @@ step "числа в docs/status соответствуют репозитори�
 step "список юнитов Argo соответствует дереву" ./scripts/argocd-units.sh --check
 step "политика prune у Argo" ./scripts/argocd-prune.sh --check
 step "политика приоритетов" ./scripts/priority-classes.sh --check
+step "бюджет проб" ./scripts/probe-timeouts.sh --check
 step "реестр правил Grafana соответствует манифесту" ./scripts/alert-rules-docs.sh --check
 
 if optional kubeconform; then

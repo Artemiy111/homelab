@@ -104,6 +104,7 @@ spec:
               command: ["sh", "-c", "grep -q runworker /proc/[0-9]*/cmdline"]
             initialDelaySeconds: 15
             periodSeconds: 5
+            timeoutSeconds: 10
             failureThreshold: 12
           livenessProbe:
             exec:

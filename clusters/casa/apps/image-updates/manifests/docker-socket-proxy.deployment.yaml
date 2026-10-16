@@ -39,6 +39,7 @@ spec:
               port: docker-api
             initialDelaySeconds: 5
             periodSeconds: 5
+            timeoutSeconds: 10
             failureThreshold: 30
           livenessProbe:
             tcpSocket:

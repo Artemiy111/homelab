@@ -43,17 +43,20 @@ spec:
               path: /healthz
               port: http
             periodSeconds: 5
+            timeoutSeconds: 10
             failureThreshold: 30
           livenessProbe:
             httpGet:
               path: /healthz
               port: http
             periodSeconds: 30
+            timeoutSeconds: 10
           readinessProbe:
             httpGet:
               path: /readyz
               port: http
             periodSeconds: 30
+            timeoutSeconds: 5
           securityContext:
             runAsUser: 1000
             runAsGroup: 1000

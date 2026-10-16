@@ -117,6 +117,7 @@ spec:
                   port: 3000
                 initialDelaySeconds: 20
                 periodSeconds: 10
+                timeoutSeconds: 10
                 failureThreshold: 30
               livenessProbe:
                 httpGet:

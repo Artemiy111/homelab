@@ -41,6 +41,7 @@ spec:
               path: /
               port: http
             periodSeconds: 30
+            timeoutSeconds: 5
             failureThreshold: 3
           securityContext:
             capabilities:

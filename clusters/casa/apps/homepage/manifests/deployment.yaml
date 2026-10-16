@@ -48,15 +48,18 @@ spec:
               port: http
             initialDelaySeconds: 15
             periodSeconds: 5
+            timeoutSeconds: 10
           livenessProbe:
             httpGet:
               path: /api/healthcheck
               port: http
             periodSeconds: 30
+            timeoutSeconds: 10
           readinessProbe:
             httpGet:
               path: /api/healthcheck
               port: http
+            timeoutSeconds: 5
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true

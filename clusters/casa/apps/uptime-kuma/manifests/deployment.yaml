@@ -57,15 +57,18 @@ spec:
               port: http
             initialDelaySeconds: 15
             periodSeconds: 5
+            timeoutSeconds: 10
           livenessProbe:
             httpGet:
               path: /
               port: http
             periodSeconds: 30
+            timeoutSeconds: 10
           readinessProbe:
             httpGet:
               path: /
               port: http
+            timeoutSeconds: 5
           securityContext:
             runAsUser: 1000
             runAsGroup: 1000
