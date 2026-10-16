@@ -51,6 +51,7 @@ spec:
               command: ["/bin/sh", "-c", "node /app/healthcheck.mjs http://localhost:3000/ui/v2/login/healthy"]
             initialDelaySeconds: 15
             periodSeconds: 5
+            timeoutSeconds: 30
             failureThreshold: 30
           livenessProbe:
             exec:
