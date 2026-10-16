@@ -57,10 +57,14 @@ ConfigMap'е (сейчас `4`); параллельные job'ы делят dock
 распространяются.
 
 **Метки** (`runs-on`) и образы заданы в ConfigMap'е. `ubuntu-latest` и
-`ubuntu-22.04` указывают на `ghcr.io/catthehacker/ubuntu:act-22.04` —
-GitHub-подобный образ с git, docker CLI, python и build-essential. Голый
-`node:lts` не подходит: в нём нет docker CLI, и `docker build` в job'е падает.
+`ubuntu-24.04` указывают на `ghcr.io/catthehacker/ubuntu:act-24.04` (Ubuntu
+24.04, python 3.12), `ubuntu-22.04` — на `act-22.04` и оставлена для отката.
+Вариант `act-*` — slim-сборка с git, docker CLI, python и node; `full-*` — копия
+полного GitHub-образа на десятки GB, гейтам не нужна. Голый `node:lts` не
+подходит: в нём нет docker CLI, и `docker build` в job'е падает.
 Образы пинятся дайджестом: docker по тегу уже скачанный образ не обновляет.
+Смена дайджеста переключает job'ы только после перезапуска пода раннера —
+конфиг читается при старте (`RUNBOOK.md`).
 
 **Кэш образов.** Job-образы тянутся не напрямую из внешних реестров, а через
 pull-through кэш **Zot** (`clusters/casa/apps/zot`): в метках указан путь

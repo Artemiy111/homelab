@@ -26,15 +26,18 @@ data:
       envs:
         DOCKER_HOST: tcp://dind:2375
       labels:
-        # ubuntu-latest — не «минимальный node», а GitHub-подобный образ:
-        # в нём есть git, docker CLI, python, build-essential и прочее, что
-        # ожидают workflow'ы. Голый node:lts не содержит docker CLI, поэтому
-        # `docker build` в job'е упал бы. Дайджест — multi-arch индекс образа.
+        # Метки указывают на slim-варианты catthehacker/ubuntu (act-*): git,
+        # docker CLI, python и node в них есть, build-essential нет и гейтам не
+        # нужен, а full-* — копия полного GitHub-образа на десятки GB. Голый
+        # node:lts не подходит: в нём нет docker CLI. Дайджест — это
+        # multi-arch индекс; `ubuntu-22.04` оставлена на прежнем образе, чтобы
+        # откатить job'ы без сборки.
         #
         # Образы тянутся через кэш Zot (clusters/casa/apps/zot): путь кэша — это префикс
         # реестра (ghcr.io/..., data.forgejo.org/...). Zot отдаётся по http,
         # поэтому его хост помечен insecure в runner-dind.configmap.yaml.
-        - ubuntu-latest:docker://zot.zot.svc.cluster.local/ghcr.io/catthehacker/ubuntu@sha256:f5f5c29208c4fd541704fe7b8df33d3bf620ce4ac46f36853b7abeb0159705c4
+        - ubuntu-latest:docker://zot.zot.svc.cluster.local/ghcr.io/catthehacker/ubuntu@sha256:62d572b92f9f32d3427b6d220ad1f9dca9c7b6ffad37d295425037dbff78abaf
+        - ubuntu-24.04:docker://zot.zot.svc.cluster.local/ghcr.io/catthehacker/ubuntu@sha256:62d572b92f9f32d3427b6d220ad1f9dca9c7b6ffad37d295425037dbff78abaf
         - ubuntu-22.04:docker://zot.zot.svc.cluster.local/ghcr.io/catthehacker/ubuntu@sha256:f5f5c29208c4fd541704fe7b8df33d3bf620ce4ac46f36853b7abeb0159705c4
         - docker:docker://zot.zot.svc.cluster.local/data.forgejo.org/oci/docker@sha256:018edbc908e08fcc9dbf029c812c34251e9b4719e6f71ca0e5eae2a987d014ca
     cache:

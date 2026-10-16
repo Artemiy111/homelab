@@ -16,6 +16,25 @@ kubectl -n forgejo exec -i deploy/forgejo -c forgejo -- \
 `kv/forgejo/runner`. Токен в ConfigMap не попадает: раннер читает его из файла
 (`server.connections.forgejo.token_url`), смонтированного из Secret'а.
 
+## Смена образа job-контейнера
+
+Метки (`runs-on`), дайджесты образов и лимиты job'ов — в ConfigMap'е
+`forgejo-runner` (`manifests/runner.configmap.yaml`). Argo применяет его сам, но
+job'ы переключаются только после перезапуска пода: раннер читает конфиг при
+старте, а автоматического рестарта на изменение ConfigMap'а нет.
+
+```sh
+KUBECONFIG=~/.kube/configs/homelab.yaml kubectl -n forgejo rollout restart deploy/forgejo-runner
+KUBECONFIG=~/.kube/configs/homelab.yaml kubectl -n forgejo rollout status deploy/forgejo-runner
+```
+
+Образ для job'ов тянет dind, а не containerd узла, поэтому проверяется он из
+сайдкара — дайджест должен совпасть с меткой в ConfigMap'е:
+
+```sh
+KUBECONFIG=~/.kube/configs/homelab.yaml kubectl -n forgejo exec deploy/forgejo-runner -c dind -- docker images
+```
+
 ## Обновление actions/cache
 
 `actions/cache` — не mirror, а репозиторий с **реальной историей** апстрима,
