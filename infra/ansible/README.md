@@ -160,15 +160,14 @@ CI (`.forgejo/workflows/ansible.yml`) прогоняет ansible-lint 26.8.0 с 
 
 ```sh
 python3 -m venv ~/.venvs/ansible
-~/.venvs/ansible/bin/pip install "ansible==12.3.0" "ansible-lint==26.8.0"
+~/.venvs/ansible/bin/pip install "ansible==13.8.0" "ansible-lint==26.8.0"
 cd infra/ansible && ~/.venvs/ansible/bin/ansible-lint --offline
 ```
 
 `ansible` — полный metapackage: его wheel несёт коллекции, syntax-check
-резолвит `community.general.copr` без galaxy. В CI зафиксирован 12.x
-(ansible-core 2.19) вместо серверных 13.x (core 2.20): образ раннера даёт
-python не новее 3.11, а core 2.20 требует 3.12+; линтуемые правила и `dnf5`
-в 2.19 те же.
+резолвит `community.general.copr` без galaxy. Зафиксирован 13.8.0
+(ansible-core 2.20) — нижняя граница «Требований» ниже; ему нужен python ≥ 3.12,
+который даёт образ раннера (Ubuntu 24.04).
 
 ## Требования
 
