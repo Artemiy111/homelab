@@ -120,7 +120,7 @@ A set of Forgejo Actions workflows
 
 | Check | Tool | Scope |
 |---|---|---|
-| `meta / gitlint` | gitlint | Conventional Commits, header length cap |
+| `meta / commitlint` | commitlint | Conventional Commits, header length cap |
 | `meta / actionlint` | actionlint | The workflows themselves |
 | `meta / status` | status-badges.sh | Badge numbers match the repository |
 | `security / gitleaks` | gitleaks | Secrets in commits and PR diffs |

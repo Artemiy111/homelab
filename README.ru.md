@@ -118,7 +118,7 @@ Zitadel — основной OIDC-провайдер. Сервисы без на
 
 | Проверка | Инструмент | Что проверяет |
 |---|---|---|
-| `meta / gitlint` | gitlint | Conventional Commits, ограничение длины заголовка |
+| `meta / commitlint` | commitlint | Conventional Commits, ограничение длины заголовка |
 | `meta / actionlint` | actionlint | Сами workflow |
 | `meta / status` | status-badges.sh | Числа бейджей соответствуют репозиторию |
 | `security / gitleaks` | gitleaks | Секреты в коммитах и диффах PR |

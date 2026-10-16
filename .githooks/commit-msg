@@ -1,15 +1,16 @@
 #!/bin/sh
-# Проверка сообщения коммита. Правила — в .gitlint и scripts/gitlint_rules.py,
-# те же, что гоняет CI в .forgejo/workflows/gitlint.yml.
+# Проверка сообщения коммита. Правила — в commitlint.config.mjs, те же, что
+# гоняет CI в .forgejo/workflows/commitlint.yml.
 #
-# Версия gitlint пинится с двух сторон: локально ставится brew-формула 0.19.1,
-# в CI — те же файлы из зеркала RustFS (clusters/casa/apps/rustfs). Расхождение
-# правил между локалью и CI ловит самотест (§ scripts/gitlint-selftest.sh).
+# commitlint ставится глобально, а не из node_modules дерева: bunx в worktree
+# без node_modules скачивает пакет из публичного npm в момент коммита, то есть
+# непрокиненную версию из сети. Глобальная версия плавает, поэтому гейт здесь
+# быстрый, а authoritative проверка — CI.
 set -eu
 
-if ! command -v gitlint >/dev/null 2>&1; then
-  echo "gitlint не установлен (brew install gitlint) — коммит остановлен" >&2
+if ! command -v commitlint >/dev/null 2>&1; then
+  echo "commitlint не установлен (npm i -g @commitlint/cli @commitlint/config-conventional) — коммит остановлен" >&2
   exit 1
 fi
 
-gitlint --msg-filename "$1"
+commitlint --edit "$1"

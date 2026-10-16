@@ -79,7 +79,7 @@ Issues and specs are tracked in Forgejo Issues. See `docs/agents/issue-tracker.m
 
 ### Commit conventions
 
-Commit messages follow Conventional Commits, are written in English, and are checked by gitlint. See `docs/agents/commit-conventions.md`.
+Commit messages follow Conventional Commits, are written in English, and are checked by commitlint. See `docs/agents/commit-conventions.md`.
 
 Лимит длины считай **заранее**, до создания PR. Заголовок PR при squash-merge
 становится сообщением коммита вместе с дописанным Forgejo ` (#<n>)`, и именно
@@ -91,7 +91,7 @@ printf '%s' "fix(element): json web logs, coturn metrics (#537)" | wc -c
 ```
 
 Если строка длиннее — сокращай subject сразу, а не после падения CI: сначала
-красный `gitlint`, затем невозможность merge (405). Заголовок коммита и PR
+красный `commitlint`, затем невозможность merge (405). Заголовок коммита и PR
 должны совпадать.
 
 ### Triage labels
