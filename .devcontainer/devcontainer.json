@@ -1,0 +1,9 @@
+{
+  "name": "homelab",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": "."
+  },
+  "remoteUser": "vscode",
+  "postCreateCommand": "git config core.hooksPath .githooks"
+}
