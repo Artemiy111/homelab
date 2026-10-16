@@ -58,12 +58,15 @@
 2. Под достаёт до SMB — то есть исключение в NetworkPolicy `samba` доехало:
 
    ```sh
-   kubectl -n filestash exec deploy/filestash -- curl -s --connect-timeout 5 telnet://samba.samba.svc.cluster.local:445; echo "код: $?"
+   kubectl -n filestash exec deploy/filestash -- sh -c \
+     'curl -sv --connect-timeout 5 telnet://samba.samba.svc.cluster.local:445 2>&1 | grep -c "Connected to samba.samba.svc.cluster.local"'
    ```
 
-   Ожидаемо: `код: 0`. Код `7` (не удалось подключиться) — почти всегда
-   NetworkPolicy, а не Samba: смотреть `kubectl -n samba get networkpolicy
-   allow-ingress -o yaml`.
+   Ожидаемо: `1`. Ноль — почти всегда NetworkPolicy, а не Samba: смотреть
+   `kubectl -n samba get networkpolicy allow-ingress -o yaml`. Сам `curl` по
+   схеме `telnet://` в интерактивном виде непригоден для проверки: он ждёт ввод
+   и уходит в таймаут, поэтому результат берётся из строки соединения, а не из
+   кода возврата.
 
 3. Шара читается и пишется в обе стороны: листинг в морде совпадает с
    `smbclient //smb.example.com/ntfs1 -U storage` с клиента и с содержимым
