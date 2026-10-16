@@ -15,6 +15,7 @@ resources:
   - apps/dawarich/app.yaml
   - apps/db-exporters/app.yaml
   - apps/element/app.yaml
+  - apps/filestash/app.yaml
   - apps/forgejo/app.yaml
   - apps/gatus/app.yaml
   - apps/gitlab/app.yaml

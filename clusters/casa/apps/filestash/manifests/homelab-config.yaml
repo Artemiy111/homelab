@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: homelab-config
+  namespace: filestash
+data:
+  DOMAIN: biplane.casa
+  TZ: Asia/Yekaterinburg
+  DEFAULT_LOCALE: ru

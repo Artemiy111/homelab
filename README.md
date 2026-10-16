@@ -162,6 +162,7 @@ Local hooks run the same checks before a commit leaves the machine
 | [Navidrome](clusters/casa/apps/navidrome/) | Music library |
 | [Nextcloud](clusters/casa/apps/nextcloud/) | Files, sync, calendar, contacts |
 | [Seafile](clusters/casa/apps/seafile/) | File sync and sharing, with OnlyOffice |
+| [Filestash](clusters/casa/apps/filestash/) | Web UI over the SMB share, files as they are |
 | [Jitsi](clusters/casa/apps/jitsi/) | Private video conferencing |
 | [Element](clusters/casa/apps/element/) | Matrix chat and video calls via LiveKit — [custom Helm chart](clusters/casa/apps/element/chart/) |
 | [Talk HPB](clusters/casa/apps/talk-hpb/) | Nextcloud Talk signaling |
