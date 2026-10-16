@@ -6,7 +6,7 @@ resource "forgejo_branch_protection" "main" {
 
   enable_status_check = true
   status_check_contexts = [
-    "meta / commitlint (pull_request)",
+    "meta / gitlint (pull_request)",
     "security / gitleaks (pull_request)",
   ]
 

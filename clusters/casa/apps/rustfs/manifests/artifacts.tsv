@@ -25,3 +25,13 @@ bun/1.4.0/bun-linux-x64.zip 2d03fb5fb83ac8b567aca0a281b2ce1a1a19d488f56c2968d88c
 # что подмена исключена, а хост влияет только на доступность.
 terraform/1.16.4/terraform_1.16.4_linux_amd64.zip dc94af0eef1147718ad7c8daea792ed199e3e0492eec180d0adafa2a65a879df https://hashicorp-releases.yandexcloud.net/terraform/1.16.4/terraform_1.16.4_linux_amd64.zip
 tflint/0.64.0/tflint_linux_amd64.zip cca9d13e2e1d7a2c627af60ff899a3c9b74212899416aeb96ec764d2ef954537 https://github.com/terraform-linters/tflint/releases/download/v0.64.0/tflint_linux_amd64.zip
+# gitlint и его зависимости (гейт meta / gitlint): колёса PyPI и sdist sh,
+# sha256 — официальные хэши файлов из PyPI JSON API.
+gitlint/0.19.1/arrow-1.2.3-py3-none-any.whl 5a49ab92e3b7b71d96cd6bfcc4df14efefc9dfa96ea19045815914a6ab6b1fe2 https://files.pythonhosted.org/packages/67/67/4bca5a595e2f89bff271724ddb1098e6c9e16f7f3d018d120255e3c30313/arrow-1.2.3-py3-none-any.whl
+gitlint/0.19.1/click-8.1.3-py3-none-any.whl bb4d8133cb15a609f44e8213d9b391b0809795062913b383c62be0ee95b1db48 https://files.pythonhosted.org/packages/c2/f1/df59e28c642d583f7dacffb1e0965d0e00b218e0186d7858ac5233dce840/click-8.1.3-py3-none-any.whl
+gitlint/0.19.1/gitlint-0.19.1-py3-none-any.whl 26bb085959148d99fbbc178b4e56fda6c3edd7646b7c2a24d8ee1f8e036ed85d https://files.pythonhosted.org/packages/84/90/8b6a29ddceb51272a054399d4864eefd28083530349f5735e0bb979c5f0f/gitlint-0.19.1-py3-none-any.whl
+gitlint/0.19.1/gitlint_core-0.19.1-py3-none-any.whl f41effd1dcbc06ffbfc56b6888cce72241796f517b46bd9fd4ab1b145056988c https://files.pythonhosted.org/packages/b0/57/dea471da24ceac6de8c3dc5d37e4ddde57a5c340d6bac90010898734de34/gitlint_core-0.19.1-py3-none-any.whl
+gitlint/0.19.1/python_dateutil-2.9.0.post0-py2.py3-none-any.whl a8b2bc7bffae282281c8140a97d3aa9c14da0b136dfe83f850eea9a5f7470427 https://files.pythonhosted.org/packages/ec/57/56b9bcc3c9c6a792fcbaf139543cee77261f3651ca9da0c93f5c1221264b/python_dateutil-2.9.0.post0-py2.py3-none-any.whl
+gitlint/0.19.1/setuptools-75.6.0-py3-none-any.whl ce74b49e8f7110f9bf04883b730f4765b774ef3ef28f722cce7c273d253aaf7d https://files.pythonhosted.org/packages/55/21/47d163f615df1d30c094f6c8bbb353619274edccf0327b185cc2493c2c33/setuptools-75.6.0-py3-none-any.whl
+gitlint/0.19.1/sh-1.14.3.tar.gz e4045b6c732d9ce75d571c79f5ac2234edd9ae4f5fa9d59b09705082bdca18c7 https://files.pythonhosted.org/packages/b7/09/89c28aaf2a49f226fef8587c90c6386bd2cc03a0295bc4ff7fc6ee43c01d/sh-1.14.3.tar.gz
+gitlint/0.19.1/six-1.17.0-py2.py3-none-any.whl 4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274 https://files.pythonhosted.org/packages/b7/ce/149a00dd41f10bc29e5921b496af8b574d8413afcd5e30dfa0ed46c2cc5e/six-1.17.0-py2.py3-none-any.whl

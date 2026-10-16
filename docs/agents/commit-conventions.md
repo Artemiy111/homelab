@@ -1,9 +1,25 @@
 # Commit conventions
 
 Сообщения коммитов следуют **Conventional Commits**, пишутся на **английском** и
-проверяются `commitlint`: локально — хуком `.githooks/commit-msg`, в CI —
-workflow `.forgejo/workflows/commitlint.yml`. Правила заданы в
-`commitlint.config.mjs`.
+проверяются `gitlint` 0.19.1: локально — хуком `.githooks/commit-msg`, в CI —
+workflow `.forgejo/workflows/gitlint.yml`. Правила заданы `.gitlint` и
+`scripts/gitlint_rules.py`; локально линтер ставится как `brew install gitlint`,
+в CI — теми же файлами из зеркала RustFS.
+
+Из встроенных правил `gitlint` включено одно — `title-max-length`; остальные
+выключены в `.gitlint`, чтобы гейт проверял ровно то, что описано ниже:
+
+| Правило | Где | Что проверяет |
+| --- | --- | --- |
+| `title-max-length` | `.gitlint` | заголовок ≤ 70 символов |
+| `contrib-title-conventional-commits` | `.gitlint` | тип из списка и форма `type(scope): subject` |
+| `subject-conventional` (`UC1`) | `scripts/gitlint_rules.py` | непустой subject, без точки в конце, не upper/pascal/start-case |
+| `body-forbidden` (`UC2`) | `scripts/gitlint_rules.py` | тело коммита запрещено, разрешены только footer'ы вида `Refs #12` |
+
+Правила — часть гейта, а не настройка инструмента, поэтому в них можно
+ошибиться в обе стороны: пропустить мусор в историю или заблокировать корректный
+коммит. Ожидаемый вердикт для каждого случая зафиксирован таблицей в
+`scripts/gitlint-selftest.sh`; он же гоняется в `scripts/check.sh` и в CI.
 
 ## Формат
 
@@ -14,11 +30,11 @@ type(scope): subject
 | Часть | Правило |
 | --- | --- |
 | `type` | один из `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert` |
-| `scope` | необязательно; подсистема или сервис в нижнем регистре (`argocd`, `traefik`, `forgejo`, `vault`, `dotfiles`, имя приложения из `clusters/casa/apps/`) |
+| `scope` | необязательно; если указан — непустой и в нижнем регистре (`argocd`, `traefik`, `forgejo`, `vault`, `dotfiles`, имя приложения из `clusters/casa/apps/`) |
 | `subject` | императив на английском, нижний регистр (имена собственные допустимы: `Zitadel`, `DoH`, `GLITCHTIP`), без точки в конце |
 | header | ≤ 70 символов, включая `type(scope): ` (для заголовка PR — с учётом ` (#<n>)`, см. ниже) |
-| body | **запрещено** (правило `body-empty`) |
-| footer | разрешён: `Refs #12`; `Reviewed-on` намеренно не добавляем — мержим с `-m ""` (см. ниже) |
+| body | **запрещено** (правило `body-forbidden`) |
+| footer | разрешён: `Refs #12`; строка-продолжение футера запрещена, `Reviewed-on` намеренно не добавляем — мержим с `-m ""` (см. ниже) |
 | флаги merge | `-t` не передаём: он перекрывает заголовок PR и убирает ` (#<n>)` (см. ниже) |
 
 Заголовок PR становится сообщением squash-коммита не сам по себе, а вместе с
@@ -40,6 +56,7 @@ chore: drop dead Cup and Arcane references
 added runner                    # нет type
 feature(x): y                   # неверный type
 Feat(x): add y                  # type с заглавной буквы
+feat(): add y                   # пустой scope
 feat(x): add y.                 # точка в конце subject
 feat(x): add y                  # + тело ниже — тело запрещено
 ```
@@ -111,8 +128,8 @@ git log -1 --format='%b' origin/main     # тело должно быть пус
 
 ## Хуки
 
-Хуки лежат в `.githooks/` и **отслеживаются в git**: ни генератора, ни
-`bun install` для них не нужно, поэтому они работают и в основном дереве, и в
+Хуки лежат в `.githooks/` и **отслеживаются в git**: ни генератора, ни установки
+зависимостей для них не нужно, поэтому они работают и в основном дереве, и в
 любом worktree. Включаются один раз на клон:
 
 ```sh
@@ -128,25 +145,26 @@ git config --get core.hooksPath          # .githooks
 ./scripts/check.sh                       # те же проверки, что и в хуке
 ```
 
-`commitlint` нужен глобально:
+`gitlint` нужен локально (CI ставит ту же версию из зеркала):
 
 ```sh
-npm i -g @commitlint/cli @commitlint/config-conventional
+brew install gitlint
+gitlint --version                        # 0.19.1
 ```
 
-Глобальная, а не локальная — потому что `bun x` в worktree без `node_modules`
-скачивает пакет из публичного npm в момент коммита, то есть непрокиненную
-версию из сети, и обходит Verdaccio с lockfile, на которых построен CI.
-Побочный эффект: глобальная версия плавает, поэтому **локальный хук — быстрая
-подсказка, а гейт — CI**. Правила в `commitlint.config.mjs` — единственный
-источник правды для обоих.
+Версия пинится одинаково с двух сторон: локально — формулой brew, в CI —
+файлами `gitlint/0.19.1/*` из `clusters/casa/apps/rustfs/manifests/artifacts.tsv`
+(скачиваются со сверкой sha256, `pip install --no-index`). Правила
+(`.gitlint` и `scripts/gitlint_rules.py`) — единственный источник правды для
+хука и CI, а расхождение версий ловит самотест `scripts/gitlint-selftest.sh`:
+он входит в `scripts/check.sh` и выполняется первым шагом гейта.
 
 | Хук | Что проверяет |
 | --- | --- |
 | `.githooks/pre-commit` | gitleaks по staged, соответствие `docs/status/` состоянию репозитория, схемы API манифестов из индекса (`kubeconform`) |
-| `.githooks/commit-msg` | сообщение коммита по `commitlint.config.mjs` |
+| `.githooks/commit-msg` | сообщение коммита по `.gitlint` и `scripts/gitlint_rules.py` |
 
-`./scripts/check.sh` (или `bun run check`) — те же проверки плюс shellcheck и
+`./scripts/check.sh` — те же проверки плюс самотест правил, shellcheck и
 actionlint; хуки, в отличие от скрипта, выполняются всегда, когда
 `core.hooksPath` настроен, а скрипт можно позвать руками.
 
@@ -170,14 +188,19 @@ brew install kubeconform
 ## Локальная проверка
 
 ```sh
-commitlint --last                        # последний коммит
-commitlint --from origin/main --to HEAD  # диапазон
+gitlint --commit HEAD                    # последний коммит
+gitlint --commits origin/main..HEAD      # диапазон
+./scripts/gitlint-selftest.sh            # правила соответствуют ожиданиям
 ```
+
+`gitlint` читает `.gitlint` (а через него — `scripts/gitlint_rules.py`)
+относительно текущего каталога и вверх по дереву не ищет: запускать из корня
+репозитория, иначе он молча применит встроенные правила по умолчанию.
 
 CI делает то же: на `push` — последний коммит, на `pull_request` — диапазон
 `base.sha..head.sha`. Отдельно на `pull_request` линтится заголовок PR как
 `<заголовок> (#<n>)` — проверить локально можно так:
 
 ```sh
-printf '%s' "<заголовок PR> (#<n>)" | commitlint
+printf '%s' "<заголовок PR> (#<n>)" | gitlint
 ```

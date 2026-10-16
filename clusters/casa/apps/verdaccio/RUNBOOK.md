@@ -27,7 +27,7 @@ npm_config_registry=https://npm.<домен>/ bun install
 
    ```sh
    npm_config_registry=http://verdaccio.verdaccio.svc.cluster.local/ \
-     npm view @commitlint/cli version
+     npm view typescript version
    ```
 
    В логах Verdaccio виден запрос в uplink.

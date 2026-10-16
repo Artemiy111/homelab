@@ -1,0 +1,15 @@
+[general]
+extra-path = scripts/gitlint_rules.py
+contrib = contrib-title-conventional-commits
+ignore = author-valid-email, body-changed-file-mention, body-first-line-empty,
+    body-hard-tab, body-is-missing, body-match-regex, body-max-line-length,
+    body-min-length, body-trailing-whitespace, title-hard-tab,
+    title-leading-whitespace, title-match-regex, title-min-length,
+    title-must-not-contain-word, title-trailing-punctuation,
+    title-trailing-whitespace
+
+[title-max-length]
+line-length = 70
+
+[contrib-title-conventional-commits]
+types = build,chore,ci,docs,feat,fix,perf,refactor,revert,style,test

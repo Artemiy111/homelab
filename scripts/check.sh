@@ -82,8 +82,11 @@ if optional actionlint; then
   step "actionlint" actionlint -config-file .forgejo/actionlint.yaml .forgejo/workflows/*.yml
 fi
 
-if optional commitlint; then
-  step "сообщение последнего коммита" commitlint --last
+if optional gitlint; then
+  # Сначала сами правила, потом сообщение: сломанное правило выглядит как
+  # «коммит стал плохим», и без самотеста причина не видна.
+  step "правила gitlint" ./scripts/gitlint-selftest.sh
+  step "сообщение последнего коммита" gitlint --commit HEAD
 fi
 
 if [ "$failures" -ne 0 ]; then
