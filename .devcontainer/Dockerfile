@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/devcontainers/base:ubuntu26.04
+FROM ubuntu:26.04
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
@@ -15,60 +15,78 @@ ARG BUN_VERSION=1.4.0
 ARG COMMITLINT_VERSION=21.2.3
 
 ENV BUN_INSTALL=/usr/local
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
 
 RUN apt-get update \
- && apt-get install -y --no-install-recommends shellcheck kustomize \
+ && apt-get install -y --no-install-recommends \
+      ca-certificates curl git jq kustomize shellcheck sudo unzip zsh \
  && rm -rf /var/lib/apt/lists/*
 
-COPY tools.tsv /tmp/tools.tsv
+RUN usermod --login vscode --home /home/vscode --move-home ubuntu \
+ && groupmod --new-name vscode ubuntu \
+ && printf 'vscode ALL=(ALL) NOPASSWD:ALL\n' > /etc/sudoers.d/vscode \
+ && chmod 0440 /etc/sudoers.d/vscode
 
-RUN set -eux; \
-    arch="$(dpkg --print-architecture)"; \
-    case "$arch" in \
-      amd64) go_arch="amd64"; gl_arch="x64"; bun_arch="x64"; linter_asset="kube-linter-linux.tar.gz" ;; \
-      arm64) go_arch="arm64"; gl_arch="arm64"; bun_arch="aarch64"; linter_asset="kube-linter-linux_arm64.tar.gz" ;; \
-      *) echo "неподдерживаемая архитектура: $arch" >&2; exit 1 ;; \
+COPY tools.tsv /tmp/tools.tsv
+COPY --chmod=0755 install-tool.sh /tmp/install-tool.sh
+
+RUN arch="$(dpkg --print-architecture)"; \
+    /tmp/install-tool.sh "kubectl/${KUBECTL_VERSION}/kubectl-linux-${arch}" \
+      "https://dl.k8s.io/release/v${KUBECTL_VERSION}/bin/linux/${arch}/kubectl" \
+      /usr/local/bin/kubectl
+
+RUN arch="$(dpkg --print-architecture)"; \
+    /tmp/install-tool.sh "helm/${HELM_VERSION}/helm-${HELM_VERSION}-linux-${arch}.tar.gz" \
+      "https://get.helm.sh/helm-v${HELM_VERSION}-linux-${arch}.tar.gz" \
+      /usr/local/bin/helm "linux-${arch}/helm"
+
+RUN arch="$(dpkg --print-architecture)"; \
+    /tmp/install-tool.sh "kubeconform/${KUBECONFORM_VERSION}/kubeconform-linux-${arch}.tar.gz" \
+      "https://github.com/yannh/kubeconform/releases/download/v${KUBECONFORM_VERSION}/kubeconform-linux-${arch}.tar.gz" \
+      /usr/local/bin/kubeconform kubeconform
+
+RUN case "$(dpkg --print-architecture)" in \
+      amd64) asset="kube-linter-linux.tar.gz" ;; \
+      arm64) asset="kube-linter-linux_arm64.tar.gz" ;; \
+      *) echo "неподдерживаемая архитектура" >&2; exit 1 ;; \
     esac; \
-    fetch() { \
-      asset="$1"; url="$2"; out="$3"; \
-      curl -fsSL --retry 3 -o "$out" "$url"; \
-      expected="$(awk -v p="$asset" '$1 == p { print $2 }' /tmp/tools.tsv)"; \
-      [ -n "$expected" ] || { echo "нет хэша для $asset" >&2; exit 1; }; \
-      echo "$expected  $out" | sha256sum -c -; \
-    }; \
-    fetch "kubectl/${KUBECTL_VERSION}/kubectl-linux-${go_arch}" \
-      "https://dl.k8s.io/release/v${KUBECTL_VERSION}/bin/linux/${go_arch}/kubectl" /tmp/kubectl; \
-    install -m 0755 /tmp/kubectl /usr/local/bin/kubectl; \
-    fetch "helm/${HELM_VERSION}/helm-${HELM_VERSION}-linux-${go_arch}.tar.gz" \
-      "https://get.helm.sh/helm-v${HELM_VERSION}-linux-${go_arch}.tar.gz" /tmp/helm.tar.gz; \
-    tar -xzf /tmp/helm.tar.gz -C /tmp "linux-${go_arch}/helm"; \
-    install -m 0755 "/tmp/linux-${go_arch}/helm" /usr/local/bin/helm; \
-    fetch "kubeconform/${KUBECONFORM_VERSION}/kubeconform-linux-${go_arch}.tar.gz" \
-      "https://github.com/yannh/kubeconform/releases/download/v${KUBECONFORM_VERSION}/kubeconform-linux-${go_arch}.tar.gz" /tmp/kubeconform.tar.gz; \
-    tar -xzf /tmp/kubeconform.tar.gz -C /tmp kubeconform; \
-    install -m 0755 /tmp/kubeconform /usr/local/bin/kubeconform; \
-    fetch "kube-linter/${KUBE_LINTER_VERSION}/${linter_asset}" \
-      "https://github.com/stackrox/kube-linter/releases/download/v${KUBE_LINTER_VERSION}/${linter_asset}" /tmp/kube-linter.tar.gz; \
-    tar -xzf /tmp/kube-linter.tar.gz -C /tmp kube-linter; \
-    install -m 0755 /tmp/kube-linter /usr/local/bin/kube-linter; \
-    fetch "actionlint/${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_linux_${go_arch}.tar.gz" \
-      "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_linux_${go_arch}.tar.gz" /tmp/actionlint.tar.gz; \
-    tar -xzf /tmp/actionlint.tar.gz -C /tmp actionlint; \
-    install -m 0755 /tmp/actionlint /usr/local/bin/actionlint; \
-    fetch "gitleaks/${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_${gl_arch}.tar.gz" \
-      "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_${gl_arch}.tar.gz" /tmp/gitleaks.tar.gz; \
-    tar -xzf /tmp/gitleaks.tar.gz -C /tmp gitleaks; \
-    install -m 0755 /tmp/gitleaks /usr/local/bin/gitleaks; \
-    fetch "yq/${YQ_VERSION}/yq_linux_${go_arch}" \
-      "https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_${go_arch}" /tmp/yq; \
-    install -m 0755 /tmp/yq /usr/local/bin/yq; \
-    fetch "bun/${BUN_VERSION}/bun-linux-${bun_arch}.zip" \
-      "https://github.com/oven-sh/bun/releases/download/bun-v${BUN_VERSION}/bun-linux-${bun_arch}.zip" /tmp/bun.zip; \
-    unzip -q /tmp/bun.zip -d /tmp; \
-    install -m 0755 "/tmp/bun-linux-${bun_arch}/bun" /usr/local/bin/bun; \
-    bun add -g "@commitlint/cli@${COMMITLINT_VERSION}" "@commitlint/config-conventional@${COMMITLINT_VERSION}"; \
-    printf '#!/bin/sh\nexec bun "%s" "$@"\n' "$(readlink -f /usr/local/bin/commitlint)" > /tmp/commitlint.sh; \
-    install -m 0755 /tmp/commitlint.sh /usr/local/bin/commitlint; \
-    rm -rf /tmp/*
+    /tmp/install-tool.sh "kube-linter/${KUBE_LINTER_VERSION}/${asset}" \
+      "https://github.com/stackrox/kube-linter/releases/download/v${KUBE_LINTER_VERSION}/${asset}" \
+      /usr/local/bin/kube-linter kube-linter
+
+RUN arch="$(dpkg --print-architecture)"; \
+    /tmp/install-tool.sh "actionlint/${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_linux_${arch}.tar.gz" \
+      "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_linux_${arch}.tar.gz" \
+      /usr/local/bin/actionlint actionlint
+
+RUN case "$(dpkg --print-architecture)" in \
+      amd64) arch="x64" ;; \
+      arm64) arch="arm64" ;; \
+      *) echo "неподдерживаемая архитектура" >&2; exit 1 ;; \
+    esac; \
+    /tmp/install-tool.sh "gitleaks/${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_${arch}.tar.gz" \
+      "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_${arch}.tar.gz" \
+      /usr/local/bin/gitleaks gitleaks
+
+RUN arch="$(dpkg --print-architecture)"; \
+    /tmp/install-tool.sh "yq/${YQ_VERSION}/yq_linux_${arch}" \
+      "https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_${arch}" \
+      /usr/local/bin/yq
+
+RUN case "$(dpkg --print-architecture)" in \
+      amd64) arch="x64" ;; \
+      arm64) arch="aarch64" ;; \
+      *) echo "неподдерживаемая архитектура" >&2; exit 1 ;; \
+    esac; \
+    /tmp/install-tool.sh "bun/${BUN_VERSION}/bun-linux-${arch}.zip" \
+      "https://github.com/oven-sh/bun/releases/download/bun-v${BUN_VERSION}/bun-linux-${arch}.zip" \
+      /usr/local/bin/bun "bun-linux-${arch}/bun"
+
+RUN bun add -g "@commitlint/cli@${COMMITLINT_VERSION}" "@commitlint/config-conventional@${COMMITLINT_VERSION}" \
+ && printf '#!/bin/sh\nexec bun "%s" "$@"\n' "$(readlink -f /usr/local/bin/commitlint)" > /tmp/commitlint.sh \
+ && install -m 0755 /tmp/commitlint.sh /usr/local/bin/commitlint
+
+RUN rm -f /tmp/tools.tsv /tmp/install-tool.sh /tmp/commitlint.sh
 
 USER vscode
