@@ -43,3 +43,4 @@ infra/terraform/*/terraform.tfvars
 # а нужный файл всегда возвращается из git.
 *.bak
 *.orig
+.DS_Store
