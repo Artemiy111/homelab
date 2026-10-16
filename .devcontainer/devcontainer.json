@@ -10,7 +10,8 @@
   "customizations": {
     "vscode": {
       "extensions": [
-        "bierner.markdown-mermaid",
+        "Grafana.grafana-alloy",
+        "hashicorp.terraform",
         "mhutchie.git-graph",
         "mechatroner.rainbow-csv",
         "ms-kubernetes-tools.vscode-kubernetes-tools",
