@@ -118,10 +118,9 @@ spec:
           startupProbe:
             exec:
               command: ["python", "/code/healthcheck.py"]
-            initialDelaySeconds: 15
             periodSeconds: 5
             timeoutSeconds: 10
-            failureThreshold: 24
+            failureThreshold: 18
           livenessProbe:
             exec:
               command: ["python", "/code/healthcheck.py"]

@@ -46,22 +46,21 @@ spec:
             httpGet:
               path: /health
               port: http
-            initialDelaySeconds: 10
             periodSeconds: 5
             timeoutSeconds: 10
-            failureThreshold: 30
+            failureThreshold: 18
           livenessProbe:
             httpGet:
               path: /health
               port: http
-            periodSeconds: 120
+            periodSeconds: 30
             timeoutSeconds: 5
             failureThreshold: 3
           readinessProbe:
             httpGet:
               path: /health
               port: http
-            periodSeconds: 60
+            periodSeconds: 30
             timeoutSeconds: 5
             failureThreshold: 3
           securityContext:

@@ -90,10 +90,9 @@ spec:
             httpGet:
               path: /api/status
               port: http
-            initialDelaySeconds: 20
-            periodSeconds: 10
+            periodSeconds: 5
             timeoutSeconds: 10
-            failureThreshold: 36
+            failureThreshold: 24
           livenessProbe:
             httpGet:
               path: /api/status

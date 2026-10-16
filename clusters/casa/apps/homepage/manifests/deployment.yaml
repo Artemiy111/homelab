@@ -43,10 +43,10 @@ spec:
             - name: PGID
               value: "1000"
           startupProbe:
+            failureThreshold: 18
             httpGet:
               path: /api/healthcheck
               port: http
-            initialDelaySeconds: 15
             periodSeconds: 5
             timeoutSeconds: 10
           livenessProbe:
@@ -55,11 +55,13 @@ spec:
               port: http
             periodSeconds: 30
             timeoutSeconds: 10
+            failureThreshold: 3
           readinessProbe:
             httpGet:
               path: /api/healthcheck
               port: http
             timeoutSeconds: 5
+            failureThreshold: 3
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true

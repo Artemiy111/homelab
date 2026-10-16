@@ -114,10 +114,9 @@ spec:
             httpGet:
               path: /up
               port: http
-            initialDelaySeconds: 20
-            periodSeconds: 10
+            periodSeconds: 5
             timeoutSeconds: 10
-            failureThreshold: 60
+            failureThreshold: 30
           livenessProbe:
             httpGet:
               path: /up

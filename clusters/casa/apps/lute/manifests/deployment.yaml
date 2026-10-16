@@ -35,7 +35,7 @@ spec:
             periodSeconds: 30
             timeoutSeconds: 10
             initialDelaySeconds: 30
-            failureThreshold: 5
+            failureThreshold: 3
           readinessProbe:
             httpGet:
               path: /

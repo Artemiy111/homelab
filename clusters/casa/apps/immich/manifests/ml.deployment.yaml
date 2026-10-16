@@ -30,10 +30,9 @@ spec:
           startupProbe:
             tcpSocket:
               port: http
-            initialDelaySeconds: 15
-            periodSeconds: 10
+            periodSeconds: 5
             timeoutSeconds: 10
-            failureThreshold: 30
+            failureThreshold: 18
           livenessProbe:
             tcpSocket:
               port: http

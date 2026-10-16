@@ -49,10 +49,10 @@ spec:
             - name: ND_PROMETHEUS_METRICSPATH
               value: "/metrics_$(NAVIDROME_SECRET_METRICS_PATH)"
           startupProbe:
+            failureThreshold: 18
             httpGet:
               path: /ping
               port: http
-            initialDelaySeconds: 10
             periodSeconds: 5
             timeoutSeconds: 10
           livenessProbe:
@@ -61,12 +61,14 @@ spec:
               port: http
             periodSeconds: 30
             timeoutSeconds: 10
+            failureThreshold: 3
           readinessProbe:
             httpGet:
               path: /ping
               port: http
             periodSeconds: 30
             timeoutSeconds: 5
+            failureThreshold: 3
           securityContext:
             runAsUser: 1000
             runAsGroup: 1000

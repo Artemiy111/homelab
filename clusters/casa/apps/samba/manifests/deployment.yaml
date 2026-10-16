@@ -102,7 +102,7 @@ spec:
             # диску USB 2.0 занимает секунды. 30 попыток по 5 секунд —
             # две с половиной минуты на старт.
             timeoutSeconds: 10
-            failureThreshold: 30
+            failureThreshold: 18
             periodSeconds: 5
           readinessProbe:
             tcpSocket:

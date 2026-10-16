@@ -133,10 +133,9 @@ spec:
           startupProbe:
             exec:
               command: ["/app/zitadel", "ready"]
-            initialDelaySeconds: 20
-            periodSeconds: 10
+            periodSeconds: 5
             timeoutSeconds: 10
-            failureThreshold: 30
+            failureThreshold: 18
           livenessProbe:
             exec:
               command: ["/app/zitadel", "ready"]

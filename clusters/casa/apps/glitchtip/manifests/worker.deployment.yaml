@@ -102,10 +102,9 @@ spec:
           startupProbe:
             exec:
               command: ["sh", "-c", "grep -q runworker /proc/[0-9]*/cmdline"]
-            initialDelaySeconds: 15
             periodSeconds: 5
             timeoutSeconds: 10
-            failureThreshold: 12
+            failureThreshold: 18
           livenessProbe:
             exec:
               command: ["sh", "-c", "grep -q runworker /proc/[0-9]*/cmdline"]

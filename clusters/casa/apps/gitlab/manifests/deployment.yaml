@@ -62,24 +62,23 @@ spec:
             httpGet:
               path: /-/readiness
               port: http
-            initialDelaySeconds: 60
-            periodSeconds: 10
-            timeoutSeconds: 5
-            failureThreshold: 120
+            periodSeconds: 5
+            timeoutSeconds: 10
+            failureThreshold: 30
           readinessProbe:
             httpGet:
               path: /-/readiness
               port: http
             periodSeconds: 30
             timeoutSeconds: 5
-            failureThreshold: 6
+            failureThreshold: 3
           livenessProbe:
             httpGet:
               path: /-/health
               port: http
-            periodSeconds: 60
+            periodSeconds: 30
             timeoutSeconds: 10
-            failureThreshold: 5
+            failureThreshold: 3
           resources:
             requests:
               cpu: 500m

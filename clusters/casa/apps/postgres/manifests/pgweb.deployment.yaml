@@ -64,20 +64,21 @@ spec:
           startupProbe:
             tcpSocket:
               port: http
-            initialDelaySeconds: 5
             periodSeconds: 5
             timeoutSeconds: 10
-            failureThreshold: 12
+            failureThreshold: 18
           livenessProbe:
             tcpSocket:
               port: http
             periodSeconds: 30
             timeoutSeconds: 10
+            failureThreshold: 3
           readinessProbe:
             tcpSocket:
               port: http
             periodSeconds: 15
             timeoutSeconds: 5
+            failureThreshold: 3
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true

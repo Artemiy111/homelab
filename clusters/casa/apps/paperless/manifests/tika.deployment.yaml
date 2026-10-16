@@ -27,11 +27,13 @@ spec:
               port: http
             periodSeconds: 15
             timeoutSeconds: 5
+            failureThreshold: 3
           livenessProbe:
             tcpSocket:
               port: http
             periodSeconds: 30
             timeoutSeconds: 10
+            failureThreshold: 3
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:

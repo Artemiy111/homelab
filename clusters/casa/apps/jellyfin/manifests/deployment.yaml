@@ -49,10 +49,9 @@ spec:
             httpGet:
               path: /health
               port: http
-            initialDelaySeconds: 15
             periodSeconds: 5
             timeoutSeconds: 10
-            failureThreshold: 60
+            failureThreshold: 18
           livenessProbe:
             httpGet:
               path: /health

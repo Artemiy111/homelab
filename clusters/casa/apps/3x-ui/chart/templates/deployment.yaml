@@ -97,10 +97,9 @@ spec:
           startupProbe:
             tcpSocket:
               port: panel
-            initialDelaySeconds: 15
             periodSeconds: 5
             timeoutSeconds: 10
-            failureThreshold: 30
+            failureThreshold: 18
           livenessProbe:
             tcpSocket:
               port: panel

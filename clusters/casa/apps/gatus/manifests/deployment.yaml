@@ -70,10 +70,10 @@ spec:
             - name: XUI_EGRESS_PROXY_URL
               value: "http://$(XUI_EGRESS_USERNAME):$(XUI_EGRESS_PASSWORD)@xui-egress.3x-ui.svc.cluster.local:8440"
           startupProbe:
+            failureThreshold: 18
             httpGet:
               path: /
               port: http
-            initialDelaySeconds: 15
             periodSeconds: 5
             timeoutSeconds: 10
           livenessProbe:
@@ -82,11 +82,13 @@ spec:
               port: http
             periodSeconds: 30
             timeoutSeconds: 10
+            failureThreshold: 3
           readinessProbe:
             httpGet:
               path: /
               port: http
             timeoutSeconds: 5
+            failureThreshold: 3
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:

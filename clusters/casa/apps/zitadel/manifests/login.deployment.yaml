@@ -50,10 +50,9 @@ spec:
           startupProbe:
             exec:
               command: ["/bin/sh", "-c", "node /app/healthcheck.mjs http://localhost:3000/ui/v2/login/healthy"]
-            initialDelaySeconds: 15
             periodSeconds: 5
             timeoutSeconds: 10
-            failureThreshold: 30
+            failureThreshold: 24
           livenessProbe:
             exec:
               command: ["/bin/sh", "-c", "node /app/healthcheck.mjs http://localhost:3000/ui/v2/login/healthy"]

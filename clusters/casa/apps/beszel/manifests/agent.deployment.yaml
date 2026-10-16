@@ -59,20 +59,19 @@ spec:
           startupProbe:
             exec:
               command: ["/agent", "health"]
-            initialDelaySeconds: 10
             periodSeconds: 5
             timeoutSeconds: 10
-            failureThreshold: 30
+            failureThreshold: 18
           livenessProbe:
             exec:
               command: ["/agent", "health"]
-            periodSeconds: 120
+            periodSeconds: 30
             timeoutSeconds: 5
             failureThreshold: 3
           readinessProbe:
             exec:
               command: ["/agent", "health"]
-            periodSeconds: 120
+            periodSeconds: 30
             timeoutSeconds: 5
             failureThreshold: 3
           securityContext:

@@ -47,17 +47,19 @@ spec:
               port: http
             periodSeconds: 5
             timeoutSeconds: 10
-            failureThreshold: 30
+            failureThreshold: 18
           livenessProbe:
             tcpSocket:
               port: http
             periodSeconds: 30
             timeoutSeconds: 10
+            failureThreshold: 3
           readinessProbe:
             tcpSocket:
               port: http
             periodSeconds: 30
             timeoutSeconds: 5
+            failureThreshold: 3
           resources:
             requests:
               cpu: 100m

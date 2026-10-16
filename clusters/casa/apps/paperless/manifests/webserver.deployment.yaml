@@ -121,15 +121,14 @@ spec:
             httpGet:
               path: /api/health/
               port: http
-            initialDelaySeconds: 30
-            periodSeconds: 15
+            periodSeconds: 5
             timeoutSeconds: 10
-            failureThreshold: 40
+            failureThreshold: 30
           livenessProbe:
             httpGet:
               path: /api/health/
               port: http
-            periodSeconds: 60
+            periodSeconds: 30
             timeoutSeconds: 10
             failureThreshold: 3
           readinessProbe:
