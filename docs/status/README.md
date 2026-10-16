@@ -69,11 +69,6 @@ namespace'ов закрыто NetworkPolicy. Все они считаются и
 Список исключений пересчитывается генератором и лежит в `status.json`, здесь —
 разбор каждого.
 
-- **Образ без digest** — `clusters/casa/apps/structurizr`. Официального образа в registry нет,
-  сервис собирается из исходников, тег `localhost/structurizr:<версия>`
-  импортируется в containerd узла. Исключение закрываемо: у импортированного
-  образа есть digest, его можно указать в `image`; альтернатива — публикация
-  сборки в Zot.
 - **Namespace без NetworkPolicy:**
   - `traefik`, `cert-manager`, `argocd`, `cnpg-system`, `elastic-system`,
     `mariadb-system`, `vault-secrets-operator` — control plane и операторы.

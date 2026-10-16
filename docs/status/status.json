@@ -4,10 +4,10 @@
   "services": 59,
   "manifests": 591,
   "images": {
-    "pinned": 135,
+    "pinned": 136,
     "total": 136,
-    "percent": 99,
-    "exceptions": ["clusters/casa/apps/structurizr/manifests/deployment.yaml"]
+    "percent": 100,
+    "exceptions": []
   },
   "network_policy": {
     "objects": 102,

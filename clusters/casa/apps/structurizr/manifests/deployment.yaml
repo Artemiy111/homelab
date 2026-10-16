@@ -24,9 +24,7 @@ spec:
         fsGroup: 1000
       containers:
         - name: structurizr
-          # Образ собирается из исходников (clusters/casa/apps/structurizr/Dockerfile) и
-          # загружается в containerd k0s локально; в Git его нет.
-          image: "localhost/structurizr:2026.06.28"
+          image: registry.yandexcloud.net/cn1j4anu7cclpi3ept3a/structurizr@sha256:59a611541a62d2385bc1083e9d93cef74c6cbfc06251bd794fb964caeb6c544e
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
@@ -92,3 +90,5 @@ spec:
         - name: properties
           configMap:
             name: structurizr-properties
+      imagePullSecrets:
+        - name: structurizr-registry
