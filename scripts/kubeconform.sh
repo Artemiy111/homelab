@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Проверка манифестов kubeconform. Один набор путей, схем и фильтров для
 # .githooks/pre-commit, локального scripts/check.sh и гейта
-# .forgejo/workflows/kubeconform.yml: расхождение между ними хуже, чем
+# .forgejo/workflows/030-kubeconform.yml: расхождение между ними хуже, чем
 # отсутствие проверки, потому что локально зелёный прогон, красный в CI,
 # приучает не смотреть на результат.
 #

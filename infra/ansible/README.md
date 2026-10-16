@@ -155,7 +155,7 @@ ansible-playbook ops.yml --check --diff
 
 ## Линт
 
-CI (`.forgejo/workflows/ansible.yml`) прогоняет ansible-lint 26.8.0 с профилем
+CI (`.forgejo/workflows/010-ansible.yml`) прогоняет ansible-lint 26.8.0 с профилем
 `production` (настройки — `.ansible-lint`) на изменениях в `infra/ansible/`. Локально:
 
 ```sh

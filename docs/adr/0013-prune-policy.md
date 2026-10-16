@@ -58,7 +58,7 @@ metadata:
   автоматической синхронизации (`alloy`, `alloy-profiler`, `authentik`, `beyla`,
   `gitlab`, `local-ai`) тоже вне политики: у них синка нет вовсе.
 - Соответствие держит гейт `scripts/argocd-prune.sh --check` — в `pre-commit`,
-  в `scripts/check.sh` и в workflow `gitops.yml`. Он проверяет три вещи:
+  в `scripts/check.sh` и в workflow `050-gitops.yml`. Он проверяет три вещи:
   приложение юнита с `automated` несёт `prune: true`, каждый PVC и namespace —
   аннотацию, а root не глушит политику синка `ignoreDifferences`. Без гейта
   политика расходится молча: новый юнит копирует соседний манифест, и разница

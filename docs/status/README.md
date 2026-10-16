@@ -90,7 +90,7 @@ namespace'ов закрыто NetworkPolicy. Все они считаются и
 ./scripts/status-badges.sh --check  # только проверить, что артефакты свежие
 ```
 
-Гейт `.forgejo/workflows/status.yml` запускает `--check` на всех изменениях в
+Гейт `.forgejo/workflows/120-status.yml` запускает `--check` на всех изменениях в
 `clusters/casa/apps/`, `clusters/casa/platform/`, `argocd/` и `docs/`: если числа в репозитории разошлись с
 артефактами, CI падает с указанием команды. Локально та же проверка висит в
 `.githooks/pre-commit` — расхождение ловится до коммита, а не после merge.

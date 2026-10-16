@@ -6,7 +6,7 @@ on:
     paths: &paths
       - "infra/terraform/**"
       - ".tflint.hcl"
-      - ".forgejo/workflows/tflint.yml"
+      - ".forgejo/workflows/100-tflint.yml"
   pull_request:
     paths: *paths
   workflow_dispatch:

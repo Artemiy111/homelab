@@ -6,7 +6,7 @@ on:
     paths: &paths
       - "**/*.sh"
       - ".githooks/**"
-      - ".forgejo/workflows/shellcheck.yml"
+      - ".forgejo/workflows/070-shellcheck.yml"
   pull_request:
     paths: *paths
 

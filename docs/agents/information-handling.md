@@ -149,7 +149,7 @@ Credentials отделены от имён и адресов: секреты л�
 | Слой | Что проверяет | Где |
 |---|---|---|
 | pre-commit | секреты в staged-изменениях | `.githooks/pre-commit` + `.gitleaks.toml` |
-| CI | секреты в новых коммитах (push) и в diff PR | `.forgejo/workflows/secrets.yml` |
+| CI | секреты в новых коммитах (push) и в diff PR | `.forgejo/workflows/080-secrets.yml` |
 | push protection | секрет не попадёт в публичный репозиторий | настройки GitHub (включить при открытии зеркала) |
 | branch protection | проверка `secrets` обязательна | настройки репозитория (при открытии зеркала) |
 | secret scanning | вся история всех веток | GitHub (бесплатно для public; включить при открытии) |

@@ -2,7 +2,7 @@
 
 Сообщения коммитов следуют **Conventional Commits**, пишутся на **английском** и
 проверяются `commitlint`: локально — хуком `.githooks/commit-msg`, в CI —
-workflow `.forgejo/workflows/commitlint.yml`. Правила заданы в
+workflow `.forgejo/workflows/040-commitlint.yml`. Правила заданы в
 `commitlint.config.mjs`.
 
 ## Формат
@@ -157,7 +157,7 @@ brew install kubeconform
 ```
 
 Хук смотрит на манифесты из индекса, `check.sh` и гейт в
-`.forgejo/workflows/kubeconform.yml` — на все каталоги. Набор путей, схем и
+`.forgejo/workflows/030-kubeconform.yml` — на все каталоги. Набор путей, схем и
 фильтров лежит в `scripts/kubeconform.sh` и общий для всех трёх: расхождение
 локальной проверки с гейтом хуже, чем её отсутствие, потому что приучает не
 смотреть на результат.

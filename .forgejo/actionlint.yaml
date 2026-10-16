@@ -6,10 +6,10 @@ paths:
       # Forgejo принимает `concurrency` без `group`: именно блок без group
       # отключает дефолтную отмену предыдущего прогона. В грамматике GitHub
       # Actions `group` обязателен, поэтому это осознанное расхождение движков,
-      # а не ошибка (см. комментарии в commitlint.yml и secrets.yml).
+      # а не ошибка (см. комментарии в 040-commitlint.yml и 080-secrets.yml).
       - 'group name is missing in "concurrency" section'
       # Forgejo понимает `uses` с полным URL (https://github.com/owner/repo@ref),
       # а actionlint проверяет только github-грамматику `{owner}/{repo}@{ref}`.
       # Причина и ссылка на апстрим — в комментарии к шагу setup-bun в
-      # commitlint.yml.
+      # 040-commitlint.yml.
       - 'specifying action ".+" in invalid format because owner and repo and ref should not be empty'

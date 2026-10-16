@@ -6,7 +6,7 @@ on:
     paths: &paths
       - "clusters/casa/**"
       - "infra/terraform/**"
-      - ".forgejo/workflows/trivy.yml"
+      - ".forgejo/workflows/020-trivy.yml"
   pull_request:
     paths: *paths
   workflow_dispatch:

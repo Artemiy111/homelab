@@ -6,7 +6,7 @@ on:
     paths: &paths
       - "clusters/casa/**"
       - "scripts/**"
-      - ".forgejo/workflows/gitops.yml"
+      - ".forgejo/workflows/050-gitops.yml"
   pull_request:
     paths: *paths
 

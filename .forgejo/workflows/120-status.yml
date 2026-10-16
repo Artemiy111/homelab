@@ -9,7 +9,7 @@ on:
       - "bootstrap/**"
       - "docs/**"
       - "scripts/**"
-      - ".forgejo/workflows/status.yml"
+      - ".forgejo/workflows/120-status.yml"
   pull_request:
     paths: *paths
 

@@ -8,7 +8,7 @@ on:
       - "clusters/casa/platform/**"
       - "bootstrap/**"
       - "scripts/kubeconform.sh"
-      - ".forgejo/workflows/kubeconform.yml"
+      - ".forgejo/workflows/030-kubeconform.yml"
   pull_request:
     paths: *paths
 

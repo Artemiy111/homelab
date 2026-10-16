@@ -7,7 +7,7 @@ on:
       - "clusters/casa/apps/grafana/**"
       - "clusters/casa/**/RUNBOOK.md"
       - "scripts/**"
-      - ".forgejo/workflows/alerts.yml"
+      - ".forgejo/workflows/090-alerts.yml"
   pull_request:
     paths: *paths
 

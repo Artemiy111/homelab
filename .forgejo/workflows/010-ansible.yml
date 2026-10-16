@@ -5,11 +5,11 @@ on:
     branches: [main]
     paths:
       - "infra/ansible/**"
-      - ".forgejo/workflows/ansible.yml"
+      - ".forgejo/workflows/010-ansible.yml"
   pull_request:
     paths:
       - "infra/ansible/**"
-      - ".forgejo/workflows/ansible.yml"
+      - ".forgejo/workflows/010-ansible.yml"
 
 jobs:
   ansible-lint:

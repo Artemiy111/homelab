@@ -1,6 +1,6 @@
 #!/bin/sh
 # Проверка сообщения коммита. Правила — в commitlint.config.mjs, те же, что
-# гоняет CI в .forgejo/workflows/commitlint.yml.
+# гоняет CI в .forgejo/workflows/040-commitlint.yml.
 #
 # commitlint ставится глобально, а не из node_modules дерева: bunx в worktree
 # без node_modules скачивает пакет из публичного npm в момент коммита, то есть

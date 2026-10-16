@@ -48,7 +48,7 @@ fi
 # .worktrees/ и packages/, которые игнорируются репозиторием, и даёт ложные
 # срабатывания — path-анкерованные allowlist из .gitleaks.toml перестают
 # совпадать, а чужие фикстуры из packages/ попадают в чужой скан. Тот же
-# подход, что в гейте secrets.yml: только то, что может попасть в историю.
+# подход, что в гейте 080-secrets.yml: только то, что может попасть в историю.
 
 step "секреты в staged" gitleaks git --staged --config .gitleaks.toml --no-banner --redact
 step "секреты в коммитах ветки" gitleaks git --config .gitleaks.toml --no-banner --redact \
@@ -61,7 +61,7 @@ step "бюджет проб" ./scripts/probe-timeouts.sh --check
 step "реестр правил Grafana соответствует манифесту" ./scripts/alert-rules-docs.sh --check
 
 if optional kubeconform; then
-  # Полный набор каталогов и схем: те же, что в гейте kubeconform.yml и в
+  # Полный набор каталогов и схем: те же, что в гейте 030-kubeconform.yml и в
   # pre-commit. Скрипт общий намеренно — расхождение локальной проверки с
   # гейтом хуже, чем её отсутствие.
   step "kubeconform" ./scripts/kubeconform.sh
@@ -70,7 +70,7 @@ fi
 if optional shellcheck; then
   # bash 3.2 на macOS не знает mapfile, поэтому массив собирается циклом.
   scripts=()
-  # Те же исключения, что и в .forgejo/workflows/shellcheck.yml: .agents и
+  # Те же исключения, что и в .forgejo/workflows/070-shellcheck.yml: .agents и
   # .claude — шаблоны скиллов и инструментовка, не код репозитория.
   while IFS= read -r file; do
     scripts+=("$file")

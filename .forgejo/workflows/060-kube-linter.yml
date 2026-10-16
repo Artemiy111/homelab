@@ -8,7 +8,7 @@ on:
       - "clusters/casa/platform/**"
       - "bootstrap/**"
       - ".kube-linter.yaml"
-      - ".forgejo/workflows/kube-linter.yml"
+      - ".forgejo/workflows/060-kube-linter.yml"
   pull_request:
     paths: *paths
 
