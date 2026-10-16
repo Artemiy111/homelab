@@ -18,6 +18,17 @@ jobs:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
+      # Порядок важен: кэш проверяется первым, потому что от его результата
+      # зависят два следующих шага. При попадании в кэш bun не скачивается и не
+      # запускается вовсе: commitlint — обычный node-скрипт, а node в job-образе
+      # есть (24.19 против требуемых >=22.12). Bun остаётся установщиком и нужен
+      # только на холодном пути.
+      - name: Cache dependencies
+        id: dependencies
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('bun.lock') }}
       # setup-bun берётся из зеркала RustFS, как и бинарники остальных гейтов
       # (issue #149): внешние репозитории бывают недоступны, а ATS в кластере
       # не развёрнут, и job падал на загрузке bun до установки чего-либо.
@@ -27,29 +38,26 @@ jobs:
       # registries пишет bunfig.toml, поэтому `bun install` идёт через локальный
       # кэш Verdaccio (clusters/casa/apps/verdaccio).
       - name: Setup bun
+        if: steps.dependencies.outputs.cache-hit != 'true'
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.4.0
           bun-download-url: http://rustfs.rustfs.svc.cluster.local/mirror/bun/1.4.0/bun-linux-x64.zip
           registries: http://verdaccio.verdaccio.svc.cluster.local/
-      - name: Cache dependencies
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: node-modules-${{ runner.os }}-${{ hashFiles('bun.lock') }}
       - name: Install dependencies
+        if: steps.dependencies.outputs.cache-hit != 'true'
         run: bun install --frozen-lockfile
       - name: Print versions
         run: |
           git --version
-          bun --version
-          bun x commitlint --version
+          node --version
+          ./node_modules/.bin/commitlint --version
       - name: Validate last commit
         if: github.event_name == 'push'
-        run: bun x commitlint --last --verbose
+        run: ./node_modules/.bin/commitlint --last --verbose
       - name: Validate pull request commits
         if: github.event_name == 'pull_request'
-        run: bun x commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }} --verbose
+        run: ./node_modules/.bin/commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }} --verbose
       # Заголовок PR не проверяется диапазоном коммитов, но при squash-merge именно
       # он (плюс дописываемый Forgejo ` (#<n>)`) становится сообщением коммита в
       # main. Линтим ровно эту строку, чтобы падение было до merge.
@@ -58,4 +66,4 @@ jobs:
         env:
           PR_TITLE: ${{ github.event.pull_request.title }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
-        run: printf '%s' "$PR_TITLE (#$PR_NUMBER)" | bun x commitlint --verbose
+        run: printf '%s' "$PR_TITLE (#$PR_NUMBER)" | ./node_modules/.bin/commitlint --verbose
