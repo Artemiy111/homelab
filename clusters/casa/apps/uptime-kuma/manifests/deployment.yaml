@@ -22,7 +22,7 @@ spec:
         fsGroup: 1000
       containers:
         - name: uptime-kuma
-          image: "louislam/uptime-kuma:2@sha256:3e24e96c89efff0e3a4b0698cbdd36c15ad3022371db57166e5588853002ee5c"
+          image: "louislam/uptime-kuma:2@sha256:9912da7d7d9b6ddc0c2d904beb84d24689c1ed9c33b81419eb9008663a92a329"
           ports:
             - containerPort: 3001
               name: http
