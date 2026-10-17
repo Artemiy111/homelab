@@ -2,5 +2,19 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:recommended"],
   "prHourlyLimit": 0,
-  "prConcurrentLimit": 20
+  "prConcurrentLimit": 20,
+  "osvVulnerabilityAlerts": true,
+  "packageRules": [
+    {
+      "description": "Имя образа длиннее бюджета заголовка в commitlint",
+      "matchPackageNames": ["data.forgejo.org/forgejo/forgejo"],
+      "commitMessageTopic": "forgejo image"
+    },
+    {
+      "description": "Версия bun живёт в четырёх местах, Renovate видит одно",
+      "matchDepTypes": ["uses-with"],
+      "matchPackageNames": ["bun"],
+      "enabled": false
+    }
+  ]
 }
