@@ -5,7 +5,7 @@ updates:
     directory: "/"
     schedule:
       interval: weekly
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 20
     commit-message:
       prefix: chore
       include: scope
@@ -14,7 +14,7 @@ updates:
     directory: "/"
     schedule:
       interval: weekly
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 20
     commit-message:
       prefix: chore
       include: scope
@@ -24,7 +24,7 @@ updates:
       - "/infra/terraform/*"
     schedule:
       interval: weekly
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 20
     commit-message:
       prefix: chore
       include: scope
@@ -35,7 +35,7 @@ updates:
       - "/clusters/casa/apps/*"
     schedule:
       interval: weekly
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 20
     commit-message:
       prefix: chore
       include: scope
@@ -45,7 +45,7 @@ updates:
       - "/clusters/casa/apps/*"
     schedule:
       interval: weekly
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 20
     commit-message:
       prefix: chore
       include: scope
@@ -54,7 +54,7 @@ updates:
     directory: "/.devcontainer"
     schedule:
       interval: weekly
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 20
     commit-message:
       prefix: chore
       include: scope
@@ -64,7 +64,7 @@ updates:
       - "/clusters/casa/apps/*/chart"
     schedule:
       interval: weekly
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 20
     commit-message:
       prefix: chore
       include: scope
