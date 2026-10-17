@@ -102,10 +102,10 @@ spec:
               resources:
                 requests:
                   cpu: 100m
-                  memory: 256Mi
+                  memory: 512Mi
                 limits:
-                  cpu: "1"
-                  memory: 1Gi
+                  cpu: "2"
+                  memory: 3Gi
               volumeMounts:
                 - name: work
                   mountPath: /tmp/renovate
