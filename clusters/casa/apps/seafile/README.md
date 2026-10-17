@@ -39,7 +39,7 @@ Secret'а `seafile-metrics`, который VSO синхронизирует и�
 
 ## База данных (mariadb-operator)
 
-Инстанс и SQL-ресурсы объявлены в `clusters/casa/platform/mariadb/`:
+Инстанс и SQL-ресурсы объявлены в этом же юните, в `manifests/`:
 
 | Ресурс | Что создаёт |
 |--------|-------------|

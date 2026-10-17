@@ -14,7 +14,7 @@ OOM, значение можно поднять.
 ## Хранилище
 
 PVC у сервиса нет: мониторы, история и настройки лежат во внешней MariaDB
-(`clusters/casa/platform/mariadb`), а `/app/data` — `emptyDir` с лимитом 32 MiБ. Постоянным
+(`manifests/uptime-kuma-mariadb.instance.yaml`), а `/app/data` — `emptyDir` с лимитом 32 MiБ. Постоянным
 там остаётся только то, что Kuma пересоздаёт сама: `db-config.json` пишется из
 `UPTIME_KUMA_DB_*` при каждом старте, `screenshots/` — на каждой проверке.
 Не переживает пересоздание пода `upload/`: загруженные через UI файлы (например,
@@ -32,11 +32,11 @@ Kuma 2.x не использует SQLite: переменные `UPTIME_KUMA_DB_
 Пока БД живёт в поде, её нечем бэкапить средствами MariaDB, а потеря тома уносит
 мониторы и всю историю проверок. Поэтому БД выносится в отдельный кластер:
 
-- `clusters/casa/platform/mariadb/manifests/uptime-kuma-mariadb.instance.yaml` — MariaDB под
+- `manifests/uptime-kuma-mariadb.instance.yaml` — MariaDB под
   mariadb-operator, одна реплика, 1 GiБ;
-- `clusters/casa/platform/mariadb/manifests/uptime-kuma-mariadb.databases.yaml` — база `kuma`,
+- `manifests/uptime-kuma-mariadb.databases.yaml` — база `kuma`,
   `cleanupPolicy: Skip`, чтобы опечатка в манифесте не удалила данные;
-- `clusters/casa/platform/mariadb/manifests/uptime-kuma-mariadb.users.yaml` — пользователь
+- `manifests/uptime-kuma-mariadb.users.yaml` — пользователь
   `uptime_kuma` и его права, пароль из Secret;
 - два пути в Vault: `kv/uptime-kuma/db` (учётные данные приложения) и
   `kv/uptime-kuma/root` (root-пароль для оператора).

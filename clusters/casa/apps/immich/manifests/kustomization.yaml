@@ -18,6 +18,8 @@ resources:
   - route.yaml
   - vaultauth.yaml
   - vaultstaticsecret.yaml
+  - immich-db.cluster.yaml
+  - immich-db.databases.yaml
 configMapGenerator:
   - name: immich-system-config
     files:

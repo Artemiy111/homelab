@@ -8,8 +8,9 @@ Zitadel — IdP homelab. Доступен по `https://id.biplane.casa/`,
 
 Postgres поднимается кластером CloudNativePG: суперпользователь остаётся у
 оператора, а ZITADEL работает под непривилегированной managed-ролью `zitadel` —
-владельцем базы. Роль и база объявлены в `clusters/casa/platform/cnpg/`
-(`zitadel-db.cluster.yaml`, `zitadel-db.databases.yaml`).
+владельцем базы. Кластер `zitadel-db` и его объекты объявлены в этом же юните,
+в `manifests/`: он принадлежит ZITADEL, и blast radius IdP не должен совпадать
+с остальными базами (`docs/adr/0002`).
 
 `ZITADEL_FIRSTINSTANCE_*` применяется только на пустой базе.
 

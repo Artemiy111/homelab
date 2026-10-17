@@ -14,6 +14,8 @@ resources:
   - zitadel.service.yaml
   - zitadel.vpa.yaml
   - route.yaml
+  - zitadel-db.cluster.yaml
+  - zitadel-db.databases.yaml
 configMapGenerator:
   - name: zitadel-config
     files:

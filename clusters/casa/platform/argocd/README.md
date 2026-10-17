@@ -24,7 +24,7 @@ API, и лимит 100/50 срабатывает при обычном прос�
 `argocd-application-controller`, ни в `argocd-cmd-params-cm`, ни в `AppProject`.
 На отдельный ресурс режим задаётся аннотацией
 `argocd.argoproj.io/sync-options: ServerSideApply=true`, но это тот же выбор,
-только ниже уровнем. Так SSA стоит у всех юнитов, кроме баз.
+только ниже уровнем. Так SSA стоит у всех юнитов, кроме юнитов с базами.
 
 SSA применяет объект через `kubectl apply --server-side --force-conflicts`:
 владение полями видно в `managedFields`, лимит аннотации
@@ -33,7 +33,9 @@ client-side apply Argo доводит сам — миграцией менедж
 (`ClientSideApplyMigration`, включена по умолчанию). Поэтому `Force=true` для
 перехвата владения не нужен: в Argo это другая опция (см. ниже).
 
-**Исключение — `cnpg` и `mariadb`**: они на client-side apply и с
+**Исключение — юниты, владеющие CR с admission-дефолтами** (это `cnpg` с общим
+кластером и пятеро с выделенными базами: `immich`, `zitadel`, `dawarich`,
+`seafile`, `uptime-kuma`). Они на client-side apply и с
 `argocd.argoproj.io/compare-options: ServerSideDiff=false`. Оба оператора
 дописывают значения в `spec` на admission (CNPG — `api/v1/cluster_defaults.go`,
 `func (r *Cluster) Default()` и guard-вебхук; mariadb-operator — вебхук

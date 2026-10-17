@@ -19,6 +19,9 @@ resources:
   - seafile.service.yaml
   - vaultauth.yaml
   - vaultstaticsecret.yaml
+  - seafile-mariadb.instance.yaml
+  - seafile-mariadb.databases.yaml
+  - seafile-mariadb.users.yaml
 configMapGenerator:
   - name: seafile-config
     files:

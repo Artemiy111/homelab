@@ -1,5 +1,5 @@
 # Оператор MariaDB: классы, инстансы, пользователи, бэкапы. Нужен для seafile
-# и uptime-kuma — их базы живут в кластерах баз MariaDB (clusters/casa/platform/mariadb/),
+# и uptime-kuma — их базы живут в выделенных кластерах MariaDB в юнитах этих сервисов,
 # тогда как PostgreSQL-базы обслуживает CNPG.
 #
 # Значения вынесены из `spec.source.helm.valuesObject` в

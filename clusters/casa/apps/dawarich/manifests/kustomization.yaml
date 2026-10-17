@@ -16,3 +16,5 @@ resources:
   - vaultstaticsecret.yaml
   - dawarich.vpa.yaml
   - dawarich-sidekiq.vpa.yaml
+  - dawarich-db.cluster.yaml
+  - dawarich-db.databases.yaml

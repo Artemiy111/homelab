@@ -10,3 +10,6 @@ resources:
   - deployment.yaml
   - networkpolicy.yaml
   - uptime-kuma.vpa.yaml
+  - uptime-kuma-mariadb.instance.yaml
+  - uptime-kuma-mariadb.databases.yaml
+  - uptime-kuma-mariadb.users.yaml

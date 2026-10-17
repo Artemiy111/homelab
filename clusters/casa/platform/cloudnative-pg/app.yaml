@@ -5,9 +5,9 @@
 # обслуживает все Cluster'ы во всех namespace. Поэтому его namespace
 # (cnpg-system) не совпадает с namespace баз (databases) — так и задумано.
 #
-# Сами кластеры и базы живут в clusters/casa/platform/cnpg/ отдельным
-# приложением `cnpg`: его sync-wave идёт после этого, поэтому CRD оператора к
-# моменту применения CR уже есть.
+# Общий кластер `shared` и его базы живут в clusters/casa/platform/cnpg/
+# отдельным приложением `cnpg`, выделенные кластеры — в юнитах сервисов: их
+# sync-wave идёт после этого, поэтому CRD оператора к моменту применения CR есть.
 #
 # Мониторинг: monitoring.podMonitorEnabled оставлен дефолтным false. В кластере
 # нет CRD prometheus-operator (monitoring.coreos.com), PodMonitor'ы некому

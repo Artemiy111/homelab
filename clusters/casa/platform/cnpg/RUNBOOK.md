@@ -8,8 +8,10 @@
 трогает (реплики он пересоздаёт, primary — нет). Порядок из трёх шагов:
 
 ```sh
-# 1. Увеличить размер в Cluster: правка доезжает приложением cnpg.
-$EDITOR clusters/casa/platform/cnpg/manifests/<cluster>.cluster.yaml
+# 1. Увеличить размер в Cluster: правка доезжает приложением владельца.
+#    Общий кластер — platform/cnpg (приложение cnpg), выделенный — юнит сервиса
+#    (apps/<сервис>, приложение <сервис>).
+$EDITOR clusters/casa/platform/cnpg/manifests/shared.cluster.yaml
 git commit -m "..." && git push
 argocd app sync cnpg
 
@@ -25,66 +27,6 @@ kubectl -n <ns> delete pod <cluster>-1
 После второго шага PVC остаётся в `FileSystemResizePending`, а том Longhorn уже
 нового размера. Удаление пода заставляет его перемонтировать том, FS
 расширяется, PVC показывает новый размер, кластер поднимается.
-
-## Проверка на одноразовом кластере test18
-
-Начать стоит не с боевых кластеров, а с одноразового `test18`: он дешевле и его
-не жалко сломать. Заодно это проверка cross-namespace — кластер в `databases`,
-а секрет роли там же, где кластер. Пароль лежит открытым текстом в
-`test18.secret.yaml` — он заведомо тестовый, для боевых баз так нельзя.
-
-Волны юнита расставляют всё сами: секреты ролей (0) → кластеры (10) → базы (20),
-причём база применяется только после того, как кластер стал `healthy`.
-
-```sh
-# 0. Namespace'ы: databases, zitadel, immich, dawarich — их объявляет юнит
-#    platform/namespaces, он в первой волне root
-kubectl apply -f clusters/casa/platform/namespaces/manifests/namespaces.yaml
-
-# 1. Оператор: приложение cloudnative-pg (волна 10)
-kubectl apply -f clusters/casa/platform/cloudnative-pg/app.yaml
-kubectl -n cnpg-system get pods -w
-
-# 2. Кластер и база: приложение cnpg (волна 30)
-argocd app get cnpg
-kubectl -n databases get cluster test18 -w   # ждём Cluster in healthy state
-kubectl -n databases get database testdb18 -o wide
-```
-
-Что посмотреть, пока кластер жив:
-
-```sh
-# Оператор сам создал StatefulSet, Service'ы, PVC и секреты
-kubectl -n databases get statefulset,pod,svc,pvc,secret | grep test18
-
-# Сервисы: -rw (primary), -ro (реплики), -r (любой)
-kubectl -n databases get svc test18-rw test18-ro test18-r
-
-# Роли и базы: служебная app/app — не наша, рабочая testdb18/test18
-kubectl -n databases exec -it test18-1 -c postgres -- \
-  psql -U postgres -d postgres -c '\l'
-kubectl -n databases exec -it test18-1 -c postgres -- \
-  psql -U postgres -d postgres \
-  -c "select rolname, rolcanlogin, rolsuper from pg_roles where rolname not like 'pg\_%'"
-
-# Подключение рабочей ролью (хост — <cluster>-rw)
-kubectl -n databases exec -it test18-1 -c postgres -- \
-  env PGPASSWORD=test-password psql -h 127.0.0.1 -U test18 -d testdb18 -c '\l'
-```
-
-Убирать за собой:
-
-```sh
-# База и секрет уходят вместе с файлами: prune у приложения включён
-git rm clusters/casa/platform/cnpg/manifests/test18.databases.yaml \
-       clusters/casa/platform/cnpg/manifests/test18.secret.yaml
-argocd app sync cnpg
-
-# Кластер защищён аннотацией Prune=false: удаляем осознанно, вместе с файлом
-git rm clusters/casa/platform/cnpg/manifests/test18.cluster.yaml
-kubectl -n databases delete cluster test18
-argocd app sync cnpg
-```
 
 ## Предусловия
 
@@ -133,11 +75,16 @@ kubectl -n cnpg-system get pods -w
 
 kubectl apply -f clusters/casa/platform/cnpg/manifests/db-auth.vaultauth.yaml           # SA и VaultAuth ролей
 kubectl apply -f clusters/casa/platform/cnpg/manifests/db-auth.vaultstaticsecrets.yaml  # пароли ролей из Vault
-kubectl apply -f clusters/casa/platform/cnpg/manifests/*.cluster.yaml
+kubectl apply -f clusters/casa/platform/cnpg/manifests/shared.cluster.yaml
 kubectl get cluster -A -w                                # ждём healthy
 
-kubectl apply -f clusters/casa/platform/cnpg/manifests/*.databases.yaml
+kubectl apply -f clusters/casa/platform/cnpg/manifests/shared.databases.yaml
 kubectl get cluster,database -A
+
+# Выделенные кластеры поднимаются своими юнитами:
+#   kubectl apply -k clusters/casa/apps/immich/manifests
+#   kubectl apply -k clusters/casa/apps/zitadel/manifests
+#   kubectl apply -k clusters/casa/apps/dawarich/manifests
 ```
 
 ## Проверка

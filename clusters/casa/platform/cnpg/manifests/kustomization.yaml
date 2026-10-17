@@ -2,17 +2,8 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-  - dawarich-db.cluster.yaml
-  - dawarich-db.databases.yaml
   - db-auth.vaultauth.yaml
   - db-auth.vaultstaticsecrets.yaml
-  - immich-db.cluster.yaml
-  - immich-db.databases.yaml
   - networkpolicy.yaml
   - shared.cluster.yaml
   - shared.databases.yaml
-  - test18.cluster.yaml
-  - test18.databases.yaml
-  - test18.secret.yaml
-  - zitadel-db.cluster.yaml
-  - zitadel-db.databases.yaml

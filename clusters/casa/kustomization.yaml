@@ -75,7 +75,6 @@ resources:
   - platform/local-storage/app.yaml
   - platform/longhorn/app.yaml
   - platform/mariadb-operator/app.yaml
-  - platform/mariadb/app.yaml
   - platform/monitoring/app.yaml
   - platform/namespaces/app.yaml
   - platform/priorityclasses/app.yaml
