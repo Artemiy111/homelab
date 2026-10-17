@@ -6,8 +6,12 @@ on:
   pull_request:
 
 # Как и в 080-secrets.yml: Forgejo по умолчанию отменяет предыдущий прогон того же
-# workflow на push и pull_request (synchronize). На push в main проверка должна
-# отрабатывать всегда, а не отменяться следующим пушем.
+# workflow на push и pull_request (synchronize) — «any other invocations of the
+# same workflow will be canceled automatically»
+# (forgejo.org/docs/latest/user/actions/reference/#concurrency). На push в main
+# проверка должна отрабатывать всегда, а не отменяться следующим пушем: без
+# `group` значение `cancel-in-progress: false` снимает управление
+# конкурентностью (там же, #concurrencycancel-in-progress).
 concurrency:
   cancel-in-progress: false
 

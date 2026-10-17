@@ -46,15 +46,30 @@ dind свой `/var/lib/docker` на PVC. Том — `local-path`, а не Longh
 (`docker system prune`, ниже).
 
 **Конкурентность workflow.** По умолчанию Forgejo отменяет предыдущий прогон
-того же workflow при новом событии `push` или `pull_request (synchronize)`. Там,
-где это нежелательно (важен результат каждого коммита, а не только последнего),
-в workflow задаётся `concurrency: { cancel-in-progress: false }` — без `group`
-Forgejo перестаёт управлять конкурентностью, и запуски просто идут параллельно.
-Число одновременно исполняемых job'ов ограничивает `runner.capacity` в
-ConfigMap'е (сейчас `4`); параллельные job'ы делят dockerd сайдкара. Лимиты
-ресурсов задаются там же, в `container.options` (`--cpus`/`--memory`): job'ы
-создаёт внутренний dockerd, и лимиты контейнеров runner/dind на них не
-распространяются.
+того же workflow при новом событии `push` или `pull_request (synchronize)`:
+«If no concurrency settings are provided, Forgejo will automatically manage the
+concurrency of a workflow that is executed by the `on.push` and `on.pull_request`
+(synchronize) events in the following manner: whenever a new event triggers a new
+workflow invocation, any other invocations of the same workflow will be canceled
+automatically»
+([Forgejo Actions reference, раздел `concurrency`](https://forgejo.org/docs/latest/user/actions/reference/#concurrency)).
+Там, где это нежелательно (важен результат каждого коммита, а не только
+последнего), в workflow задаётся `concurrency: { cancel-in-progress: false }` —
+без `group` Forgejo перестаёт управлять конкурентностью: «If evaluated to
+`false`, then no concurrency management will occur»
+([`concurrency.cancel-in-progress`](https://forgejo.org/docs/latest/user/actions/reference/#concurrencycancel-in-progress)).
+
+Это поведение именно Forgejo, а не общая грамматика Actions: у GitHub отмена
+существует только внутри объявленной группы, «The default behavior of GitHub
+Actions is to allow multiple jobs or workflow runs to run concurrently»
+([Control the concurrency of workflows and jobs](https://docs.github.com/en/actions/how-tos/writing-workflows/choosing-what-your-workflow-does/control-the-concurrency-of-workflows-and-jobs)).
+Поэтому в парном наборе `.github/workflows/` блока `concurrency` нет ни в одном
+файле: отсутствие блока и даёт то поведение, которое `040-commitlint` и
+`080-secrets` просят явно. Число одновременно исполняемых job'ов ограничивает
+`runner.capacity` в ConfigMap'е (сейчас `4`); параллельные job'ы делят dockerd
+сайдкара. Лимиты ресурсов задаются там же, в `container.options`
+(`--cpus`/`--memory`): job'ы создаёт внутренний dockerd, и лимиты контейнеров
+runner/dind на них не распространяются.
 
 **Очередь задач и имена файлов workflow.** При `capacity: 4` задачи ждут слота, и
 порядок ожидания задаёт не джоб, а имя файла workflow: Forgejo обходит каталог

@@ -9,9 +9,11 @@
 # коммит, и --last проверяет его заголовок — тот самый, что собрался из заголовка
 # PR при squash-merge.
 #
-# Блока concurrency нет намеренно: GitHub отменяет предыдущий прогон только при
-# явно заданном concurrency, а в кластерном двойнике отмена отключена
-# (`cancel-in-progress: false`) — поведение совпадает без настройки.
+# Блока concurrency нет намеренно: «The default behavior of GitHub Actions is to
+# allow multiple jobs or workflow runs to run concurrently»
+# (docs.github.com/en/actions/how-tos/writing-workflows/choosing-what-your-workflow-does/control-the-concurrency-of-workflows-and-jobs),
+# а в кластерном двойнике отмена отключена (`cancel-in-progress: false`) —
+# поведение совпадает без настройки.
 name: meta
 
 on:

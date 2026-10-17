@@ -142,10 +142,11 @@ upstream GitHub releases while the pin still comes from
 `clusters/casa/apps/rustfs/manifests/artifacts.tsv`. That makes the mirror a second,
 independent execution of the gates rather than a copy of the first one.
 
-One engine difference remains: Forgejo cancels a superseded run of the same workflow,
-GitHub cancels only when `concurrency` is set. No GitHub workflow sets it, so a run
-started by an earlier push to `main` is never cancelled — the same behaviour the two
-Forgejo gates (`040-commitlint`, `080-secrets`) ask for explicitly.
+One engine difference remains — Forgejo cancels a superseded run of the same workflow,
+GitHub cancels only when `concurrency` is set
+([details and sources](clusters/casa/apps/forgejo/README.md)). No GitHub workflow sets
+it, so a run started by an earlier push to `main` is never cancelled — the same
+behaviour the two Forgejo gates (`040-commitlint`, `080-secrets`) ask for explicitly.
 
 Workflows are paired by file name: `.forgejo/workflows/030-kubeconform.yml` and
 `.github/workflows/030-kubeconform.yml` are one check running on two engines. The
