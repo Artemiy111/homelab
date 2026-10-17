@@ -16,9 +16,10 @@ spec:
     namespace: databases
   syncPolicy:
     syncOptions:
-      - Prune=false
+      - ServerSideApply=true
       - SkipDryRunOnMissingResource=true
     automated:
+      prune: true
       selfHeal: true
     retry:
       limit: 5

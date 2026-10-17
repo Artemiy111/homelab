@@ -32,6 +32,7 @@ configs:
     # только пересозданием Application. 10m — компромисс между временем
     # восстановления и лишним рендером на ноде под давлением по памяти (#727).
     controller.default.cache.expiration: 10m
+    controller.diff.server.side: "true"
 
   # → argocd-cm.
   cm:

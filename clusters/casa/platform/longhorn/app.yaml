@@ -39,6 +39,7 @@ spec:
     namespace: longhorn-system
   syncPolicy:
     syncOptions:
+      - ServerSideApply=true
       - Prune=false
     automated:
       selfHeal: true
