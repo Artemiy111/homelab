@@ -12,5 +12,7 @@ spec:
   clusterResourceWhitelist:
     - group: ""
       kind: Namespace
+    - group: ""
+      kind: PersistentVolume
     - group: scheduling.k8s.io
       kind: PriorityClass
