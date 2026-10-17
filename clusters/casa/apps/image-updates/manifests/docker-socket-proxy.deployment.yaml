@@ -16,6 +16,15 @@ spec:
       labels:
         app: docker-socket-proxy
     spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values:
+                      - homelab
       enableServiceLinks: false
       containers:
         - name: docker-socket-proxy

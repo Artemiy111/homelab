@@ -26,6 +26,15 @@ spec:
       labels:
         app: samba
     spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values:
+                      - homelab
       enableServiceLinks: false
       securityContext:
         fsGroup: 1000
