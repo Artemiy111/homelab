@@ -6,6 +6,7 @@ resources:
   - merge-message.configmap.yaml
   - runner-dind.configmap.yaml
   - runner.configmap.yaml
+  - renovate.cronjob.yaml
   - runner.deployment.yaml
   - runner.pvc.yaml
   - networkpolicy.yaml

@@ -127,6 +127,64 @@ kubectl -n forgejo exec deploy/forgejo -c forgejo -- forgejo admin auth list
 kubectl -n forgejo exec deploy/forgejo-runner -c dind -- docker system prune -af
 ```
 
+## Учётная запись бота Renovate
+
+Renovate ходит в Forgejo под отдельной учёткой: ветки и PR подписаны ботом, а
+токен отзывается, не задевая личные доступы.
+
+Пользователь заводится из админского UI (`https://forgejo.<домен>/admin/users/new`):
+логин `renovate-bot`, полное имя `Renovate Bot`, почта любая — Forgejo её не
+проверяет. Затем учётке нужно право записи в репозитории: репозиторий →
+Settings → Collaborators → `renovate-bot` с доступом **Write**.
+
+Токен выпускается под самим ботом (Settings → Applications), scope:
+`read:repository`, `write:repository`, `read:issue`, `write:issue`, `read:user`.
+Чужому пользователю токен через API не выпустить — нужен вход под ботом.
+
+## Секрет Renovate в Vault
+
+```sh
+vault kv put kv/forgejo/@renovate/token RENOVATE_TOKEN=<pat>
+```
+
+Право чтения даёт политика `app/forgejo`; её текст — в
+`infra/terraform/vault/policies/issued.tf`, применяется с macOS:
+
+```sh
+cd infra/terraform/vault && terraform apply
+```
+
+Vault Secrets Operator приносит значение в Secret:
+
+```sh
+KUBECONFIG=~/.kube/configs/homelab.yaml kubectl -n forgejo get secret forgejo-renovate
+```
+
+Ожидается Secret с ключом `RENOVATE_TOKEN` и непустым значением.
+
+## Прогон Renovate вручную
+
+Расписания ждать не обязательно:
+
+```sh
+KUBECONFIG=~/.kube/configs/homelab.yaml kubectl -n forgejo create job --from=cronjob/renovate renovate-manual
+KUBECONFIG=~/.kube/configs/homelab.yaml kubectl -n forgejo logs -f job/renovate-manual
+```
+
+В логе ожидаются `Repository started`, `Dependency extraction complete` со
+счётчиком зависимостей и созданные ветви. Пустая выдача без ошибок поломкой не
+является: если обновлять нечего, Renovate не создаёт ничего.
+
+Дальше смотреть в Forgejo: issue `Dependency Dashboard` — список найденного,
+включая отложенное из-за лимита; ветви `renovate/*` и PR от учётки бота.
+
+## Ротация токена бота
+
+1. Отозвать PAT под ботом: Settings → Applications → Revoke.
+2. Выпустить новый и положить тем же `vault kv put` (см. выше).
+3. Следующий прогон возьмёт новое значение: Secret обновляет VSO, а само задание
+   читает токен при старте.
+
 ## Что проверено на живом стенде
 
 Прогон workflow в `user/test` (`.forgejo/workflows/smoke.yml`), 14 job'ов:

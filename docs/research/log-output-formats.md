@@ -58,6 +58,7 @@ kube-state-metrics, migrate.
 | Open WebUI | `LOG_FORMAT=json` | включено (#498): однострочный JSON, trace_id/span_id в `extra` |
 | Stirling PDF | `logging.structured.format.console` | проверено на стенде: без эффекта (кастомный logback), остаётся текст |
 | Vault | `log_format = "json"` | отложено: рестарт требует повторного unseal |
+| Renovate | `LOG_FORMAT=json` | включено (#605) |
 
 ## Без штатного структурного вывода
 

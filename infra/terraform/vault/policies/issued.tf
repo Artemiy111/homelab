@@ -43,6 +43,8 @@ resource "vault_policy" "app_forgejo" {
     path "kv/metadata/forgejo/oidc"                               { capabilities = ["read", "list"] }
     path "kv/data/forgejo/@monitoring/forgejo-metrics-token"     { capabilities = ["read"] }
     path "kv/metadata/forgejo/@monitoring/forgejo-metrics-token" { capabilities = ["read", "list"] }
+    path "kv/data/forgejo/@renovate/token"                       { capabilities = ["read"] }
+    path "kv/metadata/forgejo/@renovate/token"                   { capabilities = ["read", "list"] }
   EOT
 }
 

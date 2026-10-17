@@ -169,6 +169,31 @@ Settings → Actions → Secrets репозитория. Детали:
   `write:package`) либо вручную: версия пакета → Settings → выбор репозитория.
   Для повторных версий привязка сохраняется — линковать нужно один раз.
 
+## Обновления зависимостей
+
+Обновления предлагает Renovate: он запускается заданием по расписанию в этом
+неймспейсе, ходит в Forgejo под отдельной учётной записью бота и открывает PR из
+ветвей `renovate/*`. Перечень найденного живёт issue `Dependency Dashboard` в
+самом репозитории — это источник правды о том, что ждёт обновления.
+
+Почему здесь, а не в job'ах раннера: Renovate обращается наружу — на github.com
+за релизами и changelog, в реестры образов, в registry.terraform.io, — а job'ы
+идут через кэш и до части внешних хостов не дотягиваются. Токен ему выдаёт
+Forgejo, поэтому рядом с ним он и живёт.
+
+Учётка бота отдельная намеренно: PR и коммиты подписаны ботом, а не человеком, а
+отзыв токена не задевает личные доступы. Подпись коммитов задана явно
+(`RENOVATE_GIT_AUTHOR`), потому что она уезжает в публичное зеркало вместе с
+ветками. Политика обновлений лежит в `renovate.json` в корне репозитория, а не в
+манифесте: её читает Renovate, а не кластер.
+
+**Чего Renovate не умеет у нас.** Версия bun зашита в трёх местах сразу: в
+`artifacts.tsv` (это зеркало в RustFS), в `tools.tsv` devcontainer'а и в
+`bun-download-url` workflow. Renovate видит только последнее, и такой PR ломает
+CI по существу — скачивается старая версия из зеркала, а номер в манифесте
+меняется. Пока такие пины обновляются руками и синхронно; правила под них —
+отдельная задача.
+
 ## Хранилище
 
 `persistence.claimName: forgejo-data`, класс `longhorn-retain`, 5Gi. Стратегия
@@ -215,11 +240,12 @@ app.ini через `FORGEJO__database__PASSWD` из `gitea.additionalConfigFromE
 |---|---|---|---|
 | `kv/forgejo/db` | `username`, `password` | `forgejo-db` | чарт (env → app.ini) |
 | `kv/forgejo/@monitoring/forgejo-metrics-token` | `FORGEJO_METRICS_TOKEN` | `forgejo-metrics` | чарт (env → app.ini) |
+| `kv/forgejo/@renovate/token` | `RENOVATE_TOKEN` | `forgejo-renovate` | CronJob `renovate` |
 | `kv/forgejo/admin` | `username`, `password` | `forgejo-admin` | чарт (init-контейнер) |
 | `kv/forgejo/runner` | `token` | `forgejo-runner` | регистрация раннера |
 | `kv/forgejo/oidc` | `key`, `secret` | `forgejo-oidc` | чарт (init-контейнер) |
 
-Все пять — `VaultStaticSecret`, значения в Vault заводит человек.
+Все шесть — `VaultStaticSecret`, значения в Vault заводит человек.
 
 **Про админа:** это служебная учётка (`forgejo-admin`, почта
 `admin@example.com`), а не личный аккаунт человека: роль в сервисе и
@@ -233,8 +259,8 @@ reserved»), поэтому имя с суффиксом сервиса; поч�
 нет — на живом стенде он его не создал, потому что в базе уже был другой админ;
 после пересоздания базы учётки заведены руками (`forgejo admin user create`).
 
-Пользователи: `forgejo-admin` (служебный админ) и `artemiy` (личный, без прав
-админа).
+Пользователи: `forgejo-admin` (служебный админ), `artemiy` (личный, без прав
+админа) и `renovate-bot` (бот Renovate, право записи в этот репозиторий).
 
 Осторожно с именами: чарт создаёт Secret с именем релиза (`forgejo`) для своих
 init-скриптов, поэтому секреты сервиса названы с префиксом `forgejo-`.

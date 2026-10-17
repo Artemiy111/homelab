@@ -1,0 +1,74 @@
+# Renovate: обновления зависимостей. Ходит в Forgejo под отдельной учётной
+# записью бота (PAT из Vault), поэтому ветки и PR подписаны ботом, а токен
+# отзывается, не задевая личные доступы.
+#
+# Живёт здесь, а не в job'ах раннера: Renovate обращается наружу — на github.com
+# за релизами и changelog, в реестры образов, в registry.terraform.io, — и ему
+# нужен сетевой доступ, которого у job-контейнеров нет.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: renovate
+  namespace: forgejo
+spec:
+  schedule: "37 * * * *"
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 3600
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        spec:
+          restartPolicy: Never
+          enableServiceLinks: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 12021
+            runAsGroup: 12021
+            fsGroup: 12021
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: renovate
+              image: "renovate/renovate:44.166.0@sha256:510b885a90cd70437816c5c2da1d0c3beff513d3979497b2db1d37c84adfbc2b"
+              args:
+                - artemiy/homelab
+              env:
+                - name: RENOVATE_PLATFORM
+                  value: forgejo
+                - name: RENOVATE_ENDPOINT
+                  value: https://forgejo.biplane.casa/api/v1
+                # Подпись коммитов задана явно: она уезжает в публичное зеркало
+                # вместе с ветками Renovate, а значение по умолчанию берётся из
+                # профиля учётки и может оказаться пустым.
+                - name: RENOVATE_GIT_AUTHOR
+                  value: "Renovate Bot <bot@renovateapp.com>"
+                - name: LOG_LEVEL
+                  value: info
+                - name: LOG_FORMAT
+                  value: json
+                - name: RENOVATE_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: forgejo-renovate
+                      key: RENOVATE_TOKEN
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ["ALL"]
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                limits:
+                  cpu: "1"
+                  memory: 1Gi
+              volumeMounts:
+                - name: work
+                  mountPath: /tmp/renovate
+          volumes:
+            - name: work
+              emptyDir:
+                sizeLimit: 2Gi
