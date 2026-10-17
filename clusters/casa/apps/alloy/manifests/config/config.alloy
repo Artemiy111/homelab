@@ -75,6 +75,20 @@ loki.process "pods" {
     replace    = "***"
   }
 
+  // Токен Telegram-бота в URL: при ошибке отправки Gatus печатает адрес
+  // запроса целиком, а у Telegram токен живёт в пути, не в заголовке.
+  stage.replace {
+    expression = "api\\.telegram\\.org/bot[0-9]+:[A-Za-z0-9_-]+"
+    replace    = "api.telegram.org/bot<redacted>"
+  }
+
+  // Учётные данные в URL: scheme://user:password@host. Прокси и реестры
+  // приносят пароль именно так, и он попадает в сообщения об ошибках.
+  stage.replace {
+    expression = "://[^:/@[:space:]]+:[^@[:space:]]+@"
+    replace    = "://***@"
+  }
+
   // JSON-логи: level и trace_id/span_id верхнего уровня.
   stage.json {
     expressions = {

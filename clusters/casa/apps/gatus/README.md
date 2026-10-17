@@ -30,8 +30,15 @@ push из интернета.
 
 - Бот создаётся в [@BotFather](https://t.me/BotFather) (`/newbot`); полученный
   токен и ID чата задаются в Vault переменными `TELEGRAM_BOT_TOKEN` и
-  `TELEGRAM_CHAT_ID` (путь `kv/gatus/secret`) и подставляются в
-  `config/config.yaml` через `${...}`. Значения в Git не попадают.
+  `TELEGRAM_CHAT_ID` (путь `kv/gatus/@telegram/telegram-notification`) и
+  подставляются в `config/config.yaml` через `${...}`. Значения в Git не попадают.
+- **Токен виден в логах пода.** При неудачной отправке Gatus печатает адрес
+  запроса целиком, а у Telegram токен лежит в пути URL
+  (`api.telegram.org/bot<id>:<token>/sendMessage`). Alloy вырезает его перед
+  записью в Loki, но `kubectl logs` отдаёт строку как есть — при разборе логов
+  Gatus такую строку считай секретом. Засветившийся токен меняется у BotFather
+  (`/revoke`), новое значение кладётся в Vault тем же `vault kv put`, после чего
+  Gatus перезапускается.
 - ID группы отрицательный (для супергрупп — с префиксом `-100`). Чтобы бот
   видел сообщения группы, в BotFather отключите privacy mode (`/setprivacy` →
   `Disable`); ID группы можно узнать через `https://api.telegram.org/bot<TOKEN>/getUpdates`.
