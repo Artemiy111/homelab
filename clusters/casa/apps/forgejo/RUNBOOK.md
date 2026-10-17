@@ -178,6 +178,28 @@ KUBECONFIG=~/.kube/configs/homelab.yaml kubectl -n forgejo logs -f job/renovate-
 Дальше смотреть в Forgejo: issue `Dependency Dashboard` — список найденного,
 включая отложенное из-за лимита; ветви `renovate/*` и PR от учётки бота.
 
+## Токен github.com для Renovate
+
+Нужен, чтобы подтягивались release notes и не упираться в анонимный лимит GitHub
+(60 запросов в час). Токен — **классический, без скоупов**: публичных данных
+достаточно, а лишние права ни к чему. Подойдёт и fine-grained с одним
+разрешением «Public repositories → read».
+
+```sh
+vault kv put kv/github/api-token RENOVATE_GITHUB_COM_TOKEN=<pat>
+```
+
+Право чтения — в политике `app/forgejo`, применяется с macOS:
+
+```sh
+cd infra/terraform/vault && terraform apply
+```
+
+Проверка — следующим прогоном задания: в дашборде не должно быть строк
+`GitHub token is required for some dependencies` и `No github.com token has been
+configured`. Ключ в Secret необязательный, поэтому под стартует и без него —
+просто без release notes.
+
 ## Ротация токена бота
 
 1. Отозвать PAT под ботом: Settings → Applications → Revoke.

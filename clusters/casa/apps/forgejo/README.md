@@ -187,6 +187,13 @@ Forgejo, поэтому рядом с ним он и живёт.
 ветками. Политика обновлений лежит в `renovate.json` в корне репозитория, а не в
 манифесте: её читает Renovate, а не кластер.
 
+Отдельный токен есть и на github.com: Renovate ходит туда за release notes и
+частью инструментов, а анонимный лимит — 60 запросов в час на IP, чего при
+семидесяти с лишним зависимостями в Actions не хватает. Это кред внешнего
+провайдера, поэтому лежит он в `kv/github/`, а не рядом с секретом Renovate:
+значение одно на кластер, а доступ выдаётся строкой в политике потребителя
+(`docs/adr/0006`). Достаточно токена на чтение — ни один скоуп ему не нужен.
+
 **Чего Renovate не умеет у нас.** Версия bun зашита в трёх местах сразу: в
 `artifacts.tsv` (это зеркало в RustFS), в `tools.tsv` devcontainer'а и в
 `bun-download-url` workflow. Renovate видит только последнее, и такой PR ломает
@@ -241,11 +248,12 @@ app.ini через `FORGEJO__database__PASSWD` из `gitea.additionalConfigFromE
 | `kv/forgejo/db` | `username`, `password` | `forgejo-db` | чарт (env → app.ini) |
 | `kv/forgejo/@monitoring/forgejo-metrics-token` | `FORGEJO_METRICS_TOKEN` | `forgejo-metrics` | чарт (env → app.ini) |
 | `kv/forgejo/@renovate/token` | `RENOVATE_TOKEN` | `forgejo-renovate` | CronJob `renovate` |
+| `kv/github/api-token` | `RENOVATE_GITHUB_COM_TOKEN` | `forgejo-renovate-github` | CronJob `renovate` |
 | `kv/forgejo/admin` | `username`, `password` | `forgejo-admin` | чарт (init-контейнер) |
 | `kv/forgejo/runner` | `token` | `forgejo-runner` | регистрация раннера |
 | `kv/forgejo/oidc` | `key`, `secret` | `forgejo-oidc` | чарт (init-контейнер) |
 
-Все шесть — `VaultStaticSecret`, значения в Vault заводит человек.
+Все семь — `VaultStaticSecret`, значения в Vault заводит человек.
 
 **Про админа:** это служебная учётка (`forgejo-admin`, почта
 `admin@example.com`), а не личный аккаунт человека: роль в сервисе и

@@ -54,6 +54,16 @@ spec:
                     secretKeyRef:
                       name: forgejo-renovate
                       key: RENOVATE_TOKEN
+                # Токен github.com нужен только на чтение публичных данных: без
+                # него не подтягиваются release notes и действует анонимный
+                # лимит 60 запросов в час. Ключ необязательный — под стартует и
+                # до того, как секрет заведён.
+                - name: RENOVATE_GITHUB_COM_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: forgejo-renovate-github
+                      key: RENOVATE_GITHUB_COM_TOKEN
+                      optional: true
               securityContext:
                 allowPrivilegeEscalation: false
                 capabilities:
