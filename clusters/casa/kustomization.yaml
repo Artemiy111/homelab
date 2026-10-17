@@ -62,6 +62,7 @@ resources:
   - apps/zot/app.yaml
   - platform/cert-manager/app.yaml
   - platform/cloudnative-pg/app.yaml
+  - platform/cnpg/app.yaml
   - platform/dns01-webhook/app.yaml
   - platform/eck-operator/app.yaml
   - platform/falco/app.yaml
@@ -74,6 +75,7 @@ resources:
   - platform/local-storage/app.yaml
   - platform/longhorn/app.yaml
   - platform/mariadb-operator/app.yaml
+  - platform/mariadb/app.yaml
   - platform/monitoring/app.yaml
   - platform/namespaces/app.yaml
   - platform/priorityclasses/app.yaml

@@ -32,11 +32,11 @@ Kuma 2.x не использует SQLite: переменные `UPTIME_KUMA_DB_
 Пока БД живёт в поде, её нечем бэкапить средствами MariaDB, а потеря тома уносит
 мониторы и всю историю проверок. Поэтому БД выносится в отдельный кластер:
 
-- `clusters/casa/platform/mariadb/uptime-kuma-mariadb.instance.yaml` — MariaDB под
+- `clusters/casa/platform/mariadb/manifests/uptime-kuma-mariadb.instance.yaml` — MariaDB под
   mariadb-operator, одна реплика, 1 GiБ;
-- `clusters/casa/platform/mariadb/uptime-kuma-mariadb.databases.yaml` — база `kuma`,
+- `clusters/casa/platform/mariadb/manifests/uptime-kuma-mariadb.databases.yaml` — база `kuma`,
   `cleanupPolicy: Skip`, чтобы опечатка в манифесте не удалила данные;
-- `clusters/casa/platform/mariadb/uptime-kuma-mariadb.users.yaml` — пользователь
+- `clusters/casa/platform/mariadb/manifests/uptime-kuma-mariadb.users.yaml` — пользователь
   `uptime_kuma` и его права, пароль из Secret;
 - два пути в Vault: `kv/uptime-kuma/db` (учётные данные приложения) и
   `kv/uptime-kuma/root` (root-пароль для оператора).

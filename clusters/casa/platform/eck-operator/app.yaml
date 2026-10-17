@@ -13,6 +13,8 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
   # Имя НЕ совпадает с именем файла (`eck-operator.yaml`). Здесь это осознанно:
   # имя Application = releaseName, а releaseName попадает в
   # app.kubernetes.io/instance на все ресурсы чарта. Переименование меняет

@@ -18,6 +18,8 @@
 apiVersion: k8s.mariadb.com/v1alpha1
 kind: MariaDB
 metadata:
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false
   name: seafile-mariadb
   namespace: seafile
 spec:

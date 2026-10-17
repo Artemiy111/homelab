@@ -10,7 +10,7 @@
 # Тег/дайджест — те же, что были в манифестах до переезда на чарт.
 #
 # База — внешняя: кластер CNPG shared в namespace databases, роль и база forgejo
-# (clusters/casa/platform/cnpg/shared.cluster.yaml, shared.databases.yaml). Пароль роли лежит в
+# (clusters/casa/platform/cnpg/manifests/shared.cluster.yaml, shared.databases.yaml). Пароль роли лежит в
 # Secret'е databases/forgejo-db-auth, и он же — в forgejo/forgejo (один
 # путь kv/forgejo/db, два VaultStaticSecret; так решено в clusters/casa/platform/cnpg/README.md).
 # Здесь он подставляется в app.ini через FORGEJO__database__PASSWD, поэтому
@@ -30,6 +30,8 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "40"
   name: forgejo
   namespace: argocd
 spec:

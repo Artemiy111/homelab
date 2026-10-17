@@ -168,7 +168,7 @@ Settings → Actions → Secrets репозитория. Детали:
 
 Кластер `shared` (namespace `databases`), роль `forgejo`, база `forgejo`.
 Подключение идёт на `shared-rw.databases.svc.cluster.local:5432`, доступ
-разрешён в `clusters/casa/platform/cnpg/networkpolicy.yaml` (`allow-shared-from-consumers`).
+разрешён в `clusters/casa/platform/cnpg/manifests/networkpolicy.yaml` (`allow-shared-from-consumers`).
 
 Пароль роли лежит в `databases/forgejo-db-auth` и он же — в `forgejo/forgejo-db`,
 оба из пути `kv/forgejo/db`.

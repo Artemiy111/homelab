@@ -8,8 +8,10 @@
 трогает (реплики он пересоздаёт, primary — нет). Порядок из трёх шагов:
 
 ```sh
-# 1. Увеличить размер в Cluster (и применить). Оператор увидит нехватку места.
-kubectl apply -f clusters/casa/platform/cnpg/<cluster>.cluster.yaml
+# 1. Увеличить размер в Cluster: правка доезжает приложением cnpg.
+$EDITOR clusters/casa/platform/cnpg/manifests/<cluster>.cluster.yaml
+git commit -m "..." && git push
+argocd app sync cnpg
 
 # 2. Увеличить сам PVC: Longhorn расширяет том на ходу.
 kubectl -n <ns> patch pvc <cluster>-1 --type=merge \
@@ -24,32 +26,28 @@ kubectl -n <ns> delete pod <cluster>-1
 нового размера. Удаление пода заставляет его перемонтировать том, FS
 расширяется, PVC показывает новый размер, кластер поднимается.
 
-## Первый запуск руками: test18
+## Проверка на одноразовом кластере test18
 
-Начать стоит не с боевых кластеров, а с одноразового `test18`. Заодно это
-проверка cross-namespace: кластер в `databases`, а секрет роли — там же, где и
-кластер. Пароль лежит открытым текстом в `test18.secret.yaml` — он заведомо
-тестовый, для боевых баз так нельзя.
+Начать стоит не с боевых кластеров, а с одноразового `test18`: он дешевле и его
+не жалко сломать. Заодно это проверка cross-namespace — кластер в `databases`,
+а секрет роли там же, где кластер. Пароль лежит открытым текстом в
+`test18.secret.yaml` — он заведомо тестовый, для боевых баз так нельзя.
+
+Волны юнита расставляют всё сами: секреты ролей (0) → кластеры (10) → базы (20),
+причём база применяется только после того, как кластер стал `healthy`.
 
 ```sh
-# 0. Namespace'ы: databases, zitadel, immich, dawarich.
-#    Их объявляет clusters/casa/platform/namespaces/, а не этот каталог:
-#    каталог cnpg под Argo не стоит, и объявления из ручного apply в git
-#    не доходили. Если Argo ещё не поднят — применяй руками:
+# 0. Namespace'ы: databases, zitadel, immich, dawarich — их объявляет юнит
+#    platform/namespaces, он в первой волне root
 kubectl apply -f clusters/casa/platform/namespaces/manifests/namespaces.yaml
 
-# 1. Оператор: в Argo приложение и sync, либо
+# 1. Оператор: приложение cloudnative-pg (волна 10)
 kubectl apply -f clusters/casa/platform/cloudnative-pg/app.yaml
-argocd app sync cloudnative-pg
 kubectl -n cnpg-system get pods -w
 
-# 2. Secret раньше кластера: из него берётся пароль роли test18
-kubectl apply -f clusters/casa/platform/cnpg/test18.secret.yaml
-kubectl apply -f clusters/casa/platform/cnpg/test18.cluster.yaml
+# 2. Кластер и база: приложение cnpg (волна 30)
+argocd app get cnpg
 kubectl -n databases get cluster test18 -w   # ждём Cluster in healthy state
-
-# 3. База — только когда кластер healthy (см. «Грабли»)
-kubectl apply -f clusters/casa/platform/cnpg/test18.databases.yaml
 kubectl -n databases get database testdb18 -o wide
 ```
 
@@ -77,9 +75,15 @@ kubectl -n databases exec -it test18-1 -c postgres -- \
 Убирать за собой:
 
 ```sh
-kubectl delete -f clusters/casa/platform/cnpg/test18.databases.yaml   # базу удаляем отдельно
-kubectl delete -f clusters/casa/platform/cnpg/test18.cluster.yaml
-kubectl delete -f clusters/casa/platform/cnpg/test18.secret.yaml
+# База и секрет уходят вместе с файлами: prune у приложения включён
+git rm clusters/casa/platform/cnpg/manifests/test18.databases.yaml \
+       clusters/casa/platform/cnpg/manifests/test18.secret.yaml
+argocd app sync cnpg
+
+# Кластер защищён аннотацией Prune=false: удаляем осознанно, вместе с файлом
+git rm clusters/casa/platform/cnpg/manifests/test18.cluster.yaml
+kubectl -n databases delete cluster test18
+argocd app sync cnpg
 ```
 
 ## Предусловия
@@ -107,21 +111,32 @@ kubectl delete -f clusters/casa/platform/cnpg/test18.secret.yaml
 
 ## Установка
 
-Порядок важен: namespace'ы → кластеры → дождаться `healthy` → базы. Иначе
+Порядок задан волнами: namespace'ы (0) → оператор (10) → секреты ролей и
+кластеры (0 и 10 внутри юнита `cnpg`), дождаться `healthy` → базы (20). Иначе
 `Database`-объекты один раз увидят отсутствующий кластер и залипнут в
 `applied: false` (см. «Грабли»).
 
+Штатный путь — Argo: оба приложения применяет root, порядок держат волны.
+
+```sh
+argocd app get cloudnative-pg   # оператор
+argocd app get cnpg             # секреты ролей, кластеры, базы
+kubectl get cluster,database -A
+```
+
+Поднять, когда Argo ещё не работает:
+
 ```sh
 kubectl apply -f clusters/casa/platform/namespaces/manifests/namespaces.yaml
-kubectl apply -f clusters/casa/platform/cnpg/db-auth.vaultauth.yaml           # SA и VaultAuth ролей
-kubectl apply -f clusters/casa/platform/cnpg/db-auth.vaultstaticsecrets.yaml  # пароли ролей из Vault
-kubectl apply -f clusters/casa/platform/cloudnative-pg/app.yaml          # оператор (+ sync в Argo)
+kubectl apply -f clusters/casa/platform/cloudnative-pg/app.yaml          # оператор
 kubectl -n cnpg-system get pods -w
 
-kubectl apply -f clusters/casa/platform/cnpg/*.cluster.yaml
+kubectl apply -f clusters/casa/platform/cnpg/manifests/db-auth.vaultauth.yaml           # SA и VaultAuth ролей
+kubectl apply -f clusters/casa/platform/cnpg/manifests/db-auth.vaultstaticsecrets.yaml  # пароли ролей из Vault
+kubectl apply -f clusters/casa/platform/cnpg/manifests/*.cluster.yaml
 kubectl get cluster -A -w                                # ждём healthy
 
-kubectl apply -f clusters/casa/platform/cnpg/*.databases.yaml
+kubectl apply -f clusters/casa/platform/cnpg/manifests/*.databases.yaml
 kubectl get cluster,database -A
 ```
 
@@ -181,8 +196,8 @@ kubectl -n databases exec shared-1 -c postgres -- \
   `cluster resource has been deleted, skipping reconciliation`, оставит
   `status.applied: false` и сам больше не пошевелится — база не создастся.
   Лечение: удалить и применить `Database` заново (или разбудить его правкой).
-  Поэтому базы и вынесены в отдельные файлы и применяются **после** того, как
-  кластер стал `healthy`.
+  Поэтому базы и вынесены в отдельные файлы и в волну 20: они применяются
+  **после** того, как кластер волны 10 стал `healthy`.
 - **`bootstrap` применяется только при создании.** Менять `initdb`-часть спеки
   у живого кластера бессмысленно — нужен пересоздатель.
 - **Extension-image и `shared_preload_libraries` не менять одновременно.**

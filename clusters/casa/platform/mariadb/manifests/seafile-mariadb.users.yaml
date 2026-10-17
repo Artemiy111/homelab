@@ -10,6 +10,8 @@
 apiVersion: k8s.mariadb.com/v1alpha1
 kind: User
 metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "20"
   name: seafile
   namespace: seafile
 spec:
@@ -25,6 +27,8 @@ spec:
 apiVersion: k8s.mariadb.com/v1alpha1
 kind: Grant
 metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "20"
   name: seafile-ccnet-db
   namespace: seafile
 spec:
@@ -40,6 +44,8 @@ spec:
 apiVersion: k8s.mariadb.com/v1alpha1
 kind: Grant
 metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "20"
   name: seafile-seafile-db
   namespace: seafile
 spec:
@@ -55,6 +61,8 @@ spec:
 apiVersion: k8s.mariadb.com/v1alpha1
 kind: Grant
 metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "20"
   name: seafile-seahub-db
   namespace: seafile
 spec:

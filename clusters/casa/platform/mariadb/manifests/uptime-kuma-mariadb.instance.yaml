@@ -38,6 +38,8 @@
 apiVersion: k8s.mariadb.com/v1alpha1
 kind: MariaDB
 metadata:
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false
   name: uptime-kuma-mariadb
   namespace: uptime-kuma
 spec:

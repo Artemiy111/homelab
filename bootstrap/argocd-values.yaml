@@ -64,6 +64,136 @@ configs:
     resource.customizations.ignoreDifferences.gateway.networking.k8s.io_Gateway: |
       jqPathExpressions:
         - .spec.listeners[]?.tls.certificateRefs[]?.group
+    resource.customizations.health.postgresql.cnpg.io_Cluster: |
+      hs = {}
+      if obj.status == nil or obj.status.conditions == nil then
+        hs.status = "Progressing"
+        hs.message = "Waiting for the operator to reconcile the Cluster"
+        return hs
+      end
+      if obj.status.observedGeneration ~= nil and obj.metadata.generation ~= nil and obj.status.observedGeneration < obj.metadata.generation then
+        hs.status = "Progressing"
+        hs.message = "Waiting for the operator to observe the Cluster"
+        return hs
+      end
+      for _, condition in ipairs(obj.status.conditions) do
+        if condition.type == "Ready" then
+          if condition.status == "True" then
+            hs.status = "Healthy"
+          else
+            hs.status = "Progressing"
+          end
+          hs.message = condition.message or obj.status.phase or ""
+          return hs
+        end
+      end
+      hs.status = "Progressing"
+      hs.message = obj.status.phase or "Waiting for the Ready condition"
+      return hs
+    resource.customizations.health.postgresql.cnpg.io_Database: |
+      hs = {}
+      if obj.status == nil then
+        hs.status = "Progressing"
+        hs.message = "Waiting for the operator to reconcile the Database"
+        return hs
+      end
+      if obj.status.observedGeneration ~= nil and obj.metadata.generation ~= nil and obj.status.observedGeneration < obj.metadata.generation then
+        hs.status = "Progressing"
+        hs.message = "Waiting for the operator to observe the Database"
+        return hs
+      end
+      if obj.status.applied then
+        hs.status = "Healthy"
+        hs.message = "Database applied"
+        return hs
+      end
+      hs.status = "Progressing"
+      hs.message = "Waiting for the database to be applied"
+      return hs
+    resource.customizations.health.k8s.mariadb.com_MariaDB: |
+      hs = {}
+      if obj.status == nil or obj.status.conditions == nil then
+        hs.status = "Progressing"
+        hs.message = "Waiting for the operator to reconcile the MariaDB"
+        return hs
+      end
+      for _, condition in ipairs(obj.status.conditions) do
+        if condition.type == "Ready" then
+          if condition.status == "True" then
+            hs.status = "Healthy"
+          else
+            hs.status = "Progressing"
+          end
+          hs.message = condition.message or ""
+          return hs
+        end
+      end
+      hs.status = "Progressing"
+      hs.message = "Waiting for the Ready condition"
+      return hs
+    resource.customizations.health.k8s.mariadb.com_Database: |
+      hs = {}
+      if obj.status == nil or obj.status.conditions == nil then
+        hs.status = "Progressing"
+        hs.message = "Waiting for the operator to reconcile the Database"
+        return hs
+      end
+      for _, condition in ipairs(obj.status.conditions) do
+        if condition.type == "Ready" then
+          if condition.status == "True" then
+            hs.status = "Healthy"
+          else
+            hs.status = "Progressing"
+          end
+          hs.message = condition.message or ""
+          return hs
+        end
+      end
+      hs.status = "Progressing"
+      hs.message = "Waiting for the Ready condition"
+      return hs
+    resource.customizations.health.k8s.mariadb.com_User: |
+      hs = {}
+      if obj.status == nil or obj.status.conditions == nil then
+        hs.status = "Progressing"
+        hs.message = "Waiting for the operator to reconcile the User"
+        return hs
+      end
+      for _, condition in ipairs(obj.status.conditions) do
+        if condition.type == "Ready" then
+          if condition.status == "True" then
+            hs.status = "Healthy"
+          else
+            hs.status = "Progressing"
+          end
+          hs.message = condition.message or ""
+          return hs
+        end
+      end
+      hs.status = "Progressing"
+      hs.message = "Waiting for the Ready condition"
+      return hs
+    resource.customizations.health.k8s.mariadb.com_Grant: |
+      hs = {}
+      if obj.status == nil or obj.status.conditions == nil then
+        hs.status = "Progressing"
+        hs.message = "Waiting for the operator to reconcile the Grant"
+        return hs
+      end
+      for _, condition in ipairs(obj.status.conditions) do
+        if condition.type == "Ready" then
+          if condition.status == "True" then
+            hs.status = "Healthy"
+          else
+            hs.status = "Progressing"
+          end
+          hs.message = condition.message or ""
+          return hs
+        end
+      end
+      hs.status = "Progressing"
+      hs.message = "Waiting for the Ready condition"
+      return hs
 
   ssh:
     knownHosts: |

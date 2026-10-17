@@ -6,6 +6,8 @@
 apiVersion: postgresql.cnpg.io/v1
 kind: Database
 metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "20"
   name: nextcloud
   namespace: databases
 spec:
@@ -19,6 +21,8 @@ spec:
 apiVersion: postgresql.cnpg.io/v1
 kind: Database
 metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "20"
   name: forgejo
   namespace: databases
 spec:
@@ -32,6 +36,8 @@ spec:
 apiVersion: postgresql.cnpg.io/v1
 kind: Database
 metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "20"
   name: paperless
   namespace: databases
 spec:
@@ -45,6 +51,8 @@ spec:
 apiVersion: postgresql.cnpg.io/v1
 kind: Database
 metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "20"
   name: glitchtip
   namespace: databases
 spec:
@@ -58,6 +66,8 @@ spec:
 apiVersion: postgresql.cnpg.io/v1
 kind: Database
 metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "20"
   name: playground
   namespace: databases
 spec:
@@ -71,6 +81,8 @@ spec:
 apiVersion: postgresql.cnpg.io/v1
 kind: Database
 metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "20"
   name: gatus
   namespace: databases
 spec:
@@ -84,6 +96,8 @@ spec:
 apiVersion: postgresql.cnpg.io/v1
 kind: Database
 metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "20"
   name: grafana
   namespace: databases
 spec:
@@ -97,6 +111,8 @@ spec:
 apiVersion: postgresql.cnpg.io/v1
 kind: Database
 metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "20"
   name: synapse
   namespace: databases
 spec:
@@ -124,6 +140,8 @@ spec:
 apiVersion: postgresql.cnpg.io/v1
 kind: Database
 metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "20"
   name: authentik
   namespace: databases
 spec:
@@ -137,6 +155,8 @@ spec:
 apiVersion: postgresql.cnpg.io/v1
 kind: Database
 metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "20"
   name: infisical
   namespace: databases
 spec:
@@ -150,6 +170,8 @@ spec:
 apiVersion: postgresql.cnpg.io/v1
 kind: Database
 metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "20"
   name: openwebui
   namespace: databases
 spec:

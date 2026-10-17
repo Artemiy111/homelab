@@ -11,6 +11,8 @@
 apiVersion: k8s.mariadb.com/v1alpha1
 kind: Database
 metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
   name: ccnet-db
   namespace: seafile
 spec:
@@ -24,6 +26,8 @@ spec:
 apiVersion: k8s.mariadb.com/v1alpha1
 kind: Database
 metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
   name: seafile-db
   namespace: seafile
 spec:
@@ -37,6 +41,8 @@ spec:
 apiVersion: k8s.mariadb.com/v1alpha1
 kind: Database
 metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
   name: seahub-db
   namespace: seafile
 spec:
