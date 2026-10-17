@@ -200,6 +200,49 @@ cd infra/terraform/vault && terraform apply
 configured`. Ключ в Secret необязательный, поэтому под стартует и без него —
 просто без release notes.
 
+## Прокси 3x-ui для Renovate
+
+Renovate ходит наружу через HTTP-прокси `xui-egress`: реестр HashiCorp и часть
+других апстримов режут запросы из этой сети по геолокации. Учётная запись у
+прокси отдельная на потребителя и заводится в панели 3x-ui вручную (как для
+`gatus` и `dns01-webhook`), в базу панели, а не в окружение.
+
+```sh
+vault kv put kv/3x-ui/@renovate/egress \
+  XUI_EGRESS_USERNAME=renovate XUI_EGRESS_PASSWORD=<пароль>
+```
+
+Пароль подставляется в URL прокси, поэтому допустимы только буквы, цифры и
+`-`, `_`, `.`: `@`, `:`, `/`, `#`, `%` и пробелы ломают разбор. Право чтения —
+в политике `app/forgejo` (`infra/terraform/vault`), применяется с macOS:
+
+```sh
+cd infra/terraform/vault && terraform apply
+```
+
+Порт прокси открыт для namespace `forgejo` в NetworkPolicy чарта 3x-ui — без
+этого соединения из пода отбиваются по политике, и в логе задания видно
+`connection refused`.
+
+Проверка — прогоном:
+
+```sh
+KUBECONFIG=~/.kube/configs/homelab.yaml kubectl -n forgejo create job --from=cronjob/renovate renovate-manual
+KUBECONFIG=~/.kube/configs/homelab.yaml kubectl -n forgejo logs -f job/renovate-manual
+```
+
+Признак, что прокси работает: в логе больше нет `Failed to look up
+terraform-provider package …: no-result` — версии провайдеров находятся все
+восемь. Если они снова пропали, а прокси отвечает — смотреть пару в Vault и
+совпадение ключей в Secret:
+
+```sh
+KUBECONFIG=~/.kube/configs/homelab.yaml kubectl -n forgejo get secret forgejo-renovate-egress \
+  -o go-template='{{range $k,$v := .data}}{{$k}}{{"\n"}}{{end}}'
+```
+
+Ожидаются `XUI_EGRESS_USERNAME` и `XUI_EGRESS_PASSWORD`.
+
 ## Ротация токена бота
 
 1. Отозвать PAT под ботом: Settings → Applications → Revoke.

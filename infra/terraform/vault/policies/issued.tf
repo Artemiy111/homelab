@@ -47,6 +47,8 @@ resource "vault_policy" "app_forgejo" {
     path "kv/metadata/forgejo/@renovate/token"                   { capabilities = ["read", "list"] }
     path "kv/data/github/api-token"                              { capabilities = ["read"] }
     path "kv/metadata/github/api-token"                          { capabilities = ["read", "list"] }
+    path "kv/data/3x-ui/@renovate/egress"                        { capabilities = ["read"] }
+    path "kv/metadata/3x-ui/@renovate/egress"                    { capabilities = ["read", "list"] }
   EOT
 }
 

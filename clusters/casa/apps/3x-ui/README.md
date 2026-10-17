@@ -21,9 +21,9 @@ VLESS, VMess, Trojan, Shadowsocks, WireGuard, Hysteria2, HTTP/SOCKS и неск�
 другой стране. Из кластера прокси доступен по внутреннему DNS-имени
 `xui-egress.3x-ui.svc.cluster.local`.
 
-Порт открыт только для namespace `monitoring` (`NetworkPolicy` `allow-ingress`).
-С узла путь работает, потому что сервис объявлен с `externalIPs`; из LAN и из
-tailnet порт закрыт политикой.
+Порт открыт для namespace `monitoring`, `cert-manager` и `forgejo`
+(`NetworkPolicy` `allow-ingress`). С узла путь работает, потому что сервис
+объявлен с `externalIPs`; из LAN и из tailnet порт закрыт политикой.
 
 Gatus использует этот прокси для:
 
@@ -31,11 +31,17 @@ Gatus использует этот прокси для:
 - Мониторинга доступности самого прокси: HTTP-запрос к `api.telegram.org`
   через `client.proxy-url` показывает реальную задержку маршрута.
 
+Cert-manager ходит через прокси к API Spaceship (WAF провайдера отвечает `403`
+на запросы из этой сети), а Renovate — в реестры и на github.com: реестр
+HashiCorp режет запросы по геолокации и отвечает `404` с
+`x-amzn-waf-reason: geo`.
+
 ## Аутентификация прокси
 
 Прокси работает в режиме `auth: password`. Учётная запись одна на потребителя,
-поэтому у каждого своя: сейчас их две — `gatus` и `dns01-webhook`. Записи живут в
-базе панели: панель не читает их из окружения, поэтому заводятся в UI вручную.
+поэтому у каждого своя: сейчас их три — `gatus`, `dns01-webhook` и `renovate`.
+Записи живут в базе панели: панель не читает их из окружения, поэтому заводятся
+в UI вручную.
 
 Почему по записи на потребителя, а не одна общая: пароль можно отозвать,
 не ломая соседей, и ротация одного не трогает остальных
@@ -56,6 +62,9 @@ URL.
 
 Учётная запись `dns01-webhook` — по пути `kv/3x-ui/@dns01-webhook/egress`,
 Secret `dns01-webhook-egress` в namespace `cert-manager`.
+
+Учётная запись `renovate` — по пути `kv/3x-ui/@renovate/egress`, Secret
+`forgejo-renovate-egress` в namespace `forgejo`.
 
 Значение существует в двух местах — в базе панели и в Vault, — поэтому ротация
 это два шага. Порядок и команды — в `RUNBOOK.md`.

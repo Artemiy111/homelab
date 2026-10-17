@@ -64,6 +64,37 @@ spec:
                       name: forgejo-renovate-github
                       key: RENOVATE_GITHUB_COM_TOKEN
                       optional: true
+                # Egress наружу идёт через HTTP-прокси 3x-ui: часть апстримов
+                # режет запросы из этой сети (реестр HashiCorp отвечает WAF-ом
+                # по геолокации). Учётка у прокси на каждого потребителя, в
+                # Secret лежит парой, поэтому адрес собираем из двух ключей.
+                - name: XUI_EGRESS_USERNAME
+                  valueFrom:
+                    secretKeyRef:
+                      name: forgejo-renovate-egress
+                      key: XUI_EGRESS_USERNAME
+                - name: XUI_EGRESS_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: forgejo-renovate-egress
+                      key: XUI_EGRESS_PASSWORD
+                - name: HTTPS_PROXY
+                  value: "http://$(XUI_EGRESS_USERNAME):$(XUI_EGRESS_PASSWORD)@xui-egress.3x-ui.svc.cluster.local:8440"
+                - name: HTTP_PROXY
+                  value: "http://$(XUI_EGRESS_USERNAME):$(XUI_EGRESS_PASSWORD)@xui-egress.3x-ui.svc.cluster.local:8440"
+                # Внутреннее — напрямую: возвращаться к своему же Forgejo из
+                # чужой страны незачем. Renovate понимает `*.`, git и curl —
+                # точное имя хоста.
+                - name: NO_PROXY
+                  value: "localhost,127.0.0.1,forgejo.biplane.casa,*.svc.cluster.local,*.biplane.casa"
+                # Renovate предпочитает нижний регистр, остальные инструменты
+                # читают оба варианта.
+                - name: https_proxy
+                  value: "$(HTTPS_PROXY)"
+                - name: http_proxy
+                  value: "$(HTTP_PROXY)"
+                - name: no_proxy
+                  value: "$(NO_PROXY)"
               securityContext:
                 allowPrivilegeEscalation: false
                 capabilities:
