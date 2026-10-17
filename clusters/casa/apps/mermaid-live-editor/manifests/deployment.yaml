@@ -18,7 +18,7 @@ spec:
         - name: mermaid-live-editor
           # Приложение внутри образа слушает :8080 (nginx), а не :80.
           # Образ = nginx; entrypoint стартует и делает chown cache-директорий на uid 101.
-          image: "ghcr.io/mermaid-js/mermaid-live-editor:latest@sha256:1983980bf4a9ef9966b8e067ae94d32af00d98997802bae1e9437f7bee4814cc"
+          image: "ghcr.io/mermaid-js/mermaid-live-editor:latest@sha256:6b86e70896984262a76b3f7770709f0d133cfa8c5db031e6556c7991b3a49568"
           ports:
             - containerPort: 8080
               name: http
