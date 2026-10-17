@@ -24,25 +24,39 @@ API, и лимит 100/50 срабатывает при обычном прос�
 `argocd-application-controller`, ни в `argocd-cmd-params-cm`, ни в `AppProject`.
 На отдельный ресурс режим задаётся аннотацией
 `argocd.argoproj.io/sync-options: ServerSideApply=true`, но это тот же выбор,
-только ниже уровнем. Поэтому SSA стоит у всех юнитов.
+только ниже уровнем. Так SSA стоит у всех юнитов, кроме баз.
 
-Такой объект Argo применяет через `kubectl apply --server-side --force-conflicts`:
+SSA применяет объект через `kubectl apply --server-side --force-conflicts`:
 владение полями видно в `managedFields`, лимит аннотации
 `last-applied-configuration` (262144 байта) не действует, а переход юнита с
 client-side apply Argo доводит сам — миграцией менеджера полей
 (`ClientSideApplyMigration`, включена по умолчанию). Поэтому `Force=true` для
 перехвата владения не нужен: в Argo это другая опция (см. ниже).
 
-Расхождение считается server-side diff'ом — `controller.diff.server.side: "true"`
-в `bootstrap/argocd-values.yaml`. Argo делает dry-run применение и сравнивает
-результат с живым объектом, поэтому то, что дописывают вебхуки операторов (у
-`Cluster` CNPG — около сорока полей: `postgresql.parameters.*`, `probes`,
-`startDelay`, `storage.resizeInUseVolumes` и прочее), расхождением не считается.
-Без этого флага сравнение идёт «желаемое против живого», и такие поля пришлось бы
-перечислять в `ignoreDifferences` — поэтому флаг включён раньше, чем юниты баз
-перевели на SSA. Цена — dry-run на каждое сравнение; отдельному приложению,
-которому dry-run не подходит, можно вернуть обычное сравнение compare-опцией
-`ServerSideDiff=false`.
+**Исключение — `cnpg` и `mariadb`**: они на client-side apply и с
+`argocd.argoproj.io/compare-options: ServerSideDiff=false`. Оба оператора
+дописывают значения в `spec` на admission (CNPG — `api/v1/cluster_defaults.go`,
+`func (r *Cluster) Default()` и guard-вебхук; mariadb-operator — вебхук
+`vmariadb-v1alpha1.kb.io`) и часть полей объявляют неизменяемыми
+(`rootEmptyPassword`, `storage.ephemeral`). При SSA Argo забирает владение этими
+полями себе и дальше считает их «своими, но в git не объявленными», то есть
+пытается удалить на каждом sync: у CNPG вебхук возвращает их обратно (вечный
+`OutOfSync`), у MariaDB неизменяемые отклоняют патч целиком (`SyncFailed`).
+Классическое трёхстороннее сравнение по `last-applied-configuration` такие поля
+поглощает, поэтому базам и нужен client-side apply. Если SSA для них понадобится,
+условие — `ignoreDifferences` на каждое такое поле (у `Cluster` их около сорока)
+плюс `RespectIgnoreDifferences`; `/spec/postgresql/parameters` целиком
+игнорировать нельзя — там же лежат наши параметры, например `wal_keep_size`.
+
+Расхождение по умолчанию считается server-side diff'ом —
+`controller.diff.server.side: "true"` в `bootstrap/argocd-values.yaml`: Argo
+делает dry-run применение и сравнивает результат с живым объектом, поэтому то,
+что дописывают admission-вебхуки, расхождением не считается. Цена — dry-run на
+каждое сравнение; юниту, которому он не подходит, сравнение возвращается
+compare-опцией `ServerSideDiff=false` (так сделано у баз). Ограничение, о которое
+легко споткнуться: server-side diff меняет способ **сравнения**, но не
+**владение** полями — от удаления полей, которые Argo себе присвоил, он не
+спасает.
 
 `Replace=true` и `Force=true` — не режимы применения, а `kubectl replace` и
 `delete/create`, то есть пересоздание ресурса. Для `Cluster` и `MariaDB` это

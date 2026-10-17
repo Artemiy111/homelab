@@ -4,6 +4,7 @@ metadata:
   name: cnpg
   namespace: argocd
   annotations:
+    argocd.argoproj.io/compare-options: ServerSideDiff=false
     argocd.argoproj.io/sync-wave: "30"
 spec:
   project: homelab
@@ -16,7 +17,6 @@ spec:
     namespace: databases
   syncPolicy:
     syncOptions:
-      - ServerSideApply=true
       - SkipDryRunOnMissingResource=true
     automated:
       prune: true
