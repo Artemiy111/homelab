@@ -78,6 +78,12 @@ compare-опцией `ServerSideDiff=false` (так сделано у баз). �
 **владение** полями — от удаления полей, которые Argo себе присвоил, он не
 спасает.
 
+Исключения из сравнения пишем JSON Pointer'ами (`jsonPointers`), а не
+`jqPathExpressions`: указатели переносимы (тот же формат у `spec.ignore` во Flux
+и у `kubectl`), и их достаточно везде, кроме wildcard'ов по массивам — там jq
+неизбежен, но таких правил у нас нет: дефолты apiserver поглощает server-side
+diff.
+
 `Replace=true` и `Force=true` — не режимы применения, а `kubectl replace` и
 `delete/create`, то есть пересоздание ресурса. Для `Cluster` и `MariaDB` это
 означает потерю PVC, поэтому в юнитах баз они не используются.
