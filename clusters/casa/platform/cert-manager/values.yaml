@@ -1,9 +1,9 @@
 # cert-manager — выпуск и ротация TLS-сертификатов из кластера.
 # Ставится официальным чартом cert-manager из charts.jetstack.io.
 #
-# Эмитент и Certificate живут не здесь, а в шаблонах чарта clusters/casa/platform/homelab
-# (templates/cert-manager/): CRD должны существовать раньше CR, а порядок
-# «сначала оператор, потом CR» Argo в одном приложении не гарантирует.
+# Эмитент и Certificate живут не здесь, а в `manifests/` этого юнита: CRD должны
+# существовать раньше CR, а порядок «сначала оператор, потом CR» Argo в одном
+# приложении не гарантирует.
 #
 # Вебхук-сертификаты cert-manager выпускает сам (self-signed bootstrap CA).
 # Helm `lookup` в Argo не работает, поэтому поля, которые дописывает

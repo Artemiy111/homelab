@@ -8,15 +8,15 @@ metadata:
 spec:
   project: homelab
   sources:
-    - repoURL: ssh://git@forgejo.biplane.casa:2222/artemiy/homelab.git
+    - repoURL: https://github.com/Artemiy111/homelab.git
       targetRevision: main
       path: clusters/casa/apps/element/chart
       helm:
         releaseName: element
-    # element-web-config переехал из чарта platform/homelab: это конфиг сервиса,
-    # а не общее окружение. Второй источник обычным каталогом — Argo сводит
-    # манифесты источников в один набор, а дубликатов здесь нет.
-    - repoURL: ssh://git@forgejo.biplane.casa:2222/artemiy/homelab.git
+    # element-web-config — конфиг сервиса, а не общее окружение. Второй источник
+    # обычным каталогом — Argo сводит манифесты источников в один набор, а
+    # дубликатов здесь нет.
+    - repoURL: https://github.com/Artemiy111/homelab.git
       targetRevision: main
       path: clusters/casa/apps/element/manifests
   destination:

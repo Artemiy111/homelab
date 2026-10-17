@@ -19,7 +19,7 @@ metadata:
 spec:
   project: upstream
   sources:
-    - repoURL: ssh://git@forgejo.biplane.casa:2222/artemiy/homelab.git
+    - repoURL: https://github.com/Artemiy111/homelab.git
       targetRevision: main
       path: clusters/casa/platform/headlamp/manifests
     - repoURL: https://kubernetes-sigs.github.io/headlamp/
@@ -29,7 +29,7 @@ spec:
         releaseName: headlamp
         valueFiles:
           - $values/clusters/casa/platform/headlamp/values.yaml
-    - repoURL: ssh://git@forgejo.biplane.casa:2222/artemiy/homelab.git
+    - repoURL: https://github.com/Artemiy111/homelab.git
       targetRevision: main
       ref: values
   destination:

@@ -8,7 +8,7 @@ metadata:
 spec:
   project: upstream
   sources:
-    - repoURL: ssh://git@forgejo.biplane.casa:2222/artemiy/homelab.git
+    - repoURL: https://github.com/Artemiy111/homelab.git
       targetRevision: main
       path: clusters/casa/platform/local-storage/manifests
   destination:

@@ -36,7 +36,7 @@ export AWS_SECRET_ACCESS_KEY
 ## Значения
 
 ```hcl
-domain = "example.com"   # тот же домен, что в clusters/casa/platform/homelab
+domain = "example.com"   # тот же домен, что в Gateway (clusters/casa/platform/traefik/manifests/gateway-homelab.yaml)
 ```
 
 Внутреннее значение, в git не идёт; реальное — в

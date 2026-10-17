@@ -36,7 +36,7 @@ prompt. `export` обязателен — без него значение ос�
 ## Значения
 
 ```hcl
-domain  = "example.com"   # основной домен, тот же что в clusters/casa/platform/homelab
+domain  = "example.com"   # основной домен, тот же что в Gateway (clusters/casa/platform/traefik/manifests/gateway-homelab.yaml)
 host_ip = "192.0.2.10"    # адрес Technitium: ему tailnet отдаёт зоны
 ```
 

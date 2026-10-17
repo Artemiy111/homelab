@@ -70,7 +70,7 @@ terraform plan
 ## Значения
 
 ```hcl
-domain  = "biplane.casa" # тот же домен, что в clusters/casa/platform/homelab
+domain  = "biplane.casa" # тот же домен, что в Gateway (clusters/casa/platform/traefik/manifests/gateway-homelab.yaml)
 host_ip = "192.0.2.10"   # адрес сервера
 ```
 

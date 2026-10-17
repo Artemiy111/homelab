@@ -30,24 +30,29 @@ helm install argocd argo/argo-cd \
   -f bootstrap/argocd-values.yaml \
   --wait
 
-# 2. Gateway, issuer и wildcard-сертификат: локальный чарт, Application на
-#    него ещё нет (docs/adr/0011, issue #900).
-helm template clusters/casa/platform/homelab | kubectl apply -f -
-
-# 3. Репозиторий для Argo: публичный ключ deploy key добавлен в Forgejo
-#    (Настройки репозитория → Deploy keys, только чтение), приватный лежит
-#    на этой машине.
-argocd repo add ssh://git@forgejo.biplane.casa:2222/artemiy/homelab.git \
-  --type git --name homelab \
-  --ssh-private-key-path ~/.ssh/id_homelab-argocd_homelab-repo
-
-# 4. Root. Создаёт остальные Application'ы и AppProject'ы.
+# 2. Root. Создаёт AppProject'ы, остальные Application'ы и всё под ними.
 kubectl apply -f bootstrap/root.yaml
 argocd app sync root
 ```
 
-`repoURL` в `root.yaml` и в команде `argocd repo add` должны совпадать
-посимвольно: Argo сопоставляет репозитории по точному сравнению строки.
+Манифесты Argo читает из публичного зеркала на GitHub
+(`https://github.com/Artemiy111/homelab.git`): репозиторий публичный, клон
+анонимный по HTTPS, поэтому ни `argocd repo add`, ни deploy key не нужны.
+
+Так сделано из-за цикла: манифесты Forgejo лежат в Forgejo, а Forgejo разворачивает
+Argo. На пустом кластере `ssh://git@forgejo…` недостижим, и root не синкается
+никогда; зеркало существует до кластера и цикл разрывает. Плата — задержка: Argo
+видит состояние зеркала, а не Forgejo. Как переключиться на Forgejo, если нужен
+синк ровно с ней, — в [runbook](../clusters/casa/platform/argocd/RUNBOOK.md),
+раздел «Бутстрап».
+
+Gateway, `ClusterIssuer` и wildcard-`Certificate` отдельным шагом не ставятся: они
+объявлены в юнитах `gateway-api`, `traefik` и `cert-manager` и приезжают первыми
+волнами root'а. HTTPS начнёт отвечать, когда cert-manager выпустит сертификат.
+
+Адрес репозитория продублирован в `root.yaml` и во всех юнитах: Argo сопоставляет
+репозитории по точному сравнению строки, поэтому смена источника — это массовая
+правка одного литерала.
 
 ## Проверка
 

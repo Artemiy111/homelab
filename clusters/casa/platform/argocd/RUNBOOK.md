@@ -17,8 +17,8 @@ Argo CD — GitOps-контроллер кластера: под ним весь
 | Параметры | `bootstrap/argocd-values.yaml` — только отклонения от дефолтов чарта |
 | Маршрут | `clusters/casa/platform/argocd/route.yaml` — применяется вручную, Argo его не синхронизирует (#858) |
 
-Все команды ниже выполняются **на сервере** (там есть `helm` и kubeconfig),
-из корня репозитория.
+Команды выполняются с macOS из корня рабочей копии: на сервере чекаута нет
+(`docs/agents/server-access.md`).
 
 ## Установка
 
@@ -34,9 +34,11 @@ helm install argocd argo/argo-cd \
   --namespace argocd --create-namespace \
   -f bootstrap/argocd-values.yaml \
   --wait
-
-helm template clusters/casa/platform/homelab | kubectl apply -f -
 ```
+
+Gateway, `ClusterIssuer` и wildcard-`Certificate` отдельным шагом не ставятся:
+они объявлены в юнитах `gateway-api`, `traefik` и `cert-manager` и приезжают
+первыми волнами root'а.
 
 ## Проверка
 
@@ -120,17 +122,19 @@ argocd account update-password
 
 ## Бутстрап: спеки Application'ов живут в git
 
-Application'ы применяет корневой `Application` — `bootstrap/root.yaml`.
-Он рендерит каталог `clusters/casa/` через kustomize и получает `AppProject` `upstream`
-плюс 31 `Application` из `applications/` и `applications/apps/`. Раньше app-of-apps
-не было, и спеки лежали только в git: Argo читал желаемое состояние из объекта в
-кластере, и пока файл не применён руками, правка values в git ничего не меняла.
+Application'ы применяет корневой `Application` — `bootstrap/root.yaml`. Он
+рендерит каталог `clusters/casa/` через kustomize и получает `AppProject`'ы и все
+`Application` юнитов. Спеки лежат в git, поэтому изменение состава приложений —
+это правка в репозитории, а не объект в кластере.
 
-Публичный ключ deploy key добавляется в Forgejo (Настройки репозитория → Deploy
-keys, только чтение), а приватный ключ отдаётся команде с машины, где он лежит:
+Источник манифестов — публичное зеркало на GitHub
+(`https://github.com/Artemiy111/homelab.git`). Репозиторий публичный, клон
+анонимный по HTTPS, поэтому `argocd repo add` и deploy key не нужны. Это же
+разрывает цикл бутстрапа: манифесты Forgejo лежат в Forgejo, которую разворачивает
+сам Argo, и на пустом кластере `ssh://git@forgejo…` недостижим.
 
-Ключ лежит в `~/.ssh/id_homelab-argocd_homelab-repo`, комментарий
-`homelab-argocd/homelab-repo` — по нему видно, для чего он:
+Плата за зеркало — задержка: Argo видит состояние зеркала, а не Forgejo. Если нужен
+синк ровно с Forgejo, её регистрируют вторым репозиторием и переключают `repoURL`:
 
 ```sh
 argocd repo add ssh://git@forgejo.biplane.casa:2222/artemiy/homelab.git \
@@ -138,17 +142,19 @@ argocd repo add ssh://git@forgejo.biplane.casa:2222/artemiy/homelab.git \
   --ssh-private-key-path ~/.ssh/id_homelab-argocd_homelab-repo
 ```
 
-Deploy key сделан без пароля: Argo тянет репозиторий без человека на месте и
-зашифрованный ключ не откроет. Личный ключ аккаунта тоже сработал бы, но он шире
-нужного — deploy key ограничен одним репозиторием.
+Deploy key для этого добавляется в Forgejo (Настройки репозитория → Deploy keys,
+только чтение), без пароля: Argo тянет репозиторий без человека на месте, и
+зашифрованный ключ не откроет. Личный ключ аккаунта шире нужного — deploy key
+ограничен одним репозиторием. Дальше `repoURL` в `root.yaml` и во всех `app.yaml`
+меняется на этот адрес.
 
 Два подводных камня:
 
 - **Без `--ssh-private-key-path` команда не создаст рабочее подключение.** Argo
   не получает ключа и пытается обратиться к SSH-агенту, которого в поде нет:
   `error creating SSH agent: "SSH agent requested but SSH_AUTH_SOCK not-specified"`.
-- **URL должен совпасть с `root-application.yaml` посимвольно** — секрет
-  сопоставляется с `repoURL` точным сравнением строки.
+- **URL должен совпасть с `repoURL` посимвольно** — секрет сопоставляется с
+  адресом точным сравнением строки.
 
 Хост-ключ Forgejo уже прописан в `configs.ssh.knownHosts` в `bootstrap/argocd-values.yaml`,
 поэтому проверка хоста проходит. Ключ добавлен из `known_hosts` macOS, где
@@ -719,12 +725,14 @@ Application больше нет. Маршрут
 - `skipCrds: true` — CRD `*.traefik.io` кластерные; под управлением Argo они
   при удалении приложения снесли бы все `IngressRoute`/`Middleware` кластера.
 - values лежат в `clusters/casa/platform/traefik/values.yaml` и подключены через `$values` —
-  второй источник в `spec.sources`, ссылающийся на этот же репозиторий по SSH.
+  второй источник в `spec.sources`, ссылающийся на тот же репозиторий (зеркало по
+  HTTPS).
   Раньше те же 32 значения были продублированы инлайн в `valuesObject`, и правка
   файла молча расходилась с кластером. Теперь файл — единственный источник.
 - `service.spec.externalIPs` — адрес узла, и это нагрузочное значение: без него
   Traefik не принимает трафик на адрес узла. Живёт в values-файле.
-  Домен здесь не нужен — он в маршрутах `clusters/casa/platform/homelab`, а не в values Traefik.
+  Домен здесь не нужен — он в `Gateway` (`platform/traefik/manifests/gateway-homelab.yaml`)
+  и в маршрутах юнитов, а не в values Traefik.
 - Значения из приватного репозитория сюда не возвращаются (`docs/adr/0009`):
   домен и адрес узла публичны по решению.
 - Чарт сам создаёт `ClusterRole`/`ClusterRoleBinding`/`IngressClass` — они под
@@ -752,7 +760,6 @@ argocd app list -A
 argocd app delete guestbook --cascade
 
 helm uninstall argocd -n argocd
-helm template clusters/casa/platform/homelab | kubectl delete -f -
 kubectl delete ns argocd
 
 # CRD чарт намеренно не удаляет (crds.keep: true) — снимаем руками

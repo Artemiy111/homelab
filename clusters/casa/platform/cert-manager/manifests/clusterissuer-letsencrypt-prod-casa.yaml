@@ -1,7 +1,5 @@
-# Эмитент Let's Encrypt для зоны. Письмо и зона были в certManager values
-# чарта platform/homelab; после растворения чарта — литералы, как и во всех
-# прочих манифестах.
 ---
+
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:

@@ -22,7 +22,7 @@ spec:
         releaseName: local-path-provisioner
         valueFiles:
           - $values/clusters/casa/platform/local-path-provisioner/values.yaml
-    - repoURL: ssh://git@forgejo.biplane.casa:2222/artemiy/homelab.git
+    - repoURL: https://github.com/Artemiy111/homelab.git
       targetRevision: main
       ref: values
   destination:

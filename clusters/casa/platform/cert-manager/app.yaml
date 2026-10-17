@@ -4,9 +4,9 @@
 # CRD ставим вместе с оператором: они кластерные, и Prune=false не даёт удалить
 # их вместе с приложением (иначе снесло бы все Certificate/Issuer кластера).
 #
-# Эмитент и Certificate живут не здесь, а в шаблонах чарта clusters/casa/platform/homelab
-# (templates/cert-manager/): CRD должны существовать раньше CR, а порядок
-# «сначала оператор, потом CR» Argo в одном приложении не гарантирует.
+# Эмитент и Certificate живут не здесь, а в `manifests/` этого юнита: CRD должны
+# существовать раньше CR, а порядок «сначала оператор, потом CR» Argo в одном
+# приложении не гарантирует.
 #
 # Вебхук-сертификаты cert-manager выпускает сам (self-signed bootstrap CA).
 # Helm `lookup` в Argo не работает, поэтому ниже ignoreDifferences на поля,
@@ -34,9 +34,9 @@ metadata:
 spec:
   project: upstream
   sources:
-    # Эмитент и wildcard-сертификат переехали из чарта platform/homelab к
-# владельцу — cert-manager'у. Второй источник обычным каталогом.
-    - repoURL: ssh://git@forgejo.biplane.casa:2222/artemiy/homelab.git
+    # Эмитент и wildcard-сертификат лежат рядом, в `manifests/`: вторым
+    # источником обычным каталогом.
+    - repoURL: https://github.com/Artemiy111/homelab.git
       targetRevision: main
       path: clusters/casa/platform/cert-manager/manifests
     - repoURL: https://charts.jetstack.io
@@ -46,7 +46,7 @@ spec:
         releaseName: cert-manager
         valueFiles:
           - $values/clusters/casa/platform/cert-manager/values.yaml
-    - repoURL: ssh://git@forgejo.biplane.casa:2222/artemiy/homelab.git
+    - repoURL: https://github.com/Artemiy111/homelab.git
       targetRevision: main
       ref: values
   destination:

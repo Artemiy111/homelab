@@ -19,10 +19,10 @@ metadata:
 spec:
   project: upstream
   sources:
-    # Gateway и GatewayClass переехали из чарта platform/homelab: это
-# кластерные объекты Traefik, а не общее окружение стенда. Второй источник
-# обычным каталогом — Argo сводит манифесты источников в один набор.
-    - repoURL: ssh://git@forgejo.biplane.casa:2222/artemiy/homelab.git
+    # Gateway и GatewayClass — кластерные объекты Traefik, а не общее окружение
+    # стенда. Второй источник обычным каталогом — Argo сводит манифесты
+    # источников в один набор.
+    - repoURL: https://github.com/Artemiy111/homelab.git
       targetRevision: main
       path: clusters/casa/platform/traefik/manifests
     - repoURL: https://traefik.github.io/charts
@@ -35,7 +35,7 @@ spec:
         skipCrds: true
         valueFiles:
           - $values/clusters/casa/platform/traefik/values.yaml
-    - repoURL: ssh://git@forgejo.biplane.casa:2222/artemiy/homelab.git
+    - repoURL: https://github.com/Artemiy111/homelab.git
       targetRevision: main
       ref: values
   destination:

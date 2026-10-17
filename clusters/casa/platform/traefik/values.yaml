@@ -35,7 +35,8 @@ providers:
     # hostNetwork-подам. Включение глобально изменит все 49 маршрутов.
     nativeLBByDefault: false
 
-# Gateway и GatewayClass описаны в templates/gateway/ чарта clusters/casa/platform/homelab:
+# Gateway и GatewayClass описаны в manifests/ этого юнита
+# (gateway-homelab.yaml, gatewayclass-traefik.yaml):
 # hostname слушателя и certificateRef требуют домена из values, которого в
 # values чарта Traefik нет. Дефолт чарта (gateway.enabled) выключаем, иначе
 # появится второй Gateway без сертификата.

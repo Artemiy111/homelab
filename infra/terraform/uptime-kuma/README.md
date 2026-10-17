@@ -48,7 +48,7 @@ export UPTIMEKUMA_PASSWORD
 ## Значения
 
 ```hcl
-domain   = "example.com"     # тот же домен, что в clusters/casa/platform/homelab
+domain   = "example.com"     # тот же домен, что в Gateway (clusters/casa/platform/traefik/manifests/gateway-homelab.yaml)
 timezone = "Asia/Yekaterinburg"
 ```
 
