@@ -4,6 +4,9 @@
   "prHourlyLimit": 0,
   "prConcurrentLimit": 20,
   "osvVulnerabilityAlerts": true,
+  "kubernetes": {
+    "managerFilePatterns": ["/clusters/casa/.+/manifests/.+\\.ya?ml$/"]
+  },
   "packageRules": [
     {
       "description": "Имя образа длиннее бюджета заголовка в commitlint",
