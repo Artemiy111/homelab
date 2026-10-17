@@ -10,7 +10,7 @@
 image:
   registry: data.forgejo.org
   repository: forgejo/forgejo
-  tag: 16-rootless
+  tag: 17-rootless
   # Образ пинен по дагисту, тег для читаемости: тег `16-rootless` сам по себе
   # плавающий.
   digest: sha256:23ccc146e6dc2cd1f5c5435909baae64db873201717f1726490dae649283e6cd
