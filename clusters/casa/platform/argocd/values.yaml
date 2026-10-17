@@ -32,6 +32,8 @@ configs:
     # только пересозданием Application. 10m — компромисс между временем
     # восстановления и лишним рендером на ноде под давлением по памяти (#727).
     controller.default.cache.expiration: 10m
+
+    controller.repo.server.timeout.seconds: "300"
     controller.diff.server.side: "true"
 
   tls:

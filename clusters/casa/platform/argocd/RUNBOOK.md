@@ -631,6 +631,17 @@ Apiserver подставляет в `HTTPRoute` шесть полей, кото�
 Правкой всех `clusters/casa/apps/*/manifests/route.yaml` вопрос не решается в любом
 случае: дефолты вернутся при обновлении CRD.
 
+## Про таймауты выборки репозитория
+
+Источник манифестов — внешний (зеркало на GitHub), и его fetch упирается в два
+предела сразу. Контроллер ждёт ответа repo-server
+`controller.repo.server.timeout.seconds` секунд (поднят до 300), а сам
+repo-server бросает `git fetch` примерно через 90 секунд — клиентского таймаута
+fetch в его флагах нет, поэтому вторым пределом управлять нечем. Симптом, когда
+не укладывается первое: приложения уходят в `Unknown` с `DeadlineExceeded` на
+стороне контроллера, а в логах repo-server видно
+`git fetch origin --tags --force --prune failed timeout after 1m30s`.
+
 ## Про кэш ошибок рендера
 
 `controller.default.cache.expiration` по умолчанию **24 часа**, и ошибка
