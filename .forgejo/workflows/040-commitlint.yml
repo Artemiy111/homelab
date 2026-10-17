@@ -45,7 +45,7 @@ jobs:
         if: steps.dependencies.outputs.cache-hit != 'true'
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: 1.4.0
+          bun-version: 1.4.3
           bun-download-url: http://rustfs.rustfs.svc.cluster.local/mirror/bun/1.4.0/bun-linux-x64.zip
           registries: http://verdaccio.verdaccio.svc.cluster.local/
       - name: Install dependencies

@@ -42,7 +42,7 @@ jobs:
         if: steps.dependencies.outputs.cache-hit != 'true'
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: 1.4.0
+          bun-version: 1.4.3
       - name: Install dependencies
         if: steps.dependencies.outputs.cache-hit != 'true'
         run: bun install --frozen-lockfile
