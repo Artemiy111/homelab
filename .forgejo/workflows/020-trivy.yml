@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       # Бинарь ставим сами и зовём напрямую: setup-trivy клонирует исходник
       # aquasecurity/trivy, а git-клон с раннера с github.com упирается в SSL
       # timeout. Кэш держит бинарь между прогонами, sha256 сверяем.
