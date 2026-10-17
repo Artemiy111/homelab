@@ -14,8 +14,9 @@ Argo CD — GitOps-контроллер кластера: под ним весь
 | Argo CD | v3.5.3 |
 | Namespace | `argocd` |
 | URL | https://argocd.example.com |
-| Параметры | `bootstrap/argocd-values.yaml` — только отклонения от дефолтов чарта |
-| Маршрут | `clusters/casa/platform/argocd/route.yaml` — применяется вручную, Argo его не синхронизирует (#858) |
+| Параметры | `clusters/casa/platform/argocd/values.yaml` — только отклонения от дефолтов чарта |
+| Управление | `clusters/casa/platform/argocd/app.yaml` — Argo применяет свой чарт сам |
+| Маршрут | `clusters/casa/platform/argocd/manifests/route.yaml` — в источнике приложения |
 
 Команды выполняются с macOS из корня рабочей копии: на сервере чекаута нет
 (`docs/agents/server-access.md`).
@@ -27,14 +28,17 @@ helm repo add argo https://argoproj.github.io/argo-helm
 helm repo update
 
 # Сначала посмотреть, что получится, не трогая кластер:
-helm template argocd argo/argo-cd --version 10.9.1 -f bootstrap/argocd-values.yaml | less
+helm template argocd argo/argo-cd --version 10.9.1 -f clusters/casa/platform/argocd/values.yaml | less
 
 helm install argocd argo/argo-cd \
   --version 10.9.1 \
   --namespace argocd --create-namespace \
-  -f bootstrap/argocd-values.yaml \
+  -f clusters/casa/platform/argocd/values.yaml \
   --wait
 ```
+
+Это единственный ручной шаг. После `argocd app sync root` чарт ставит уже сам Argo
+(`platform/argocd/app.yaml`), релиз забывается — см. «Обновление Argo».
 
 Gateway, `ClusterIssuer` и wildcard-`Certificate` отдельным шагом не ставятся:
 они объявлены в юнитах `gateway-api`, `traefik` и `cert-manager` и приезжают
@@ -156,28 +160,30 @@ Deploy key для этого добавляется в Forgejo (Настройк
 - **URL должен совпасть с `repoURL` посимвольно** — секрет сопоставляется с
   адресом точным сравнением строки.
 
-Хост-ключ Forgejo уже прописан в `configs.ssh.knownHosts` в `bootstrap/argocd-values.yaml`,
+Хост-ключ Forgejo уже прописан в `configs.ssh.knownHosts` в `clusters/casa/platform/argocd/values.yaml`,
 поэтому проверка хоста проходит. Ключ добавлен из `known_hosts` macOS, где
 `origin` уже работает, — то есть проверен существующим соединением; `ssh-keyscan`
 для этого не годится, он опрашивает сервер и ничего не проверяет. Тип только
 `ssh-rsa`: ed25519-хостового ключа Forgejo в `known_hosts` нет.
 
-### Обновление релиза Argo
+### Обновление Argo
 
-`bootstrap/argocd-values.yaml` — единственный источник настроек Argo, и они
-попадают в кластер **только** через Helm. Правка файла в git сама по себе не
-ничего не делает: ни Argo, ни root этот файл не читают.
+Настройки и версия чарта меняются правкой в git — приложение `argocd` ставит их
+само:
 
 ```sh
-helm upgrade argocd argo/argo-cd --version 10.9.1 \
-  -n argocd -f bootstrap/argocd-values.yaml \
-  --force-conflicts --wait --timeout 10m
+$EDITOR clusters/casa/platform/argocd/values.yaml
+git commit -m "..." && git push
+argocd app sync argocd
+argocd app diff argocd          # пусто
 ```
 
-`--force-conflicts` здесь обязателен, а не страховка. ConfigMap
-`argocd-ssh-known-hosts-cm` правили руками, и поле `data.ssh_known_hosts`
-осталось за менеджером `kubectl-patch`. Helm через server-side apply без этого
-флага отказывается перехватывать чужое поле и валится:
+Первая адопция уже стоящего релиза делается по рецепту из раздела «Адопция
+существующего Helm-релиза» ниже, и там обязателен `--force-conflicts`: по нему
+адоптировали и сам Argo. Причина та же, по которой флаг обязателен и для
+`helm upgrade`: ConfigMap `argocd-ssh-known-hosts-cm` когда-то правили руками, и
+поле `data.ssh_known_hosts` осталось за менеджером `kubectl-patch`; server-side
+apply без этого флага отказывается перехватывать чужое поле и валится:
 
 ```
 Upgrade "argocd" failed: conflict occurred while applying object
@@ -185,28 +191,42 @@ argocd/argocd-ssh-known-hosts-cm /v1, Kind=ConfigMap: Apply failed with
 1 conflict: conflict with "kubectl-patch" using v1: .data.ssh_known_hosts
 ```
 
-Так упали ревизии 3 и 4 30 сентября. Откат на любую ревизию:
+После адопции Helm-релиз «забывается», иначе `helm upgrade` начнёт конкурировать
+с Argo:
 
 ```sh
-helm -n argocd history argocd
-helm -n argocd rollback argocd <revision>
+kubectl -n argocd delete secret -l owner=helm,name=argocd
+helm list -n argocd             # пусто, ресурсы и поды на месте
 ```
 
+Откат после этого — revert коммита в git: история Helm'а удаляется вместе с
+release-секретами.
+
+Если сломан сам контроллер и синкать некому — `helm install` чарта с values из
+юнита (как при первой установке) и разбор через `kubectl`: маршрут на панель и
+секрет с ключом живут в кластере, поэтому доступ обычно не теряется. У
+приложения `Prune=false`, так что неудачный синк ничего своего не удалит.
+
 `resource.customizations.*` — `ignoreDifferences` и `health` — контроллер
-читает при старте, а не на лету. Поэтому рестарт `application-controller` без
-`helm upgrade` бесполезен: правила ещё нет в `argocd-cm`. Проверить, что оно
-доехало:
+читает при старте, а не на лету. Поэтому после синка, меняющего `argocd-cm`,
+нужен рестарт `application-controller`. Проверить, что правила доехали:
 
 ```sh
 kubectl -n argocd get cm argocd-cm -o jsonpath='{.data}' \
   | python3 -c 'import json,sys; print([k for k in json.load(sys.stdin) if k.startswith("resource.customizations")])'
 ```
 
-### Как увидеть расхождение релиза с репозиторием
+### Как увидеть расхождение настроек с репозиторием
 
-`helm get values --all` отдаёт и дефолты чарта, поэтому сравнивать его с файлом
-целиком бесполезно — расхождений будет сотня. Сравнивать надо только те ключи,
-которые задаёт файл:
+Расхождение ищет сам Argo:
+
+```sh
+argocd app diff argocd
+```
+
+Раньше это приходилось делать вручную — `helm get values --all` против файла,
+потому что настройки ехали Helm'ом мимо git и расхождение не ловил никто. Тот
+способ, для истории, сравнивал только ключи, заданные файлом:
 
 ```sh
 python3 - <<'EOF'
@@ -214,7 +234,7 @@ import json, subprocess, yaml
 live = json.loads(subprocess.run(
     ["helm", "get", "values", "argocd", "-n", "argocd", "--all", "-o", "json"],
     capture_output=True, text=True).stdout)
-want = yaml.safe_load(open("bootstrap/argocd-values.yaml"))
+want = yaml.safe_load(open("clusters/casa/platform/argocd/values.yaml"))
 
 def flat(d, p=""):
     out = {}
@@ -598,29 +618,18 @@ Apiserver подставляет в `HTTPRoute` шесть полей, кото�
 | `spec.rules[].backendRefs[].weight` | `1` |
 | `spec.rules[].matches` | `[{path: {type: PathPrefix, value: /}}]` |
 
-Argo о таких дефолтах не знает — он знает только про встроенные типы Kubernetes.
-Итог выглядит противоречиво: `argocd app diff` пуст, `argocd app sync` отрабатывает
-успешно, но приложение навсегда остаётся `OutOfSync`. Расходится ровно один ресурс
-на приложение, и auto-sync не помогает — он же и не срабатывает, потому что
-состояние не меняется.
+Отсюда росла старая беда: приложение оставалось `OutOfSync` навсегда, при этом
+`argocd app diff` был пуст, а `argocd app sync` отрабатывал успешно. Правила
+`ignoreDifferences` для `HTTPRoute` и `Gateway` больше не нужны и удалены:
+расхождение считается server-side diff'ом (`controller.diff.server.side`), то
+есть dry-run применением, и дефолты apiserver попадают в него так же, как в живой
+объект. Проверено на стенде — удаление правил из `argocd-cm` и рестарт
+контроллера не разошли ни одного приложения.
 
-Решение — `resource.customizations.ignoreDifferences` в `bootstrap/argocd-values.yaml`.
-Синтаксис `jqPathExpressions` требует **путь к полю**, а не операцию над ним:
-`.spec.parentRefs[]?.group` верно, `.spec.parentRefs[] | del(.group, .kind)` — нет,
-`del()` удаляет из результата запроса, и правило молча ничего не игнорирует. На
-этом ушла часть времени: ошибка выглядит как «настройка не действует», хотя
-настройка как раз неверная.
-
-Дефолты взяты из схемы самого CRD, а не из документации:
-
-```sh
-kubectl get crd httproutes.gateway.networking.k8s.io \
-  -o jsonpath='{..rules.items.properties}' | jq
-```
-
-Правкой всех 41 `clusters/casa/apps/*/manifests/route.yaml` вопрос не решается: дефолты появились бы
-снова при обновлении CRD, и manifests-файлы начали бы повторять то, что и так
-знает apiserver.
+Второй источник той же беды — устаревший `last-applied-configuration` у объекта,
+который когда-то применяли руками; он разобран в `platform/argocd/README.md`.
+Правкой всех `clusters/casa/apps/*/manifests/route.yaml` вопрос не решается в любом
+случае: дефолты вернутся при обновлении CRD.
 
 ## Про кэш ошибок рендера
 
@@ -635,20 +644,20 @@ kubectl get crd httproutes.gateway.networking.k8s.io \
 URL и пути — но **не** из ревизии, так что фиксация `targetRevision` не
 помогает. Сработало удаление и пересоздание `Application` под другим именем.
 
-Понижено до `10m` в `bootstrap/argocd-values.yaml`, в `configs.params` — отдельного
+Понижено до `10m` в `clusters/casa/platform/argocd/values.yaml`, в `configs.params` — отдельного
 значения `controller.default.*` в чарте 10.9.1 нет, ключ попадает в
 `argocd-cmd-params-cm` через эту свободную карту. Компонент читает cm при
-старте, поэтому после `helm upgrade` нужен рестарт `application-controller`.
-
-Пока `helm upgrade` не выполнен, действует дефолт: об ошибке рендера стоит
-думать как о «залипшей на сутки».
+старте, поэтому после синка, меняющего этот ключ, нужен рестарт
+`application-controller`. Дефолт — сутки: если правило не доехало, об ошибке
+рендера стоит думать как о «залипшей на сутки».
 
 ## Задержка применения
 
-Webhook не работает: Argo поддерживает его только для GitHub и GitLab, origin
-здесь Forgejo. Поэтому root ждёт следующей сверки ревизии, и спека
-`Application` доезжает в кластер с задержкой — это нормально и специально не
-ускорено.
+Webhook не настроить: источник манифестов — зеркало на GitHub, и Argo умеет
+принимать его webhook'и, но сам Argo доступен только из локальной сети и
+tailnet, то есть из интернета GitHub до него не дотянется. Поэтому root ждёт
+следующей сверки ревизии (`timeout.reconciliation: 60s`), и спека `Application`
+доезжает в кластер с задержкой — это нормально и специально не ускорено.
 
 `kube-state-metrics.yaml` — Application, который ставит официальный чарт
 `prometheus-community/kube-state-metrics` в namespace `monitoring`. Он отдаёт

@@ -60,6 +60,7 @@ resources:
   - apps/victoria-metrics/app.yaml
   - apps/zitadel/app.yaml
   - apps/zot/app.yaml
+  - platform/argocd/app.yaml
   - platform/cert-manager/app.yaml
   - platform/cloudnative-pg/app.yaml
   - platform/cnpg/app.yaml

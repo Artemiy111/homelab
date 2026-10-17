@@ -226,13 +226,9 @@ ssh homelab-agent 'systemctl is-active k0scontroller; dig +short @<node1-ip> upt
 KUBECONFIG=~/.kube/configs/homelab.yaml kubectl apply -k clusters/casa/apps/grafana/ --dry-run=server
 ```
 
-Ручной `kubectl apply` нужен для маршрута, который Argo не синхронизирует
-(см. таблицу ниже), и когда Argo ещё не подхватил коммит. Команда идёт с macOS
-из рабочей копии репозитория:
-
-```sh
-KUBECONFIG=~/.kube/configs/homelab.yaml kubectl apply -f clusters/casa/platform/argocd/route.yaml
-```
+Ручной `kubectl apply` нужен только там, где Argo ещё не подхватил коммит: все
+маршруты кластера, включая панель Argo, применяет сам Argo. Команда идёт с macOS
+из рабочей копии репозитория.
 
 Чарта `platform/homelab` больше нет: он распущен на `platform/traefik` и
 `platform/cert-manager`, Gateway и GatewayClass живут в
@@ -257,13 +253,13 @@ KUBECONFIG=~/.kube/configs/homelab.yaml kubectl apply -f clusters/casa/platform/
 | `clusters/casa/apps/seafile/manifests/onlyoffice.route.yaml` | Argo, вместе с каталогом `clusters/casa/apps/seafile/manifests` |
 | `clusters/casa/platform/radar/manifests/route.yaml`, `clusters/casa/platform/headlamp/manifests/route.yaml`, `clusters/casa/platform/longhorn/manifests/route.yaml` | Argo, `spec.sources[].path` |
 | `clusters/casa/platform/traefik/manifests/dashboard.route.yaml` | Argo, `spec.sources[].path` |
-| `clusters/casa/platform/argocd/route.yaml` | **вручную** |
+| `clusters/casa/platform/argocd/manifests/route.yaml` | Argo, `spec.sources[].path` |
 
-Остался один маршрут вне Argo — `platform/argocd/route.yaml`. У юнита `argocd`
-нет `Application`, и это осознанно: Argo под управлением Argo не должен,
-иначе ошибка в юните отрежет доступ к самому GitOps, а чинить придётся через
-`kubectl`. Маршрут применяется руками, и это единственное место в
-`clusters/casa/`, где правка git требует ручного apply.
+Маршрутов вне Argo не осталось: юнит `argocd` получил `Application` и ставит
+свой чарт сам. Компромисс осознанный — ошибка в юните может отрезать доступ к
+самому GitOps, поэтому у приложения `Prune=false`, а восстановление простое:
+revert коммита и `argocd app sync argocd`, а если сломан контроллер — `helm
+install` с values из юнита (`bootstrap/README.md`).
 
 Проверяется это так — вывести все каталоги, которые Argo берёт как источники,
 и найти среди них каталог маршрута:
@@ -282,10 +278,6 @@ kubectl -n argocd get application -o \
 `forgejo-extras`, `apps/vault` — `vault-extras`, `platform/eck-operator` —
 `elastic-operator`. Первые два разведены по имени, чтобы не столкнуться с
 `platform/forgejo` и `platform/vault`.
-
-```sh
-KUBECONFIG=~/.kube/configs/homelab.yaml kubectl apply -f clusters/casa/platform/argocd/route.yaml
-```
 
 Проверить, что маршрут из git действительно применён:
 

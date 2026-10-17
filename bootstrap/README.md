@@ -7,7 +7,9 @@
 | Файл | Что это |
 |---|---|
 | `root.yaml` | `Application` верхнего уровня: рендерит `clusters/casa/` и создаёт остальные |
-| `argocd-values.yaml` | значения чарта Argo CD, только отклонения от дефолтов |
+
+Значения чарта Argo живут в его юните — `clusters/casa/platform/argocd/values.yaml`,
+и дальше применяются самим Argo.
 
 Разборы подводных камней, версии и диагностика — в
 [runbook](../clusters/casa/platform/argocd/RUNBOOK.md). Каталог одноразовый: при переходе на
@@ -27,13 +29,17 @@ helm repo update
 helm install argocd argo/argo-cd \
   --version 10.9.1 \
   --namespace argocd --create-namespace \
-  -f bootstrap/argocd-values.yaml \
+  -f clusters/casa/platform/argocd/values.yaml \
   --wait
 
 # 2. Root. Создаёт AppProject'ы, остальные Application'ы и всё под ними.
 kubectl apply -f bootstrap/root.yaml
 argocd app sync root
 ```
+
+Дальше Argo управляет собой сам: `platform/argocd/app.yaml` ставит тот же чарт из
+git, поэтому настройки меняются коммитом, а не `helm upgrade`. Helm-релиз при этом
+«забывают», чтобы он не конкурировал с Argo (RUNBOOK, «Обновление Argo»).
 
 Манифесты Argo читает из публичного зеркала на GitHub
 (`https://github.com/Artemiy111/homelab.git`): репозиторий публичный, клон
@@ -66,13 +72,15 @@ argocd app diff root            # пусто
 Список генерируется: `./scripts/argocd-units.sh > clusters/casa/kustomization.yaml`,
 актуальность проверяет `scripts/check.sh`.
 
-## Если Argo не переустанавливается
+## Если Argo сломался
 
-`helm upgrade` с тем же values, затем рестарт `repo-server` — блок
-`knownHosts` монтируется в под, а не читается на лету:
+Пока релиз ещё Helm'ов, лечится `helm upgrade` с теми же values и рестартом
+`repo-server`: блок `knownHosts` монтируется в под при пересоздании, а не читается
+на лету. После адопции (RUNBOOK, «Обновление Argo») релиз забыт, и путь один:
+revert коммита в git и `argocd app sync argocd`.
 
 ```sh
 helm upgrade argocd argo/argo-cd --version 10.9.1 \
-  --namespace argocd -f bootstrap/argocd-values.yaml
+  --namespace argocd -f clusters/casa/platform/argocd/values.yaml
 kubectl -n argocd rollout restart deploy/argocd-repo-server
 ```

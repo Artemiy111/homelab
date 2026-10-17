@@ -2,8 +2,26 @@
 
 GitOps-контроллер кластера: источник правды — `main`, root-приложение
 раскатывает `Application` из `clusters/casa/`. Параметры установки — в
-`bootstrap/argocd-values.yaml`: это отклонения от дефолтов чарта, а не манифесты
+`clusters/casa/platform/argocd/values.yaml`: это отклонения от дефолтов чарта, а не манифесты
 кластера.
+
+## Управление собой
+
+Argo применяет свой чарт тем же способом, что и остальные юниты: `app.yaml` в
+этом каталоге, значения рядом. Первичная установка всё равно ручная — контроллер
+не поставит себя в пустом кластере, — но дальше настройки живут в git: правка
+`values.yaml`, коммит, синк. Дрейф настроек контроллера перестаёт быть невидимым,
+а `helm upgrade` из бутстрапа становится одноразовым шагом (после адопции релиз
+«забывают», иначе Helm и Argo начнут конкурировать).
+
+Плата за это — самозамыкание: ошибка в юните отрежет доступ к GitOps. Поэтому у
+приложения `Prune=false` (Argo ничего своего не удалит), а восстановление
+описано в `RUNBOOK.md` и в `bootstrap/README.md`: revert коммита и синк, а если
+сломан сам контроллер — `helm install` с values из юнита.
+
+Секрет `argocd-secret` исключён из сравнения (`ignoreDifferences` на `/data`):
+`admin.password` и `server.secretkey` дописывает сам Argo в рантайме, в git их нет
+по определению.
 
 ## Вход
 
@@ -51,7 +69,7 @@ client-side apply Argo доводит сам — миграцией менедж
 игнорировать нельзя — там же лежат наши параметры, например `wal_keep_size`.
 
 Расхождение по умолчанию считается server-side diff'ом —
-`controller.diff.server.side: "true"` в `bootstrap/argocd-values.yaml`: Argo
+`controller.diff.server.side: "true"` в `clusters/casa/platform/argocd/values.yaml`: Argo
 делает dry-run применение и сравнивает результат с живым объектом, поэтому то,
 что дописывают admission-вебхуки, расхождением не считается. Цена — dry-run на
 каждое сравнение; юниту, которому он не подходит, сравнение возвращается
@@ -117,7 +135,7 @@ kind и ретраи операторов, а залипшую `Database` вид
 `Healthy` у ресурсов волны, только когда у ресурса есть health-проверка: у
 `Deployment`, `PVC` и прочих встроенных она есть, у CR — только если задан
 `resource.customizations.health.*` (для CNPG и MariaDB он в
-`bootstrap/argocd-values.yaml`), а у `argoproj.io/Application` с Argo 1.8 её в
+`clusters/casa/platform/argocd/values.yaml`), а у `argoproj.io/Application` с Argo 1.8 её в
 поставке нет. Поэтому `Application` считается применённым сразу после apply:
 волны упорядочивают создание приложений, но не их готовность, а недостающие
 зависимости — CR без CRD, под без секрета — добираются `retry` у приложения и

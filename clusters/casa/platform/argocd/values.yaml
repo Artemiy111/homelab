@@ -34,37 +34,25 @@ configs:
     controller.default.cache.expiration: 10m
     controller.diff.server.side: "true"
 
+  tls:
+    certificates:
+      tls.crt: |
+        -----BEGIN CERTIFICATE-----
+        MIIBgDCCASagAwIBAgIUeiO0R10fquqG/PiQCh+JWi0hm3gwCgYIKoZIzj0EAwIw
+        HjEcMBoGA1UEAxMTaG9tZWxhYiBpbnRlcm5hbCBDQTAeFw0yNjA5MzAxNTAzMzVa
+        Fw0zNjA5MjcxNTAzMzVaMB4xHDAaBgNVBAMTE2hvbWVsYWIgaW50ZXJuYWwgQ0Ew
+        WTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAARH4seMsbMsNNA1R+hvj/qt5g3l5r4s
+        dK20HesLVhkXVYWDjuS59taEa6eVN37dPx9pXcw1irXJnK+mRiBNQATWo0IwQDAO
+        BgNVHQ8BAf8EBAMCAqQwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQUnZ6Pbi9D
+        moX08R/QVNmjKMUhNwwwCgYIKoZIzj0EAwIDSAAwRQIhAP36cRECd5y6Je5YgVRi
+        Bs6C08NzMy/usRHkDplz1kedAiBuvFT1lSha+Z8OhEjVL03Ym4e+qrwqw/WlyA0X
+        z2d1Wg==
+        -----END CERTIFICATE-----
+
   # → argocd-cm.
   cm:
     timeout.reconciliation: 60s
 
-    # HTTPRoute: apiserver подставляет дефолты из OpenAPI-схемы CRD, которых
-    # нет в манифесте, и Argo считает их дрейфом. Приложение после успешного
-    # sync навсегда остаётся OutOfSync, при этом `argocd app diff` пуст.
-    # Дефолты взяты из `kubectl get crd httproutes.gateway.networking.k8s.io`:
-    #   spec.parentRefs[].group           = gateway.networking.k8s.io
-    #   spec.parentRefs[].kind            = Gateway
-    #   spec.rules[].backendRefs[].group  = ""
-    #   spec.rules[].backendRefs[].kind   = Service
-    #   spec.rules[].backendRefs[].weight = 1
-    #   spec.rules[].matches = [{path: {type: PathPrefix, value: /}}]
-    # Формат jqPathExpressions — именно путь к полю. Конструкция вида
-    # `del(.group, .kind)` не работает: del() удаляет из результата запроса,
-    # а нужен адрес поля.
-    resource.customizations.ignoreDifferences.gateway.networking.k8s.io_HTTPRoute: |
-      jqPathExpressions:
-        - .spec.parentRefs[]?.group
-        - .spec.parentRefs[]?.kind
-        - .spec.rules[]?.backendRefs[]?.group
-        - .spec.rules[]?.backendRefs[]?.kind
-        - .spec.rules[]?.backendRefs[]?.weight
-        - .spec.rules[]?.matches
-    # Gateway: apiserver подставляет group в certificateRefs[]. Без правила
-    # traefik висит OutOfSync после перехода Gateway под Argo, хотя рендер
-    # совпадает с кластером.
-    resource.customizations.ignoreDifferences.gateway.networking.k8s.io_Gateway: |
-      jqPathExpressions:
-        - .spec.listeners[]?.tls.certificateRefs[]?.group
     resource.customizations.health.postgresql.cnpg.io_Cluster: |
       hs = {}
       if obj.status == nil or obj.status.conditions == nil then

@@ -49,7 +49,7 @@ done
 # его дереве нет, ярус тихо теряет участника, и заметно это только тем, что под
 # снова конкурирует за память с остальными.
 critical=(
-  bootstrap/argocd-values.yaml
+  clusters/casa/platform/argocd
   clusters/casa/apps/zitadel
   clusters/casa/platform/cert-manager
   clusters/casa/platform/cloudnative-pg
