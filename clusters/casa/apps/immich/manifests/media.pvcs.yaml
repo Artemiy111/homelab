@@ -1,0 +1,81 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: immich-media-artemiy
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false
+spec:
+  capacity:
+    storage: 48Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage-retain
+  local:
+    path: /storage/media/visual/Artemiy/Library
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - homelab
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: immich-media-artemiy
+  namespace: immich
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false
+spec:
+  storageClassName: local-storage-retain
+  accessModes:
+    - ReadWriteOnce
+  volumeName: immich-media-artemiy
+  resources:
+    requests:
+      storage: 48Gi
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: immich-media-family
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false
+spec:
+  capacity:
+    storage: 13Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage-retain
+  local:
+    path: /storage/media/visual/Family/Library
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - homelab
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: immich-media-family
+  namespace: immich
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false
+spec:
+  storageClassName: local-storage-retain
+  accessModes:
+    - ReadWriteOnce
+  volumeName: immich-media-family
+  resources:
+    requests:
+      storage: 13Gi

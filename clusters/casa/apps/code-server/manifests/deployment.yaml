@@ -4,7 +4,6 @@ metadata:
   name: code-server
   namespace: code-server
 spec:
-  # hostPath-каталоги
   strategy:
     type: Recreate
   revisionHistoryLimit: 1
@@ -26,7 +25,7 @@ spec:
           workingDir: /home/coder/project
           # Штатный entrypoint образа делает fixuid/sudo/usermod, что
           # несовместимо с runAsNonRoot и no-new-privileges в k8s. Запускаем
-          # code-server напрямую: конфиг и расширения берутся из hostPath /home/coder.
+          # code-server напрямую: конфиг и расширения берутся из каталога /home/coder.
           command:
             - /usr/bin/dumb-init
             - --
@@ -81,10 +80,8 @@ spec:
               mountPath: /home/coder/project
       volumes:
         - name: home
-          hostPath:
-            path: /storage/apps/code-server/home
-            type: Directory
+          persistentVolumeClaim:
+            claimName: code-server-home
         - name: workspace
-          hostPath:
-            path: /storage/apps/code-server/workspace
-            type: Directory
+          persistentVolumeClaim:
+            claimName: code-server-workspace

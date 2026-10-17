@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: beszel-socket
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false
+spec:
+  capacity:
+    storage: 64Mi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage-retain
+  local:
+    path: /storage/apps/beszel/socket
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - homelab
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: beszel-socket
+  namespace: beszel
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false
+spec:
+  storageClassName: local-storage-retain
+  accessModes:
+    - ReadWriteOnce
+  volumeName: beszel-socket
+  resources:
+    requests:
+      storage: 64Mi

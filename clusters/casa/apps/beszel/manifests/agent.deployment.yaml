@@ -102,9 +102,8 @@ spec:
           persistentVolumeClaim:
             claimName: beszel-agent
         - name: socket
-          hostPath:
-            path: /storage/apps/beszel/socket
-            type: Directory
+          persistentVolumeClaim:
+            claimName: beszel-socket
         - name: docker-sock
           hostPath:
             path: /var/run/docker.sock

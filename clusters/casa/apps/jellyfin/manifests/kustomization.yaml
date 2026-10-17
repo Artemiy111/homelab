@@ -9,6 +9,7 @@ resources:
   - deployment.yaml
   - exporter.deployment.yaml
   - config.pvc.yaml
+  - media.pvcs.yaml
   - networkpolicy.yaml
   - route.yaml
   - vaultauth.yaml

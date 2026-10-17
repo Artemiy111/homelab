@@ -99,9 +99,9 @@ spec:
         - name: cache
           emptyDir: {}
         - name: media
-          hostPath:
-            path: /storage/media
-            type: Directory
+          persistentVolumeClaim:
+            claimName: jellyfin-media
+            readOnly: true
         - name: dri
           hostPath:
             path: /dev/dri

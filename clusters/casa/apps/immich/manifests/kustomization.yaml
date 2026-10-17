@@ -14,6 +14,7 @@ resources:
   - ml.vpa.yaml
   - library.pvc.yaml
   - ml-cache.pvc.yaml
+  - media.pvcs.yaml
   - networkpolicy.yaml
   - route.yaml
   - vaultauth.yaml

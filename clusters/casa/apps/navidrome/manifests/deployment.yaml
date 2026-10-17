@@ -96,6 +96,6 @@ spec:
           persistentVolumeClaim:
             claimName: navidrome-data
         - name: music
-          hostPath:
-            path: /storage/media/music
-            type: Directory
+          persistentVolumeClaim:
+            claimName: navidrome-media
+            readOnly: true

@@ -146,13 +146,13 @@ spec:
           persistentVolumeClaim:
             claimName: immich-library
         - name: media-user
-          hostPath:
-            path: /storage/media/visual/Artemiy/Library
-            type: Directory
+          persistentVolumeClaim:
+            claimName: immich-media-artemiy
+            readOnly: true
         - name: media-family
-          hostPath:
-            path: /storage/media/visual/Family/Library
-            type: Directory
+          persistentVolumeClaim:
+            claimName: immich-media-family
+            readOnly: true
         - name: localtime
           hostPath:
             path: /etc/localtime

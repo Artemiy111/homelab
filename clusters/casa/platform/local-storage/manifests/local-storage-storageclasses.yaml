@@ -1,5 +1,5 @@
 # Класс для статических local-томов: провижионера нет, PV описываются руками
-# (clusters/casa/apps/<сервис>/k8s/pv-pvc.yaml), PVC привязывается к PV по volumeName.
+# (clusters/casa/apps/<сервис>/manifests/<имя>.pvcs.yaml), PVC привязывается к PV по volumeName.
 #
 # Политику удержания такой класс не задаёт: «PersistentVolumes that are created
 # manually and managed via a StorageClass will have whatever reclaim policy they

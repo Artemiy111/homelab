@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: local-ai-models
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false
+spec:
+  capacity:
+    storage: 40Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage-retain
+  local:
+    path: /storage/apps/local-ai/models
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - homelab
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: local-ai-models
+  namespace: local-ai
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false
+spec:
+  storageClassName: local-storage-retain
+  accessModes:
+    - ReadWriteOnce
+  volumeName: local-ai-models
+  resources:
+    requests:
+      storage: 40Gi

@@ -8,6 +8,7 @@ resources:
   - vaultstaticsecret.yaml
   - networkpolicy.yaml
   - pvcs.yaml
+  - socket.pvcs.yaml
   - agent.deployment.yaml
   - hub.deployment.yaml
   - hub.service.yaml
