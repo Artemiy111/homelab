@@ -68,20 +68,20 @@ spec:
                 # режет запросы из этой сети (реестр HashiCorp отвечает WAF-ом
                 # по геолокации). Учётка у прокси на каждого потребителя, в
                 # Secret лежит парой, поэтому адрес собираем из двух ключей.
-                - name: XUI_EGRESS_USERNAME
+                - name: PROXY_USERNAME
                   valueFrom:
                     secretKeyRef:
                       name: forgejo-renovate-egress
-                      key: XUI_EGRESS_USERNAME
-                - name: XUI_EGRESS_PASSWORD
+                      key: username
+                - name: PROXY_PASSWORD
                   valueFrom:
                     secretKeyRef:
                       name: forgejo-renovate-egress
-                      key: XUI_EGRESS_PASSWORD
+                      key: password
                 - name: HTTPS_PROXY
-                  value: "http://$(XUI_EGRESS_USERNAME):$(XUI_EGRESS_PASSWORD)@xui-egress.3x-ui.svc.cluster.local:8440"
+                  value: "http://$(PROXY_USERNAME):$(PROXY_PASSWORD)@xui-egress.3x-ui.svc.cluster.local:8440"
                 - name: HTTP_PROXY
-                  value: "http://$(XUI_EGRESS_USERNAME):$(XUI_EGRESS_PASSWORD)@xui-egress.3x-ui.svc.cluster.local:8440"
+                  value: "http://$(PROXY_USERNAME):$(PROXY_PASSWORD)@xui-egress.3x-ui.svc.cluster.local:8440"
                 # Внутреннее — напрямую: возвращаться к своему же Forgejo из
                 # чужой страны незачем. Renovate понимает `*.`, git и curl —
                 # точное имя хоста.

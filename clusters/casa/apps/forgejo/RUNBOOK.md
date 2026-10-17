@@ -209,7 +209,7 @@ Renovate ходит наружу через HTTP-прокси `xui-egress`: ре
 
 ```sh
 vault kv put kv/3x-ui/@renovate/egress \
-  XUI_EGRESS_USERNAME=renovate XUI_EGRESS_PASSWORD=<пароль>
+  username=renovate password=<пароль>
 ```
 
 Пароль подставляется в URL прокси, поэтому допустимы только буквы, цифры и
@@ -241,7 +241,7 @@ KUBECONFIG=~/.kube/configs/homelab.yaml kubectl -n forgejo get secret forgejo-re
   -o go-template='{{range $k,$v := .data}}{{$k}}{{"\n"}}{{end}}'
 ```
 
-Ожидаются `XUI_EGRESS_USERNAME` и `XUI_EGRESS_PASSWORD`.
+Ожидаются `username` и `password`.
 
 ## Ротация токена бота
 

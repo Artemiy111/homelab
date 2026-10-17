@@ -199,9 +199,10 @@ Forgejo, поэтому рядом с ним он и живёт.
 available in your region», из-за чего версии terraform-провайдеров не находились
 вовсе, а `releases.hashicorp.com` и `registry.opentofu.org` отвечали тем же. Через
 HTTP-прокси `xui-egress`, который выходит в другой стране, находятся все восемь.
-Учётка у прокси своя на каждого потребителя — как у Gatus и DNS-01-webhook, с тем
-же комплектом ключей в Vault. Внутренние адреса (Forgejo и `*.svc.cluster.local`)
-идут мимо прокси: возвращаться к своему же инстансу из чужой страны незачем.
+Учётка у прокси своя на каждого потребителя — как у Gatus и DNS-01-webhook; в
+Vault это пара `username`/`password`. Внутренние адреса (Forgejo и
+`*.svc.cluster.local`) идут мимо прокси: возвращаться к своему же инстансу из
+чужой страны незачем.
 
 **Чего Renovate не умеет у нас.** Версия bun зашита в трёх местах сразу: в
 `artifacts.tsv` (это зеркало в RustFS), в `tools.tsv` devcontainer'а и в
@@ -258,7 +259,7 @@ app.ini через `FORGEJO__database__PASSWD` из `gitea.additionalConfigFromE
 | `kv/forgejo/@monitoring/forgejo-metrics-token` | `FORGEJO_METRICS_TOKEN` | `forgejo-metrics` | чарт (env → app.ini) |
 | `kv/forgejo/@renovate/token` | `RENOVATE_TOKEN` | `forgejo-renovate` | CronJob `renovate` |
 | `kv/github/api-token` | `RENOVATE_GITHUB_COM_TOKEN` | `forgejo-renovate-github` | CronJob `renovate` |
-| `kv/3x-ui/@renovate/egress` | `XUI_EGRESS_USERNAME`, `XUI_EGRESS_PASSWORD` | `forgejo-renovate-egress` | CronJob `renovate` (egress) |
+| `kv/3x-ui/@renovate/egress` | `username`, `password` | `forgejo-renovate-egress` | CronJob `renovate` (egress) |
 | `kv/forgejo/admin` | `username`, `password` | `forgejo-admin` | чарт (init-контейнер) |
 | `kv/forgejo/runner` | `token` | `forgejo-runner` | регистрация раннера |
 | `kv/forgejo/oidc` | `key`, `secret` | `forgejo-oidc` | чарт (init-контейнер) |

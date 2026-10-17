@@ -63,8 +63,12 @@ URL.
 Учётная запись `dns01-webhook` — по пути `kv/3x-ui/@dns01-webhook/egress`,
 Secret `dns01-webhook-egress` в namespace `cert-manager`.
 
-Учётная запись `renovate` — по пути `kv/3x-ui/@renovate/egress`, Secret
-`forgejo-renovate-egress` в namespace `forgejo`.
+Учётная запись `renovate` — по пути `kv/3x-ui/@renovate/egress` с ключами
+`username` и `password`, Secret `forgejo-renovate-egress` в namespace `forgejo`.
+Имена ключей здесь короче, чем у `gatus` и `dns01-webhook` (`XUI_EGRESS_*`):
+у новых записей они совпадают с остальными парными кредами репозитория
+(`kv/<сервис>/admin`), а старые остаются как есть, чтобы не переписывать
+значения ради имени.
 
 Значение существует в двух местах — в базе панели и в Vault, — поэтому ротация
 это два шага. Порядок и команды — в `RUNBOOK.md`.
