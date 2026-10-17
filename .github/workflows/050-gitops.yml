@@ -1,0 +1,25 @@
+# Гейт публичного зеркала на GitHub, парный к .forgejo/workflows/050-gitops.yml.
+# Проверка целиком в скрипте, тулчейн не нужен: ни зеркал, ни бинарей — отличие
+# от кластерного двойника только в триггере.
+name: gitops
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "clusters/casa/**"
+      - "scripts/**"
+      - ".github/workflows/050-gitops.yml"
+
+# Гейт на политику prune: у юнитов Argo prune включён, у ресурсов, потеря которых
+# необратима, он снят аннотацией (docs/adr/0013). Без гейта политика расходится
+# молча: новый юнит копирует соседний манифест, а разница видна только тем, что
+# Argo удалит ресурс, которого нет в git.
+jobs:
+  prune:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - name: Check prune policy
+        run: ./scripts/argocd-prune.sh --check

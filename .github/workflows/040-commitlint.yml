@@ -1,0 +1,53 @@
+# Гейт публичного зеркала на GitHub, парный к .forgejo/workflows/040-commitlint.yml:
+# версии bun и commitlint те же. bun ставится обычным для GitHub способом — из
+# апстрим-релиза через setup-bun, — потому что зеркало RustFS и кэш ATS
+# с GitHub-раннера недостижимы, а verdaccio-реестр недостижим для bun install.
+#
+# Шагов с pull_request здесь нет: на зеркале триггер только push в main, PR туда
+# не приходят. Именно поэтому в кластерном двойнике гейт считает и merge-результат
+# PR: проверяется то, что попадёт в main. Здесь в main попадает ровно последний
+# коммит, и --last проверяет его заголовок — тот самый, что собрался из заголовка
+# PR при squash-merge.
+#
+# Блока concurrency нет намеренно: GitHub отменяет предыдущий прогон только при
+# явно заданном concurrency, а в кластерном двойнике отмена отключена
+# (`cancel-in-progress: false`) — поведение совпадает без настройки.
+name: meta
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  commitlint:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      # Порядок важен: кэш проверяется первым, потому что от его результата
+      # зависят два следующих шага. При попадании в кэш bun не скачивается и не
+      # запускается вовсе: commitlint — обычный node-скрипт, а node в
+      # job-образе есть. Bun остаётся установщиком и нужен только на холодном
+      # пути.
+      - name: Cache dependencies
+        id: dependencies
+        uses: actions/cache@v6
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+      - name: Setup bun
+        if: steps.dependencies.outputs.cache-hit != 'true'
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.0
+      - name: Install dependencies
+        if: steps.dependencies.outputs.cache-hit != 'true'
+        run: bun install --frozen-lockfile
+      - name: Print versions
+        run: |
+          git --version
+          node --version
+          ./node_modules/.bin/commitlint --version
+      - name: Validate last commit
+        run: ./node_modules/.bin/commitlint --last --verbose

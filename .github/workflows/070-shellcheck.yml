@@ -1,0 +1,52 @@
+# Гейт публичного зеркала на GitHub, парный к .forgejo/workflows/070-shellcheck.yml:
+# версия shellcheck, порог и список файлов те же, sha256 бинаря тот же. URL —
+# апстрим-релиз GitHub вместо кэша ATS: редирект на CDN-URL с GitHub-раннера
+# разворачивается обычным curl'ом, посредник не нужен.
+name: lint
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "**/*.sh"
+      - ".githooks/**"
+      - ".github/workflows/070-shellcheck.yml"
+
+jobs:
+  shellcheck:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - name: Cache shellcheck
+        id: cache
+        uses: actions/cache@v6
+        with:
+          path: ~/.local/shellcheck
+          key: shellcheck-0.11.0-upstream-${{ runner.os }}
+      - name: Install shellcheck
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          set -euo pipefail
+          ver="0.11.0"
+          asset="shellcheck-v${ver}.linux.x86_64.tar.gz"
+          expected="b7af85e41cc99489dcc21d66c6d5f3685138f06d34651e6d34b42ec6d54fe6f6"
+          url="https://github.com/koalaman/shellcheck/releases/download/v${ver}/${asset}"
+          mkdir -p "$HOME/.local/shellcheck" /tmp/shellcheck
+          curl -fsSL -o "/tmp/shellcheck/${asset}" "$url"
+          echo "$expected  /tmp/shellcheck/${asset}" | sha256sum -c -
+          tar -xzf "/tmp/shellcheck/${asset}" -C /tmp/shellcheck "shellcheck-v${ver}/shellcheck"
+          install -m 0755 "/tmp/shellcheck/shellcheck-v${ver}/shellcheck" "$HOME/.local/shellcheck/shellcheck"
+      - name: Add shellcheck to PATH
+        run: echo "$HOME/.local/shellcheck" >> "$GITHUB_PATH"
+      # Линтим все отслеживаемые *.sh по расширению, а также хуки в .githooks/
+      # (расширения у них нет, файлы называются pre-commit и commit-msg).
+      # .agents и .claude — это шаблоны скиллов и инструментовка, их не
+      # проверяем. Порог warning задан явно, чтобы набор правил не зависел от
+      # дефолтов версии.
+      - name: Lint scripts
+        run: |
+          set -euo pipefail
+          shellcheck --version
+          mapfile -t scripts < <(git ls-files -- '*.sh' '.githooks/*' ':!.agents/**' ':!.claude/**')
+          shellcheck -S warning "${scripts[@]}"

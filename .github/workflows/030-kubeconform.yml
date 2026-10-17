@@ -1,0 +1,76 @@
+# Гейт публичного зеркала на GitHub, парный к .forgejo/workflows/030-kubeconform.yml:
+# набор путей, схем, фильтров и версии тот же — он живёт в scripts/kubeconform.sh.
+# Отличается источник бинаря: не зеркало RustFS, а апстрим-релиз. sha256 и URL
+# при этом берутся из clusters/casa/apps/rustfs/manifests/artifacts.tsv — там пин
+# лежит вместе с манифестом зеркала, и дублировать его в workflow незачем.
+#
+# Схемы CR из зеркала не раскладываются: скрипт берёт их по HTTP из
+# datreeio/CRDs-catalog по зафиксированной ниже ревизии, а схемы Kubernetes —
+# из yannh/kubernetes-json-schema.
+name: manifests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "clusters/casa/apps/**"
+      - "clusters/casa/platform/**"
+      - "bootstrap/**"
+      - "scripts/kubeconform.sh"
+      - ".github/workflows/030-kubeconform.yml"
+
+# Скрипт проверки лежит среди путей: правка набора путей или схем без запуска
+# гейта оставила бы main с непроверенными манифестами ровно настолько же,
+# насколько сейчас непроверенным был фикс lute (#788, #789).
+
+jobs:
+  kubeconform:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      # Ревизия datreeio/CRDs-catalog. Объявлена на уровне job, а не в шаге
+      # Validate manifests: значение нужно и ключу кэша, и команде.
+      CRD_SCHEMAS_REV: fd90051867733c60d32d16450556e9cd18459aef
+    steps:
+      - uses: actions/checkout@v6
+      - name: Cache kubeconform
+        id: kubeconform
+        uses: actions/cache@v6
+        with:
+          path: ~/.local/bin
+          key: kubeconform-0.8.0-upstream-${{ runner.os }}
+      - name: Cache kubeconform HTTP responses
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/kubeconform-http
+          key: kubeconform-cr-schemas-${{ env.CRD_SCHEMAS_REV }}-${{ runner.os }}
+      # Бинарь тот же, что публикует зеркало: URL — апстрим-релиз GitHub, sha256
+      # — из artifacts.tsv. sha256sum -c падает и на подмене ассета, и на
+      # расхождении пина с апстримом.
+      - name: Install kubeconform
+        if: steps.kubeconform.outputs.cache-hit != 'true'
+        run: |
+          set -euo pipefail
+          asset="kubeconform/0.8.0/kubeconform_0.8.0_linux_amd64.tar.gz"
+          read -r expected url <<<"$(awk -v p="$asset" '$1==p{print $2, $3}' clusters/casa/apps/rustfs/manifests/artifacts.tsv)"
+          mkdir -p "$HOME/.local/bin" /tmp/kubeconform
+          curl -fsSL -o /tmp/kubeconform/kubeconform.tar.gz "$url"
+          echo "$expected  /tmp/kubeconform/kubeconform.tar.gz" | sha256sum -c -
+          tar -xzf /tmp/kubeconform/kubeconform.tar.gz -C /tmp/kubeconform kubeconform
+          install -m 0755 /tmp/kubeconform/kubeconform "$HOME/.local/bin/kubeconform"
+      - name: Add kubeconform to PATH
+        run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      # Второй -schema-location — схемы CR из datreeio/CRDs-catalog: они не
+      # входят в набор схем Kubernetes, а без них 40% ресурсов (все CR операторов)
+      # не проверялись бы. Ревизия каталога зафиксирована коммитом и передаётся
+      # скрипту через CRD_SCHEMAS_REV — она же ключ кэша выше.
+      #
+      # Набор путей, схем, фильтров и -strict живёт в scripts/kubeconform.sh:
+      # тот же скрипт вызывают .githooks/pre-commit и scripts/check.sh, и
+      # расхождение трёх прогонов хуже, чем отсутствие проверки. Здесь только
+      # ставим бинарь: схемы скрипт тянет по HTTP сам.
+      - name: Validate manifests
+        run: |
+          set -euo pipefail
+          kubeconform -v
+          ./scripts/kubeconform.sh

@@ -1,0 +1,22 @@
+# Гейт публичного зеркала на GitHub, парный к .forgejo/workflows/090-alerts.yml.
+# Проверка целиком в скрипте, тулчейн не нужен: ни зеркал, ни бинарей — отличие
+# от кластерного двойника только в триггере.
+name: alerts
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "clusters/casa/apps/grafana/**"
+      - "clusters/casa/**/RUNBOOK.md"
+      - "scripts/**"
+      - ".github/workflows/090-alerts.yml"
+
+jobs:
+  docs:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - name: Check alert rules registry
+        run: ./scripts/alert-rules-docs.sh --check

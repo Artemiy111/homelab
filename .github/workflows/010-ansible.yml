@@ -1,0 +1,44 @@
+# Гейт публичного зеркала на GitHub, парный к .forgejo/workflows/010-ansible.yml:
+# состав проверки, версии инструментов и пины по sha256 те же. Отличается только
+# источник тулчейна — внутрикластерные зеркала (RustFS, ATS, Verdaccio) с
+# GitHub-раннера недостижимы, — и образ раннера: ubuntu-24.04 повторяет
+# act-24.04 (python 3.12), на котором гейт идёт в кластере.
+name: lint
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "infra/ansible/**"
+      - ".github/workflows/010-ansible.yml"
+
+jobs:
+  ansible-lint:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - name: Cache venv
+        id: cache
+        uses: actions/cache@v6
+        with:
+          path: ~/.venvs/ansible
+          key: ansible-lint-26.8.0-ansible-13.8.0-py3.12-${{ runner.os }}
+      # Ставится полный metapackage `ansible==13.8.0`: в его wheel уже входят
+      # коллекции (community.general.copr нужен syntax-check), галактический
+      # доступ CI не требуется.
+      - name: Install ansible-lint
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          set -euo pipefail
+          python3.12 -m venv "$HOME/.venvs/ansible"
+          "$HOME/.venvs/ansible/bin/pip" install --quiet --upgrade pip
+          "$HOME/.venvs/ansible/bin/pip" install --quiet "ansible==13.8.0" "ansible-lint==26.8.0"
+      # --offline: все модули уже в venv, сетевых обращений линтера
+      # (galaxy, автоскачивание зависимостей) запрещаем.
+      - name: Run ansible-lint
+        working-directory: infra/ansible
+        run: |
+          set -euo pipefail
+          "$HOME/.venvs/ansible/bin/ansible-lint" --version
+          "$HOME/.venvs/ansible/bin/ansible-lint" --offline

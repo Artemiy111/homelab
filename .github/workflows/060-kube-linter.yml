@@ -1,0 +1,51 @@
+# Гейт публичного зеркала на GitHub, парный к .forgejo/workflows/060-kube-linter.yml:
+# версия kube-linter, конфиг и набор каталогов те же. Бинарь тот же, что публикует
+# зеркало RustFS: URL — апстрим-релиз GitHub, sha256 — из artifacts.tsv.
+name: manifests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "clusters/casa/apps/**"
+      - "clusters/casa/platform/**"
+      - "bootstrap/**"
+      - ".kube-linter.yaml"
+      - ".github/workflows/060-kube-linter.yml"
+
+jobs:
+  kube-linter:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - name: Cache kube-linter
+        id: cache
+        uses: actions/cache@v6
+        with:
+          path: ~/.local/bin
+          key: kube-linter-0.8.3-upstream-${{ runner.os }}
+      - name: Install kube-linter
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          set -euo pipefail
+          asset="kube-linter/0.8.3/kube-linter-linux.tar.gz"
+          read -r expected url <<<"$(awk -v p="$asset" '$1==p{print $2, $3}' clusters/casa/apps/rustfs/manifests/artifacts.tsv)"
+          mkdir -p "$HOME/.local/bin"
+          curl -fsSL -o /tmp/kube-linter.tar.gz "$url"
+          echo "$expected  /tmp/kube-linter.tar.gz" | sha256sum -c -
+          tar -xzf /tmp/kube-linter.tar.gz -C /tmp kube-linter
+          install -m 0755 /tmp/kube-linter "$HOME/.local/bin/kube-linter"
+      - name: Add kube-linter to PATH
+        run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      # Сканируем каталоги с манифестами: clusters/casa/apps/<svc>/manifests,
+      # clusters/casa/platform, bootstrap.
+      # values/Chart/templates/kustomization отсекаются ignorePaths в
+      # .kube-linter.yaml. Набор проверок — тоже там (allow-list, Phase 1).
+      # Схемы API не проверяем: schema-validation тянет их из сети, это уже
+      # делает kubeconform.
+      - name: Lint manifests
+        run: |
+          set -euo pipefail
+          kube-linter version
+          kube-linter lint --config .kube-linter.yaml --fail-if-no-objects-found clusters/casa/apps/*/manifests clusters/casa/platform bootstrap

@@ -1,0 +1,37 @@
+# Гейт публичного зеркала на GitHub, парный к .forgejo/workflows/120-status.yml:
+# тот же генератор, те же проверяемые числа.
+#
+# Шага «merge main в дерево ветки» здесь нет: на зеркале триггер только push в
+# main, PR туда не приходят. В кластерном двойнике он нужен потому, что гейт
+# идёт на PR, а числа зависят от всего дерева: без слияния они считались бы по
+# устаревшей базе. Здесь дерево и есть main.
+#
+# Тулчейн не расширяется: генератор на git, grep, awk и coreutils, поэтому
+# ничего не качаем из зеркала RustFS (clusters/casa/apps/rustfs) и не добавляем в
+# clusters/casa/apps/rustfs/manifests/artifacts.tsv.
+name: meta
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "clusters/casa/apps/**"
+      - "clusters/casa/platform/**"
+      - "bootstrap/**"
+      - "docs/**"
+      - "scripts/**"
+      - ".github/workflows/120-status.yml"
+
+# Гейт на то, что числа в README соответствуют репозиторию. Бейджи лежат в
+# коммите, поэтому без проверки они тихо расходятся с кодом: добавил сервис —
+# badge «services» остался прежним, и README врёт.
+jobs:
+  status:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Check status artifacts
+        run: ./scripts/status-badges.sh --check

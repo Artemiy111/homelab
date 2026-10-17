@@ -1,0 +1,47 @@
+# Гейт публичного зеркала на GitHub, парный к .forgejo/workflows/100-tflint.yml:
+# версия tflint и конфиг те же. Бинарь тот же, что публикует зеркало RustFS:
+# URL — апстрим-релиз GitHub, sha256 — из artifacts.tsv. Плагин terraform-ruleset
+# по прежнему скачивается самим tflint: на GitHub-раннере сеть есть.
+name: lint
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "infra/terraform/**"
+      - ".tflint.hcl"
+      - ".github/workflows/100-tflint.yml"
+  workflow_dispatch:
+
+jobs:
+  tflint:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - name: Cache tflint
+        id: cache
+        uses: actions/cache@v6
+        with:
+          path: ~/.local/bin
+          key: tflint-0.64.0-upstream-${{ runner.os }}
+      - name: Install tflint
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          set -euo pipefail
+          asset="tflint/0.64.0/tflint_linux_amd64.zip"
+          read -r expected url <<<"$(awk -v p="$asset" '$1==p{print $2, $3}' clusters/casa/apps/rustfs/manifests/artifacts.tsv)"
+          mkdir -p "$HOME/.local/bin"
+          curl -fsSL -o /tmp/tflint.zip "$url"
+          echo "$expected  /tmp/tflint.zip" | sha256sum -c -
+          unzip -oq /tmp/tflint.zip -d /tmp
+          install -m 0755 /tmp/tflint "$HOME/.local/bin/tflint"
+      - name: Add tflint to PATH
+        run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - name: Lint Terraform
+        run: |
+          set -euo pipefail
+          tflint --version
+          tflint --recursive --no-color \
+            --chdir=infra/terraform \
+            --config="$(pwd)/.tflint.hcl"

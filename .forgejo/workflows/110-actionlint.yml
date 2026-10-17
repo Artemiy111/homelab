@@ -6,6 +6,7 @@ on:
     paths: &paths
       - ".forgejo/workflows/**"
       - ".forgejo/actionlint.yaml"
+      - ".github/workflows/**"
   pull_request:
     paths: *paths
 
@@ -67,9 +68,13 @@ jobs:
       # pyflakes по-прежнему отключён явно: на раннере его нет, а shell-скрипты
       # в run: — не Python. shellcheck actionlint находит в PATH и гоняет его по
       # inline shell сам.
+      # Линтуются оба набора: .forgejo/workflows — то, что исполняет раннер в
+      # кластере, .github/workflows — парные гейты публичного зеркала. Игноры в
+      # .forgejo/actionlint.yaml привязаны путём к .forgejo/workflows/**/*.yml, на
+      # .github-файлы они не распространяются.
       - name: Lint workflows
         run: |
           set -euo pipefail
           actionlint -version
           shellcheck --version
-          actionlint -pyflakes= -config-file .forgejo/actionlint.yaml .forgejo/workflows/*.yml
+          actionlint -pyflakes= -config-file .forgejo/actionlint.yaml .forgejo/workflows/*.yml .github/workflows/*.yml

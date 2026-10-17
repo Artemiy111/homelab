@@ -116,7 +116,10 @@ and [`docs/research/observability-pitfalls.md`](docs/research/observability-pitf
 
 ## CI
 
-A set of Forgejo Actions workflows
+The same set of gates runs on two sites.
+
+`.forgejo/workflows/` is executed by a Forgejo Runner inside the cluster, where
+every tool comes from an in-cluster mirror and is verified against a pinned checksum.
 
 | Check | Tool | Scope |
 |---|---|---|
@@ -129,6 +132,25 @@ A set of Forgejo Actions workflows
 | `lint / tflint` | tflint | Terraform HCL, bundled ruleset |
 | `manifests / kubeconform` | kubeconform | Manifests against Kubernetes and CR schemas |
 | `manifests / kube-linter` | kube-linter | Security checks, explicit allow-list |
+
+`main` is mirrored to a public GitHub repository, and `.github/workflows/` runs the
+same gates on GitHub-hosted runners. The runner image is `ubuntu-24.04`, matching the
+`act-24.04` image the cluster runner uses; the gate set, the tool versions and the
+sha256 pins are the same. What differs is where the toolchain comes from: in-cluster
+mirror addresses do not resolve from outside, so the binaries are fetched from the
+upstream GitHub releases while the pin still comes from
+`clusters/casa/apps/rustfs/manifests/artifacts.tsv`. That makes the mirror a second,
+independent execution of the gates rather than a copy of the first one.
+
+One engine difference remains: Forgejo cancels a superseded run of the same workflow,
+GitHub cancels only when `concurrency` is set. No GitHub workflow sets it, so a run
+started by an earlier push to `main` is never cancelled — the same behaviour the two
+Forgejo gates (`040-commitlint`, `080-secrets`) ask for explicitly.
+
+Workflows are paired by file name: `.forgejo/workflows/030-kubeconform.yml` and
+`.github/workflows/030-kubeconform.yml` are one check running on two engines. The
+number in the name orders jobs in the Forgejo queue, where the runner has a fixed
+number of slots; on GitHub jobs run in parallel and the number is kept for the pairing.
 
 Local hooks run the same checks before a commit leaves the machine
 ([`.githooks/`](.githooks/)), so CI failures should be the exception rather than the routine.

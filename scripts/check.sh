@@ -79,7 +79,9 @@ if optional shellcheck; then
 fi
 
 if optional actionlint; then
-  step "actionlint" actionlint -config-file .forgejo/actionlint.yaml .forgejo/workflows/*.yml
+  # Оба набора, как и в гейте 110-actionlint.yml: .forgejo/workflows исполняет
+  # раннер в кластере, .github/workflows — гейты публичного зеркала.
+  step "actionlint" actionlint -config-file .forgejo/actionlint.yaml .forgejo/workflows/*.yml .github/workflows/*.yml
 fi
 
 if optional commitlint; then
