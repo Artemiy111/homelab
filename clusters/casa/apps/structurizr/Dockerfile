@@ -2,7 +2,7 @@ FROM eclipse-temurin:21-alpine AS clone
 RUN apk add --no-cache git \
     && git clone --depth 1 --branch v2026.06.28 https://github.com/structurizr/structurizr.git /src
 
-FROM maven:3.9-eclipse-temurin-21 AS build
+FROM maven:3.9-eclipse-temurin-26 AS build
 COPY --from=clone /src /src
 WORKDIR /src
 RUN ./mvnw -q -Dmaven.test.skip=true -Dapp.revision=2026.06.28 package
