@@ -13,8 +13,6 @@
 apiVersion: k8s.mariadb.com/v1alpha1
 kind: User
 metadata:
-  annotations:
-    argocd.argoproj.io/sync-wave: "20"
   name: uptime-kuma
   namespace: uptime-kuma
 spec:
@@ -30,8 +28,6 @@ spec:
 apiVersion: k8s.mariadb.com/v1alpha1
 kind: Grant
 metadata:
-  annotations:
-    argocd.argoproj.io/sync-wave: "20"
   name: uptime-kuma
   namespace: uptime-kuma
 spec:

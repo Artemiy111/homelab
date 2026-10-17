@@ -14,8 +14,6 @@
 apiVersion: postgresql.cnpg.io/v1
 kind: Database
 metadata:
-  annotations:
-    argocd.argoproj.io/sync-wave: "20"
   name: immich
   namespace: immich
 spec:
