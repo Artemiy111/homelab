@@ -23,7 +23,7 @@ spec:
         fsGroup: 1000
       initContainers:
         - name: wait-for-db
-          image: "postgres:16@sha256:f992505e18f114c1e5102ac4dcf00f791b44462f6a423d899320f0bbf80e386f"
+          image: "postgres:16@sha256:ca0bd484cb98bf4b24eb1010e73fb3fcbd6714d240fbc1a10eea5b7dbecb641d"
           command: ["/bin/sh", "-c", "until pg_isready -h shared-rw.databases.svc.cluster.local -p 5432 -U sure; do echo waiting for shared-rw; sleep 2; done"]
           securityContext:
             runAsUser: 999
