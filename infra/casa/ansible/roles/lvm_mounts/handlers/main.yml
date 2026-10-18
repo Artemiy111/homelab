@@ -1,0 +1,13 @@
+---
+- name: Перечитать fstab
+  # Имя отличается от обработчика в ntfs_samba: обработчики адресуются по
+  # имени и общие на весь плейбук, поэтому одинаковые имена в двух ролях
+  # перекрыли бы друг друга.
+  #
+  # `systemctl daemon-reload` обязателен: юниты для записей fstab генерирует
+  # systemd-fstab-generator, и без перечитывания демона новых юнитов не
+  # появится.
+  ansible.builtin.systemd_service:
+    name: daemon-reload
+    state: restarted
+  listen: Перечитать fstab

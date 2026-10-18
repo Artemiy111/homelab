@@ -32,6 +32,8 @@
 | `k0s_config` | `ClusterConfig` k0s в `/etc/k0s/k0s.yaml`, рестарт `k0scontroller` |
 | `ai_agent` | Пользователь `ai-agent`: dotfiles, `authorized_keys`, sudoers |
 | `ops` | Домашний каталог `ops`: dotfiles из `infra/casa/dotfiles/` |
+| `ntfs_samba` | Том внешнего NTFS-диска: `fstab`, монтирование, TCP |
+| `lvm_mounts` | Тома LVM: `fstab` и монтирование |
 
 Параметры каждой роли — в её `roles/<имя>/defaults/main.yml`, задачи — в
 `tasks/`, перезапуски сервисов — в `handlers/`. Переменные и `register` внутри

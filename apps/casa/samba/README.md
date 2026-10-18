@@ -45,8 +45,8 @@ ntfs3 принимает `uid`/`gid`/`umask`/`context` только в опци�
 `fstab`), даст пустую шару. Это видно при первом же обращении клиента, а
 `hostPath.type: Directory` гарантирует, что точка хотя бы существует.
 
-UUID томов живут в одном месте — `infra/casa/ansible/roles/ntfs_samba/`, откуда их
-берёт `fstab`.
+UUID тома живёт в одном месте — `infra/casa/ansible/roles/ntfs_samba/`, откуда его
+берёт `fstab`. У томов LVM так же — в `roles/lvm_mounts/`.
 
 ## Привязка к узлу
 

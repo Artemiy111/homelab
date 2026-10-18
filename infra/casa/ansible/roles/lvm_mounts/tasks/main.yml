@@ -1,0 +1,56 @@
+---
+# Монтирование томов LVM и записи о них в fstab.
+#
+# Создание самих томов (`pvcreate`, `vgcreate`, `lvcreate`) и `mkfs` роль не
+# делает: это разовые операции с риском потери данных, а прогон плейбука —
+# повторяемая операция. Переразметка диска не должна зависеть от того, кто и
+# когда запустил `host.yml`.
+
+- name: Создать точки монтирования
+  # Права задаются только точкой и только пока том не смонтирован: на
+  # смонтированном томе модуль `file` применил бы режим к корню файловой
+  # системы.
+  ansible.builtin.file:
+    path: "{{ item.mountpoint }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  loop: "{{ lvm_mounts_volumes }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when: item.mountpoint not in ansible_facts['mounts'] | map(attribute='mount') | list
+
+- name: Смонтировать тома по UUID
+  # Уже смонтированные точки пропускаются: иначе mount перемонтирует том
+  # поверх работающих процессов и оборвёт открытые файлы.
+  ansible.posix.mount:
+    path: "{{ item.mountpoint }}"
+    src: "UUID={{ item.uuid }}"
+    fstype: ext4
+    opts: "{{ lvm_mounts_mount_options | join(',') }}"
+    state: mounted
+  loop: "{{ lvm_mounts_volumes }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when: item.mountpoint not in lvm_mounts_mounted_points
+  vars:
+    lvm_mounts_mounted_points: >-
+      {{ ansible_facts['mounts'] | map(attribute='mount') | list }}
+
+- name: Обновить fstab
+  # Сопоставление по точке монтирования, а не по UUID: UUID меняется при
+  # каждом `mkfs`, и по нему строка не находилась бы — lineinfile добавил бы
+  # вторую запись для той же точки, со старым номером.
+  ansible.builtin.lineinfile:
+    path: /etc/fstab
+    regexp: '^\S+\s+{{ item.mountpoint }}\s'
+    line: "UUID={{ item.uuid }} {{ item.mountpoint }} ext4 {{ lvm_mounts_mount_options | join(',') }} {{ lvm_mounts_fstab_tail }}"
+    state: present
+    create: false
+    mode: "0644"
+    validate: "/usr/sbin/mount -f -n -T %s"
+  loop: "{{ lvm_mounts_volumes }}"
+  loop_control:
+    label: "{{ item.name }}"
+  notify: Перечитать fstab
