@@ -41,7 +41,7 @@ flowchart TB
         direction TB
         EDGE["Traefik<br/>Gateway API :80 / :443<br/>wildcard TLS"]
         AUTH["oauth2-proxy<br/>forward auth"]
-        APPS["~50 services<br/>clusters/casa/apps/"]
+        APPS["~50 services<br/>apps/casa/"]
         ZIT["Zitadel<br/>OIDC"]
         DATA["CloudNativePG<br/>MariaDB"]
         STORE["Longhorn CSI"]
@@ -59,7 +59,7 @@ flowchart TB
 ```
 
 Solid arrows are the request path, dashed ones are OIDC calls. Everything else — Argo CD syncing
-`clusters/casa/`, cert-manager issuing the wildcard through ACME DNS-01, the Vault Secrets Operator,
+`clusters/casa/argocd/`, cert-manager issuing the wildcard through ACME DNS-01, the Vault Secrets Operator,
 and the four observability signals — is described in the Platform, Supply chain and Observability
 sections below.
 
@@ -67,17 +67,17 @@ sections below.
 
 | Component | Role | Directory |
 |---|---|---|
-| k0s | Single-node Kubernetes: Calico CNI, etcd, CoreDNS | [`infra/host/k0s/`](infra/host/k0s/) |
-| Traefik | Gateway API | [`clusters/casa/platform/traefik/`](clusters/casa/platform/traefik/) |
-| Technitium DNS | Local DNS, wildcard zone, ad blocking | [`clusters/casa/apps/technitium/`](clusters/casa/apps/technitium/) |
-| cert-manager | TLS via ACME DNS-01 | [`clusters/casa/platform/cert-manager/`](clusters/casa/platform/cert-manager/) |
-| Longhorn | CSI storage: snapshots, clones, RWX | [`clusters/casa/platform/longhorn/`](clusters/casa/platform/longhorn/) |
-| CloudNativePG | PostgreSQL clusters | [`clusters/casa/platform/cnpg/`](clusters/casa/platform/cnpg/) |
-| MariaDB Operator | MariaDB instances | [`clusters/casa/platform/mariadb/`](clusters/casa/platform/mariadb/) |
-| Argo CD | GitOps controller | [`bootstrap/`](bootstrap/) |
-| Vault Secrets Operator | Syncs Vault paths into Kubernetes Secrets | [`clusters/casa/apps/vault/`](clusters/casa/apps/vault/) |
-| Ansible | Host packages and preparation | [`infra/ansible/`](infra/ansible/) |
-| Terraform | Resources outside the cluster | [`infra/terraform/`](infra/terraform/) |
+| k0s | Single-node Kubernetes: Calico CNI, etcd, CoreDNS | [`infra/casa/host/k0s/`](infra/casa/host/k0s/) |
+| Traefik | Gateway API | [`platform/casa/traefik/`](platform/casa/traefik/) |
+| Technitium DNS | Local DNS, wildcard zone, ad blocking | [`apps/casa/technitium/`](apps/casa/technitium/) |
+| cert-manager | TLS via ACME DNS-01 | [`platform/casa/cert-manager/`](platform/casa/cert-manager/) |
+| Longhorn | CSI storage: snapshots, clones, RWX | [`platform/casa/longhorn/`](platform/casa/longhorn/) |
+| CloudNativePG | PostgreSQL clusters | [`platform/casa/cnpg/`](platform/casa/cnpg/) |
+| MariaDB Operator | MariaDB instances | [`platform/casa/mariadb-operator/`](platform/casa/mariadb-operator/) |
+| Argo CD | GitOps controller | [`clusters/casa/argocd/bootstrap/`](clusters/casa/argocd/bootstrap/) |
+| Vault Secrets Operator | Syncs Vault paths into Kubernetes Secrets | [`apps/casa/vault/`](apps/casa/vault/) |
+| Ansible | Host packages and preparation | [`infra/casa/ansible/`](infra/casa/ansible/) |
+| Terraform | Resources outside the cluster | [`infra/casa/terraform/`](infra/casa/terraform/) |
 
 ACME DNS-01 is served by `cert-manager-webhook-dns01`, a webhook I wrote: neither DNS provider offers a working RFC2136. It ships as a Helm chart and releases both the image and the chart to an OCI registry on tag.
 
@@ -139,12 +139,12 @@ same gates on GitHub-hosted runners. The runner image is `ubuntu-24.04`, matchin
 sha256 pins are the same. What differs is where the toolchain comes from: in-cluster
 mirror addresses do not resolve from outside, so the binaries are fetched from the
 upstream GitHub releases while the pin still comes from
-`clusters/casa/apps/rustfs/manifests/artifacts.tsv`. That makes the mirror a second,
+`apps/casa/rustfs/manifests/artifacts.tsv`. That makes the mirror a second,
 independent execution of the gates rather than a copy of the first one.
 
 One engine difference remains — Forgejo cancels a superseded run of the same workflow,
 GitHub cancels only when `concurrency` is set
-([details and sources](clusters/casa/apps/forgejo/README.md)). No GitHub workflow sets
+([details and sources](apps/casa/forgejo/README.md)). No GitHub workflow sets
 it, so a run started by an earlier push to `main` is never cancelled — the same
 behaviour the two Forgejo gates (`040-commitlint`, `080-secrets`) ask for explicitly.
 
@@ -162,43 +162,43 @@ Local hooks run the same checks before a commit leaves the machine
 
 | Service | Purpose |
 |---|---|
-| [Zitadel](clusters/casa/apps/zitadel/) | Identity provider and SSO (primary) |
-| [oauth2-proxy](clusters/casa/apps/oauth2-proxy/) | Forward auth for services without their own login |
-| [Technitium](clusters/casa/apps/technitium/) | DNS server and ad blocking |
-| [Homepage](clusters/casa/apps/homepage/) | Start page |
-| [Forgejo](clusters/casa/apps/forgejo/) | Private Git forge and CI |
-| [Vault](clusters/casa/apps/vault/) | Secrets, transit, PKI |
-| [Infisical](clusters/casa/apps/infisical/) | Self-hosted secrets manager |
-| [RustFS](clusters/casa/apps/rustfs/) | S3-compatible object storage |
-| [postgres](clusters/casa/apps/postgres/) | pgweb admin UI |
-| [WUD](clusters/casa/apps/image-updates/) | Image update watcher, observe-only |
-| [3x-ui](clusters/casa/apps/3x-ui/) | Personal Xray proxy management |
-| [code-server](clusters/casa/apps/code-server/) | VS Code in the browser |
-| [Headlamp](clusters/casa/platform/headlamp/), [Radar](clusters/casa/platform/radar/) | Cluster UIs |
+| [Zitadel](apps/casa/zitadel/) | Identity provider and SSO (primary) |
+| [oauth2-proxy](apps/casa/oauth2-proxy/) | Forward auth for services without their own login |
+| [Technitium](apps/casa/technitium/) | DNS server and ad blocking |
+| [Homepage](apps/casa/homepage/) | Start page |
+| [Forgejo](apps/casa/forgejo/) | Private Git forge and CI |
+| [Vault](apps/casa/vault/) | Secrets, transit, PKI |
+| [Infisical](apps/casa/infisical/) | Self-hosted secrets manager |
+| [RustFS](apps/casa/rustfs/) | S3-compatible object storage |
+| [postgres](apps/casa/postgres/) | pgweb admin UI |
+| [WUD](apps/casa/image-updates/) | Image update watcher, observe-only |
+| [3x-ui](apps/casa/3x-ui/) | Personal Xray proxy management |
+| [code-server](apps/casa/code-server/) | VS Code in the browser |
+| [Headlamp](platform/casa/headlamp/), [Radar](platform/casa/radar/) | Cluster UIs |
 
 ### Applications
 
 | Service | Purpose |
 |---|---|
-| [Immich](clusters/casa/apps/immich/) | Photo and video library |
-| [Jellyfin](clusters/casa/apps/jellyfin/) | Home media server |
-| [Navidrome](clusters/casa/apps/navidrome/) | Music library |
-| [Nextcloud](clusters/casa/apps/nextcloud/) | Files, sync, calendar, contacts |
-| [Seafile](clusters/casa/apps/seafile/) | File sync and sharing, with OnlyOffice |
-| [Filestash](clusters/casa/apps/filestash/) | Web UI over the SMB share, files as they are |
-| [OpenList](clusters/casa/apps/openlist/) | Web file list over the SMB share |
-| [Jitsi](clusters/casa/apps/jitsi/) | Private video conferencing |
-| [Element](clusters/casa/apps/element/) | Matrix chat and video calls via LiveKit — [custom Helm chart](clusters/casa/apps/element/chart/) |
-| [Talk HPB](clusters/casa/apps/talk-hpb/) | Nextcloud Talk signaling |
-| [Mailserver](clusters/casa/apps/mailserver/) | Stalwart mail and Bulwark webmail |
-| [Paperless](clusters/casa/apps/paperless/), [PDF](clusters/casa/apps/pdf/) | Documents, OCR, PDF operations |
-| [Home Assistant](clusters/casa/apps/home-assistant/) | Home automation |
-| [Dawarich](clusters/casa/apps/dawarich/) | Location history |
-| [Lute](clusters/casa/apps/lute/) | Language learning through reading |
-| [Sure](clusters/casa/apps/sure/) | Personal finances |
-| [Open WebUI](clusters/casa/apps/open-webui/), [LocalAI](clusters/casa/apps/local-ai/) | LLM chat interface and CPU inference |
-| [Mermaid](clusters/casa/apps/mermaid-live-editor/) | Diagram editor |
-| [Structurizr](clusters/casa/apps/structurizr/) | Architecture diagrams |
+| [Immich](apps/casa/immich/) | Photo and video library |
+| [Jellyfin](apps/casa/jellyfin/) | Home media server |
+| [Navidrome](apps/casa/navidrome/) | Music library |
+| [Nextcloud](apps/casa/nextcloud/) | Files, sync, calendar, contacts |
+| [Seafile](apps/casa/seafile/) | File sync and sharing, with OnlyOffice |
+| [Filestash](apps/casa/filestash/) | Web UI over the SMB share, files as they are |
+| [OpenList](apps/casa/openlist/) | Web file list over the SMB share |
+| [Jitsi](apps/casa/jitsi/) | Private video conferencing |
+| [Element](apps/casa/element/) | Matrix chat and video calls via LiveKit — [custom Helm chart](apps/casa/element/chart/) |
+| [Talk HPB](apps/casa/talk-hpb/) | Nextcloud Talk signaling |
+| [Mailserver](apps/casa/mailserver/) | Stalwart mail and Bulwark webmail |
+| [Paperless](apps/casa/paperless/), [PDF](apps/casa/pdf/) | Documents, OCR, PDF operations |
+| [Home Assistant](apps/casa/home-assistant/) | Home automation |
+| [Dawarich](apps/casa/dawarich/) | Location history |
+| [Lute](apps/casa/lute/) | Language learning through reading |
+| [Sure](apps/casa/sure/) | Personal finances |
+| [Open WebUI](apps/casa/open-webui/), [LocalAI](apps/casa/local-ai/) | LLM chat interface and CPU inference |
+| [Mermaid](apps/casa/mermaid-live-editor/) | Diagram editor |
+| [Structurizr](apps/casa/structurizr/) | Architecture diagrams |
 
 ## Known limitations
 

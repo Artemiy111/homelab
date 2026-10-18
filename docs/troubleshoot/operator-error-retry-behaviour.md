@@ -55,7 +55,7 @@ VSO — самый показательный случай: он шумит в �
 3. Проверять надо не только Argo. У `SealedSecret` нет health-check, поэтому
    приложение оставалось `Synced`, пока под не вставал.
 
-Health-check для `SealedSecret` добавлен — см. `clusters/casa/platform/argocd/values.yaml`,
+Health-check для `SealedSecret` добавлен — см. `platform/casa/argocd/values.yaml`,
 `resource.customizations.health.bitnami.com_SealedSecret`.
 
 ## Обратный случай: когда повторять нельзя
