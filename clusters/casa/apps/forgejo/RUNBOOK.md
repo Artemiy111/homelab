@@ -243,6 +243,23 @@ KUBECONFIG=~/.kube/configs/homelab.yaml kubectl -n forgejo get secret forgejo-re
 
 Ожидаются `username` и `password`.
 
+## Кэш Renovate
+
+Метаданные реестров и инструменты, которые Renovate ставит сам, лежат на томе
+`forgejo-renovate-cache`. Том помечен `Prune=false` — Argo его не удаляет, — и
+содержимое его восстановимо: это кэш, а не данные.
+
+```sh
+KUBECONFIG=~/.kube/configs/homelab.yaml kubectl -n forgejo get pvc forgejo-renovate-cache
+```
+
+Холодный прогон (например, если кэш подозревается в порче): удалить том, Argo
+создаст его заново.
+
+```sh
+KUBECONFIG=~/.kube/configs/homelab.yaml kubectl -n forgejo delete pvc forgejo-renovate-cache
+```
+
 ## Ротация токена бота
 
 1. Отозвать PAT под ботом: Settings → Applications → Revoke.

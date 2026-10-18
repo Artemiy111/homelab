@@ -49,6 +49,21 @@ spec:
                   value: info
                 - name: LOG_FORMAT
                   value: json
+                # Кэш метаданных и поставленных инструментов переживает прогон:
+                # без него каждый запуск качает всё заново.
+                - name: RENOVATE_CACHE_DIR
+                  value: /cache
+                # Учётные данные частного реестра Renovate берёт из окружения:
+                # имена переменных — это datasource, хост и поле.
+                - name: RENOVATE_DETECT_HOST_RULES_FROM_ENV
+                  value: "true"
+                - name: RENOVATE_DOCKER_REGISTRY_YANDEXCLOUD_NET_USERNAME
+                  value: api_key
+                - name: RENOVATE_DOCKER_REGISTRY_YANDEXCLOUD_NET_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: forgejo-renovate-yc
+                      key: key
                 - name: RENOVATE_TOKEN
                   valueFrom:
                     secretKeyRef:
@@ -109,7 +124,12 @@ spec:
               volumeMounts:
                 - name: work
                   mountPath: /tmp/renovate
+                - name: cache
+                  mountPath: /cache
           volumes:
             - name: work
               emptyDir:
                 sizeLimit: 2Gi
+            - name: cache
+              persistentVolumeClaim:
+                claimName: forgejo-renovate-cache

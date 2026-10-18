@@ -1,0 +1,20 @@
+# Кэш Renovate: метаданные реестров и инструменты, которые он ставит сам
+# (containerbase — bun, terraform и прочее). Без него каждый прогон тянет всё
+# заново: прогон длится десятки минут, а внешний трафик повторяется целиком.
+#
+# longhorn, а не longhorn-retain: содержимое кэша восстановимо, держать том
+# после удаления PVC незачем.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false
+  name: forgejo-renovate-cache
+  namespace: forgejo
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 5Gi

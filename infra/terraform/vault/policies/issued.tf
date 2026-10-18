@@ -49,6 +49,8 @@ resource "vault_policy" "app_forgejo" {
     path "kv/metadata/github/api-token"                          { capabilities = ["read", "list"] }
     path "kv/data/3x-ui/@renovate/egress"                        { capabilities = ["read"] }
     path "kv/metadata/3x-ui/@renovate/egress"                    { capabilities = ["read", "list"] }
+    path "kv/data/yc/cloud-registry"                             { capabilities = ["read"] }
+    path "kv/metadata/yc/cloud-registry"                         { capabilities = ["read", "list"] }
   EOT
 }
 

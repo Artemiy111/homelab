@@ -212,6 +212,20 @@ CI по существу — скачивается старая версия и
 `renovate.json`, а версия bun поднимается руками и синхронно во всех четырёх
 местах. Так же руками — версии в `artifacts.tsv` и `tools.tsv`.
 
+**Кэш переживает прогон.** Renovate хранит метаданные реестров и инструменты,
+которые ставит сам, в `cacheDir`; у задания это том на Longhorn, а не `emptyDir`.
+Без тома каждый запуск заново тянет метаданные всех зависимостей и заново
+распаковывает инструменты — при выходе через прокси это десятки минут. Том взят
+без `retain`: содержимое кэша восстановимо, а держать его после удаления PVC
+незачем.
+
+**Частный реестр.** Образ `structurizr` лежит в Yandex Cloud Registry, и без
+учётных данных Renovate не может получить его digest — в логе это
+`Could not determine new digest for update`. Ключ уже есть в Vault для самого
+structurizr; здесь он подставляется в переменные окружения, из которых Renovate
+собирает `hostRules` (`detectHostRulesFromEnv`), потому что в конфиге репозитория
+секретов быть не может.
+
 **Мажоры не приезжают PR'ом.** Обновление на новую мажорную версию ждёт
 подтверждения в дашборде: пока галочка не поставлена, ветка и PR не создаются.
 Причина простая — мажор здесь это чаще всего платформа или хранилище данных
@@ -289,11 +303,12 @@ app.ini через `FORGEJO__database__PASSWD` из `gitea.additionalConfigFromE
 | `kv/forgejo/@renovate/token` | `RENOVATE_TOKEN` | `forgejo-renovate` | CronJob `renovate` |
 | `kv/github/api-token` | `RENOVATE_GITHUB_COM_TOKEN` | `forgejo-renovate-github` | CronJob `renovate` |
 | `kv/3x-ui/@renovate/egress` | `username`, `password` | `forgejo-renovate-egress` | CronJob `renovate` (egress) |
+| `kv/yc/cloud-registry` | `key` | `forgejo-renovate-yc` | CronJob `renovate` (частный реестр) |
 | `kv/forgejo/admin` | `username`, `password` | `forgejo-admin` | чарт (init-контейнер) |
 | `kv/forgejo/runner` | `token` | `forgejo-runner` | регистрация раннера |
 | `kv/forgejo/oidc` | `key`, `secret` | `forgejo-oidc` | чарт (init-контейнер) |
 
-Все восемь — `VaultStaticSecret`, значения в Vault заводит человек.
+Все девять — `VaultStaticSecret`, значения в Vault заводит человек.
 
 **Про админа:** это служебная учётка (`forgejo-admin`, почта
 `admin@example.com`), а не личный аккаунт человека: роль в сервисе и
