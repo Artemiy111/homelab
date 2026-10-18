@@ -37,8 +37,6 @@ homelab/
 │   └── casa/                      # кластер; k0s — дистрибутив, не имя кластера
 │       ├── kustomization.yaml     # список спеков, генерируется scripts/argocd-units.sh
 │       ├── projects/              # AppProject'ы — часть рендера root
-│       ├── values/
-│       │   └── cluster.yaml       # домен, адрес узла, issuer, registry
 │       ├── platform/
 │       │   └── <компонент>/
 │       └── apps/
@@ -131,19 +129,25 @@ server-side apply, а не удаление с последующим созда
 
 ## Значения
 
-Общие значения окружения объявляются один раз в `clusters/casa/values/cluster.yaml`,
-специфичные — в `values.yaml` юнита, и оба подключаются через `$values`:
+Значения живут файлом в юните — `clusters/casa/<platform|apps>/<юнит>/values.yaml` —
+и подключаются вторым источником с `ref: values`:
 
 ```yaml
 helm:
   valueFiles:
-    - $values/values/cluster.yaml
-    - $values/platform/traefik/values.yaml
+    - $values/clusters/casa/platform/traefik/values.yaml
 ```
 
-Порядок важен: файл юнита перекрывает кластерный. Это снимает размножение
-внутренних значений между `values.yaml` и `valuesObject` (ADR 0009) — там,
-где `valuesObject` ещё остался, он удаляется в пользу файла.
+Общего файла значений на весь кластер нет. Вариант «свести общие значения
+окружения в `clusters/casa/values/cluster.yaml`» отменён: в Argo значения
+сливаются единой картой, а пути ключей у чартов свои (`config.domain` у homelab,
+`gitea.mailer.email` у forgejo, `image.repository` у dns01-webhook), поэтому
+общий файл покрыл бы один-два ключа из шести юнитов. Дублирование домена внутри
+`platform/homelab/values.yaml` — забота чарта, а не раскладки.
+
+Отсюда же следует вторая половина решения: `valuesObject` в спеках не остаётся,
+значения уезжают в файл юнита (ADR 0009), где внутренние значения и лежат —
+credentials в репозиторий не кладутся никогда.
 
 ## Что сознательно не меняется
 
