@@ -5,7 +5,7 @@
 # обслуживает все Cluster'ы во всех namespace. Поэтому его namespace
 # (cnpg-system) не совпадает с namespace баз (databases) — так и задумано.
 #
-# Общий кластер `shared` и его базы живут в clusters/casa/platform/cnpg/
+# Общий кластер `shared` и его базы живут в platform/casa/cnpg/
 # отдельным приложением `cnpg`, выделенные кластеры — в юнитах сервисов: их
 # sync-wave идёт после этого, поэтому CRD оператора к моменту применения CR есть.
 

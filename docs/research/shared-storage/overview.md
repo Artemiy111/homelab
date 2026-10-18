@@ -60,10 +60,10 @@ Seafile/Nextcloud-с-object-store — нет, хотя наружу и то и �
 
 | Сервис | Категория | Что отдаёт наружу | Где лежат данные | Прозрачность на диске |
 |---|---|---|---|---|
-| Samba (`clusters/casa/apps/samba`) | файловый | SMB2.1+ (порт 445), три шары: `ntfs1` rw, `ntfs2` ro, `ntfs3` rw | тома внешнего NTFS-диска, смонтированные на хосте (`ntfs3`), в под попадают как `hostPath` | **полная**: файлы лежат на NTFS как есть, изменение локально видно по SMB |
-| Nextcloud (`clusters/casa/apps/nextcloud`) | прикладной | WebDAV + web-UI, только LAN/Tailscale | PVC `nextcloud-html` (Longhorn, RWO, 2 Gi): код, `config.php`, пользовательские файлы; индекс и метаданные — PostgreSQL в общем кластере CNPG; Redis для кеша, сессий и блокировок файлов | **частичная**: файлы в data-каталоге лежат как есть, но индекс, доли и блокировки живут в БД — правка в обход приложения рассинхронизирует индекс |
-| Seafile (`clusters/casa/apps/seafile`) | прикладной | WebDAV (`seafdav`) + web-UI, SSO через Zitadel (OIDC), OnlyOffice | PVC `seafile-shared` (Longhorn, RWO, 64 Mi): блоки данных и метаданные; библиотеки — MariaDB (`ccnet_db`, `seafile_db`, `seahub_db` под mariadb-operator) | **нет**: содержимое разложено по блокам (CDC ~8 МБ), библиотека собирается из БД |
-| RustFS (`clusters/casa/apps/rustfs`) | объектный | S3 API (`https://s3.<домен>`) + веб-консоль | PVC `rustfs-data` (Longhorn, RWO, 2 Gi), режим single-node single-disk: без erasure coding и избыточности | **нет**: объекты в собственном формате; только root-креденшелы, IAM-пользователей нет |
+| Samba (`apps/casa/samba`) | файловый | SMB2.1+ (порт 445), три шары: `ntfs1` rw, `ntfs2` ro, `ntfs3` rw | тома внешнего NTFS-диска, смонтированные на хосте (`ntfs3`), в под попадают как `hostPath` | **полная**: файлы лежат на NTFS как есть, изменение локально видно по SMB |
+| Nextcloud (`apps/casa/nextcloud`) | прикладной | WebDAV + web-UI, только LAN/Tailscale | PVC `nextcloud-html` (Longhorn, RWO, 2 Gi): код, `config.php`, пользовательские файлы; индекс и метаданные — PostgreSQL в общем кластере CNPG; Redis для кеша, сессий и блокировок файлов | **частичная**: файлы в data-каталоге лежат как есть, но индекс, доли и блокировки живут в БД — правка в обход приложения рассинхронизирует индекс |
+| Seafile (`apps/casa/seafile`) | прикладной | WebDAV (`seafdav`) + web-UI, SSO через Zitadel (OIDC), OnlyOffice | PVC `seafile-shared` (Longhorn, RWO, 64 Mi): блоки данных и метаданные; библиотеки — MariaDB (`ccnet_db`, `seafile_db`, `seahub_db` под mariadb-operator) | **нет**: содержимое разложено по блокам (CDC ~8 МБ), библиотека собирается из БД |
+| RustFS (`apps/casa/rustfs`) | объектный | S3 API (`https://s3.<домен>`) + веб-консоль | PVC `rustfs-data` (Longhorn, RWO, 2 Gi), режим single-node single-disk: без erasure coding и избыточности | **нет**: объекты в собственном формате; только root-креденшелы, IAM-пользователей нет |
 
 Что из этого следует:
 

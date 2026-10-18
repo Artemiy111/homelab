@@ -10,7 +10,7 @@
 # не дублируется — правило описывает подсеть, поэтому переезд узла его не
 # ломает.
 #
-# Egress не ограничивается: см. clusters/casa/apps/technitium/manifests/networkpolicy.yaml.
+# Egress не ограничивается: см. apps/casa/technitium/manifests/networkpolicy.yaml.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:

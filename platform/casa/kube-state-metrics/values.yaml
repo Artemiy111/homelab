@@ -1,7 +1,7 @@
 # kube-state-metrics отдаёт состояние объектов кластера (Deployment, Pod, Job,
 # PVC и т.д.) метриками `kube_*` — их не дают ни node-exporter, ни cAdvisor.
 # Метрики скрейпит vmagent статическими job'ами по Service (job
-# `kube-state-metrics` в clusters/casa/apps/victoria-metrics/config/vmagent/scrape.yml).
+# `kube-state-metrics` в apps/casa/victoria-metrics/manifests/config/vmagent/scrape.yml).
 
 # Дефолт чарта — resources: {} на всех компонентах. Без requests планировщик не
 # знает, что размещает; без limits один разъехавшийся контроллер способен

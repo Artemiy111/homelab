@@ -1,7 +1,7 @@
 # Документация юнита
 
 Правила для `README.md` и `RUNBOOK.md` в каталоге юнита
-(`clusters/casa/apps/<сервис>/`, `clusters/casa/platform/<компонент>/`).
+(`apps/casa/<сервис>/`, `platform/casa/<компонент>/`).
 
 ## Два файла, две аудитории
 

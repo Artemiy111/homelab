@@ -4,7 +4,7 @@
 
 ```sh
 # 1. Подготовка узла (idempotent; сначала dry-run), с контроллера — macOS
-cd infra/ansible
+cd infra/casa/ansible
 ansible-playbook host.yml --check --diff --ask-become-pass
 ansible-playbook host.yml --ask-become-pass
 

@@ -1,3 +1,3 @@
 # Адрес узла: в него уходят externalIPs сервисов xui-egress и xui-inbound.
-# Тот же адрес, что service.spec.externalIPs в clusters/casa/platform/traefik/values.yaml.
+# Тот же адрес, что service.spec.externalIPs в platform/casa/traefik/values.yaml.
 serverIp: 192.168.1.254

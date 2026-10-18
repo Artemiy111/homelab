@@ -3,7 +3,7 @@
 # (каталог deploy/chart/local-path-provisioner).
 #
 # Значения вынесены из `spec.source.helm.valuesObject` в
-# `clusters/casa/platform/local-path-provisioner/values.yaml`, Application подключает их через
+# `platform/casa/local-path-provisioner/values.yaml`, Application подключает их через
 # `$values` — второй источник в `spec.sources`.
 
 storageClass:

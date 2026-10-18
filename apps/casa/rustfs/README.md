@@ -47,7 +47,7 @@ tarball'ы), которые CI тянет анонимно по HTTP, не хо�
 http://rustfs.rustfs.svc.cluster.local/mirror/<path>
 ```
 
-Анонимность даёт policy бакета (`infra/terraform/rustfs`), и это не «второй
+Анонимность даёт policy бакета (`infra/casa/terraform/rustfs`), и это не «второй
 адрес», а сам механизм доступа: отдельного пользователя только на чтение RustFS
 не отдаёт (IAM API нет, есть только root), поэтому CI читает зеркало без
 креденшелов. Policy ничего не знает про адрес — она пускает анонимные `GET` и
@@ -91,7 +91,7 @@ egress есть — проверено `wget` из контейнера `dind` �
 Зеркалом остаются бинарники и схемы Kubernetes: первое ради сверки sha256,
 второе ради привязки к версии кластера, которой у схем CR нет.
 
-Бакет `mirror` — код в `infra/terraform/rustfs`: правка бакета
+Бакет `mirror` — код в `infra/casa/terraform/rustfs`: правка бакета
 в консоли будет перезаписана на следующем `terraform apply`, а CronJob
 `mirror-sync` только заливает объекты.
 

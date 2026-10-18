@@ -2,7 +2,7 @@
 # хост нужно пометить insecure — иначе Docker попытается тянуть по https и
 # упадёт. registry-mirrors здесь не подходит: Docker умеет mirror только для
 # Docker Hub, а job-образы приходят из ghcr.io и data.forgejo.org
-# (см. clusters/casa/apps/forgejo/README.md).
+# (см. apps/casa/forgejo/README.md).
 apiVersion: v1
 kind: ConfigMap
 metadata:

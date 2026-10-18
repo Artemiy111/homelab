@@ -115,7 +115,7 @@ ssh homelab-agent 'hostname; systemctl is-active k0scontroller'
 
 Секреты живут в HashiCorp Vault. В кластер их доставляет Vault Secrets
 Operator (VSO): `VaultStaticSecret`
-(`clusters/casa/apps/<сервис>/manifests/vaultstaticsecret.yaml`) создаёт и обновляет обычный
+(`apps/casa/<сервис>/manifests/vaultstaticsecret.yaml`) создаёт и обновляет обычный
 Secret, который читает приложение. Значение задаёт пользователь в Vault по
 пути из `docs/adr/0006-vault-secret-path-layout.md`.
 
@@ -223,17 +223,17 @@ ssh homelab-agent 'systemctl is-active k0scontroller; dig +short @<node1-ip> upt
 отдельно применять ничего не нужно. Локальная проверка результата:
 
 ```sh
-KUBECONFIG=~/.kube/configs/homelab.yaml kubectl apply -k clusters/casa/apps/grafana/ --dry-run=server
+KUBECONFIG=~/.kube/configs/homelab.yaml kubectl apply -k apps/casa/grafana/ --dry-run=server
 ```
 
 Ручной `kubectl apply` нужен только там, где Argo ещё не подхватил коммит: все
 маршруты кластера, включая панель Argo, применяет сам Argo. Команда идёт с macOS
 из рабочей копии репозитория.
 
-Чарта `platform/homelab` больше нет: он распущен на `platform/traefik` и
-`platform/cert-manager`, Gateway и GatewayClass живут в
-`clusters/casa/platform/traefik/manifests/`, `Certificate` и `ClusterIssuer` —
-в `clusters/casa/platform/cert-manager/manifests/`. Домен и адрес сервера
+Чарта `platform/homelab` больше нет: он распущен на `platform/casa/traefik` и
+`platform/casa/cert-manager`, Gateway и GatewayClass живут в
+`platform/casa/traefik/manifests/`, `Certificate` и `ClusterIssuer` —
+в `platform/casa/cert-manager/manifests/`. Домен и адрес сервера
 берутся из `externalIPs` в values Traefik, который лежит в репозитории
 (`docs/adr/0009`) — отдельного приватного values-файла нет.
 
@@ -248,18 +248,18 @@ KUBECONFIG=~/.kube/configs/homelab.yaml kubectl apply -k clusters/casa/apps/graf
 
 | Файл | Кто применяет |
 |---|---|
-| `clusters/casa/apps/<сервис>/manifests/route.yaml` | Argo, `spec.sources[].path` у Application |
-| `clusters/casa/apps/3x-ui/chart/templates/route.yaml`, `clusters/casa/apps/element/chart/templates/route.yaml` | Argo, `chart` в Application |
-| `clusters/casa/apps/seafile/manifests/onlyoffice.route.yaml` | Argo, вместе с каталогом `clusters/casa/apps/seafile/manifests` |
-| `clusters/casa/platform/radar/manifests/route.yaml`, `clusters/casa/platform/headlamp/manifests/route.yaml`, `clusters/casa/platform/longhorn/manifests/route.yaml` | Argo, `spec.sources[].path` |
-| `clusters/casa/platform/traefik/manifests/dashboard.route.yaml` | Argo, `spec.sources[].path` |
-| `clusters/casa/platform/argocd/manifests/route.yaml` | Argo, `spec.sources[].path` |
+| `apps/casa/<сервис>/manifests/route.yaml` | Argo, `spec.sources[].path` у Application |
+| `apps/casa/3x-ui/chart/templates/route.yaml`, `apps/casa/element/chart/templates/route.yaml` | Argo, `chart` в Application |
+| `apps/casa/seafile/manifests/onlyoffice.route.yaml` | Argo, вместе с каталогом `apps/casa/seafile/manifests` |
+| `platform/casa/radar/manifests/route.yaml`, `platform/casa/headlamp/manifests/route.yaml`, `platform/casa/longhorn/manifests/route.yaml` | Argo, `spec.sources[].path` |
+| `platform/casa/traefik/manifests/dashboard.route.yaml` | Argo, `spec.sources[].path` |
+| `platform/casa/argocd/manifests/route.yaml` | Argo, `spec.sources[].path` |
 
 Маршрутов вне Argo не осталось: юнит `argocd` получил `Application` и ставит
 свой чарт сам. Компромисс осознанный — ошибка в юните может отрезать доступ к
 самому GitOps, поэтому у приложения `Prune=false`, а восстановление простое:
 revert коммита и `argocd app sync argocd`, а если сломан контроллер — `helm
-install` с values из юнита (`bootstrap/README.md`).
+install` с values из юнита (`clusters/casa/argocd/bootstrap/README.md`).
 
 Проверяется это так — вывести все каталоги, которые Argo берёт как источники,
 и найти среди них каталог маршрута:
@@ -274,10 +274,10 @@ kubectl -n argocd get application -o \
 того же Application.
 
 Имя каталога не всегда совпадает с именем Application, поэтому по имени
-каталога искать Application нельзя: `apps/forgejo` — это Application
-`forgejo-extras`, `apps/vault` — `vault-extras`, `platform/eck-operator` —
+каталога искать Application нельзя: `apps/casa/forgejo` — это Application
+`forgejo-extras`, `apps/casa/vault` — `vault-extras`, `platform/casa/eck-operator` —
 `elastic-operator`. Первые два разведены по имени, чтобы не столкнуться с
-`platform/forgejo` и `platform/vault`.
+`platform/casa/forgejo` и `platform/casa/vault`.
 
 Проверить, что маршрут из git действительно применён:
 

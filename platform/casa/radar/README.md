@@ -19,8 +19,8 @@ ServiceAccount. Схема по шагам:
 
 | Шаг | Где |
 |---|---|
-| Приложение OIDC в Zitadel | `infra/terraform/zitadel/applications.tf` (`zitadel_application_v2.radar`) |
-| Claim `role` (`admin`/`user`) | `infra/terraform/zitadel/actions.tf` |
+| Приложение OIDC в Zitadel | `infra/casa/terraform/zitadel/applications.tf` (`zitadel_application_v2.radar`) |
+| Claim `role` (`admin`/`user`) | `infra/casa/terraform/zitadel/actions.tf` |
 | `cluster-admin` для группы `oidc:admin` | `platform/casa/headlamp/manifests/headlamp-admins.clusterrolebinding.yaml` |
 | clientSecret, redirectURL | Vault `kv/radar/oidc` |
 | clientID, issuer | `valuesObject` Application |

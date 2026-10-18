@@ -11,7 +11,7 @@
 # Argo: OCI-клиент не ходит по http.
 #
 # groupName обязан совпадать с `spec.acme.solvers[].dns01.webhook.groupName` в
-# ClusterIssuer (`platform/cert-manager/manifests/`), а provider — с ключами
+# ClusterIssuer (`platform/casa/cert-manager/manifests/`), а provider — с ключами
 # `provider` в values этого юнита.
 #
 # Секреты обоих провайдеров необязательны: webhook поднимается без них и падает

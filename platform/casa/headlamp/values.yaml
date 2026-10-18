@@ -4,10 +4,10 @@
 # ВНИМАНИЕ: без clusterRoleBinding.create чарт создаёт ClusterRoleBinding
 # cluster-admin на SA ПОДА. Ниже он выключен: права приходят из OIDC-токена
 # пользователя, а границей сети остаётся NetworkPolicy в
-# clusters/casa/platform/headlamp/networkpolicy.yaml.
+# platform/casa/headlamp/manifests/networkpolicy.yaml.
 #
 # Маршрут и NetworkPolicy namespace headlamp живут вне Application
-# (clusters/casa/platform/headlamp/route.yaml, clusters/casa/platform/headlamp/networkpolicy.yaml).
+# (platform/casa/headlamp/manifests/route.yaml, platform/casa/headlamp/manifests/networkpolicy.yaml).
 
 # Дефолт чарта: resources: {} не задано. Без requests планировщик не знает, что
 # размещает, без limits UI способен вытеснить приложения.

@@ -162,7 +162,7 @@ Dev Containers копирует его само (настройка `dev.contain
   sha256 и распаковку делает `install-tool.sh`: аргументы — путь в `tools.tsv`,
   `url`, куда положить и, если это архив, путь файла внутри него. Строки для
   amd64 обязаны совпадать с
-  [`artifacts.tsv`](../clusters/casa/apps/rustfs/manifests/artifacts.tsv): там
+  [`artifacts.tsv`](../apps/casa/rustfs/manifests/artifacts.tsv): там
   хэши для CI, здесь — для образа, и расхождение между ними означает, что
   локальный гейт и CI проверяют разные бинари.
 - `yq` — исключение из правила про apt: в архиве Ubuntu под этим именем лежит

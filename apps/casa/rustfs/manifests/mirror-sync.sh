@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Зеркалит артефакты в RustFS (бакет mirror), чтобы CI тянул их без интернета и
-# без креденшелов. Бакет и public-read policy принадлежат infra/terraform/rustfs, здесь
+# без креденшелов. Бакет и public-read policy принадлежат infra/casa/terraform/rustfs, здесь
 # остаётся только заливка объектов.
 #
 # Запускается in-cluster как CronJob mirror-sync (образ amazon/aws-cli): у пода
@@ -11,7 +11,7 @@
 # Недоступный апстрим не останавливает прогон: цикл доходит до конца манифеста,
 # неудачные артефакты перечисляются в конце, Job завершается ненулевым кодом.
 #
-# Манифест (clusters/casa/apps/rustfs/manifests/artifacts.tsv, смонтирован в /scripts/artifacts.tsv) —
+# Манифест (apps/casa/rustfs/manifests/artifacts.tsv, смонтирован в /scripts/artifacts.tsv) —
 # строки "<path> <sha256> <url>".
 #
 # Окружение:

@@ -5,8 +5,8 @@ Argo CD — GitOps-контроллер кластера: под ним `cluster
 установку, бутстрап и разборы подводных камней, накопленные по ходу.
 
 Целевое решение — Flux (`docs/research/k8s/argo-cd-vs-flux-cd.md`), поэтому
-`bootstrap/` устроен так, чтобы его можно было снести целиком: root рендерит
-`clusters/casa/argocd/`, а каталог `bootstrap/` в kustomization не входит.
+`clusters/casa/argocd/bootstrap/` устроен так, чтобы его можно было снести целиком: root рендерит
+`clusters/casa/argocd/`, а каталог `clusters/casa/argocd/bootstrap/` в kustomization не входит.
 
 | | |
 |---|---|
@@ -628,7 +628,7 @@ Apiserver подставляет в `HTTPRoute` шесть полей, кото�
 контроллера не разошли ни одного приложения.
 
 Второй источник той же беды — устаревший `last-applied-configuration` у объекта,
-который когда-то применяли руками; он разобран в `platform/argocd/README.md`.
+который когда-то применяли руками; он разобран в `platform/casa/argocd/README.md`.
 Правкой всех `apps/casa/*/manifests/route.yaml` вопрос не решается в любом
 случае: дефолты вернутся при обновлении CRD.
 
@@ -752,7 +752,7 @@ Application больше нет. Маршрут
   файла молча расходилась с кластером. Теперь файл — единственный источник.
 - `service.spec.externalIPs` — адрес узла, и это нагрузочное значение: без него
   Traefik не принимает трафик на адрес узла. Живёт в values-файле.
-  Домен здесь не нужен — он в `Gateway` (`platform/traefik/manifests/gateway-homelab.yaml`)
+  Домен здесь не нужен — он в `Gateway` (`platform/casa/traefik/manifests/gateway-homelab.yaml`)
   и в маршрутах юнитов, а не в values Traefik.
 - Значения из приватного репозитория сюда не возвращаются (`docs/adr/0009`):
   домен и адрес узла публичны по решению.

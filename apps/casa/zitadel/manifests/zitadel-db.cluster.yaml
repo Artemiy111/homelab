@@ -13,7 +13,7 @@
 # Кластер живёт в namespace своего владельца (docs/adr/0001).
 #
 # Zitadel — не суперпользователь: его initdb-скрипт создаёт непривилегированную
-# роль и делает её владельцем базы (clusters/casa/apps/zitadel/initdb/). В CNPG это ровно
+# роль и делает её владельцем базы (apps/casa/zitadel/initdb/). В CNPG это ровно
 # managed-роль + Database с owner, а суперпользователь остаётся у оператора.
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster

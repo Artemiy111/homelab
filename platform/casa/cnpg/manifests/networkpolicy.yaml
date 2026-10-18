@@ -6,7 +6,7 @@
 # infisical, glitchtip, postgres (pgweb), authentik, sure, nextcloud, open-webui,
 # gatus, grafana (под gatus/grafana из общего namespace monitoring) и element
 # (synapse).
-# Egress не ограничивается — см. комментарий в clusters/casa/apps/lute/manifests/networkpolicy.yaml.
+# Egress не ограничивается — см. комментарий в apps/casa/lute/manifests/networkpolicy.yaml.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -112,7 +112,7 @@ spec:
           protocol: TCP
 ---
 # Выделенные кластеры (zitadel, immich, dawarich) живут в namespace сервисов,
-# и политики для них — в clusters/casa/apps/<сервис>/k8s/networkpolicy.yaml. Здесь их нет:
+# и политики для них — в apps/casa/<сервис>/k8s/networkpolicy.yaml. Здесь их нет:
 # одинаковое имя объекта в одном namespace означало бы перезапись, и побеждал
 # бы применённый последним (так cnpg-system остался без доступа и апгрейд
 # zitadel-db повис на недоступном instance manager). Владелец namespace

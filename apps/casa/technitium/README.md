@@ -8,7 +8,7 @@ wildcard-запись разрешает `${DOMAIN}` и все его поддо
 ## Конфигурация
 
 Записи зоны `${DOMAIN}` (wildcard и `dns`) и bootstrap-зона `cloudflare-dns.com`
-описаны кодом в `infra/terraform/technitium`: ручная правка этих записей будет
+описаны кодом в `infra/casa/terraform/technitium`: ручная правка этих записей будет
 перезаписана на следующем `terraform apply`. Зоны, форвардеры и блокировка
 остаются ручными.
 

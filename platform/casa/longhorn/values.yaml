@@ -2,11 +2,11 @@
 # Ставится официальным чартом из charts.longhorn.io.
 #
 # Default StorageClass в кластере остаётся local-path — классы Longhorn
-# описываются явно в clusters/casa/platform/longhorn/storageclasses.yaml и применяются
+# описываются явно в platform/casa/longhorn/manifests/storageclasses.yaml и применяются
 # осознанно per-PVC.
 #
 # Подготовка узла (iscsid, NFSv4-клиент, SELinux-модуль, каталог данных) —
-# в infra/ansible/host.yml, роль longhorn_prereqs. Без неё тома застревают в
+# в infra/casa/ansible/host.yml, роль longhorn_prereqs. Без неё тома застревают в
 # attach/detach.
 
 csi:
@@ -21,7 +21,7 @@ csi:
   snapshotterReplicaCount: 1
 
 persistence:
-  # Классы хранилища задаём файлами (clusters/casa/platform/longhorn/storageclasses.yaml),
+  # Классы хранилища задаём файлами (platform/casa/longhorn/manifests/storageclasses.yaml),
   # а не чартом: у них разная политика удержания, и дефолтный класс не должен
   # появляться вместе с оператором.
   createStorageClass: false

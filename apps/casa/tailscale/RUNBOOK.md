@@ -4,14 +4,14 @@
 
 Скрипт ставит Tailscale на узел и читает файл репозитория
 (`99-tailscale.conf`), поэтому запускается с контроллера (macOS): файлы
-копируются во временный каталог на узле с сохранением раскладки `apps/tailscale/`,
+копируются во временный каталог на узле с сохранением раскладки `apps/casa/tailscale/`,
 затем скрипт идёт под sudo.
 
 ```sh
-ssh homelab 'mkdir -p /tmp/homelab-bootstrap/apps/tailscale'
+ssh homelab 'mkdir -p /tmp/homelab-bootstrap/apps/casa/tailscale'
 scp apps/casa/tailscale/setup.sh apps/casa/tailscale/99-tailscale.conf \
-  homelab:/tmp/homelab-bootstrap/apps/tailscale/
-ssh -t homelab 'cd /tmp/homelab-bootstrap && LAN_CIDR=<node1-lan-cidr> sudo -E bash apps/tailscale/setup.sh'
+  homelab:/tmp/homelab-bootstrap/apps/casa/tailscale/
+ssh -t homelab 'cd /tmp/homelab-bootstrap && LAN_CIDR=<node1-lan-cidr> sudo -E bash apps/casa/tailscale/setup.sh'
 ```
 
 Команда выведет ссылку для входа. После авторизации открыть страницу

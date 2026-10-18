@@ -1,5 +1,5 @@
 # Эмитент Let's Encrypt для зоны. Письмо и зона берутся из certManager
-# в values platform/homelata до растворения чарта; здесь литералы, как и в
+# в values platform/homelab до растворения чарта; здесь литералы, как и в
 # остальных манифестах после него.
 ---
 apiVersion: cert-manager.io/v1

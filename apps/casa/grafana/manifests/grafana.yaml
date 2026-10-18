@@ -92,7 +92,7 @@ spec:
                   value: "https://grafana.$(DOMAIN)"
                 # Данные (пользователи, дашборды, аннотации) — в общем кластере
                 # CNPG shared, а не в SQLite. Роль grafana и база grafana
-                # объявлены в clusters/casa/platform/cnpg/; пароль — из Secret'а grafana-db
+                # объявлены в platform/casa/cnpg/; пароль — из Secret'а grafana-db
                 # (см. k8s/vaultstaticsecret.yaml).
                 - name: GF_DATABASE_TYPE
                   value: postgres

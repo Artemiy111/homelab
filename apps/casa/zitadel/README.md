@@ -29,16 +29,16 @@ Postgres поднимается кластером CloudNativePG: суперпо
 ## OIDC-клиент для oauth2-proxy
 
 Приложение `Oauth Proxy` уже создано и импортировано в Terraform
-(`infra/terraform/zitadel/applications.tf`). client_id и client_secret лежат в Vault:
+(`infra/casa/terraform/zitadel/applications.tf`). client_id и client_secret лежат в Vault:
 `kv/oauth2-proxy/oidc`. Новые клиенты заводить через Terraform, а не в консоли.
 
 ## Содержимое инстанса
 
 Организация `homelab`, проект, OIDC-приложения, роли, членства, гранты и
-политика логина описаны в Terraform — `infra/terraform/zitadel/`. Разворачивается
+политика логина описаны в Terraform — `infra/casa/terraform/zitadel/`. Разворачивается
 инстанс здесь, `apps/casa/zitadel/`; Terraform управляет тем, что внутри.
 
 Что осталось в консоли: human users, service account `homelab-service`,
-системные объекты инстанса. Список и причины — `infra/terraform/zitadel/README.md`.
+системные объекты инстанса. Список и причины — `infra/casa/terraform/zitadel/README.md`.
 
 Эксплуатация — в `RUNBOOK.md`.

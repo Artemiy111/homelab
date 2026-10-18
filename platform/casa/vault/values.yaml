@@ -2,7 +2,7 @@
 # hashicorp/vault-helm, версия зафиксирована тегом v0.34.1 (Vault 2.0.4).
 #
 # Значения вынесены из `spec.source.helm.valuesObject` в
-# `clusters/casa/platform/vault/values.yaml`, Application подключает их через `$values` —
+# `platform/casa/vault/values.yaml`, Application подключает их через `$values` —
 # второй источник в `spec.sources`.
 
 # sidecar-инжект не используется — его роль взял VSO. csi в связке с VSO
@@ -22,7 +22,7 @@ server:
   updateStrategyType: OnDelete
   # Дефолт чарта — пустой resources: для одноузлового кластера это плохо, без
   # requests планировщик не знает, что размещает (ср.
-  # clusters/casa/platform/cert-manager/values.yaml).
+  # platform/casa/cert-manager/values.yaml).
   resources:
     requests:
       cpu: 50m

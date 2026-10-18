@@ -1,7 +1,7 @@
 # Tailscale (Terraform)
 
 DNS tailnet: MagicDNS и split DNS (restricted nameserver на домашний домен).
-Развёртывание Tailscale на хосте — `clusters/casa/apps/tailscale/`, здесь только содержимое
+Развёртывание Tailscale на хосте — `apps/casa/tailscale/`, здесь только содержимое
 tailnet через API.
 
 ## Запуск
@@ -36,7 +36,7 @@ prompt. `export` обязателен — без него значение ос�
 ## Значения
 
 ```hcl
-domain  = "example.com"   # основной домен, тот же что в Gateway (clusters/casa/platform/traefik/manifests/gateway-homelab.yaml)
+domain  = "example.com"   # основной домен, тот же что в Gateway (platform/casa/traefik/manifests/gateway-homelab.yaml)
 host_ip = "192.0.2.10"    # адрес Technitium: ему tailnet отдаёт зоны
 ```
 
@@ -70,7 +70,7 @@ DNS. Со сменой домена он убран, и `terraform apply` заб
 
 Ресурс описывает **всю** DNS-конфигурацию, поэтому заодно чистит устаревшие
 split-DNS записи, которые в admin console приходилось удалять руками
-(`clusters/casa/apps/tailscale/README.md`).
+(`apps/casa/tailscale/README.md`).
 
 Провайдер помечает `tailscale_dns_configuration` как **alpha**: схема может
 меняться между версиями. При обновлении провайдера читать release notes, а не

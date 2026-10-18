@@ -355,7 +355,7 @@ spec:
         summary: "Скрейп-таргет vmagent не отдаёт метрики"
         description: >-
           В значении job перечислены таргеты с up == 0 дольше 10 минут. Проверить /metrics таргета и его токен из Secret'а vmagent.
-        runbook: "clusters/casa/apps/victoria-metrics/README.md, раздел «Проверка»"
+        runbook: "apps/casa/victoria-metrics/README.md, раздел «Проверка»"
     - uid: pipeline-metrics-stalled
       title: Метрики не поступают в VictoriaMetrics
       condition: C
@@ -441,7 +441,7 @@ spec:
         summary: "vmagent не отправляет метрики в VictoriaMetrics"
         description: >-
           Компонент жив (up=1), но поток remote_write пустой: vmagent завис, потерял креды или упёрся в remote_write. Без этого алерта пайплайн метрик может молча остановиться. Проверить up{job="vmagent"}, логи vmagent и доступность VictoriaMetrics.
-        runbook: "clusters/casa/apps/victoria-metrics/README.md"
+        runbook: "apps/casa/victoria-metrics/README.md"
     - uid: pipeline-traces-stalled
       title: Трейсы не поступают в Tempo
       condition: C
@@ -527,7 +527,7 @@ spec:
         summary: "В Tempo не поступают трейсы"
         description: >-
           Tempo и OTel Collector живы, но поток спанов пуст. Источники трейсов: Traefik (ingress) и Beyla (сервисы namespace element). После #542 именно поломка Beyla делает внутренние трейсы пустыми незаметно. Проверить up{job="beyla"} и логи подов beyla.
-        runbook: "clusters/casa/apps/beyla/README.md"
+        runbook: "apps/casa/beyla/README.md"
     - uid: vmagent-data-loss
       title: vmagent теряет данные
       condition: C
@@ -613,7 +613,7 @@ spec:
         summary: "vmagent отбрасывает семплы (переполнение persistent queue)"
         description: >-
           Данные теряются молча: часть семплов не доходит до VictoriaMetrics. Обычно причина в недоступном remote_write или нехватке места под очередь. Проверить vm_persistentqueue_blocks_dropped_total и логи vmagent.
-        runbook: "clusters/casa/apps/victoria-metrics/README.md"
+        runbook: "apps/casa/victoria-metrics/README.md"
     - uid: loki-active-streams-high
       title: Много активных серий в Loki
       condition: C
@@ -699,7 +699,7 @@ spec:
         summary: "Активных серий в Loki больше 10000 (норма порядка 165)"
         description: >-
           Рост кардинальности — главный способ положить Loki: новый лейбл с высокой уникальностью в приложении создаёт поток серий. Проверить, какое приложение добавило лейблы.
-        runbook: "clusters/casa/apps/loki/README.md"
+        runbook: "apps/casa/loki/README.md"
     - uid: monium-write-stalled
       title: Копия метрик в Monium не отправляется
       condition: C
@@ -785,14 +785,14 @@ spec:
         summary: "vmagent не отправляет метрики в Yandex Monium"
         description: >-
           Облачная копия встала: за 15 минут ни одной отправленной пачки. Локальная запись в VictoriaMetrics обычно жива — проверять креды, доступность эндпоинта и квоты Monium по логам vmagent. Оператор `== bool` здесь обязателен: без него выражение возвращает значение счётчика (0), а не признак срабатывания, и правило не сработает никогда.
-        runbook: "clusters/casa/apps/victoria-metrics/RUNBOOK.md"
+        runbook: "apps/casa/victoria-metrics/RUNBOOK.md"
 ---
 # --- перенесено без изменений из config/alerting/logs.yaml ---
 #
 # Правила алертинга по логам. Источник — Loki (uid `loki` из
 # k8s/datasources.yaml). Запрос — LogQL метрика: `count_over_time` по строкам
 # с уровнем error за окно. Поле `level` приходит как structured metadata из
-# Alloy (см. clusters/casa/apps/alloy/config/config.alloy), поэтому фильтр не требует парсера
+# Alloy (см. apps/casa/alloy/manifests/config/config.alloy), поэтому фильтр не требует парсера
 # и работает в алертах. Регистр значений разный у разных приложений, отсюда
 # `(?i)`.
 apiVersion: grafana.integreatly.org/v1beta1
@@ -980,7 +980,7 @@ spec:
         summary: "Loki не принимает логи"
         description: >-
           За 10 минут в Loki не пришло ни одной строки. Обычно это остановка Alloy или сбой записи. Проверить `kubectl -n monitoring get pods -l app=alloy` и `up{job=~"loki|alloy"}`.
-        runbook: "clusters/casa/apps/alloy/README.md"
+        runbook: "apps/casa/alloy/README.md"
     - uid: node-disk-low
       title: Мало свободного места на узле
       condition: C
@@ -1066,7 +1066,7 @@ spec:
         summary: "Меньше 15% свободного места на узле {{ $labels.instance }} ({{ $labels.mountpoint }})"
         description: >-
           Доля свободного места на файловой системе упала ниже 15%. Проверить крупнейшие тома: `longhorn_volume_actual_size_bytes` в VictoriaMetrics, топ — zot-data, immich-library, victoriametrics-vmdata. Действия: расширить PVC, сократить retention либо почистить неиспользуемые тома.
-        runbook: "clusters/casa/apps/grafana/config/dashboards/storage-capacity.json"
+        runbook: "apps/casa/grafana/manifests/config/dashboards/storage-capacity.json"
 ---
 # --- перенесено без изменений из config/alerting/storage.yaml ---
 #
@@ -1197,7 +1197,7 @@ spec:
           Порог 5 ГиБ отсекает мелкие служебные тома, для которых предсказание
           бессмысленно. Действия: расширить PVC, сократить retention либо
           удалить неиспользуемые данные.
-        runbook: "docs/incidents/0001-dawarich-db-overflow.md, clusters/casa/apps/victoria-metrics/README.md"
+        runbook: "docs/incidents/0001-dawarich-db-overflow.md, apps/casa/victoria-metrics/README.md"
     - uid: pvc-low-free-space
       title: PVC low free space
       condition: C
@@ -1289,7 +1289,7 @@ spec:
           {{ $values.A }}. Порог 5 ГиБ отсекает мелкие тома, где 15% — это
           несколько мегабайт. Действия: расширить PVC, сократить retention
           либо почистить неиспользуемые данные.
-        runbook: "clusters/casa/apps/victoria-metrics/README.md, раздел «Алерты»"
+        runbook: "apps/casa/victoria-metrics/README.md, раздел «Алерты»"
 ---
 # --- перенесено без изменений из config/alerting/certificates.yaml ---
 #
@@ -1419,7 +1419,7 @@ spec:
           ACME-челленджа и не исчерпан ли rate limit Let's Encrypt
           (инцидент #0002). Если сертификат уже истёк, HTTPS-сервисы отдают
           недоверенный сертификат.
-        runbook: "clusters/casa/apps/cert-manager/README.md"
+        runbook: "platform/casa/cert-manager/README.md"
     - uid: certificate-expired
       title: Certificate already expired
       condition: C
@@ -1507,7 +1507,7 @@ spec:
           Срок действия сертификата истёк, HTTPS-сервисы отдают недоверенный
           сертификат пользователям. Истёкшие: {{ $values.A }}.
           Это уже не предупреждение, а отказ: чинить немедленно.
-        runbook: "clusters/casa/apps/cert-manager/README.md"
+        runbook: "platform/casa/cert-manager/README.md"
 ---
 # --- перенесено без изменений из config/alerting/notification-policies.yaml ---
 #

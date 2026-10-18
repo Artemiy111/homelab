@@ -3,7 +3,7 @@
 Управляет настройками репозитория `artemiy/homelab`, защитой его ветки `main`,
 pull-зеркалами экшенов в организациях `actions`, `oven-sh` и `aquasecurity` и
 самой организацией `aquasecurity`. Развёртывание самого инстанса —
-`clusters/casa/apps/forgejo/` (Argo CD + `forgejo-helm`), здесь только его содержимое.
+`apps/casa/forgejo/` (Argo CD + `forgejo-helm`), здесь только его содержимое.
 
 ## Что управляется
 
@@ -49,7 +49,7 @@ domain = "example.com"
 ```
 
 `domain` — корневой домен стенда, а не адрес инстанса: в провайдер
-подставляется `forgejo.${var.domain}`, как в `clusters/casa/apps/forgejo`. Реальное значение —
+подставляется `forgejo.${var.domain}`, как в `apps/casa/forgejo`. Реальное значение —
 в `terraform.tfvars`, который не коммитится.
 
 ## Импорт
@@ -108,7 +108,7 @@ curl -fsS -H "Authorization: token $FORGEJO_API_TOKEN" \
 должно быть уникально между организациями. Добавление зеркала — запись в карте
 плюс блок `import`, если репозиторий уже создан вручную. `actions/cache` в карту
 не входит: это не зеркало, а ручной снапшот
-(`clusters/casa/apps/forgejo/README.md`).
+(`apps/casa/forgejo/README.md`).
 
 Теги в этом снапшоте подтягиваются вручную из апстрима (`git fetch` внутри пода,
 команды — в `RUNBOOK.md`); сейчас там есть `v3`–`v6`, и workflow используют
@@ -195,4 +195,4 @@ Push-зеркало в GitHub тоже вне модуля: URL зеркала �
 
 Провайдер также не умеет OAuth2-приложения, защиту тегов, instance-настройки
 (`app.ini`) и регистрацию раннера — последняя делается через
-`forgejo-cli actions register` (`clusters/casa/apps/forgejo/README.md`).
+`forgejo-cli actions register` (`apps/casa/forgejo/README.md`).

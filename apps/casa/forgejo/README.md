@@ -350,7 +350,7 @@ Zitadel недоступен или сломан issuer, и она же дока
 | Имя источника | `zitadel` |
 | Провайдер | `openidConnect`, auto discovery |
 | Redirect URI | `https://forgejo.<домен>/user/oauth2/zitadel/callback` |
-| Приложение в Zitadel | `infra/terraform/zitadel` → `zitadel_application_v2.forgejo` |
+| Приложение в Zitadel | `infra/casa/terraform/zitadel` → `zitadel_application_v2.forgejo` |
 | Client id/secret | `kv/forgejo/oidc` → Secret `forgejo-oidc` |
 | Секция app.ini | `[oauth2_client]` — `ENABLE_AUTO_REGISTRATION`, `ACCOUNT_LINKING`, `OPENID_CONNECT_SCOPES` |
 

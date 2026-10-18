@@ -13,7 +13,7 @@ defaultVaultConnection:
   address: "http://vault.vault.svc.cluster.local:8200"
 
 # Дефолт чарта — пустой resources; для одноузлового кластера это плохо (ср.
-# clusters/casa/platform/cert-manager/values.yaml). Контроллер держит 86 VaultStaticSecret:
+# platform/casa/cert-manager/values.yaml). Контроллер держит 86 VaultStaticSecret:
 # его вытеснение означает, что секреты перестанут обновляться.
 controller:
   priorityClassName: platform-critical

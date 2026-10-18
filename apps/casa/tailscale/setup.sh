@@ -3,11 +3,11 @@
 set -euo pipefail
 
 if [[ ${EUID} -ne 0 ]]; then
-  echo "Запустите скрипт через sudo: sudo bash clusters/casa/apps/tailscale/setup.sh" >&2
+  echo "Запустите скрипт через sudo: sudo bash apps/casa/tailscale/setup.sh" >&2
   exit 1
 fi
 
-repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
+repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../../.." && pwd)"
 
 curl --fail --silent --show-error --location \
   https://pkgs.tailscale.com/stable/fedora/tailscale.repo \
@@ -20,7 +20,7 @@ install \
   --owner=root \
   --group=root \
   --mode=0644 \
-  "$repo_root/apps/tailscale/99-tailscale.conf" \
+  "$repo_root/apps/casa/tailscale/99-tailscale.conf" \
   /etc/sysctl.d/99-tailscale.conf
 sysctl --load /etc/sysctl.d/99-tailscale.conf
 

@@ -4,7 +4,7 @@
 # каталога `.` репозитория, Argo рендерит его сам.
 #
 # Значения вынесены из `spec.source.helm.valuesObject` в
-# `clusters/casa/platform/forgejo/values.yaml`, Application подключает их через `$values` —
+# `platform/casa/forgejo/values.yaml`, Application подключает их через `$values` —
 # второй источник в `spec.sources`.
 
 image:
@@ -42,7 +42,7 @@ gitea:
   # Имя источника `zitadel` не декоративно: Forgejo ищет источник по имени, а не
   # по id, и подставляет это же имя в URL кнопки входа и в redirect_uri.
   # Поэтому `name` здесь и redirect URI приложения в Zitadel
-  # (infra/terraform/zitadel/applications.tf) обязаны совпадать.
+  # (infra/casa/terraform/zitadel/applications.tf) обязаны совпадать.
   oauth:
     - name: zitadel
       provider: openidConnect
@@ -108,7 +108,7 @@ gitea:
       # Экшены тянем с локального инстанса (org `actions`), а не с
       # data.forgejo.org: тот периодически недоступен, и job падает на загрузке
       # экшена до старта шагов. Настройка instance-wide, поэтому в org `actions`
-      # зазеркален весь набор. Детали и обновление — clusters/casa/apps/forgejo/README.md.
+      # зазеркален весь набор. Детали и обновление — apps/casa/forgejo/README.md.
       DEFAULT_ACTIONS_URL: http://forgejo-http
     cron:
       ENABLED: true
@@ -150,7 +150,7 @@ persistence:
   size: 5Gi
 
 # Серверный шаблон merge-сообщения (ConfigMap лежит рядом, в
-# clusters/casa/apps/forgejo/manifests/merge-message.configmap.yaml): задаёт пустое тело вместо
+# apps/casa/forgejo/manifests/merge-message.configmap.yaml): задаёт пустое тело вместо
 # `Reviewed-on: <url>` (#25). Forgejo читает {CustomPath}/default_merge_message
 # при старте, поэтому после правки нужен рестарт пода.
 extraVolumes:
@@ -176,7 +176,7 @@ service:
     externalIPs:
       - 192.168.1.254
 
-# Ingress — свой файл (clusters/casa/apps/forgejo/manifests/route.yaml), как у остальных
+# Ingress — свой файл (apps/casa/forgejo/manifests/route.yaml), как у остальных
 # сервисов. Встроенный выключен: он собирал ROOT_URL из наличия ingress.tls, а
 # Argo считал объект нездоровым, потому что Traefik не пишет
 # status.loadBalancer. Поэтому ROOT_URL и PROTOCOL заданы явно и не зависят от

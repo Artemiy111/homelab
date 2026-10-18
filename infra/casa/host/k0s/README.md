@@ -175,15 +175,15 @@ infra/casa/host/etc/k0s/
 
 | Слой | Где |
 |---|---|
-| Gateway | Traefik — единый вход на `<node1-ip>`, Gateway API (`clusters/casa/platform/traefik/`) |
-| UI кластера | Headlamp (`clusters/casa/platform/headlamp/`) |
-| Секреты | Vault и Vault Secrets Operator — `VaultStaticSecret` (`clusters/casa/platform/vault/`, `clusters/casa/platform/vault-secrets-operator/`) |
-| GitOps | Argo CD — пробный стенд (`clusters/casa/platform/argocd/RUNBOOK.md`); целевое решение — Flux |
+| Gateway | Traefik — единый вход на `<node1-ip>`, Gateway API (`platform/casa/traefik/`) |
+| UI кластера | Headlamp (`platform/casa/headlamp/`) |
+| Секреты | Vault и Vault Secrets Operator — `VaultStaticSecret` (`platform/casa/vault/`, `platform/casa/vault-secrets-operator/`) |
+| GitOps | Argo CD — пробный стенд (`platform/casa/argocd/RUNBOOK.md`); целевое решение — Flux |
 
 ### Почему нет MetalLB
 
 LoadBalancer на однонодном кластере не нужен: тот же адрес `<node1-ip>`
-отдаётся через `externalIPs` сервиса Traefik (`clusters/casa/platform/traefik/values.yaml`),
+отдаётся через `externalIPs` сервиса Traefik (`platform/casa/traefik/values.yaml`),
 а MetalLB в L2-режиме пришлось бы отвечать ARP за отдельный VIP <node1-vip>.
 
 Манифесты удалены 2026-09-15, но восстанавливаются, если появится вторая нода:

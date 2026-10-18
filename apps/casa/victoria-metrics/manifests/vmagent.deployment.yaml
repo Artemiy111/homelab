@@ -48,7 +48,7 @@ spec:
                   name: homelab-config
                   key: DOMAIN
             # Кред uptime-kuma на скрейп метрик. Источник — Vault
-            # (`VaultStaticSecret`, clusters/casa/apps/victoria-metrics/manifests/vaultstaticsecret.yaml).
+            # (`VaultStaticSecret`, apps/casa/victoria-metrics/manifests/vaultstaticsecret.yaml).
             - name: UPTIME_KUMA_METRICS_API_KEY
               valueFrom:
                 secretKeyRef:

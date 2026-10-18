@@ -10,6 +10,6 @@ variable "host_ip" {
 }
 
 variable "timezone" {
-  description = "Часовой пояс, тот же, что в clusters/casa/platform/homelab"
+  description = "Часовой пояс, тот же, что в ConfigMap homelab-config"
   type        = string
 }

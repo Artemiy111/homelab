@@ -21,7 +21,7 @@ Authentication) показывает те же значения, но менят
 | Mobile redirect URI | `https://immich.<домен>/api/oauth/mobile-redirect` |
 
 Client ID соответствует приложению `immich` в Zitadel
-(`infra/terraform/zitadel/applications.tf`), там же объявлены redirect URI:
+(`infra/casa/terraform/zitadel/applications.tf`), там же объявлены redirect URI:
 `/auth/login`, `/user-settings`, `/api/oauth/mobile-redirect`.
 
 `<домен>` в таблице — плейсхолдер для читателя: в самом файле домен стоит

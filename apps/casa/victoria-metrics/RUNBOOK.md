@@ -40,7 +40,7 @@ vault kv put kv/victoria-metrics/monium-api-key MONIUM_API_KEY=<api-ключ>
 3. Политика `app/vmagent` (приватный слой):
 
 ```sh
-cd infra/terraform/vault && terraform apply
+cd infra/casa/terraform/vault && terraform apply
 ```
 
 4. Манифесты — обычным путём.

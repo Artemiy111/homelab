@@ -16,7 +16,7 @@
 # Метрики: prometheus.enabled оставлен дефолтным true — чарт развешивает
 # аннотации `prometheus.io/scrape` на подах controller, webhook и cainjector.
 # Забирает их vmagent статическими job'ами по Service'ам на порту 9402
-# (apps/casa/victoria-metrics/config/vmagent/scrape.yml). Pod-discovery по аннотациям
+# (apps/casa/victoria-metrics/manifests/config/vmagent/scrape.yml). Pod-discovery по аннотациям
 # в scrape.yml отсутствует, поэтому рассчитывать на него нельзя. CRD
 # prometheus-operator (monitoring.coreos.com) в кластере нет, поэтому никаких
 # PodMonitor/ServiceMonitor не создаём.

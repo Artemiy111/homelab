@@ -57,7 +57,7 @@ ConfigMap, который kustomize собирает из `manifests/config/syst
 ## Роль `admin` из Zitadel
 
 `roleClaim: role` заставляет Immich читать claim `role` из токена Zitadel.
-Claim кладёт action `addRole` (`infra/terraform/zitadel/actions.tf`) на триггере
+Claim кладёт action `addRole` (`infra/casa/terraform/zitadel/actions.tf`) на триггере
 `POST_AUTHENTICATION` — при входе в Zitadel, а не при выдаче токена.
 
 Значение `admin` даёт админ-права в Immich, `user` — обычный доступ.

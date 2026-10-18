@@ -6,7 +6,7 @@ metadata:
   annotations:
     # hostNetwork: endpoint сервиса — адрес узла, dial в него попадает в сам
     # Traefik. nativeLB уводит запрос на clusterIP → hostPort. Подробности в
-    # clusters/casa/apps/home-assistant/manifests/service.yaml.
+    # apps/casa/home-assistant/manifests/service.yaml.
     traefik.io/service.nativelb: "true"
 spec:
   type: ClusterIP

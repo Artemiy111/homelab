@@ -4,7 +4,7 @@
 # ВНИМАНИЕ: без clusterRoleBinding.create (выключен в values) чарт создаёт
 # ClusterRoleBinding cluster-admin на SA ПОДА. Права приходят из OIDC-токена
 # пользователя, границей сети остаётся NetworkPolicy в
-# platform/casa/headlamp/networkpolicy.yaml.
+# platform/casa/headlamp/manifests/networkpolicy.yaml.
 #
 # Значения вынесены из `spec.source.helm.valuesObject` в
 # `platform/casa/headlamp/values.yaml`, Application подключает их через `$values` —

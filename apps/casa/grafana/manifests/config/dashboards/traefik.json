@@ -14,7 +14,7 @@
       }
     ]
   },
-  "description": "Маршруты, бэкенды и вход Traefik. Панели по маршрутам требуют metrics.prometheus.addRoutersLabels=true в clusters/casa/platform/traefik/app.yaml (#284).",
+  "description": "Маршруты, бэкенды и вход Traefik. Панели по маршрутам требуют metrics.prometheus.addRoutersLabels=true в clusters/casa/argocd/platform/traefik.yaml (#284).",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,

@@ -1,7 +1,7 @@
 # RustFS (Terraform)
 
 Бакет `mirror` и его policy. Развёртывание самого хранилища —
-`clusters/casa/apps/rustfs/`, здесь только бакет через S3 API: AWS-провайдер против кастомного
+`apps/casa/rustfs/`, здесь только бакет через S3 API: AWS-провайдер против кастомного
 эндпоинта RustFS.
 
 ## Запуск
@@ -36,7 +36,7 @@ export AWS_SECRET_ACCESS_KEY
 ## Значения
 
 ```hcl
-domain = "example.com"   # тот же домен, что в Gateway (clusters/casa/platform/traefik/manifests/gateway-homelab.yaml)
+domain = "example.com"   # тот же домен, что в Gateway (platform/casa/traefik/manifests/gateway-homelab.yaml)
 ```
 
 Внутреннее значение, в git не идёт; реальное — в
@@ -56,7 +56,7 @@ RustFS не отдаёт (IAM API нет, есть только root-креды)
 анонимный `GET` получает `AccessDenied`, а не тихое «этот адрес закрыт» (#732).
 
 Заливка объектов остаётся у CronJob `mirror-sync`
-(`clusters/casa/apps/rustfs/manifests/mirror-sync.sh`, манифест `artifacts.tsv`); из скрипта убран
+(`apps/casa/rustfs/manifests/mirror-sync.sh`, манифест `artifacts.tsv`); из скрипта убран
 `ensure_bucket`, потому что бакет и policy теперь принадлежат Terraform.
 
 ## Первый apply

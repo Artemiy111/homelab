@@ -1,6 +1,6 @@
 # Radar — open-source Kubernetes UI (один Go-бинарь): топология, ресурсы, Helm,
 # GitOps, аудит, MCP. Ставится официальным чартом skyhook/radar, маршрут —
-# clusters/casa/apps/radar/manifests/route.yaml.
+# platform/casa/radar/manifests/route.yaml.
 #
 # auth.mode=oidc: Radar входит в Zitadel сам и имперсонирует пользователя в
 # Kubernetes, поэтому права определяет RBAC пользователя, а не общий
@@ -32,7 +32,7 @@ auth:
     # Группы приходят из claim `role` (admin|user), который кладёт action addRole
     # в Zitadel. Префикс `oidc:` даёт ровно ту группу `oidc:admin`, что и у
     # Headlamp, поэтому ClusterRoleBinding из
-    # clusters/casa/platform/headlamp/headlamp-admins.clusterrolebinding.yaml работает на оба
+    # platform/casa/headlamp/manifests/headlamp-admins.clusterrolebinding.yaml работает на оба
     # UI. Привязка по Group, не по User: Radar берёт имя из claim `email`,
     # apiserver — из `sub`, и kind: User у них не совпадёт.
     groupsPrefix: "oidc:"

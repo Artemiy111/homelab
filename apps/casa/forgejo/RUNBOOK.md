@@ -69,11 +69,11 @@ git ls-remote https://forgejo.example.com/actions/cache.git | grep -E 'refs/tags
 
 ## Порядок включения OIDC
 
-1. `terraform apply` в `infra/terraform/vault` — иначе VSO не прочитает
+1. `terraform apply` в `infra/casa/terraform/vault` — иначе VSO не прочитает
    `kv/forgejo/oidc` (политика `app/forgejo`).
-2. `terraform apply` в `infra/terraform/zitadel` — в выводе `client_id` и
+2. `terraform apply` в `infra/casa/terraform/zitadel` — в выводе `client_id` и
    `client_secret` приложения `Forgejo`. В state и в git секрета нет
-   (см. `infra/terraform/zitadel/README.md`), значения живут только в Vault.
+   (см. `infra/casa/terraform/zitadel/README.md`), значения живут только в Vault.
 3. Vault: `kv/forgejo/oidc` с ключами `key` и `secret`.
 4. `clusters/casa/argocd/platform/forgejo.yaml`, поверх — приватный merge-patch с
    реальным discovery URL, затем sync и рестарт пода.
@@ -148,10 +148,10 @@ vault kv put kv/forgejo/@renovate/token RENOVATE_TOKEN=<pat>
 ```
 
 Право чтения даёт политика `app/forgejo`; её текст — в
-`infra/terraform/vault/policies/issued.tf`, применяется с macOS:
+`infra/casa/terraform/vault/policies/issued.tf`, применяется с macOS:
 
 ```sh
-cd infra/terraform/vault && terraform apply
+cd infra/casa/terraform/vault && terraform apply
 ```
 
 Vault Secrets Operator приносит значение в Secret:
@@ -192,7 +192,7 @@ vault kv put kv/github/api-token RENOVATE_GITHUB_COM_TOKEN=<pat>
 Право чтения — в политике `app/forgejo`, применяется с macOS:
 
 ```sh
-cd infra/terraform/vault && terraform apply
+cd infra/casa/terraform/vault && terraform apply
 ```
 
 Проверка — следующим прогоном задания: в дашборде не должно быть строк
@@ -214,10 +214,10 @@ vault kv put kv/3x-ui/@renovate/egress \
 
 Пароль подставляется в URL прокси, поэтому допустимы только буквы, цифры и
 `-`, `_`, `.`: `@`, `:`, `/`, `#`, `%` и пробелы ломают разбор. Право чтения —
-в политике `app/forgejo` (`infra/terraform/vault`), применяется с macOS:
+в политике `app/forgejo` (`infra/casa/terraform/vault`), применяется с macOS:
 
 ```sh
-cd infra/terraform/vault && terraform apply
+cd infra/casa/terraform/vault && terraform apply
 ```
 
 Порт прокси открыт для namespace `forgejo` в NetworkPolicy чарта 3x-ui — без

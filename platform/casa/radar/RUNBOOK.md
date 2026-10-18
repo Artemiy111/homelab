@@ -6,7 +6,7 @@
 Сначала Terraform (Zitadel-приложение и роль Vault), затем кластер.
 
 ```sh
-cd infra/terraform/zitadel && terraform apply
+cd infra/casa/terraform/zitadel && terraform apply
 cd ../vault && terraform apply
 ```
 

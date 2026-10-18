@@ -2,7 +2,7 @@
 # пишет в VictoriaMetrics; секретов в файле нет — значения подставляются из
 # окружения по ссылкам %{VAR} (поддержка env в -promscrape.config:
 # https://docs.victoriametrics.com/victoriametrics/vmagent/#how-to-collect-metrics-in-prometheus-format).
-# Окружение приходит из k8s Secrets/ConfigMap (см. clusters/casa/apps/victoria-metrics/manifests/vmagent.deployment.yaml).
+# Окружение приходит из k8s Secrets/ConfigMap (см. apps/casa/victoria-metrics/manifests/vmagent.deployment.yaml).
 #
 # Цели адресуются по именам Service'ов кластера. Приложения без аутентификации
 # отдают метрики внутри кластера открыто; креды нужны только помеченным целям.
@@ -153,7 +153,7 @@ scrape_configs:
           - tempo.monitoring.svc.cluster.local:3200
 
   # Longhorn: менеджер отдаёт longhorn_* метрики (тома, диски, узлы) на 9500;
-  # доступ открыт доп. NetworkPolicy clusters/casa/platform/longhorn/networkpolicy-metrics.yaml.
+  # доступ открыт доп. NetworkPolicy platform/casa/longhorn/manifests/networkpolicy-metrics.yaml.
   - job_name: longhorn
     static_configs:
       - targets:
@@ -179,7 +179,7 @@ scrape_configs:
           # Порт 8200 явный: у Service из чарта vault-helm server.service.port,
           # а без порта статический конфиг смотрел бы на 80 — это был порт
           # ручного Service, которого больше нет. Метрики отдаются без токена,
-          # см. telemetry в listener (clusters/casa/platform/vault/app.yaml).
+          # см. telemetry в listener (clusters/casa/argocd/platform/vault.yaml).
           - vault.vault.svc.cluster.local:8200
 
   - job_name: infisical
@@ -317,7 +317,7 @@ scrape_configs:
           - dawarich.%{DOMAIN}
 
   # Токен передаётся как Bearer (Forgejo [metrics] TOKEN).
-  # Forgejo ставится чартом forgejo-helm (clusters/casa/platform/forgejo/app.yaml),
+  # Forgejo ставится чартом forgejo-helm (clusters/casa/argocd/platform/forgejo.yaml),
   # который создаёт Service `forgejo-http`, а не `forgejo`.
   - job_name: forgejo
     authorization:
@@ -382,7 +382,7 @@ scrape_configs:
         regex: "template0|template1|postgres|app"
         action: drop
 
-  # Базы вне CNPG: экспортёры по одному на инстанс (clusters/casa/apps/db-exporters).
+  # Базы вне CNPG: экспортёры по одному на инстанс (apps/casa/db-exporters).
   # instance = адрес цели, т.е. какая это база. PostgreSQL-экспортёров больше
   # нет: все базы переехали в CNPG, метрики отдаёт встроенный instance-manager
   # (job `cnpg` выше).

@@ -8,9 +8,9 @@
 
 | Шаг | Где |
 |---|---|
-| Приложение OIDC в Zitadel | `infra/terraform/zitadel/applications.tf` |
-| Claim `role` (`admin`/`user`) | `infra/terraform/zitadel/actions.tf` |
-| Доверие apiserver к Zitadel | `infra/host/etc/k0s/k0s.yaml`, `spec.api.extraArgs` |
+| Приложение OIDC в Zitadel | `infra/casa/terraform/zitadel/applications.tf` |
+| Claim `role` (`admin`/`user`) | `infra/casa/terraform/zitadel/actions.tf` |
+| Доверие apiserver к Zitadel | `infra/casa/host/etc/k0s/k0s.yaml`, `spec.api.extraArgs` |
 | `cluster-admin` для группы `oidc:admin` | `headlamp-admins.clusterrolebinding.yaml` |
 | clientID/clientSecret/issuerURL/scopes | Vault `kv/headlamp/oidc` → `headlamp-oidc.vaultstaticsecret.yaml` |
 

@@ -173,7 +173,7 @@ endpoints:
   # Публичные URL этих сервисов закрыты forward auth (oauth2-proxy@file) и для
   # неавторизованного запроса отдают 302, поэтому проверяем приложения напрямую.
   # Сервисы ещё в Docker, но внутри кластера доступны по имени через мост
-  # (clusters/casa/apps/<сервис>/k8s/bridge.yaml).
+  # (apps/casa/<сервис>/k8s/bridge.yaml).
   - name: WUD
     group: Monitoring
     url: http://wud.monitoring.svc.cluster.local/health
