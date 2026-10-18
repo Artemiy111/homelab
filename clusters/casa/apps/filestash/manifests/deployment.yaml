@@ -22,7 +22,7 @@ spec:
         fsGroup: 1000
       containers:
         - name: filestash
-          image: "machines/filestash:latest@sha256:d854ac1ffdc667639d02d5b26b5b5cbbfb774902b30d4d0ac3f8e708ada537f7"
+          image: "machines/filestash:latest@sha256:e35e58f108d243bd71df44fe10ab0e0a40f61c50e149b6bf3dccfc3e409c3401"
           ports:
             - name: http
               containerPort: 8334
