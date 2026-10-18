@@ -38,7 +38,7 @@ spec:
               cpu: 100m
               memory: 64Mi
         - name: wait-for-broker
-          image: "valkey/valkey:9-alpine@sha256:ee91f7a174ac4d6a6b0685b3a60e321f0a9dbbb691f9b0e285be2ba1d1be8328"
+          image: "valkey/valkey:9-alpine@sha256:48332870af354a799964c0012ae1194a0bf2bf894eb508f945810596dc2d8d11"
           command: ["/bin/sh", "-c", "until valkey-cli -h paperless-broker ping | grep -q PONG; do echo waiting for paperless-broker; sleep 2; done"]
           securityContext:
             runAsUser: 999
