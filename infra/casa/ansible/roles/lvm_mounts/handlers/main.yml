@@ -4,10 +4,10 @@
   # имени и общие на весь плейбук, поэтому одинаковые имена в двух ролях
   # перекрыли бы друг друга.
   #
-  # `systemctl daemon-reload` обязателен: юниты для записей fstab генерирует
-  # systemd-fstab-generator, и без перечитывания демона новых юнитов не
-  # появится.
+  # `daemon_reload` перезапускает systemd-fstab-generator, и тот заново
+  # разбирает fstab: без этого юнитов для новых записей не существует, и том
+  # не поднимется при загрузке. Имя `daemon-reload` тут не подходит — это не
+  # юнит, и модуль падает с «Could not find the requested service».
   ansible.builtin.systemd_service:
-    name: daemon-reload
-    state: restarted
+    daemon_reload: true
   listen: Перечитать fstab

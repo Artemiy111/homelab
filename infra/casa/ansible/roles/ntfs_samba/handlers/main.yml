@@ -1,24 +1,12 @@
 ---
 - name: Remount fstab
-  # Перечитывает fstab и монтирует/размонтирует изменившиеся точки.
-  # `systemctl daemon-reload` обязателен до этого: unit'ы для новых
-  # записей fstab генерируются из systemd-fstab-generator при старте,
-  # и без перезагрузки демона они не появятся.
+  # Перечитывает fstab, чтобы systemd-fstab-generator заново разобрал его и
+  # создал юниты для изменившихся записей. Точки при этом не монтируются и не
+  # размонтируются: монтирование делает задача роли.
+  #
+  # `daemon_reload` — параметр модуля, а не имя юнита: юнита с именем
+  # `daemon-reload` не существует, и `name: daemon-reload` падает с
+  # «Could not find the requested service».
   ansible.builtin.systemd_service:
-    name: daemon-reload
-    state: restarted
+    daemon_reload: true
   listen: Remount fstab
-
-- name: Перезагрузить firewalld
-  # --permanent пишет правило в зону, но не применяет: без reload зона
-  # продолжает держать прежнее расписание.
-  ansible.builtin.command:
-    cmd: firewall-cmd --reload
-  changed_when: true
-  listen: Перезагрузить firewalld
-
-- name: Применить sysctl
-  ansible.builtin.command:
-    cmd: sysctl --system
-  changed_when: true
-  listen: Применить sysctl
