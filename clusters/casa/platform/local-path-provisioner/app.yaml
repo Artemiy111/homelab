@@ -15,6 +15,9 @@ metadata:
 spec:
   project: upstream
   sources:
+    - repoURL: https://github.com/Artemiy111/homelab.git
+      targetRevision: main
+      path: clusters/casa/platform/local-path-provisioner/manifests
     - repoURL: https://github.com/rancher/local-path-provisioner.git
       path: deploy/chart/local-path-provisioner
       targetRevision: v0.0.37

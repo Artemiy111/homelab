@@ -43,8 +43,9 @@ argocd app get radar
 kubectl apply -f clusters/casa/platform/radar/manifests
 ```
 
-Порядок важен: namespace `radar` объявлен в `clusters/casa/platform/namespaces/`,
-и только после его появления применяются остальные манифесты и маршрут.
+Порядок важен: namespace `radar` объявлен в
+`clusters/casa/platform/radar/manifests/namespace.yaml`, и только после его
+появления применяются остальные манифесты и маршрут.
 Секреты в `radar-auth` должны появиться **до** синка: иначе Radar стартует
 без `RADAR_OIDC_CLIENT_SECRET`.
 

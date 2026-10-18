@@ -35,7 +35,7 @@ homelab/
 │
 ├── clusters/
 │   └── casa/                      # кластер; k0s — дистрибутив, не имя кластера
-│       ├── kustomization.yaml     # глобы на spec'и, не список из 77 строк
+│       ├── kustomization.yaml     # список спеков, генерируется scripts/argocd-units.sh
 │       ├── projects/              # AppProject'ы — часть рендера root
 │       ├── values/
 │       │   └── cluster.yaml       # домен, адрес узла, issuer, registry
@@ -79,9 +79,15 @@ clusters/casa/platform/traefik/    clusters/casa/apps/jellyfin/
 ```
 
 `manifests/` рядом с чартом нужен, когда у компонента есть объекты вне его
-values: маршруты, middleware, TLS-хранилище. Сейчас они лежат в каталоге
-компонента и применяются руками — в новой раскладке варианта «применить руками»
-нет, всё, что перечислено в `manifests/kustomization.yaml`, живёт под Argo.
+values: маршруты, middleware, TLS-хранилище, namespace оператора. Сейчас они
+лежат в каталоге компонента и применяются руками — в новой раскладке варианта
+«применить руками» нет, всё, что перечислено в `manifests/kustomization.yaml`,
+живёт под Argo.
+
+У чарта из чужого репозитория нет каталога манифестов этого репозитория,
+поэтому у такого юнита в `spec.sources` есть третий источник — каталог
+`clusters/casa/<юнит>/manifests`. Источник с `ref: values` для этого не годится:
+он даёт только файлы значений, манифесты из него Argo не применяет.
 
 Локальный чарт (`apps/element/chart/`) — тот же вкус: Application ссылается на
 каталог вместо апстримного `repoURL`. Обслуживающий код репозитория не касается:
@@ -101,21 +107,24 @@ server-side apply, а не удаление с последующим созда
 ## Control plane
 
 `bootstrap/root.yaml` применяется руками: контроллер не может применить
-`Application`, который сам его создаёт. Он рендерит `clusters/casa` и
-подхватывает спеки глобами:
+`Application`, который сам его создаёт. Он рендерит `clusters/casa`, а список
+спеков в `clusters/casa/kustomization.yaml` собирает `scripts/argocd-units.sh`:
 
-```yaml
-resources:
-  - projects/*.yaml
-  - platform/*/app.yaml
-  - apps/*/app.yaml
+```sh
+./scripts/argocd-units.sh > clusters/casa/kustomization.yaml
 ```
+
+Глобы kustomize не раскрывает: литерал `apps/*/app.yaml` уходит в `lstat` и
+валит сборку, поэтому в файле лежит явный список. Он не ручной: тот же скрипт
+с `--check` стоит в `scripts/check.sh` и в pre-commit, поэтому расхождение
+списка с деревом видно до коммита, а не в кластере.
 
 Следствия:
 
-- Добавление сервиса — это каталог и один файл. Центральный реестр, который
-  сегодня приходится править руками при каждом новом сервисе, перестаёт
-  существовать.
+- Добавление сервиса — это каталог, `app.yaml` и перегенерация списка.
+  Центральный реестр, который сегодня приходится править руками при каждом
+  новом сервисе, перестаёт существовать, а его актуальность держит гейт, а не
+  память.
 - Спека лежит в git и видна в диффе PR. Это ровно то, за что отказ от
   генератора записан в `argocd/README.md`.
 - `kubeconform` продолжает проверять спеки — они просто лежат в другом каталоге.
@@ -142,9 +151,8 @@ helm:
   стоит сейчас. Вопрос возникает снова при первом инциденте с порядком
   обновления операторов, и до него он не решается.
 - **Namespace владеет сервис** ([0001](0001-namespace-ownership.md)), отдельный
-  юнит `platform/namespaces/` не заводится. Побочно уходит дублирование: список
-  namespace'ов в `platform/homelab/values.yaml` должен быть удалён, иначе
-  владение определено дважды.
+  юнит `platform/namespaces/` не заводится: namespace объявляет тот юнит, в
+  котором лежит его `Application`, — иначе владение определено дважды.
 - **Структурных проверок раскладки в CI не будет.** Инварианты держатся
   соглашением и ревью. Автоматическая проверка окупается, когда раскладку
   пишут и читают чужие; здесь её читает и пишет один человек.
@@ -179,7 +187,7 @@ helm:
 | `argocd/projects/*.yaml` | `clusters/casa/projects/*.yaml` |
 | `argocd/applications/*.yaml` | `clusters/casa/platform/<компонент>/app.yaml` |
 | `argocd/applications/apps/*.yaml` | `clusters/casa/apps/<сервис>/app.yaml` |
-| `argocd/kustomization.yaml` | `clusters/casa/kustomization.yaml`, глобы вместо списка |
+| `argocd/kustomization.yaml` | `clusters/casa/kustomization.yaml`, список собирает `scripts/argocd-units.sh` |
 | `apps/<сервис>/k8s/` | `clusters/casa/apps/<сервис>/manifests/` |
 | `platform/<компонент>/values.yaml` | `clusters/casa/platform/<компонент>/values.yaml` |
 | `platform/k0s/` | `infra/host/k0s/` |

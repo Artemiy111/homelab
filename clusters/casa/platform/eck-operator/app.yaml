@@ -24,6 +24,9 @@ metadata:
 spec:
   project: upstream
   sources:
+    - repoURL: https://github.com/Artemiy111/homelab.git
+      targetRevision: main
+      path: clusters/casa/platform/eck-operator/manifests
     - repoURL: https://github.com/elastic/cloud-on-k8s.git
       path: deploy/eck-operator
       targetRevision: v3.5.0

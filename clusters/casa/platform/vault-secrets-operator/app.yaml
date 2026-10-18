@@ -23,6 +23,9 @@ metadata:
 spec:
   project: upstream
   sources:
+    - repoURL: https://github.com/Artemiy111/homelab.git
+      targetRevision: main
+      path: clusters/casa/platform/vault-secrets-operator/manifests
     - repoURL: https://github.com/hashicorp/vault-secrets-operator
       path: chart
       targetRevision: v1.6.0

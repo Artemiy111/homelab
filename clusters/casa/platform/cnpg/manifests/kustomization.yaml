@@ -4,6 +4,7 @@ kind: Kustomization
 resources:
   - db-auth.vaultauth.yaml
   - db-auth.vaultstaticsecrets.yaml
+  - namespace.yaml
   - networkpolicy.yaml
   - shared.cluster.yaml
   - shared.databases.yaml

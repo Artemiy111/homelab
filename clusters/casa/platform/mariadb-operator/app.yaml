@@ -15,6 +15,9 @@ metadata:
 spec:
   project: upstream
   sources:
+    - repoURL: https://github.com/Artemiy111/homelab.git
+      targetRevision: main
+      path: clusters/casa/platform/mariadb-operator/manifests
     - repoURL: https://mariadb-operator.github.io/mariadb-operator
       chart: mariadb-operator
       targetRevision: 26.10.0

@@ -31,8 +31,9 @@ kubectl -n <ns> delete pod <cluster>-1
 ## Предусловия
 
 1. Оператор установлен и CRD есть: `kubectl -n cnpg-system get deploy`.
-2. Namespace'ы созданы — приложение `namespaces` в `Synced`, либо
-   `kubectl apply -f clusters/casa/platform/namespaces/manifests/namespaces.yaml`.
+2. Namespace'ы созданы — их объявляют юниты-владельцы: `databases` в
+   `clusters/casa/platform/cnpg/manifests/namespace.yaml`, `cnpg-system` — в
+   `clusters/casa/platform/cloudnative-pg/manifests/namespace.yaml`.
 3. В Vault заведены пароли ролей, VSO синхронизирует их в basic-auth Secret'ы
    (`VaultStaticSecret`), **в namespace своего кластера**:
    - `databases`: `nextcloud-db-auth`, `forgejo-db-auth`, `element-db-auth`
@@ -53,10 +54,10 @@ kubectl -n <ns> delete pod <cluster>-1
 
 ## Установка
 
-Порядок задан волнами: namespace'ы (0) → оператор (10) → секреты ролей и
-кластеры (0 и 10 внутри юнита `cnpg`), дождаться `healthy` → базы (20). Иначе
-`Database`-объекты один раз увидят отсутствующий кластер и залипнут в
-`applied: false` (см. «Грабли»).
+Порядок задан волнами: оператор и его namespace (10) → юнит `cnpg` (30), внутри
+него секреты ролей (0) и кластер `shared` (10), дождаться `healthy` → базы
+(20). Иначе `Database`-объекты один раз увидят отсутствующий кластер и залипнут
+в `applied: false` (см. «Грабли»).
 
 Штатный путь — Argo: оба приложения применяет root, порядок держат волны.
 
@@ -69,7 +70,8 @@ kubectl get cluster,database -A
 Поднять, когда Argo ещё не работает:
 
 ```sh
-kubectl apply -f clusters/casa/platform/namespaces/manifests/namespaces.yaml
+kubectl apply -f clusters/casa/platform/cloudnative-pg/manifests/namespace.yaml   # cnpg-system
+kubectl apply -f clusters/casa/platform/cnpg/manifests/namespace.yaml            # databases
 kubectl apply -f clusters/casa/platform/cloudnative-pg/app.yaml          # оператор
 kubectl -n cnpg-system get pods -w
 

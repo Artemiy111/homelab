@@ -27,6 +27,10 @@ ClusterRole), общий kernel и узел.
 
 - `databases` хранит **только** общий кластер `shared`; выделенные кластеры
   (`zitadel`, `immich`, `dawarich`) — в namespace своих сервисов.
+- Объявление общего кластера и его namespace живёт в платформенном юните
+  `clusters/casa/platform/cnpg/`: сервиса-владельца у общего кластера нет, а
+  namespace объявляет тот юнит, в котором лежит `Application`
+  ([0011](0011-repository-layout-v2.md)).
 - Переезд сервиса в свой namespace дорог и делается инкрементально: Ingress,
   TLS-секрет и `VaultStaticSecret` обязаны лежать в namespace сервиса, PVC
   пересоздаётся.

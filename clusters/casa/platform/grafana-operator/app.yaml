@@ -14,6 +14,9 @@ metadata:
 spec:
   project: upstream
   sources:
+    - repoURL: https://github.com/Artemiy111/homelab.git
+      targetRevision: main
+      path: clusters/casa/platform/grafana-operator/manifests
     - repoURL: ghcr.io/grafana/helm-charts
       chart: grafana-operator
       targetRevision: 5.25.0

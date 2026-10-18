@@ -6,7 +6,7 @@
 # git, поэтому repoURL указывает на репозиторий, а чарт лежит в его корне.
 # Версия зафиксирована тегом v0.34.1 (Vault 2.0.4).
 #
-# namespace: тот же, что и раньше, объявлен в clusters/casa/platform/namespaces/.
+# namespace: объявлен в clusters/casa/platform/vault/manifests/namespace.yaml.
 # Значения вынесены из `spec.source.helm.valuesObject` в
 # `clusters/casa/platform/vault/values.yaml`, Application подключает их через `$values` —
 # второй источник в `spec.sources`.
@@ -20,6 +20,9 @@ metadata:
 spec:
   project: upstream
   sources:
+    - repoURL: https://github.com/Artemiy111/homelab.git
+      targetRevision: main
+      path: clusters/casa/platform/vault/manifests
     - repoURL: https://github.com/hashicorp/vault-helm
       path: .
       targetRevision: v0.34.1

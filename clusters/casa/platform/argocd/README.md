@@ -108,11 +108,17 @@ kubectl -n <ns> annotate <kind> <name> kubectl.kubernetes.io/last-applied-config
 
 | Волна | Что применяется | Почему здесь |
 |---|---|---|
-| 0 | `gateway-api`, `namespaces`, `priorityclasses` | то, без чего не создастся ничто: CRD Gateway API, namespace'ы, классы приоритетов |
+| 0 | `gateway-api`, `priorityclasses` | то, без чего не создастся ничто: CRD Gateway API и классы приоритетов |
 | 10 | операторы, их CRD и хранилище: `cert-manager`, `cloudnative-pg`, `mariadb-operator`, `vault-secrets-operator`, `victoria-metrics-operator`, `vpa`, `trivy-operator`, `elastic-operator`, `falco`, `longhorn`, `snapshot-controller`, `local-path-provisioner`, `local-storage` | CR нельзя применить раньше CRD, а PVC — раньше CSI и класса хранилища |
 | 20 | платформа и то, от чего зависят приложения: `traefik`, `vault`, `monitoring`, UI, `dns01-webhook`, `technitium` | секреты из Vault нужны базам, Gateway — маршрутам, зона DNS — выпуску wildcard-сертификата |
-| 30 | кластеры баз: `cnpg`, `mariadb` | базы нужны приложениям, но не друг другу |
+| 30 | кластеры баз: `cnpg` | базы нужны приложениям, но не друг другу |
 | 40 | приложения | последними: потребителей у них нет |
+
+Namespace'ы едут вместе со своими юнитами: namespace объявляет тот юнит, в
+котором лежит его `Application` (`docs/adr/0011`), и своей волны у них больше
+нет. Порядок внутри синхронизации это выдерживает: Argo сортирует ресурсы по
+kind, и `Namespace` в этом списке первый — раньше и CRD, и рабочих нагрузок
+(`gitops-engine`, `pkg/sync/sync_tasks.go`).
 
 Внутри юнита волна — не только порядок, но и ожидание: Argo держит следующую
 волну, пока ресурсы предыдущей не станут `Healthy`. Поэтому волны внутри есть
