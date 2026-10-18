@@ -20,7 +20,7 @@ regexes = [
 
 [[allowlists]]
 description = "Длительности Go в login policy Zitadel: это AsDuration(), а не пароль"
-paths = ['''^infra/terraform/zitadel/policies\.tf$''']
+paths = ['''^infra/casa/terraform/zitadel/policies\.tf$''']
 regexTarget = "match"
 regexes = [
   '''^\d+h0m0s$''',

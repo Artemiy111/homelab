@@ -1,0 +1,41 @@
+---
+# Параметры домашнего каталога ops. Переопределяются в group_vars/host_vars
+# при необходимости; всё, что относится только к роли, живёт здесь, а не в
+# all.yml, чтобы роль оставалась переносимой.
+ops_user: ops
+ops_group: ops
+ops_home: "/home/{{ ops_user }}"
+
+# Источник правды — каталог в репозитории (infra/casa/dotfiles), а не копия внутри
+# роли: файлы доставляются тем же git-процессом, что и остальные манифесты.
+# repo_root — общая переменная из group_vars/all.yml (корень репозитория).
+ops_dotfiles_dir: "{{ repo_root }}/infra/casa/dotfiles"
+
+# Файлы копируются в домашний каталог, а не линкуются на рабочую копию
+# репозитория: симлинк делает домашний каталог зависимым от того, где лежит
+# репозиторий, — переезд каталога или недоступная копия ломают окружение
+# пользователя. Побочный эффект копирования: правки файлов на узле
+# перезаписываются следующим прогоном, источник правды остаётся один.
+ops_managed_files:
+  - src: "{{ ops_dotfiles_dir }}/.bash_profile"
+    dest: "{{ ops_home }}/.bash_profile"
+    mode: "0644"
+    validate: bash -n %s
+  - src: "{{ ops_dotfiles_dir }}/.bashrc"
+    dest: "{{ ops_home }}/.bashrc"
+    mode: "0644"
+    validate: bash -n %s
+  - src: "{{ ops_dotfiles_dir }}/.gitconfig"
+    dest: "{{ ops_home }}/.gitconfig"
+    mode: "0644"
+  - src: "{{ ops_dotfiles_dir }}/.tmux.conf"
+    dest: "{{ ops_home }}/.tmux.conf"
+    mode: "0644"
+  - src: "{{ ops_dotfiles_dir }}/.zshrc"
+    dest: "{{ ops_home }}/.zshrc"
+    mode: "0644"
+    validate: zsh -n %s
+  # sshd проверяет права на этот файл, поэтому 0600, а не общий для dotfiles 0644.
+  - src: "{{ ops_dotfiles_dir }}/.ssh/config"
+    dest: "{{ ops_home }}/.ssh/config"
+    mode: "0600"

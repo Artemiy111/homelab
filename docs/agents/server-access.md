@@ -22,7 +22,7 @@ macOS; на сервере её нет.
 | Кластер: `kubectl`, `argocd`, состояние подов и ресурсов | macOS | `KUBECONFIG=~/.kube/configs/homelab.yaml kubectl …` |
 | Рендер и apply чартов, чьи values в git | macOS | `helm template … \| kubectl apply -f -` |
 | `terraform` | macOS | запуск в рабочей копии репозитория |
-| `ansible` (host, dotfiles, `ai-agent`) | macOS | `cd infra/ansible && ansible-playbook …` |
+| `ansible` (host, dotfiles, `ai-agent`) | macOS | `cd infra/casa/ansible && ansible-playbook …` |
 | Проверки хоста: DNS с узла, `systemctl`, `tailscale` | SSH | `ssh homelab-agent` |
 
 Правило выбора: **если проверку можно сделать через API-сервер — делать её с
@@ -127,8 +127,8 @@ VaultStaticSecret и destination Secret показывают только име
 
 1. Обновить значение в Vault по нужному пути (`kv/<сервис>/<секрет>`).
 2. Если меняется набор ключей или путь — обновить `VaultStaticSecret`,
-   `deployment` и policy в `infra/terraform/vault/policies/`, затем выполнить
-   `terraform apply` в `infra/terraform/`.
+   `deployment` и policy в `infra/casa/terraform/vault/policies/`, затем выполнить
+   `terraform apply` в `infra/casa/terraform/`.
 3. Доставить через merge в `main` по схеме из «Единственный процесс доставки».
 
 VSO перечитывает значение по `refreshAfter` (1 час). Форсировать

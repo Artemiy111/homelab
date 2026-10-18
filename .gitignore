@@ -19,7 +19,7 @@ __pycache__/
 .kube/
 
 # Кэш ansible-lint (автоустановка collections, fact cache).
-infra/ansible/.ansible/
+infra/casa/ansible/.ansible/
 
 # Terraform/OpenTofu: state, кэш провайдеров и планы не коммитятся. В state
 # лежат значения, которые провайдеры прочитали из внешних систем (токены,
@@ -35,7 +35,7 @@ crash-*.log
 
 # Значения параметров модуля: домен, адреса. В git лежит только пример в
 # README модуля.
-infra/terraform/*/terraform.tfvars
+infra/casa/terraform/*/terraform.tfvars
 
 .worktrees
 

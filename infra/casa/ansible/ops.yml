@@ -1,0 +1,13 @@
+---
+# Плейбук: домашний каталог ops — dotfiles из infra/casa/dotfiles.
+# Запуск с контроллера — macOS, из каталога infra/casa/ansible, без become:
+#   ansible-playbook ops.yml
+# Dry-run (ничего не меняет):
+#   ansible-playbook ops.yml --check --diff
+
+- name: Домфайлы пользователя ops
+  hosts: nodes
+  # Пишет от ops в его домашний каталог: become не нужен, sudo не спрашивается.
+  gather_facts: false
+  roles:
+    - ops

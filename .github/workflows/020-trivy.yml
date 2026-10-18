@@ -9,7 +9,7 @@ on:
     branches: [main]
     paths:
       - "clusters/casa/**"
-      - "infra/terraform/**"
+      - "infra/casa/terraform/**"
       - ".github/workflows/020-trivy.yml"
   workflow_dispatch:
 
@@ -54,7 +54,7 @@ jobs:
             --severity HIGH,CRITICAL \
             --exit-code 0 \
             --quiet \
-            infra/terraform
+            infra/casa/terraform
       - name: Report manifests
         env:
           TRIVY_SKIP_CHECK_UPDATE: "true"

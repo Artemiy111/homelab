@@ -8,7 +8,7 @@ on:
   push:
     branches: [main]
     paths:
-      - "infra/terraform/**"
+      - "infra/casa/terraform/**"
       - ".tflint.hcl"
       - ".github/workflows/100-tflint.yml"
   workflow_dispatch:
@@ -43,5 +43,5 @@ jobs:
           set -euo pipefail
           tflint --version
           tflint --recursive --no-color \
-            --chdir=infra/terraform \
+            --chdir=infra/casa/terraform \
             --config="$(pwd)/.tflint.hcl"

@@ -14,7 +14,7 @@
 
 `terraform` и `ansible` запускаются с macOS: это единственная точка, откуда
 конфигурация попадает на стенд. `terraform` — конфигурация, state и запуск на
-macOS; `ansible` (инвентарь `infra/ansible/`) ходит на узлы кластера по SSH.
+macOS; `ansible` (инвентарь `infra/casa/ansible/`) ходит на узлы кластера по SSH.
 Чекаута репозитория на сервере нет, плейбуки на нём не запускаются.
 
 ## Работа в worktree
@@ -55,7 +55,7 @@ git branch -d feat/577-readme
   молча не выполнятся, а `check.sh` об этом предупредит.
 
 Приватные файлы в дерево **не переносятся** намеренно: `config.env`,
-`infra/terraform/*/terraform.tfvars`,
+`infra/casa/terraform/*/terraform.tfvars`,
 `.terraform/`, `*.tfstate`. В дереве агента их нет — не создавай симлинки и
 не запускай операции с приватным слоем. `terraform plan`/`apply` и проверка
 Argo выполняются только в основном дереве.
