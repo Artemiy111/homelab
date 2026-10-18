@@ -26,7 +26,7 @@ spec:
         fsGroup: 1000
       containers:
         - name: athens
-          image: "gomods/athens:v0.18.1@sha256:cbf1a5e4649a06b6d0089088aa47880af7908f908716f679aa9ac842dfe60b85"
+          image: "gomods/athens:v0.19.2@sha256:8da1d1d4c58b0ed3ea65e8b0bee201970f463acce8cb25b7c7921c3bd044b0f0"
           args:
             - athens-proxy
             - -config_file=/config/config.toml
