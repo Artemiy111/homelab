@@ -98,10 +98,13 @@ spec:
                 - name: HTTP_PROXY
                   value: "http://$(PROXY_USERNAME):$(PROXY_PASSWORD)@xui-egress.3x-ui.svc.cluster.local:8440"
                 # Внутреннее — напрямую: возвращаться к своему же Forgejo из
-                # чужой страны незачем. Renovate понимает `*.`, git и curl —
-                # точное имя хоста.
+                # чужой страны незачем. Так же напрямую идёт реестр Yandex
+                # Cloud: он российский и из-за рубежа отвечает не сразу —
+                # запрос к нему висел 49 секунд и отменялся по таймауту, хотя
+                # без прокси тот же адрес отвечает `401` за 0,16 с.
+                # Renovate понимает `*.`, git и curl — точное имя хоста.
                 - name: NO_PROXY
-                  value: "localhost,127.0.0.1,forgejo.biplane.casa,*.svc.cluster.local,*.biplane.casa"
+                  value: "localhost,127.0.0.1,forgejo.biplane.casa,*.svc.cluster.local,*.biplane.casa,registry.yandexcloud.net,*.yandexcloud.net"
                 # Renovate предпочитает нижний регистр, остальные инструменты
                 # читают оба варианта.
                 - name: https_proxy
