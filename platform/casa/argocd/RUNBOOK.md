@@ -295,7 +295,7 @@ argocd app diff traefik               # пусто
 
 Ограничения, которые надо знать до того, как что-то сломается:
 
-- **`destinations` в `projects/upstream.yaml` — белый список из 16 namespace.**
+- **`destinations` в `appprojects/upstream.yaml` — белый список из 16 namespace.**
   Компонент в новом namespace не задеплоится, пока его не впишут руками. Сделано
   намеренно: `clusterResourceWhitelist` у всех 18 компонентов одинаковый и
   включает `*`, ограничивать по kind бессмысленно — операторы законно создают

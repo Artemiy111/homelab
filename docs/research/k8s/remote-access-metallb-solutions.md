@@ -319,7 +319,7 @@ MetalLB в режиме L2 работает, отправляя **безарпн
 2. Настроить Tailscale на advertise `<metallb-ip>/32` как subnet route
 3. kube-proxy обрабатывает трафик, приходящий с любого интерфейса
 
-**Актуальное состояние (after experiment):** Этот вариант был протестирован в августе 2026 ([troubleshot/tailscale-k8s-ingress-access.md](docs/troubleshot/tailscale-k8s-ingress-access.md)). При `ip addr add <metallb-ip>/32 dev tailscale0`: VIP появился на tailscale0, но ядро перестало считать его входом LoadBalancer и отправило пакеты в loopback. Трафик завис (нет слушателя на <node1-vip>:443).
+**Актуальное состояние (after experiment):** Этот вариант был протестирован в августе 2026 ([troubleshot/tailscale-k8s-ingress-access.md](docs/troubleshoot/tailscale-k8s-ingress-access.md)). При `ip addr add <metallb-ip>/32 dev tailscale0`: VIP появился на tailscale0, но ядро перестало считать его входом LoadBalancer и отправило пакеты в loopback. Трафик завис (нет слушателя на <node1-vip>:443).
 
 **Вывод эксперимента:** сделать VIP локальным адресом на tailscale-интерфейсе **не работает** — это ломает механизм входа MetalLB. LoadBalancer в L2-режиме работает через ARP + DNAT на LAN-интерфейсе, а не как процесс, слушающий VIP. Поэтому подход с dummy-интерфейсом требует замены MetalLB L2 на альтернативу (BGP, Tailscale Operator или self-hosted tunnel), а не патчинга адресов.
 
@@ -629,12 +629,12 @@ sudo ip rule add to 100.64.0.0/10 lookup 52 priority 5200
 домену отдаёт `200` с валидным Let's Encrypt-сертификатом (`*.example.com`),
 LAN не затронут. Правило закреплено systemd-юнитом
 `etc/systemd/tailscale-policy-route.service` (ставится через `ansible/host.yml`),
-подробности — в `docs/troubleshot/tailscale-k8s-ingress-access.md`.
+подробности — в `docs/troubleshoot/tailscale-k8s-ingress-access.md`.
 
 Итог: ни BGP, ни Tailscale Operator для доступа из tailnet не требуются — проблема
 была целиком в policy routing на ноде.
 
-Это уточняет вывод из `docs/troubleshot/tailscale-k8s-ingress-access.md`: дело не
+Это уточняет вывод из `docs/troubleshoot/tailscale-k8s-ingress-access.md`: дело не
 только в том, что «MetalLB L2 не умеет L3-вход», а в том, что ответный сервисный
 трафик с ноды к tailnet-клиенту уходил не в тот интерфейс.
 

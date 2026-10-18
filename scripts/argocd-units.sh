@@ -49,9 +49,9 @@ kind: Kustomization
 HEADER
   echo "resources:"
   {
-    for project in "$argocd"/projects/*.yaml; do
+    for project in "$argocd"/appprojects/*.yaml; do
       [ -e "$project" ] || continue
-      echo "  - projects/$(basename "$project")"
+      echo "  - appprojects/$(basename "$project")"
     done
     for spec in "$argocd"/platform/*.yaml; do
       [ -e "$spec" ] || continue

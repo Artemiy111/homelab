@@ -730,7 +730,7 @@ CNI (Cilium). Для нашего кластера — MetalLB L2 + `Service typ
 | Gateway | `Gateway homelab` в namespace `traefik`, слушатели `https` (`*.<домен>`) и `apex` | `platform/homelab/templates/gateway/gateway.yaml` |
 | TLS | cert-manager v1.21.2, `Certificate wildcard` → `wildcard-tls` в `traefik`, DNS-01 через webhook | `platform/homelab/templates/cert-manager/certificate.yaml` |
 | DNS | Technitium, wildcard `*.<домен>` → `<node1-ip>` | `terraform/technitium/records.tf` |
-| Tailscale | на хосте, subnet route + split DNS; доступ из tailnet починен policy-routing правилом | `docs/troubleshot/tailscale-k8s-ingress-access.md` |
+| Tailscale | на хосте, subnet route + split DNS; доступ из tailnet починен policy-routing правилом | `docs/troubleshoot/tailscale-k8s-ingress-access.md` |
 
 **Состояние на 2026-10-01: миграция на Gateway API выполнена** (#700, PR #701–#706, решение
 в `docs/adr/0010-gateway-api-routing.md`). Реализация — Traefik с включённым
@@ -888,7 +888,7 @@ spec:
       (команда и ссылка на прежний манифест пула сохранены в `platform/k0s/README.md:182-196`).
 - [ ] Перевести Traefik `Service` с `externalIPs` на `type: LoadBalancer` (фиксированный IP).
 - [ ] Убедиться, что policy-routing правило для tailnet
-      (`docs/troubleshot/tailscale-k8s-ingress-access.md`) не сломало доступ после смены
+      (`docs/troubleshoot/tailscale-k8s-ingress-access.md`) не сломало доступ после смены
       способа публикации адреса.
 - [ ] Добавить `DenyServiceExternalIPs` admission, когда `externalIPs` больше нигде не используется.
 

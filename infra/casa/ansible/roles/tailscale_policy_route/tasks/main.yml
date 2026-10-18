@@ -2,7 +2,7 @@
 # Tailscale + kube-proxy: policy routing.
 # Без этого правила ответы сервисов кластера (externalIPs/NodePort) к
 # tailnet-клиентам уходят в LAN (enp2s0) вместо tailscale0. Разбор:
-# docs/troubleshot/tailscale-k8s-ingress-access.md, юнит —
+# docs/troubleshoot/tailscale-k8s-ingress-access.md, юнит —
 # infra/casa/host/etc/systemd/tailscale-policy-route.service.
 
 - name: Скопировать systemd-юнит с policy routing для Tailscale

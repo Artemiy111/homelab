@@ -40,7 +40,7 @@ ssh homelab 'sudo sysctl --system'
 - `systemd/tailscale-policy-route.service` — правило policy routing, без которого
   ответы LoadBalancer/NodePort к tailnet-клиентам уходят через физический
   интерфейс вместо `tailscale0`. Разбор — в
-  `docs/troubleshot/tailscale-k8s-ingress-access.md`.
+  `docs/troubleshoot/tailscale-k8s-ingress-access.md`.
 - `sysctl.d/99-inotify.conf` — число inotify-инстансов на uid (`1024` вместо
   дефолтных `128`): все поды k8s и Docker работают под root и делят один бюджет,
   без этого падают файловые watcher'ы (.NET, node-fs.watch) — проявилось
