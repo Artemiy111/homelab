@@ -20,7 +20,7 @@
     "vault_static_secret": 97
   },
   "docs": {
-    "adr": 15,
+    "adr": 16,
     "postmortems": 11,
     "research": 52
   }
