@@ -1,6 +1,6 @@
-# Samba, раздающая тома внешнего NTFS-диска.
+# Samba, раздающая том внешнего NTFS-диска.
 #
-# Тома монтирует хост (systemd, /etc/fstab), кластер только читает точки
+# Том монтирует хост (systemd, /etc/fstab), кластер только читает точку
 # через hostPath. Разделение не из удобства: systemd умеет монтировать NTFS с
 # опциями `uid`/`gid`/`context`, которых у Kubernetes нет, и ждать появления
 # USB-устройства, не вводя узел в emergency.
@@ -65,11 +65,6 @@ spec:
           volumeMounts:
             - name: ntfs1
               mountPath: /mnt/ntfs1
-            - name: ntfs2
-              mountPath: /mnt/ntfs2
-              readOnly: true
-            - name: ntfs3
-              mountPath: /mnt/ntfs3
             - name: state
               mountPath: /var/lib/samba
             - name: scripts
@@ -146,7 +141,7 @@ spec:
             # NET_BIND_SERVICE — для 445 внутри netns пода. SETUID/SETGID —
             # сброс привилегий на учётку шары; без них smbd не может работать
             # с файлами и клиент получает отказ. CHOWN/FOWNER/DAC_OVERRIDE —
-            # запись на ntfs3.
+            # запись на том.
             allowPrivilegeEscalation: false
             capabilities:
               drop: ["ALL"]
@@ -154,18 +149,11 @@ spec:
             seccompProfile:
               type: RuntimeDefault
           volumeMounts:
-            # ro на ntfs2 — не дублирование `read only = yes` в секции шары:
-            # режим монтирования на хосте у ntfs3-тома в грязном состоянии
-            # трогать нельзя, и под не должен получать такую возможность.
-            # ntfs1 отформатирован и смонтирован rw, поэтому смонтирован в под
-            # на запись.
+            # Том смонтирован на хосте на запись, поэтому смонтирован в под
+            # на запись: `read only = yes` в секции шары тут не нужен, режим
+            # задаёт монтирование.
             - name: ntfs1
               mountPath: /mnt/ntfs1
-            - name: ntfs2
-              mountPath: /mnt/ntfs2
-              readOnly: true
-            - name: ntfs3
-              mountPath: /mnt/ntfs3
             # База паролей tdbsam и состояние smbd. emptyDir переживает
             # перезапуск контейнера, но не удаление пода: initContainer
             # пересоздаёт учётку заново, поэтому ротация пароля в Vault
@@ -192,14 +180,6 @@ spec:
         - name: ntfs1
           hostPath:
             path: /mnt/ntfs1
-            type: Directory
-        - name: ntfs2
-          hostPath:
-            path: /mnt/ntfs2
-            type: Directory
-        - name: ntfs3
-          hostPath:
-            path: /mnt/ntfs3
             type: Directory
         - name: state
           emptyDir: {}
