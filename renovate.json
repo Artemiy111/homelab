@@ -9,9 +9,24 @@
   },
   "packageRules": [
     {
-      "description": "Имя образа длиннее бюджета заголовка в commitlint",
-      "matchPackageNames": ["data.forgejo.org/forgejo/forgejo"],
-      "commitMessageTopic": "forgejo image"
+      "description": "Мажоры ждут подтверждения в дашборде, а не приезжают PR",
+      "matchUpdateTypes": ["major"],
+      "dependencyDashboardApproval": true
+    },
+    {
+      "description": "Тема PR ограничена commitlint: только имя образа, без реестра и пути",
+      "matchDatasources": ["docker"],
+      "commitMessageTopic": "{{{replace '^.*/' '' depName}}}"
+    },
+    {
+      "description": "Длинное имя не влезает в бюджет заголовка даже без реестра",
+      "matchPackageNames": ["otel/opentelemetry-collector-contrib"],
+      "commitMessageTopic": "otel collector"
+    },
+    {
+      "description": "То же для образа машинного обучения Immich",
+      "matchPackageNames": ["ghcr.io/immich-app/immich-machine-learning"],
+      "commitMessageTopic": "immich ml"
     },
     {
       "description": "Версия bun живёт в четырёх местах, Renovate видит одно",
