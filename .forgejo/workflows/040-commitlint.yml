@@ -36,11 +36,11 @@ jobs:
       # setup-bun берётся из зеркала RustFS, как и бинарники остальных гейтов
       # (issue #149): внешние репозитории бывают недоступны, а ATS в кластере
       # не развёрнут, и job падал на загрузке bun до установки чего-либо.
-      # Bинарь качаем через кэш ATS (clusters/casa/apps/ats): GitHub отдаёт release-ассет 302
+      # Bинарь качаем через кэш ATS (apps/casa/ats): GitHub отдаёт release-ассет 302
       # на подписанный CDN-URL, а HTTP-клиент внутри setup-bun по нему не идёт и
       # уходит в таймаут. ATS же разворачивает редирект сам и кэширует файл.
       # registries пишет bunfig.toml, поэтому `bun install` идёт через локальный
-      # кэш Verdaccio (clusters/casa/apps/verdaccio).
+      # кэш Verdaccio (apps/casa/verdaccio).
       - name: Setup bun
         if: steps.dependencies.outputs.cache-hit != 'true'
         uses: oven-sh/setup-bun@v2

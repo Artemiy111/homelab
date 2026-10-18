@@ -32,7 +32,7 @@ updates:
   - package-ecosystem: docker
     directories:
       - "/.devcontainer"
-      - "/clusters/casa/apps/*"
+      - "/apps/casa/*"
     schedule:
       interval: weekly
     open-pull-requests-limit: 20
@@ -42,7 +42,7 @@ updates:
 
   - package-ecosystem: docker-compose
     directories:
-      - "/clusters/casa/apps/*"
+      - "/apps/casa/*"
     schedule:
       interval: weekly
     open-pull-requests-limit: 20
@@ -61,7 +61,7 @@ updates:
 
   - package-ecosystem: helm
     directories:
-      - "/clusters/casa/apps/*/chart"
+      - "/apps/casa/*/chart"
     schedule:
       interval: weekly
     open-pull-requests-limit: 20

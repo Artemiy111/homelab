@@ -21,7 +21,7 @@ startup_limit=300
 reaction_limit=120
 
 problems="$(
-  git ls-files 'clusters/casa/*.yaml' |
+  git ls-files 'apps/casa/*.yaml' 'platform/casa/*.yaml' 'clusters/casa/argocd/*.yaml' |
     xargs -r awk -v startup_limit="$startup_limit" -v reaction_limit="$reaction_limit" '
       function lead(s) {
         t = s

@@ -35,7 +35,7 @@ jobs:
         run: |
           set -euo pipefail
           asset="actionlint/1.7.12/actionlint_1.7.12_linux_amd64.tar.gz"
-          read -r expected url <<<"$(awk -v p="$asset" '$1==p{print $2, $3}' clusters/casa/apps/rustfs/manifests/artifacts.tsv)"
+          read -r expected url <<<"$(awk -v p="$asset" '$1==p{print $2, $3}' apps/casa/rustfs/manifests/artifacts.tsv)"
           mkdir -p "$HOME/.local/bin"
           curl -fsSL -o /tmp/actionlint.tar.gz "$url"
           echo "$expected  /tmp/actionlint.tar.gz" | sha256sum -c -

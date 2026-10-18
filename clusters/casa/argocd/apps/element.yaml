@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "40"
+  name: element
+  namespace: argocd
+spec:
+  project: homelab
+  sources:
+    - repoURL: https://github.com/Artemiy111/homelab.git
+      targetRevision: main
+      path: apps/casa/element/chart
+      helm:
+        releaseName: element
+    # element-web-config — конфиг сервиса, а не общее окружение. Второй источник
+    # обычным каталогом — Argo сводит манифесты источников в один набор, а
+    # дубликатов здесь нет.
+    - repoURL: https://github.com/Artemiy111/homelab.git
+      targetRevision: main
+      path: apps/casa/element/manifests
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: element
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - ServerSideApply=true

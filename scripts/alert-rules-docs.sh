@@ -8,8 +8,8 @@ if [ "${1:---check}" != "--check" ]; then
   exit 2
 fi
 
-manifest="clusters/casa/apps/grafana/manifests/alerts.yaml"
-registry="clusters/casa/apps/grafana/README.md"
+manifest="apps/casa/grafana/manifests/alerts.yaml"
+registry="apps/casa/grafana/README.md"
 
 failures=0
 
@@ -24,7 +24,7 @@ has_uid() {
 
 manifest_uids="$(sed -n 's/^    - uid: \(.*\)$/\1/p' "$manifest" | sort)"
 registry_uids="$(grep -o '^| `[a-z0-9][a-z0-9-]*`' "$registry" | tr -d '|` ' | sort)"
-runbook_uids="$(grep -rhE '^### (`[a-z0-9][a-z0-9-]*`[ /,]*)+$' clusters/casa --include='RUNBOOK.md' \
+runbook_uids="$(grep -rhE '^### (`[a-z0-9][a-z0-9-]*`[ /,]*)+$' apps/casa platform/casa --include='RUNBOOK.md' \
   | grep -oE '`[a-z0-9][a-z0-9-]*`' | tr -d '`' | sort -u)"
 
 if [ -z "$manifest_uids" ]; then

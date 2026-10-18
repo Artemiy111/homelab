@@ -1,0 +1,58 @@
+# Forgejo (сервис apps/casa/forgejo) — официального чарта у проекта нет, де-факто
+# стандарт — forgejo-helm из организации forgejo-contrib на Codeberg. Это форк
+# чарта Gitea, переделанный под Forgejo: внешние база и кэш вместо сабчартов,
+# rootless-образ по умолчанию, admin-пользователь и метрики.
+#
+# Источник — git-репозиторий чарта с path: ., как у local-path-provisioner.
+# Важно: в git-дереве Chart.yaml у чарта лежит с appVersion 14.0.1 (реальный
+# appVersion подставляется только в OCI-артефакт при релизе), поэтому image.tag
+# и digest заданы явно — иначе Argo развернул бы Forgejo 14 вместо 16.
+# Тег/дайджест — те же, что были в манифестах до переезда на чарт.
+#
+# База — внешняя: кластер CNPG shared в namespace databases, роль и база forgejo
+# (platform/casa/cnpg/manifests/shared.cluster.yaml, shared.databases.yaml). Пароль роли лежит в
+# Secret'е databases/forgejo-db-auth, и он же — в forgejo/forgejo (один
+# путь kv/forgejo/db, два VaultStaticSecret; так решено в platform/casa/cnpg/README.md).
+# Здесь он подставляется в app.ini через FORGEJO__database__PASSWD, поэтому
+# секрет чарту не нужен.
+#
+# Админ создаётся chart'ом из Secret'а forgejo-admin (ключ и режим
+# initialOnlyNoReset — здесь, пароль в values не попадает): режим выбран, чтобы
+# смена пароля в UI не перетиралась при каждом рестарте пода.
+#
+# Веб-мастера установки нет: чарт всегда ставит INSTALL_LOCK=true.
+#
+# Встроенная база/кэш чарта не включаются — иначе консолидация БД отменяется
+# (docs/adr/0002).
+# Значения вынесены из `spec.source.helm.valuesObject` в
+# `platform/casa/forgejo/values.yaml`, Application подключает их через `$values` —
+# второй источник в `spec.sources`.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "40"
+  name: forgejo
+  namespace: argocd
+spec:
+  project: upstream
+  sources:
+    - repoURL: https://codeberg.org/forgejo-contrib/forgejo-helm.git
+      path: .
+      targetRevision: v16.0.1
+      helm:
+        releaseName: forgejo
+        valueFiles:
+          - $values/platform/casa/forgejo/values.yaml
+    - repoURL: https://github.com/Artemiy111/homelab.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: forgejo
+  syncPolicy:
+    syncOptions:
+      - ServerSideApply=true
+    automated:
+      selfHeal: true
+      prune: true

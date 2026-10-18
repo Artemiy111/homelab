@@ -25,8 +25,8 @@ namespace'ов закрыто NetworkPolicy. Все они считаются и
 
 | Число | Метод | Границы |
 |---|---|---|
-| services | каталоги под `clusters/casa/apps/`, где есть хотя бы один YAML | включает `clusters/casa/apps/elk`, выведенный из эксплуатации: манифесты ещё не удалены |
-| manifests | файлы в области гейта kubeconform: `clusters/casa/apps/<сервис>/manifests/`, `clusters/casa/platform/`, `bootstrap/` без `values.yaml`, `Chart.yaml`, `manifests/config/` и `kustomization.yaml` | ровно то, что проверяет CI |
+| services | каталоги под `apps/casa/`, где есть хотя бы один YAML | включает `apps/casa/elk`, выведенный из эксплуатации: манифесты ещё не удалены |
+| manifests | файлы в области гейта kubeconform: `apps/casa/<сервис>/manifests/`, `platform/casa/`, `clusters/casa/argocd/` без `values.yaml`, `Chart.yaml`, `manifests/config/` и `kustomization.yaml` | ровно то, что проверяет CI |
 | images pinned | `image: <ref>` одной строкой; в знаменателе только формы, где значение стоит на той же строке | многострочные формы (`image:` + `repository`/`tag` в CNPG и чартах Argo) не считаются: их нельзя объявить незакреплёнными без разбора YAML |
 | netpol coverage | namespace'ы, где есть манифест с `kind: NetworkPolicy`, делённые на все namespace'ы из манифестов: `metadata.namespace` и `spec.destination.namespace` у `Application` | вложенные `namespace:` из subject'ов RBAC и service-ссылок вебхуков не считаются |
 | ADR / postmortems | количество файлов в `docs/adr/` и `docs/incidents/NNNN-*.md` | — |
@@ -35,7 +35,7 @@ namespace'ов закрыто NetworkPolicy. Все они считаются и
 
 Число считается по области, известной только репозиторию, поэтому это нижняя
 оценка, и она расходится с кластером в обе стороны. Замер на 2026-09-29 после
-применения `clusters/casa/apps/vault/manifests/networkpolicy-vso.yaml`:
+применения `apps/casa/vault/manifests/networkpolicy-vso.yaml`:
 
 | | репозиторий | кластер |
 |---|---|---|
@@ -52,10 +52,10 @@ namespace'ов закрыто NetworkPolicy. Все они считаются и
   нет: тестовый стенд не применяется. Репозиторий считает её в знаменателе.
 - **`logging` — остаток выведенного из эксплуатации ELK.** Namespace и два
   NetworkPolicy в кластере есть, workloads нет; в репозитории namespace
-  объявлен в `clusters/casa/apps/elk/`. Пока
-  `clusters/casa/apps/elk` не удалён (#617), репозиторий считает его как обычный namespace.
+  объявлен в `apps/casa/elk/`. Пока
+  `apps/casa/elk` не удалён (#617), репозиторий считает его как обычный namespace.
 - **`networkpolicy-vso.yaml` был объявлен, но не применён.** Манифест
-  `clusters/casa/apps/vault/manifests/networkpolicy-vso.yaml` лежал в репозитории, а в кластере
+  `apps/casa/vault/manifests/networkpolicy-vso.yaml` лежал в репозитории, а в кластере
   политики для `vault-secrets-operator` не было: тогда манифесты юнитов применялись
   вручную, и ничто не проверяло, что файл доехал. Обнаружила сверка чисел с
   кластером, закрыта применением в тот же день. Вывод для процесса: у
@@ -80,7 +80,7 @@ namespace'ов закрыто NetworkPolicy. Все они считаются и
   - `kube-system`, `local-path-storage` — системные, ими управляет k0s, а не
     манифесты репозитория;
   - `gitlab` — тестовый стенд, применяется вручную, вне Argo.
-- **Services** — `clusters/casa/apps/elk` заменён на Loki и Alloy, манифесты остались в
+- **Services** — `apps/casa/elk` заменён на Loki и Alloy, манифесты остались в
   репозитории. Удаление — отдельная задача.
 
 ## Перегенерация
@@ -91,13 +91,13 @@ namespace'ов закрыто NetworkPolicy. Все они считаются и
 ```
 
 Гейт `.forgejo/workflows/120-status.yml` запускает `--check` на всех изменениях в
-`clusters/casa/apps/`, `clusters/casa/platform/`, `argocd/` и `docs/`: если числа в репозитории разошлись с
+`apps/casa/`, `platform/casa/`, `clusters/casa/argocd/` и `docs/`: если числа в репозитории разошлись с
 артефактами, CI падает с указанием команды. Локально та же проверка висит в
 `.githooks/pre-commit` — расхождение ловится до коммита, а не после merge.
 
 Скрипт использует только `git`, `grep`, `awk` и coreutils, поэтому новых бинарей
 в тулчейне CI не появляется: набор инструментов в
-[`clusters/casa/apps/rustfs/manifests/artifacts.tsv`](../../clusters/casa/apps/rustfs/manifests/artifacts.tsv) не меняется.
+[`apps/casa/rustfs/manifests/artifacts.tsv`](../../apps/casa/rustfs/manifests/artifacts.tsv) не меняется.
 
 ## Гонка при merge
 

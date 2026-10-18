@@ -8,7 +8,9 @@ on:
   push:
     branches: [main]
     paths:
-      - "clusters/casa/**"
+      - "apps/casa/**"
+      - "platform/casa/**"
+      - "clusters/casa/argocd/**"
       - "infra/casa/terraform/**"
       - ".github/workflows/020-trivy.yml"
   workflow_dispatch:
@@ -55,14 +57,19 @@ jobs:
             --exit-code 0 \
             --quiet \
             infra/casa/terraform
+      # `trivy config` принимает один DIR, поэтому каталоги перебираются
+      # циклом: лишний позиционный аргумент молча игнорируется, и часть дерева
+      # выпала бы из скана, оставшись зелёной.
       - name: Report manifests
         env:
           TRIVY_SKIP_CHECK_UPDATE: "true"
         run: |
           set -euo pipefail
-          "$HOME/.local/trivy/trivy" config \
-            --cache-dir "${{ github.workspace }}/.cache/trivy" \
-            --severity HIGH,CRITICAL \
-            --exit-code 0 \
-            --quiet \
-            clusters/casa
+          for dir in apps/casa platform/casa clusters/casa/argocd; do
+            "$HOME/.local/trivy/trivy" config \
+              --cache-dir "${{ github.workspace }}/.cache/trivy" \
+              --severity HIGH,CRITICAL \
+              --exit-code 0 \
+              --quiet \
+              "$dir"
+          done

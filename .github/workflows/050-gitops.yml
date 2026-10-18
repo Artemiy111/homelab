@@ -7,7 +7,9 @@ on:
   push:
     branches: [main]
     paths:
-      - "clusters/casa/**"
+      - "apps/casa/**"
+      - "platform/casa/**"
+      - "clusters/casa/argocd/**"
       - "scripts/**"
       - ".github/workflows/050-gitops.yml"
 

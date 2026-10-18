@@ -1,7 +1,7 @@
 # Гейт публичного зеркала на GitHub, парный к .forgejo/workflows/030-kubeconform.yml:
 # набор путей, схем, фильтров и версии тот же — он живёт в scripts/kubeconform.sh.
 # Отличается источник бинаря: не зеркало RustFS, а апстрим-релиз. sha256 и URL
-# при этом берутся из clusters/casa/apps/rustfs/manifests/artifacts.tsv — там пин
+# при этом берутся из apps/casa/rustfs/manifests/artifacts.tsv — там пин
 # лежит вместе с манифестом зеркала, и дублировать его в workflow незачем.
 #
 # Схемы CR из зеркала не раскладываются: скрипт берёт их по HTTP из
@@ -13,9 +13,9 @@ on:
   push:
     branches: [main]
     paths:
-      - "clusters/casa/apps/**"
-      - "clusters/casa/platform/**"
-      - "bootstrap/**"
+      - "apps/casa/**"
+      - "platform/casa/**"
+      - "clusters/casa/argocd/**"
       - "scripts/kubeconform.sh"
       - ".github/workflows/030-kubeconform.yml"
 
@@ -52,7 +52,7 @@ jobs:
         run: |
           set -euo pipefail
           asset="kubeconform/0.8.0/kubeconform_0.8.0_linux_amd64.tar.gz"
-          read -r expected url <<<"$(awk -v p="$asset" '$1==p{print $2, $3}' clusters/casa/apps/rustfs/manifests/artifacts.tsv)"
+          read -r expected url <<<"$(awk -v p="$asset" '$1==p{print $2, $3}' apps/casa/rustfs/manifests/artifacts.tsv)"
           mkdir -p "$HOME/.local/bin" /tmp/kubeconform
           curl -fsSL -o /tmp/kubeconform/kubeconform.tar.gz "$url"
           echo "$expected  /tmp/kubeconform/kubeconform.tar.gz" | sha256sum -c -

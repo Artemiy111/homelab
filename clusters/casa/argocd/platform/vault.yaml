@@ -1,0 +1,46 @@
+# Vault — сервер, официальный чарт hashicorp/vault-helm.
+#
+# Чарт берём из git-репозитория HashiCorp, а не из helm.releases.hashicorp.com:
+# CDN HashiCorp отдаёт 403 (CloudFront WAF, x-cache: Error from cloudfront) из
+# этой сети — и с macOS, и с ноды кластера. ArgoCD умеет рендерить чарт прямо из
+# git, поэтому repoURL указывает на репозиторий, а чарт лежит в его корне.
+# Версия зафиксирована тегом v0.34.1 (Vault 2.0.4).
+#
+# namespace: объявлен в platform/casa/vault/manifests/namespace.yaml.
+# Значения вынесены из `spec.source.helm.valuesObject` в
+# `platform/casa/vault/values.yaml`, Application подключает их через `$values` —
+# второй источник в `spec.sources`.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "20"
+  name: vault
+  namespace: argocd
+spec:
+  project: upstream
+  sources:
+    - repoURL: https://github.com/Artemiy111/homelab.git
+      targetRevision: main
+      path: platform/casa/vault/manifests
+    - repoURL: https://github.com/hashicorp/vault-helm
+      path: .
+      targetRevision: v0.34.1
+      helm:
+        releaseName: vault
+        valueFiles:
+          - $values/platform/casa/vault/values.yaml
+    - repoURL: https://github.com/Artemiy111/homelab.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: vault
+  syncPolicy:
+    syncOptions:
+      # Prune=false: удаление StatefulSet унесло бы PVC с raft-данными. У
+      # cert-manager и cloudnative-pg та же причина.
+      - ServerSideApply=true
+      - Prune=false
+    automated:
+      selfHeal: true

@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  annotations:
+    argocd.argoproj.io/compare-options: ServerSideDiff=false
+    argocd.argoproj.io/sync-wave: "40"
+  name: zitadel
+  namespace: argocd
+spec:
+  project: homelab
+  sources:
+    - repoURL: https://github.com/Artemiy111/homelab.git
+      targetRevision: main
+      path: apps/casa/zitadel/manifests
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: zitadel
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

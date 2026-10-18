@@ -7,17 +7,17 @@
 # устаревшей базе. Здесь дерево и есть main.
 #
 # Тулчейн не расширяется: генератор на git, grep, awk и coreutils, поэтому
-# ничего не качаем из зеркала RustFS (clusters/casa/apps/rustfs) и не добавляем в
-# clusters/casa/apps/rustfs/manifests/artifacts.tsv.
+# ничего не качаем из зеркала RustFS (apps/casa/rustfs) и не добавляем в
+# apps/casa/rustfs/manifests/artifacts.tsv.
 name: meta
 
 on:
   push:
     branches: [main]
     paths:
-      - "clusters/casa/apps/**"
-      - "clusters/casa/platform/**"
-      - "bootstrap/**"
+      - "apps/casa/**"
+      - "platform/casa/**"
+      - "clusters/casa/argocd/**"
       - "docs/**"
       - "scripts/**"
       - ".github/workflows/120-status.yml"

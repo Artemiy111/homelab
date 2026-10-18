@@ -11,7 +11,7 @@ set -euo pipefail
 
 cd "$(git rev-parse --show-toplevel)"
 
-classes_file="clusters/casa/platform/priorityclasses/manifests/priorityclasses.yaml"
+classes_file="platform/casa/priorityclasses/manifests/priorityclasses.yaml"
 
 # Классы, объявленные не нами: их создают Kubernetes и чарт Longhorn.
 external=" system-node-critical system-cluster-critical longhorn-critical "
@@ -27,7 +27,7 @@ declared="$(
 failures=0
 
 used_raw="$(
-  git ls-files 'clusters/casa/*.yaml' 'bootstrap/*.yaml' |
+  git ls-files 'apps/casa/*.yaml' 'platform/casa/*.yaml' 'clusters/casa/argocd/*.yaml' |
     grep -v "^${classes_file}$" |
     xargs -r grep -hoE 'priorityClassName:[[:space:]]*"?[A-Za-z0-9][A-Za-z0-9.-]*' |
     sed -E 's/^priorityClassName:[[:space:]]*"?([A-Za-z0-9][A-Za-z0-9.-]*).*$/\1/' || true
@@ -49,14 +49,14 @@ done
 # его дереве нет, ярус тихо теряет участника, и заметно это только тем, что под
 # снова конкурирует за память с остальными.
 critical=(
-  clusters/casa/platform/argocd
-  clusters/casa/apps/zitadel
-  clusters/casa/platform/cert-manager
-  clusters/casa/platform/cloudnative-pg
-  clusters/casa/platform/cnpg
-  clusters/casa/platform/traefik
-  clusters/casa/platform/vault
-  clusters/casa/platform/vault-secrets-operator
+  platform/casa/argocd
+  apps/casa/zitadel
+  platform/casa/cert-manager
+  platform/casa/cloudnative-pg
+  platform/casa/cnpg
+  platform/casa/traefik
+  platform/casa/vault
+  platform/casa/vault-secrets-operator
 )
 
 for unit in "${critical[@]}"; do

@@ -72,14 +72,14 @@ crd_schema_name="{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json"
 # CRD, которое переживёт ревью незамеченным. Схемы CR из каталога строгие уже
 # по построению, strict касается схем Kubernetes.
 #
-# Сканируются каталоги с манифестами: clusters/casa/apps/<сервис>/manifests, clusters/casa/platform, bootstrap. Внутри manifests лежит config/ — это конфиги
+# Сканируются каталоги с манифестами: apps/casa/<сервис>/manifests, platform/casa, clusters/casa/argocd. Внутри manifests лежит config/ — это конфиги
 # приложений, а не манифесты, поэтому исключены по пути.
 # -ignore-missing-schemas намеренно не используется: для kind'а, которому нет
 # схемы, лучше упасть, чем пройти молча.
 if [ "$#" -gt 0 ]; then
   targets=("$@")
 else
-  targets=(clusters/casa/apps/*/manifests clusters/casa/platform bootstrap)
+  targets=(apps/casa/*/manifests platform/casa clusters/casa/argocd)
 fi
 
 schema_args=()

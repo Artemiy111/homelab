@@ -7,9 +7,9 @@ on:
   push:
     branches: [main]
     paths:
-      - "clusters/casa/apps/**"
-      - "clusters/casa/platform/**"
-      - "bootstrap/**"
+      - "apps/casa/**"
+      - "platform/casa/**"
+      - "clusters/casa/argocd/**"
       - ".kube-linter.yaml"
       - ".github/workflows/060-kube-linter.yml"
 
@@ -30,7 +30,7 @@ jobs:
         run: |
           set -euo pipefail
           asset="kube-linter/0.8.3/kube-linter-linux.tar.gz"
-          read -r expected url <<<"$(awk -v p="$asset" '$1==p{print $2, $3}' clusters/casa/apps/rustfs/manifests/artifacts.tsv)"
+          read -r expected url <<<"$(awk -v p="$asset" '$1==p{print $2, $3}' apps/casa/rustfs/manifests/artifacts.tsv)"
           mkdir -p "$HOME/.local/bin"
           curl -fsSL -o /tmp/kube-linter.tar.gz "$url"
           echo "$expected  /tmp/kube-linter.tar.gz" | sha256sum -c -
@@ -38,8 +38,8 @@ jobs:
           install -m 0755 /tmp/kube-linter "$HOME/.local/bin/kube-linter"
       - name: Add kube-linter to PATH
         run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-      # Сканируем каталоги с манифестами: clusters/casa/apps/<svc>/manifests,
-      # clusters/casa/platform, bootstrap.
+      # Сканируем каталоги с манифестами: apps/casa/<svc>/manifests,
+      # platform/casa, clusters/casa/argocd.
       # values/Chart/templates/kustomization отсекаются ignorePaths в
       # .kube-linter.yaml. Набор проверок — тоже там (allow-list, Phase 1).
       # Схемы API не проверяем: schema-validation тянет их из сети, это уже
@@ -48,4 +48,4 @@ jobs:
         run: |
           set -euo pipefail
           kube-linter version
-          kube-linter lint --config .kube-linter.yaml --fail-if-no-objects-found clusters/casa/apps/*/manifests clusters/casa/platform bootstrap
+          kube-linter lint --config .kube-linter.yaml --fail-if-no-objects-found apps/casa/*/manifests platform/casa clusters/casa/argocd

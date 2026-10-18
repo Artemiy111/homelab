@@ -4,8 +4,9 @@ on:
   push:
     branches: [main]
     paths: &paths
-      - "clusters/casa/apps/grafana/**"
-      - "clusters/casa/**/RUNBOOK.md"
+      - "apps/casa/grafana/**"
+      - "apps/casa/**/RUNBOOK.md"
+      - "platform/casa/**/RUNBOOK.md"
       - "scripts/**"
       - ".forgejo/workflows/090-alerts.yml"
   pull_request:

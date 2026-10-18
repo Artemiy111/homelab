@@ -1,0 +1,41 @@
+# Оператор MariaDB: классы, инстансы, пользователи, бэкапы. Нужен для seafile
+# и uptime-kuma — их базы живут в выделенных кластерах MariaDB в юнитах этих сервисов,
+# тогда как PostgreSQL-базы обслуживает CNPG.
+#
+# Значения вынесены из `spec.source.helm.valuesObject` в
+# `platform/casa/mariadb-operator/values.yaml`, Application подключает их через
+# `$values` — второй источник в `spec.sources`.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+  name: mariadb-operator
+  namespace: argocd
+spec:
+  project: upstream
+  sources:
+    - repoURL: https://github.com/Artemiy111/homelab.git
+      targetRevision: main
+      path: platform/casa/mariadb-operator/manifests
+    - repoURL: https://mariadb-operator.github.io/mariadb-operator
+      chart: mariadb-operator
+      targetRevision: 26.10.0
+      helm:
+        releaseName: mariadb-operator
+        valueFiles:
+          - $values/platform/casa/mariadb-operator/values.yaml
+    - repoURL: https://github.com/Artemiy111/homelab.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: mariadb-system
+  syncPolicy:
+    syncOptions:
+      # CRD оператора не лезут в last-applied-configuration при client-side
+      # apply. Как у cloudnative-pg и snapshot-controller.
+      - ServerSideApply=true
+      - Prune=false
+    automated:
+      selfHeal: true

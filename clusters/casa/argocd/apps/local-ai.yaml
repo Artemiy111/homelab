@@ -1,0 +1,19 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "40"
+  name: local-ai
+  namespace: argocd
+spec:
+  project: homelab
+  sources:
+    - repoURL: https://github.com/Artemiy111/homelab.git
+      targetRevision: main
+      path: apps/casa/local-ai/manifests
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: local-ai
+  syncPolicy:
+    syncOptions:
+      - ServerSideApply=true

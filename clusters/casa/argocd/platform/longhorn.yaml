@@ -1,0 +1,45 @@
+# Longhorn — CSI-хранилище: снапшоты, бэкапы в S3, RWX через share-manager, UI.
+# Ставится официальным чартом из charts.longhorn.io; Argo рендерит его сам
+# (см. platform/casa/argocd/RUNBOOK.md). Default StorageClass в кластере остаётся local-path —
+# классы Longhorn описываются явно в platform/casa/longhorn/storageclasses.yaml и
+# применяются осознанно per-PVC.
+#
+# Значения вынесены из `spec.source.helm.valuesObject` в
+# `platform/casa/longhorn/values.yaml`, Application подключает их через `$values` —
+# второй источник в `spec.sources`.
+#
+# Подготовка узла (iscsid, NFSv4-клиент, SELinux-модуль, каталог данных) —
+# в infra/ansible/host.yml, роль longhorn_prereqs. Без неё тома застревают в
+# attach/detach.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+  name: longhorn
+  namespace: argocd
+spec:
+  project: upstream
+  sources:
+    - repoURL: https://github.com/Artemiy111/homelab.git
+      targetRevision: main
+      path: platform/casa/longhorn/manifests
+    - repoURL: https://charts.longhorn.io
+      chart: longhorn
+      targetRevision: 1.12.1
+      helm:
+        releaseName: longhorn
+        valueFiles:
+          - $values/platform/casa/longhorn/values.yaml
+    - repoURL: https://github.com/Artemiy111/homelab.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: longhorn-system
+  syncPolicy:
+    syncOptions:
+      - ServerSideApply=true
+      - Prune=false
+    automated:
+      selfHeal: true

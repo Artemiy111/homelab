@@ -7,8 +7,9 @@ on:
   push:
     branches: [main]
     paths:
-      - "clusters/casa/apps/grafana/**"
-      - "clusters/casa/**/RUNBOOK.md"
+      - "apps/casa/grafana/**"
+      - "apps/casa/**/RUNBOOK.md"
+      - "platform/casa/**/RUNBOOK.md"
       - "scripts/**"
       - ".github/workflows/090-alerts.yml"
 

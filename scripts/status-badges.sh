@@ -48,23 +48,23 @@ repo_files() {
 # Две области, и разница между ними осмысленная.
 #
 # deploy_files — всё, что уезжает в кластер: любой отслеживаемый YAML под
-# clusters/casa/apps/, clusters/casa/platform/, bootstrap/, включая values.yaml, чарты сервисов и шаблоны
-# чарта. Compose-файлы хостовых утилит (clusters/casa/apps/spotdl) в кластер не
+# apps/casa/, platform/casa/, clusters/casa/argocd/, включая values.yaml, чарты сервисов и шаблоны
+# чарта. Compose-файлы хостовых утилит (apps/casa/spotdl) в кластер не
 # попадают, поэтому исключены. По этой области считаются образы, namespace'ы и
 # секреты.
 deploy_files() {
   repo_files '*.yaml' '*.yml' |
-    grep -E '^(clusters/casa/apps|clusters/casa/platform|bootstrap)/' |
+    grep -E '^(apps/casa|platform/casa|clusters/casa/argocd)/' |
     grep -vE '/compose\.ya?ml$' || true
 }
 
-# manifest_files — область CI-гейта kubeconform: clusters/casa/apps/<сервис>/manifests/, clusters/casa/platform/,
-# bootstrap/ без values.yaml, Chart.yaml, manifests/config/ и kustomization.yaml.
+# manifest_files — область CI-гейта kubeconform: apps/casa/<сервис>/manifests/, platform/casa/,
+# clusters/casa/argocd/ без values.yaml, Chart.yaml, manifests/config/ и kustomization.yaml.
 # Только по ней считается число манифестов, чтобы оно совпадало с тем, что реально
 # проверяет CI.
 manifest_files() {
   repo_files '*.yaml' '*.yml' |
-    grep -E '^(clusters/casa/apps/[^/]+/manifests|clusters/casa/platform|bootstrap)/' |
+    grep -E '^(apps/casa/[^/]+/manifests|platform/casa|clusters/casa/argocd)/' |
     grep -vE '(values|Chart)\.yaml$' |
     grep -vE 'kustomization\.yaml$' |
     grep -vE '/manifests/config/' || true
@@ -88,7 +88,7 @@ json_array() {
   awk 'BEGIN { printf "[" } { printf "%s\"%s\"", (NR == 1 ? "" : ", "), $0 } END { print "]" }'
 }
 
-services="$(repo_files 'clusters/casa/apps/*.yaml' 'clusters/casa/apps/*.yml' | cut -d/ -f4 | sort -u | count_lines)"
+services="$(repo_files 'apps/casa/*.yaml' 'apps/casa/*.yml' | cut -d/ -f3 | sort -u | count_lines)"
 manifests="$(manifest_files | count_lines)"
 images_pinned="$(image_lines | grep -cE '@sha256:' || true)"
 images_total="$(image_lines | count_lines)"

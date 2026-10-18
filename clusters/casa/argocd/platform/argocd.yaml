@@ -1,0 +1,38 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argocd
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "20"
+spec:
+  project: upstream
+  sources:
+    - repoURL: https://github.com/Artemiy111/homelab.git
+      targetRevision: main
+      path: platform/casa/argocd/manifests
+    - repoURL: https://argoproj.github.io/argo-helm
+      chart: argo-cd
+      targetRevision: 10.9.1
+      helm:
+        releaseName: argocd
+        valueFiles:
+          - $values/platform/casa/argocd/values.yaml
+    - repoURL: https://github.com/Artemiy111/homelab.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  ignoreDifferences:
+    - kind: Secret
+      name: argocd-secret
+      jsonPointers:
+        - /data
+  syncPolicy:
+    syncOptions:
+      - ServerSideApply=true
+      - Prune=false
+      - RespectIgnoreDifferences=true
+    automated:
+      selfHeal: true
