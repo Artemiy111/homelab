@@ -1,6 +1,8 @@
 ---
-status: accepted
+status: superseded by [0016](0016-multicluster-layout.md)
 ---
+
+> **ОТМЕНЁН.** Актуальное решение — [0016](0016-multicluster-layout.md).
 
 # Раскладка v2: clusters/casa — корень истины, спека Argo живёт рядом с манифестами
 

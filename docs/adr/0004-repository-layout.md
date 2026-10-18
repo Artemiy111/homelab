@@ -1,6 +1,9 @@
 ---
-status: accepted
+status: superseded by [0016](0016-multicluster-layout.md)
 ---
+
+> **ОТМЕНЁН.** Заменён [0011](0011-repository-layout-v2.md), которая тоже
+> отменена. Актуальное решение — [0016](0016-multicluster-layout.md).
 
 # Раскладка репозитория: control plane, платформа, сервисы
 
