@@ -24,7 +24,7 @@ spec:
         fsGroup: 1000
       containers:
         - name: structurizr
-          image: registry.yandexcloud.net/cn1j4anu7cclpi3ept3a/structurizr@sha256:59a611541a62d2385bc1083e9d93cef74c6cbfc06251bd794fb964caeb6c544e
+          image: registry.yandexcloud.net/cn1j4anu7cclpi3ept3a/structurizr:2026.06.28@sha256:3e6ca128660e99a269cfbe2d628a87b27863b1cb546939fa399e2e02b5ef89e7
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
