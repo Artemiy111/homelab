@@ -12,23 +12,51 @@ docker buildx build --platform linux/amd64 \
   --push clusters/casa/apps/structurizr
 
 docker buildx imagetools inspect \
-  registry.yandexcloud.net/<id реестра>/structurizr:2026.06.28 \
-  --format '{{json .Manifest.Manifests}}' \
-  | jq -r '.[]|"\(.platform.os)/\(.platform.architecture) \(.digest)"'
+  registry.yandexcloud.net/<id реестра>/structurizr:2026.06.28
 ```
 
 Push идёт учётной записью пользователя: в `~/.docker/config.json` настроен
 credential helper `yc` (`yc cloud-registry configure-docker`).
 
-Ожидаемый результат: в выводе push есть `exporting manifest list`, а вторая
-команда печатает две строки — `linux/amd64 …` и `unknown/unknown …`.
-`unknown/unknown` — attestation-манифест (buildx добавляет provenance), в
-`image` идёт **строка `linux/amd64`**: это сам образ, а тег указывает на индекс
-из двух манифестов.
+Тег указывает на **индекс** — список из двух манифестов: `linux/amd64` (сам
+образ) и `unknown/unknown` (attestation, его добавляет buildx). В `image` идёт
+**дайджест индекса**: верхняя строка `Digest:` в выводе `imagetools inspect` или
+«Хеш» в панели Yandex Cloud. Платформенный манифест из строки `linux/amd64`
+тянется так же, поэтому в кластере разницы не видно, но для Renovate это другой
+дайджест: он сравнивает с индексом и предложит «обновление дайджеста», хотя
+ничего нового не публиковалось. В репозитории принят индекс — так подписаны и
+остальные образы, у redis это видно по типу
+(`application/vnd.oci.image.index.v1+json`).
 
-Обновление версии: собрать с новым тегом, взять из вывода `linux/amd64`,
-обновить `image` в `clusters/casa/apps/structurizr/manifests/deployment.yaml`,
-дождаться переката.
+Проверить пин до мержа — подом с тем же `imagePullSecret`:
+
+```sh
+kubectl -n structurizr apply -f - <<'YAML'
+apiVersion: v1
+kind: Pod
+metadata:
+  name: digest-check
+spec:
+  restartPolicy: Never
+  imagePullSecrets:
+    - name: structurizr-registry
+  containers:
+    - name: digest-check
+      image: registry.yandexcloud.net/<id реестра>/structurizr:<тег>@sha256:<дайджест>
+      command: ["sleep", "10"]
+YAML
+
+kubectl -n structurizr get pod digest-check \
+  -o jsonpath='{.status.containerStatuses[0].imageID}'
+kubectl -n structurizr delete pod digest-check
+```
+
+Ожидаемый результат: под поднимается, а `imageID` заканчивается тем же
+`sha256`, что записан в манифест.
+
+Обновление версии: собрать с новым тегом, взять из `imagetools inspect` строку
+`Digest:` (индекс), обновить `image` в
+`clusters/casa/apps/structurizr/manifests/deployment.yaml`, дождаться переката.
 
 ```sh
 kubectl -n structurizr rollout status deploy/structurizr
