@@ -27,7 +27,7 @@ spec:
         fsGroup: 10001
       containers:
         - name: verdaccio
-          image: "verdaccio/verdaccio:6.10.4@sha256:b569df40d7184f5f99082b4f805dbf648de876903a9a44c21446c0f5d0bbd41b"
+          image: "verdaccio/verdaccio:6.10.6@sha256:4026bc3dfe3dd1ce3cf9c9fc010d8e7a93c6b083eaae1930e3bcdde94d39a350"
           env:
             # Образ по умолчанию слушает [::]; в кластере надёжнее IPv4-any.
             - name: VERDACCIO_ADDRESS
