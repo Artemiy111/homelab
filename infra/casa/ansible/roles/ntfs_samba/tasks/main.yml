@@ -88,6 +88,29 @@
     label: "{{ item.name }}"
   notify: Remount fstab
 
+- name: Проверить, что systemd знает о юните монтирования
+  # Юниты монтирования генерируются из fstab (`systemd-fstab-generator`) при
+  # загрузке и по `daemon-reload`. Строка, дописанная после последнего
+  # перечитывания, для systemd не существует: том смонтирован руками, а юнита
+  # нет, и при загрузке он не поднимется.
+  #
+  # Одного обработчика мало: он срабатывает на изменение fstab, поэтому прогон,
+  # где строка уже верна, оставляет генератор не перезапущенным.
+  ansible.builtin.stat:
+    path: "/run/systemd/generator/{{ item.mountpoint | regex_replace('^/', '') | replace('/', '-') }}.mount"
+  loop: "{{ ntfs_samba_volumes }}"
+  loop_control:
+    label: "{{ item.name }}"
+  register: ntfs_samba_generated_units
+
+- name: Перечитать fstab, если юнита монтирования нет
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+  loop: "{{ ntfs_samba_generated_units.results }}"
+  loop_control:
+    label: "{{ item.item.name }}"
+  when: not item.stat.exists
+
 - name: Убрать строки fstab выведенных томов
   # Роль умеет только «обеспечить наличие»: том, убранный из
   # ntfs_samba_volumes, из fstab сам не исчезает, а его строка с `nofail`
