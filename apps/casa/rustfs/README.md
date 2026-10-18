@@ -61,7 +61,7 @@ http://rustfs.rustfs.svc.cluster.local/mirror/<path>
 
 | Читает | Что тянет | Где |
 | --- | --- | --- |
-| CI homelab | kube-linter, tflint, kubeconform со схемами CR, bun | `.forgejo/workflows/*.yml` |
+| CI homelab | kube-linter, tflint, kubeconform со схемами CR, trivy, bun | `.forgejo/workflows/*.yml` |
 | CI `cert-manager-webhook-dns01` | Go, Helm | его `.forgejo/workflows/go.yml`, `release.yml` |
 | CI `kubiform` | Go | его `.forgejo/workflows/go.yml` |
 

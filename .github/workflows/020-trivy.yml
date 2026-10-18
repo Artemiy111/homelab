@@ -32,13 +32,13 @@ jobs:
         run: |
           set -euo pipefail
           ver="0.75.0"
-          asset="trivy_${ver}_Linux-64bit.tar.gz"
-          expected="c6e65abddb348e25f10549df887045629cf28cc72453cd1c63acb717316b3f3f"
-          url="https://github.com/aquasecurity/trivy/releases/download/v${ver}/${asset}"
+          file="trivy_${ver}_Linux-64bit.tar.gz"
+          asset="trivy/${ver}/${file}"
+          read -r expected url <<<"$(awk -v p="$asset" '$1==p{print $2, $3}' apps/casa/rustfs/manifests/artifacts.tsv)"
           mkdir -p "$HOME/.local/trivy" /tmp/trivy
-          curl -fsSL --retry 5 --retry-delay 5 -o "/tmp/trivy/${asset}" "$url"
-          echo "$expected  /tmp/trivy/${asset}" | sha256sum -c -
-          tar -xzf "/tmp/trivy/${asset}" -C /tmp/trivy trivy
+          curl -fsSL --max-time 60 --retry 5 --retry-delay 5 -o "/tmp/trivy/$file" "$url"
+          echo "$expected  /tmp/trivy/$file" | sha256sum -c -
+          tar -xzf "/tmp/trivy/$file" -C /tmp/trivy trivy
           install -m 0755 "/tmp/trivy/trivy" "$HOME/.local/trivy/trivy"
       # Report-only: exit-code 0, job на находках не падает — сначала смотрим
       # набор, гейт включается отдельным PR (issue #1072).
