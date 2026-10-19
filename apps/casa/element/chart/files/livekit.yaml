@@ -1,0 +1,17 @@
+port: 7880
+prometheus:
+  port: 6789
+rtc:
+  tcp_port: 7881
+  port_range_start: 50000
+  port_range_end: 50499
+  use_external_ip: false
+redis:
+  address: element-valkey:6379
+key_file: /etc/livekit-keys/keys.yaml
+room:
+  enabled_codecs:
+    - mime: audio/opus
+    - mime: video/h264
+logging:
+  level: warn
