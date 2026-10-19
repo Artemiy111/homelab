@@ -6,7 +6,7 @@ metadata:
   annotations:
     ignore-check.kube-linter.io/host-network: "медиамост публикует UDP 10000 на LAN-адресе узла; hostPort в Calico не работает (#161)"
 spec:
-  # RWO-тома: два пода при rolling update пишут в одни каталоги.
+  # hostNetwork: новый под не займёт UDP 10000, пока старый его держит.
   strategy:
     type: Recreate
   revisionHistoryLimit: 1
@@ -24,7 +24,7 @@ spec:
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
       enableServiceLinks: false
-      # fsGroup даёт групповую запись в тома Longhorn для пользователя 1000.
+      # fsGroup даёт групповую запись в emptyDir пользователю 1000.
       securityContext:
         fsGroup: 1000
       # s6-overlay требует, чтобы /run принадлежал пользователю контейнера;
@@ -146,8 +146,8 @@ spec:
               mountPath: /tmp
       volumes:
         - name: config
-          persistentVolumeClaim:
-            claimName: jitsi-jvb-config
+          emptyDir:
+            sizeLimit: 16Mi
         - name: run
           emptyDir:
             sizeLimit: 16Mi

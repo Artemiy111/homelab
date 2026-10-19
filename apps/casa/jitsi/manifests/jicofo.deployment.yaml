@@ -4,7 +4,6 @@ metadata:
   name: jitsi-jicofo
   namespace: jitsi
 spec:
-  # RWO-тома: два пода при rolling update пишут в одни каталоги.
   strategy:
     type: Recreate
   revisionHistoryLimit: 1
@@ -18,7 +17,7 @@ spec:
         app: jitsi-jicofo
     spec:
       enableServiceLinks: false
-      # fsGroup даёт групповую запись в тома Longhorn для пользователя 1000.
+      # fsGroup даёт групповую запись в emptyDir пользователю 1000.
       securityContext:
         fsGroup: 1000
       # s6-overlay требует, чтобы /run принадлежал пользователю контейнера;
@@ -119,8 +118,8 @@ spec:
               mountPath: /tmp
       volumes:
         - name: config
-          persistentVolumeClaim:
-            claimName: jitsi-jicofo-config
+          emptyDir:
+            sizeLimit: 16Mi
         - name: run
           emptyDir:
             sizeLimit: 16Mi
