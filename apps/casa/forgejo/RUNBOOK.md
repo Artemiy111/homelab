@@ -343,10 +343,24 @@ crane digest data.forgejo.org/forgejo/forgejo:<версия>-rootless
 
 2. Бэкап: дамп базы и снапшот тома с репозиториями и вложениями.
 
-   ```sh
-   kubectl -n databases exec -i shared-1 -c postgres -- \
-     pg_dump -U postgres -d forgejo -Fc > forgejo-$(date +%F).dump
+   Дамп пишется в файл внутри пода, а не в поток на macOS: поток через
+   `kubectl exec` рвётся на этом канале, а оборванный `pg_dump` остаётся жить в
+   базе и держит блокировки — так миграция на старте новой версии встаёт в
+   ожидании `ALTER TABLE`.
 
+   ```sh
+   kubectl -n databases exec shared-1 -c postgres -- sh -c \
+     'pg_dump -U postgres -d forgejo -Fc -f /var/lib/postgresql/data/forgejo-pre-upgrade.dump &&
+      pg_restore -l /var/lib/postgresql/data/forgejo-pre-upgrade.dump | wc -l'
+
+   kubectl cp databases/shared-1:/var/lib/postgresql/data/forgejo-pre-upgrade.dump \
+     -c postgres ./forgejo-$(date +%F).dump
+   ```
+
+   Файл остаётся в томе базы до удаления руками, поэтому копию на macOS можно
+   снять и позже. Дальше — снапшот тома:
+
+   ```sh
    kubectl apply -f - <<EOF
    apiVersion: snapshot.storage.k8s.io/v1
    kind: VolumeSnapshot
@@ -379,3 +393,13 @@ crane digest data.forgejo.org/forgejo/forgejo:<версия>-rootless
 
 6. Проверить по разделу «Проверка», плюс `forgejo doctor check --all --log-file
    /tmp/doctor.log` в поде, вход по OIDC, push по ssh и прогон workflow.
+   В выводе doctor ожидаема одна ошибка — `/data/log` не существует: каталога
+   нет, потому что логи идут в console (`[log] MODE` не переопределён).
+
+7. Когда новая версия отстоится — удалить дамп из тома базы и VolumeSnapshot:
+
+   ```sh
+   kubectl -n databases exec shared-1 -c postgres -- \
+     rm /var/lib/postgresql/data/forgejo-pre-upgrade.dump
+   kubectl -n forgejo delete volumesnapshot forgejo-data-pre-upgrade
+   ```
