@@ -100,7 +100,7 @@ spec:
             - name: DATABASE_URL
               value: "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@shared-rw.databases.svc.cluster.local:5432/$(POSTGRES_DB)"
             - name: VALKEY_URL
-              value: "redis://glitchtip-valkey:6379/0"
+              value: "redis://glitchtip-valkey.glitchtip.svc.cluster.local:6379/0"
             - name: GLITCHTIP_DOMAIN
               value: "https://glitchtip.$(DOMAIN)"
             - name: GLITCHTIP_INSTANCE_NAME

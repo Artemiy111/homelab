@@ -43,11 +43,12 @@ Secret'а `seafile-metrics`, который VSO синхронизирует и�
 
 | Ресурс | Что создаёт |
 |--------|-------------|
-| `MariaDB seafile-mariadb` | сам инстанс, Service `seafile-mariadb:3306` |
+| `MariaDB seafile-mariadb` | сам инстанс, Service `seafile-mariadb.seafile.svc.cluster.local:3306` |
 | `Database ccnet-db / seafile-db / seahub-db` | `ccnet_db`, `seafile_db`, `seahub_db` |
 | `User seafile` + 3 `Grant` | пользователь `seafile` с `ALL PRIVILEGES` на три БД |
 
-- Приложение ходит по env `SEAFILE_MYSQL_DB_HOST=seafile-mariadb` под
+- Приложение ходит по env
+  `SEAFILE_MYSQL_DB_HOST=seafile-mariadb.seafile.svc.cluster.local` под
   пользователем `seafile`, который имеет `ALL PRIVILEGES` **только на три БД**.
 - root знает только оператор (через `rootPasswordSecretKeyRef` на
   `seafile-root/INIT_SEAFILE_MYSQL_ROOT_PASSWORD`, путь `kv/seafile/root`).

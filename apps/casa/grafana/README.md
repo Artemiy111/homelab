@@ -67,9 +67,12 @@ Grafana выглядит живой: под `Running`, `GrafanaReady=True`, пр
 ## Datasource'ы
 
 Четыре источника описаны CR `GrafanaDatasource`, ими
-управляет оператор: `victoriametrics` (`http://victoriametrics:8428`, default),
-`tempo` (`http://tempo:3200`), `loki` (`http://loki:3100`),
-`pyroscope` (`http://pyroscope:4040`). Секретов нет — все четыре анонимные.
+управляет оператор: `victoriametrics`
+(`http://victoriametrics.monitoring.svc.cluster.local:8428`, default),
+`tempo` (`http://tempo.monitoring.svc.cluster.local:3200`),
+`loki` (`http://loki.monitoring.svc.cluster.local:3100`),
+`pyroscope` (`http://pyroscope.monitoring.svc.cluster.local:4040`). Секретов нет —
+все четыре анонимные.
 
 uid зафиксированы в `spec.datasource.uid`: на них ссылаются панели дашбордов из
 `config/dashboards/`, и смена uid удалила бы старый datasource и создала новый —

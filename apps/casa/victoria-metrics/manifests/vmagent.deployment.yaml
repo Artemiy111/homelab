@@ -23,7 +23,7 @@ spec:
           image: "victoriametrics/vmagent:v1.150.0@sha256:3eff5874d59292714878dcb6aee14f048bf19b7312b727860ba5e7d29e2e0c07"
           args:
             - -promscrape.config=/etc/vmagent/scrape.yml
-            - -remoteWrite.url=http://victoriametrics:8428/api/v1/write
+            - -remoteWrite.url=http://victoriametrics.monitoring.svc.cluster.local:8428/api/v1/write
             - -remoteWrite.url=https://monitoring.api.cloud.yandex.net/prometheus/workspaces/monblfnu5416gjb9mgrg/api/v1/write
             - -remoteWrite.showURL
             - -remoteWrite.bearerTokenFile=,/etc/vmagent-monium/MONIUM_API_KEY

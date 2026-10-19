@@ -316,9 +316,10 @@ dind, сервис-контейнеры (`services:`), матрицы, `needs`/o
 - **Артефакты только `@v3`.** `upload-artifact`/`download-artifact` `@v4+`
   используют `@actions/artifact v2` и новый API, которого в Forgejo нет —
   падают с `GHESNotSupportedError`. Использовать `@v3`.
-- **`GITHUB_SERVER_URL` внутренний.** Job'ы получают `http://forgejo-http`
-  (адрес из `server.connections`), а не публичный URL. Checkout и API по нему
-  работают, но ссылки, которые экшены печатают в лог, будут внутренними.
+- **`GITHUB_SERVER_URL` внутренний.** Job'ы получают
+  `http://forgejo-http.forgejo.svc.cluster.local` (адрес из `server.connections`),
+  а не публичный URL. Checkout и API по нему работают, но ссылки, которые экшены
+  печатают в лог, будут внутренними.
   Публичный URL в конфиге даст красивее ссылки, но добавит зависимость от
   Traefik и DNS.
 

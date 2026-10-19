@@ -36,7 +36,7 @@ spec:
             - name: UPTIME_KUMA_DB_TYPE
               value: "mariadb"
             - name: UPTIME_KUMA_DB_HOSTNAME
-              value: "uptime-kuma-mariadb"
+              value: "uptime-kuma-mariadb.uptime-kuma.svc.cluster.local"
             - name: UPTIME_KUMA_DB_PORT
               value: "3306"
             - name: UPTIME_KUMA_DB_NAME

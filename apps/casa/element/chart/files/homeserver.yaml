@@ -37,7 +37,7 @@ database:
     cp_max: 10
 redis:
   enabled: true
-  host: element-valkey
+  host: element-valkey.element.svc.cluster.local
   port: 6379
 media_store_path: /data/media_store
 upload_size: 104857600

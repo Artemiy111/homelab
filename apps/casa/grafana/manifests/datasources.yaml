@@ -34,7 +34,7 @@ spec:
     uid: victoriametrics
     type: prometheus
     access: proxy
-    url: http://victoriametrics:8428
+    url: http://victoriametrics.monitoring.svc.cluster.local:8428
     isDefault: true
     jsonData:
       timeInterval: 15s
@@ -53,7 +53,7 @@ spec:
     uid: tempo
     type: tempo
     access: proxy
-    url: http://tempo:3200
+    url: http://tempo.monitoring.svc.cluster.local:3200
     jsonData:
       # Ссылка trace → logs: в Loki ищем строки с этим trace id за окно вокруг
       # спана. Значение уходит в Grafana как есть — подстановки переменных
@@ -82,7 +82,7 @@ spec:
     uid: loki
     type: loki
     access: proxy
-    url: http://loki:3100
+    url: http://loki.monitoring.svc.cluster.local:3100
     jsonData:
       maxLines: 1000
       # Ссылка log → trace: находим trace_id в строке лога и открываем трейс.
@@ -108,7 +108,7 @@ spec:
     uid: pyroscope
     type: grafana-pyroscope-datasource
     access: proxy
-    url: http://pyroscope:4040
+    url: http://pyroscope.monitoring.svc.cluster.local:4040
     jsonData:
       # Связь профиль → трайсы: Grafana ищет спаны по service.name профиля.
       # Работает вместе с datasource Tempo.

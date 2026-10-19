@@ -31,7 +31,7 @@ spec:
                   key: TZ
             # Watcher ходит к Docker daemon через socket-proxy (только GET API).
             - name: WUD_WATCHER_LOCAL_HOST
-              value: docker-socket-proxy
+              value: docker-socket-proxy.monitoring.svc.cluster.local
             - name: WUD_WATCHER_LOCAL_PORT
               value: "2375"
             - name: WUD_WATCHER_LOCAL_CRON

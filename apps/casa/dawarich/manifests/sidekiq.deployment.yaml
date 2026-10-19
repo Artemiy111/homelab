@@ -60,7 +60,7 @@ spec:
           image: "freikin/dawarich:1.16.0@sha256:3cfab81737267d486757db638fe614610df454d161a389c34eb59944ac32ee58"
           # Порт 80, а не 3000: 3000 — containerPort пода, у Service `dawarich`
           # его нет. С 3000 этот init висел вечно, пока pod не пересоздавали.
-          command: ["/bin/sh", "-c", "until wget -q --spider -T 8 --header='X-Forwarded-Proto: https' http://dawarich/api/v1/health; do echo waiting for dawarich; sleep 3; done"]
+          command: ["/bin/sh", "-c", "until wget -q --spider -T 8 --header='X-Forwarded-Proto: https' http://dawarich.dawarich.svc.cluster.local/api/v1/health; do echo waiting for dawarich; sleep 3; done"]
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
@@ -97,7 +97,7 @@ spec:
             - name: RAILS_ENV
               value: production
             - name: REDIS_URL
-              value: "redis://dawarich-redis:6379"
+              value: "redis://dawarich-redis.dawarich.svc.cluster.local:6379"
             - name: DATABASE_HOST
               value: dawarich-db-rw.dawarich.svc.cluster.local
             - name: DATABASE_PORT

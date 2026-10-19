@@ -109,7 +109,7 @@ gitea:
       # data.forgejo.org: тот периодически недоступен, и job падает на загрузке
       # экшена до старта шагов. Настройка instance-wide, поэтому в org `actions`
       # зазеркален весь набор. Детали и обновление — apps/casa/forgejo/README.md.
-      DEFAULT_ACTIONS_URL: http://forgejo-http
+      DEFAULT_ACTIONS_URL: http://forgejo-http.forgejo.svc.cluster.local
     cron:
       ENABLED: true
       RUN_AT_START: true

@@ -92,7 +92,7 @@ spec:
             - name: PAPERLESS_OCR_LANGUAGES
               value: rus
             - name: PAPERLESS_REDIS
-              value: "redis://paperless-broker:6379"
+              value: "redis://paperless-broker.paperless.svc.cluster.local:6379"
             - name: PAPERLESS_DBENGINE
               value: postgresql
             - name: PAPERLESS_DBHOST
@@ -104,9 +104,9 @@ spec:
             - name: PAPERLESS_TIKA_ENABLED
               value: "1"
             - name: PAPERLESS_TIKA_GOTENBERG_ENDPOINT
-              value: "http://paperless-gotenberg:3000"
+              value: "http://paperless-gotenberg.paperless.svc.cluster.local:3000"
             - name: PAPERLESS_TIKA_ENDPOINT
-              value: "http://paperless-tika:9998"
+              value: "http://paperless-tika.paperless.svc.cluster.local:9998"
             - name: PAPERLESS_CONSUMER_RECURSIVE
               value: "true"
             - name: PAPERLESS_CONSUMER_SUBDIRS_AS_TAGS

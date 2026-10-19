@@ -23,7 +23,7 @@ spec:
               containerPort: 9205
           env:
             - name: NEXTCLOUD_SERVER
-              value: "http://nextcloud"
+              value: "http://nextcloud.nextcloud.svc.cluster.local"
             - name: NEXTCLOUD_USERNAME
               valueFrom:
                 secretKeyRef:

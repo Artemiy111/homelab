@@ -107,6 +107,12 @@ This is a single-context repository. See `docs/agents/domain.md`.
 Что писать в `README.md` юнита, что — в `RUNBOOK.md` рядом с ним, а что не писать
 ни там ни там: `docs/agents/unit-docs.md`.
 
+### Имена сервисов
+
+Внутрикластерный адрес в конфигурации пишется полным именем
+`<service>.<namespace>.svc.cluster.local`, короткое имя сервиса не используется.
+Почему, где правило действует и как проверить: `docs/agents/service-dns.md`.
+
 ### Доступ к серверу
 
 Способ подключения к серверу в `docs/agents/server-access.md`. 

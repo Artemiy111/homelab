@@ -74,7 +74,7 @@ spec:
             - name: DB_CONNECTION_URI
               value: "postgresql://infisical:$(POSTGRES_PASSWORD)@shared-rw.databases.svc.cluster.local/infisical?sslmode=disable"
             - name: REDIS_URL
-              value: "redis://infisical-redis:6379"
+              value: "redis://infisical-redis.infisical.svc.cluster.local:6379"
             - name: HOST
               value: "0.0.0.0"
             # Обратный прокси — Traefik в кластере (pod CIDR k0s).

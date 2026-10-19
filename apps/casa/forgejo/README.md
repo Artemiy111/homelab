@@ -115,7 +115,8 @@ dockerd раннера (монтируется в сайдкар `dind`). Дай
 Раннер забирает экшены (`uses: actions/...`) **с локального инстанса**, а не с
 `data.forgejo.org`: тот периодически недоступен (мониторится в Gatus), и job
 падает на загрузке экшена ещё до старта шагов. Задаёт источник
-`actions.DEFAULT_ACTIONS_URL` в `valuesObject` (`http://forgejo-http`).
+`actions.DEFAULT_ACTIONS_URL` в `valuesObject`
+(`http://forgejo-http.forgejo.svc.cluster.local`).
 
 Настройка **instance-wide**: любой `uses: <owner>/<repo>` без схемы
 разворачивается в `<URL>/<owner>/<repo>`, поэтому под локальным инстансом должен
@@ -159,7 +160,7 @@ Settings → Actions → Secrets репозитория. Детали:
 
 - реестр контейнеров — публичный хост Forgejo (`docker login`/`docker push` по
   `forgejo.example.com`). Внутренний `github.server_url`
-  (`http://forgejo-http`) не годится: там нет TLS;
+  (`http://forgejo-http.forgejo.svc.cluster.local`) не годится: там нет TLS;
 - реестр пакетов живёт под `/api/packages/{owner}/...`, а не `/api/v1`;
 - generic-пакеты: `PUT /api/packages/{owner}/generic/{package}/{version}/{file}`;
 - **пакет не привязывается к репозиторию сам.** URL push'а содержит только

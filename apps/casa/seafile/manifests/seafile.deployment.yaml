@@ -127,7 +127,7 @@ spec:
             - name: INIT_SEAFILE_ADMIN_EMAIL
               value: "admin@$(DOMAIN)"
             - name: SEAFILE_MYSQL_DB_HOST
-              value: seafile-mariadb
+              value: seafile-mariadb.seafile.svc.cluster.local
             - name: SEAFILE_MYSQL_DB_PORT
               value: "3306"
             - name: SEAFILE_MYSQL_DB_USER
@@ -141,7 +141,7 @@ spec:
             - name: CACHE_PROVIDER
               value: redis
             - name: REDIS_HOST
-              value: seafile-redis
+              value: seafile-redis.seafile.svc.cluster.local
             - name: REDIS_PORT
               value: "6379"
             - name: ENABLE_ONLYOFFICE

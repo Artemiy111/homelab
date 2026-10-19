@@ -81,7 +81,7 @@ spec:
             - name: RAILS_ENV
               value: production
             - name: REDIS_URL
-              value: "redis://dawarich-redis:6379"
+              value: "redis://dawarich-redis.dawarich.svc.cluster.local:6379"
             - name: DATABASE_HOST
               value: dawarich-db-rw.dawarich.svc.cluster.local
             - name: DATABASE_PORT

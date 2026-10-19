@@ -91,7 +91,7 @@ spec:
             - name: XMPP_RECORDER_DOMAIN
               value: recorder.meet.jitsi
             - name: XMPP_SERVER
-              value: prosody
+              value: prosody.jitsi.svc.cluster.local
           securityContext:
             runAsUser: 1000
             runAsGroup: 1000

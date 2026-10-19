@@ -24,7 +24,7 @@ OpenAI-совместимый API не подключены (`ENABLE_OLLAMA_API=
 
 ## Подключение движка (позже)
 
-- LocalAI: `ENABLE_OPENAI_API=true`, `OPENAI_API_BASE_URL=http://local-ai/v1`
+- LocalAI: `ENABLE_OPENAI_API=true`, `OPENAI_API_BASE_URL=http://local-ai.local-ai.svc.cluster.local/v1`
   и `OPENAI_API_KEY` со значением из `kv/local-ai/secret` (тот же путь читает
   `vmagent-local-ai`);
 - свой Ollama: добавить сервис в манифесты с

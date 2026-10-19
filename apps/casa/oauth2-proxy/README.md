@@ -15,7 +15,7 @@ Forward auth перед приложениями без своей автори�
 
 - Traefik middleware `oauth2-proxy@file` (см.
   `platform/casa/traefik/manifests/oauth2-proxy.middleware.yaml`) делает forwardAuth на
-  `http://oauth2-proxy:4180`.
+  `http://oauth2-proxy.oauth2-proxy.svc.cluster.local:4180`.
 - Роутер защищаемого сервиса добавляет этот middleware; сейчас подключён к
   Structurizr и к WUD.
 - Публичный host `oauth.example.com` нужен для OIDC callback; cookie
