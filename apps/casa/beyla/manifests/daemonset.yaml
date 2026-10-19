@@ -28,7 +28,7 @@ spec:
       enableServiceLinks: false
       containers:
         - name: beyla
-          image: "grafana/beyla:3.37.0@sha256:bbb325e07ad0f242cf6281b4a94ca026ec9504b2cf9a12d7db582e281727520f"
+          image: "grafana/beyla:3.39.0@sha256:9319563766b263b4f60de6f657e0f33c1783f112228e1019d5d922cff7bb7c1a"
           env:
             - name: BEYLA_CONFIG_PATH
               value: /config/beyla.yml
