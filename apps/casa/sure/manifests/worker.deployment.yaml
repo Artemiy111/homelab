@@ -125,11 +125,11 @@ spec:
               type: RuntimeDefault
           resources:
             requests:
-              cpu: 10m
+              cpu: 50m
               memory: 384Mi
             limits:
-              cpu: 50m
-              memory: 600Mi
+              cpu: 500m
+              memory: 1Gi
           volumeMounts:
             - name: storage
               mountPath: /rails/storage
