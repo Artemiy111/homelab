@@ -97,7 +97,7 @@ spec:
             - name: XMPP_AUTH_DOMAIN
               value: auth.meet.jitsi
             - name: XMPP_BOSH_URL_BASE
-              value: http://prosody:5280
+              value: http://prosody.jitsi.svc.cluster.local:5280
             - name: XMPP_DOMAIN
               value: meet.jitsi
             - name: XMPP_GUEST_DOMAIN
