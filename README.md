@@ -123,7 +123,7 @@ every tool comes from an in-cluster mirror and is verified against a pinned chec
 
 | Check | Tool | Scope |
 |---|---|---|
-| `meta / commitlint` | commitlint | Conventional Commits, header length cap |
+| `meta / commitlint` | commitlint | Conventional Commits, header length cap, Latin-only header |
 | `meta / actionlint` | actionlint | The workflows themselves |
 | `meta / status` | status-badges.sh | Badge numbers match the repository |
 | `security / gitleaks` | gitleaks | Secrets in commits and PR diffs |
