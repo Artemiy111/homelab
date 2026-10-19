@@ -128,6 +128,7 @@ Zitadel — основной OIDC-провайдер. Сервисы без на
 | `lint / shellcheck` | shellcheck | Все shell-скрипты |
 | `lint / ansible-lint` | ansible-lint | Профиль `production` |
 | `lint / tflint` | tflint | HCL Terraform, встроенный ruleset |
+| `lint / terraform-fmt` | terraform fmt | Каноническое форматирование всех root-модулей |
 | `manifests / kubeconform` | kubeconform | Манифесты по схемам Kubernetes и CR |
 | `manifests / kube-linter` | kube-linter | Проверки безопасности, явный allow-list |
 

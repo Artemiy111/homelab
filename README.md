@@ -130,6 +130,7 @@ every tool comes from an in-cluster mirror and is verified against a pinned chec
 | `lint / shellcheck` | shellcheck | All shell scripts |
 | `lint / ansible-lint` | ansible-lint | `production` profile |
 | `lint / tflint` | tflint | Terraform HCL, bundled ruleset |
+| `lint / terraform-fmt` | terraform fmt | Canonical formatting of all root modules |
 | `manifests / kubeconform` | kubeconform | Manifests against Kubernetes and CR schemas |
 | `manifests / kube-linter` | kube-linter | Security checks, explicit allow-list |
 

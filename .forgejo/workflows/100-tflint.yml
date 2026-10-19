@@ -44,3 +44,33 @@ jobs:
           tflint --recursive --no-color \
             --chdir=infra/casa/terraform \
             --config="$(pwd)/.tflint.hcl"
+  terraform-fmt:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - name: Cache terraform
+        id: cache
+        uses: actions/cache@v6
+        with:
+          path: ~/.local/bin
+          key: terraform-1.16.4-mirror-${{ runner.os }}
+      - name: Install terraform
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          set -euo pipefail
+          asset="terraform/1.16.4/terraform_1.16.4_linux_amd64.zip"
+          url="http://rustfs.rustfs.svc.cluster.local/mirror/$asset"
+          expected="$(awk -v p="$asset" '$1==p{print $2}' apps/casa/rustfs/manifests/artifacts.tsv)"
+          mkdir -p "$HOME/.local/bin"
+          curl -fsSL -o /tmp/terraform.zip "$url"
+          echo "$expected  /tmp/terraform.zip" | sha256sum -c -
+          unzip -oq /tmp/terraform.zip -d /tmp
+          install -m 0755 /tmp/terraform "$HOME/.local/bin/terraform"
+      - name: Add terraform to PATH
+        run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - name: Check Terraform formatting
+        run: |
+          set -euo pipefail
+          terraform version
+          terraform fmt -check -diff -no-color -recursive infra/casa/terraform

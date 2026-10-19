@@ -1,7 +1,7 @@
 variable "domain" {
   description = "Корневой домен стенда; он же имя локальной зоны Technitium. Панель и API — dns.<домен>"
   type        = string
-  default = "biplane.casa"
+  default     = "biplane.casa"
 }
 
 
