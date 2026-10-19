@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       # Бинарь берём с зеркала RustFS, как остальные гейты: setup-trivy клонирует
       # исходник с github.com, а прямой curl к релизу висел тут до таймаута джобы.
       # sha256 читаем из artifacts.tsv; --max-time не даёт зависнуть.

@@ -32,7 +32,7 @@ jobs:
       # Validate manifests: значение нужно и ключу кэша, и команде.
       CRD_SCHEMAS_REV: fd90051867733c60d32d16450556e9cd18459aef
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Cache kubeconform
         id: kubeconform
         uses: actions/cache@v6

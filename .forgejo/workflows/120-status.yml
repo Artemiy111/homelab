@@ -35,7 +35,7 @@ jobs:
       GIT_COMMITTER_NAME: forgejo-actions[bot]
       GIT_COMMITTER_EMAIL: forgejo-actions[bot]@homelab.invalid
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       # Числа в бейджах зависят от всего дерева, а не от файла, который менял
