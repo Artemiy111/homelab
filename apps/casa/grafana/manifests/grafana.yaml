@@ -93,7 +93,7 @@ spec:
                 # Данные (пользователи, дашборды, аннотации) — в общем кластере
                 # CNPG shared, а не в SQLite. Роль grafana и база grafana
                 # объявлены в platform/casa/cnpg/; пароль — из Secret'а grafana-db
-                # (см. k8s/vaultstaticsecret.yaml).
+                # (см. manifests/vaultstaticsecret.yaml).
                 - name: GF_DATABASE_TYPE
                   value: postgres
                 - name: GF_DATABASE_HOST
@@ -142,8 +142,8 @@ spec:
               volumeMounts:
                 # Провижининг алертинга остаётся на ConfigMap'е и переезжает в
                 # CR последним шагом (#645). Datasource'ы и дашборды уже в CR
-                # (k8s/datasources.yaml, k8s/dashboards.yaml), поэтому томов с
-                # ними нет. Дашборды оператор читает через configMapRef и сам
+                # (manifests/datasources.yaml, manifests/dashboards.yaml), поэтому
+                # томов с ними нет. Дашборды оператор читает через configMapRef и сам
                 # монтировать их в под не нужно — JSON уходит в Grafana через
                 # API, а не через файловую систему.
                 - name: alerting

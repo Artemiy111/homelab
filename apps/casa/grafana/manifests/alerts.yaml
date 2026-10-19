@@ -1,5 +1,5 @@
 # Алертинг Grafana на CR. Движок — Unified Alerting, источники данных —
-# локальные VictoriaMetrics и Loki (uid зафиксированы в k8s/datasources.yaml).
+# локальные VictoriaMetrics и Loki (uid зафиксированы в manifests/datasources.yaml).
 #
 # Правила и дерево политик живут здесь, а contact point остался в
 # провижининге (config/alerting/contact-points.yaml): его URL содержит тему
@@ -65,7 +65,7 @@ spec:
 #
 # Правила метрического алертинга. Движок — Grafana Unified Alerting, источник
 # данных — локальный VictoriaMetrics (uid зафиксирован в
-# k8s/datasources.yaml, поэтому его нельзя переименовать без правки здесь).
+# manifests/datasources.yaml, поэтому его нельзя переименовать без правки здесь).
 #
 # Форма правила неочевиден, и обе его части обязательны (проверено на стенде,
 # см. #296):
@@ -790,7 +790,7 @@ spec:
 # --- перенесено без изменений из config/alerting/logs.yaml ---
 #
 # Правила алертинга по логам. Источник — Loki (uid `loki` из
-# k8s/datasources.yaml). Запрос — LogQL метрика: `count_over_time` по строкам
+# manifests/datasources.yaml). Запрос — LogQL метрика: `count_over_time` по строкам
 # с уровнем error за окно. Поле `level` приходит как structured metadata из
 # Alloy (см. apps/casa/alloy/manifests/config/config.alloy), поэтому фильтр не требует парсера
 # и работает в алертах. Регистр значений разный у разных приложений, отсюда

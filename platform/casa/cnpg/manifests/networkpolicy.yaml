@@ -112,7 +112,8 @@ spec:
           protocol: TCP
 ---
 # Выделенные кластеры (zitadel, immich, dawarich) живут в namespace сервисов,
-# и политики для них — в apps/casa/<сервис>/k8s/networkpolicy.yaml. Здесь их нет:
+# и политики для них — в apps/casa/<сервис>/manifests/networkpolicy.yaml.
+# Здесь их нет:
 # одинаковое имя объекта в одном namespace означало бы перезапись, и побеждал
 # бы применённый последним (так cnpg-system остался без доступа и апгрейд
 # zitadel-db повис на недоступном instance manager). Владелец namespace

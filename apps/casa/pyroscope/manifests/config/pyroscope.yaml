@@ -13,7 +13,7 @@ server:
 # Четвёртый и пятый пути задать здесь нельзя: их YAML-ключи в 2.3.1 не
 # существуют, и парсер падает с "field <key> not found in type
 # main.mainFlags". Официально документированный интерфейс для них — флаги, и
-# они заданы в k8s/deployment.yaml:
+# они заданы в manifests/deployment.yaml:
 #
 #   blocks_storage.bucket_store.sync_dir  ->  -blocks-storage.bucket-store.sync-dir
 #   compactor.data_dir                    ->  -compactor.data-dir

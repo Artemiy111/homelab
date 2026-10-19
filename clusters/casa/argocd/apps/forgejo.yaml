@@ -1,7 +1,7 @@
 # Имена forgejo и vault уже заняты платформенными Application'ами: они ставят
 # сами сервисы чартами forgejo-helm и hashicorp/vault-helm. Эти два Application
-# покрывают то, что осталось в apps/casa/<сервис>/k8s/ — маршрут, NetworkPolicy и
-# секреты, — потому что чарты их не создают.
+# покрывают то, что осталось в apps/casa/<сервис>/manifests/ — маршрут,
+# NetworkPolicy и секреты, — потому что чарты их не создают.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:

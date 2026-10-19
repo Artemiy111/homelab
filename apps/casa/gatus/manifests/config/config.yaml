@@ -1,7 +1,7 @@
 storage:
   type: postgres
   # История — в общем кластере CNPG (namespace databases), пароль роли gatus
-  # приходит из Secret'а `gatus-db` (см. k8s/vaultstaticsecret.yaml).
+  # приходит из Secret'а `gatus-db` (см. manifests/vaultstaticsecret.yaml).
   path: "postgres://gatus:${GATUS_DB_PASSWORD}@shared-rw.databases.svc.cluster.local:5432/gatus?sslmode=disable"
   caching: true
   maximum-number-of-results: 1000
@@ -170,10 +170,9 @@ endpoints:
       - "[STATUS] == 200"
     alerts: *alerts-all
 
-  # Публичные URL этих сервисов закрыты forward auth (oauth2-proxy@file) и для
-  # неавторизованного запроса отдают 302, поэтому проверяем приложения напрямую.
-  # Сервисы ещё в Docker, но внутри кластера доступны по имени через мост
-  # (apps/casa/<сервис>/k8s/bridge.yaml).
+  # Публичный URL WUD закрыт forward auth (oauth2-proxy@file) и для
+  # неавторизованного запроса отдаёт 302, поэтому проверяем приложение напрямую
+  # по имени сервиса в кластере.
   - name: WUD
     group: Monitoring
     url: http://wud.monitoring.svc.cluster.local/health

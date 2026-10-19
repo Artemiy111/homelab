@@ -6,7 +6,7 @@ log_level: INFO
 log_format: json
 
 # Декорирование k8s-метаданными: k8s.namespace.name, k8s.deployment.name,
-# k8s.pod.name и т.д. Требует ServiceAccount с list/watch (k8s/rbac.yaml).
+# k8s.pod.name и т.д. Требует ServiceAccount с list/watch (manifests/rbac.yaml).
 attributes:
   kubernetes:
     enable: true

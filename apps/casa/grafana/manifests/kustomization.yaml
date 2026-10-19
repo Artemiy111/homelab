@@ -12,7 +12,8 @@ resources:
 configMapGenerator:
   # Дашборды и contact point собираются из файлов configMapGenerator'ом.
   # Datasource'ы, правила алертинга и дерево политик ими управляет оператор
-  # (k8s/datasources.yaml, k8s/alerts.yaml), в провижининге им больше не место.
+  # (manifests/datasources.yaml, manifests/alerts.yaml), в провижининге им больше
+  # не место.
   # Суффикс-хэш отключён: имена ConfigMap'ов должны быть стабильными, иначе на
   # них нельзя сослаться из Grafana CR. Рестарт при изменении файлов делает
   # оператор — аннотация checksum/secrets в pod template это SHA от содержимого
@@ -29,7 +30,7 @@ configMapGenerator:
   # содержит тему ntfy, а valuesFrom оператора заменяет поле целиком, поэтому в
   # секрете должен лежать весь URL, а в Vault лежит только тема (ntfy/topic).
   # Альтернатива — valuesFrom плюс путь ntfy/url в Vault, см. README.
-  # Правила и дерево политик переехали в k8s/alerts.yaml.
+  # Правила и дерево политик переехали в manifests/alerts.yaml.
   - name: grafana-alerting
     options:
       labels:
