@@ -434,6 +434,9 @@ push-зеркало в GitHub — git распределённый, и код п
   `ImagePullBackOff` (issue #716). Поэтому dind берётся из Docker Hub явным
   patch-тегом с digest: `docker.io/library/docker:29.8.2-dind@sha256:7dcdfc4a…`.
   Обновление — руками: новый тег, новый digest, тег в манифесте приводится в
-  соответствие.
+  соответствие. Образ Forgejo в `platform/casa/forgejo/values.yaml` устроен так
+  же: Renovate поднимает там только `image.tag`, а `image.digest` остаётся
+  прежним, и на стенде не меняется ничего — дайджест правится руками вместе с
+  тегом.
 
 Эксплуатация — в `RUNBOOK.md`.

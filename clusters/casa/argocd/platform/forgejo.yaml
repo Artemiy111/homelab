@@ -6,8 +6,7 @@
 # Источник — git-репозиторий чарта с path: ., как у local-path-provisioner.
 # Важно: в git-дереве Chart.yaml у чарта лежит с appVersion 14.0.1 (реальный
 # appVersion подставляется только в OCI-артефакт при релизе), поэтому image.tag
-# и digest заданы явно — иначе Argo развернул бы Forgejo 14 вместо 16.
-# Тег/дайджест — те же, что были в манифестах до переезда на чарт.
+# и digest заданы явно — иначе Argo развернул бы Forgejo 14 вместо 17.
 #
 # База — внешняя: кластер CNPG shared в namespace databases, роль и база forgejo
 # (platform/casa/cnpg/manifests/shared.cluster.yaml, shared.databases.yaml). Пароль роли лежит в

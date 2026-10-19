@@ -325,12 +325,57 @@ dind, сервис-контейнеры (`services:`), матрицы, `needs`/o
 
 ## Обновление
 
-1. Посмотреть release notes Forgejo и тег чарта (`forgejo-helm` на Codeberg).
-2. В `clusters/casa/argocd/platform/forgejo.yaml` поднять `targetRevision` (тег чарта) и
-   `image.tag`/`image.digest` (образ Forgejo) — это две независимые вещи.
-3. Дождаться sync: правка в git доезжает сама, отдельная команда не нужна.
-4. Миграции схемы выполняет init-контейнер чарта (`forgejo migrate`); если он
+Чарт и образ обновляются независимо: тег чарта — `targetRevision` в
+`clusters/casa/argocd/platform/forgejo.yaml`, образ — `image.tag` и
+`image.digest` в `platform/casa/forgejo/values.yaml`. Чарт рендерит
+`<tag>@<digest>`, то есть разворачивается именно дайджест: поднятый без дайджеста
+тег на стенде ничего не меняет. Дайджест версии:
+
+```sh
+crane digest data.forgejo.org/forgejo/forgejo:<версия>-rootless
+```
+
+Мажор необратим: миграции схемы БД идут только вперёд, поэтому откат образа на
+прежний дайджест после первого старта новой версии не поднимется.
+
+1. Прочитать release notes Forgejo (раздел breaking changes) и сверить их с
+   конфигурацией из values.
+
+2. Бэкап: дамп базы и снапшот тома с репозиториями и вложениями.
+
+   ```sh
+   kubectl -n databases exec -i shared-1 -c postgres -- \
+     pg_dump -U postgres -d forgejo -Fc > forgejo-$(date +%F).dump
+
+   kubectl apply -f - <<EOF
+   apiVersion: snapshot.storage.k8s.io/v1
+   kind: VolumeSnapshot
+   metadata:
+     name: forgejo-data-pre-upgrade
+     namespace: forgejo
+   spec:
+     volumeSnapshotClassName: longhorn-snapshot
+     source:
+       persistentVolumeClaimName: forgejo-data
+   EOF
+   ```
+
+   Снапшот лежит в Longhorn на том же узле: от неудачной миграции он спасает, от
+   потери узла — нет, backup target не настроен.
+
+3. Дренировать очереди на текущей версии — они содержат сериализованные данные,
+   которые между версиями несовместимы:
+
+   ```sh
+   kubectl -n forgejo exec deploy/forgejo -c forgejo -- forgejo manager flush-queues
+   ```
+
+4. Поднять `image.tag` и `image.digest` в values (плюс `targetRevision`, если
+   вышел чарт под новый мажор).
+
+5. Дождаться sync: правка в git доезжает сама, отдельная команда не нужна.
+   Миграции схемы выполняет init-контейнер чарта (`forgejo migrate`); если он
    циклится, смотреть его логи: обычно это недоступная база.
 
-Откат — вернуть прежние теги в values коммитом. Образ и чарт пинятся по
-версии/дайджесту, поэтому откат детерминированный.
+6. Проверить по разделу «Проверка», плюс `forgejo doctor check --all --log-file
+   /tmp/doctor.log` в поде, вход по OIDC, push по ssh и прогон workflow.

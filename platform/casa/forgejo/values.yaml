@@ -10,10 +10,11 @@
 image:
   registry: data.forgejo.org
   repository: forgejo/forgejo
-  tag: 16-rootless
-  # Образ пинен по дагисту, тег для читаемости: тег `16-rootless` сам по себе
-  # плавающий.
-  digest: sha256:23ccc146e6dc2cd1f5c5435909baae64db873201717f1726490dae649283e6cd
+  tag: 17.0.0-rootless
+  # Образ пинен по дагисту: чарт рендерит tag@digest, и разворачивается именно
+  # дайджест — правка одного тега образ не меняет. Тег версионный, чтобы он и
+  # дайджест называли одну и ту же версию.
+  digest: sha256:6554520f7574602100b7d6620c6ac5b18cec30325f823777497eac36234f5cf8
   rootless: true
 
 gitea:
