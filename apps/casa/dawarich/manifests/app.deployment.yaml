@@ -132,7 +132,7 @@ spec:
                   value: https
             periodSeconds: 5
             timeoutSeconds: 10
-            failureThreshold: 24
+            failureThreshold: 30
           livenessProbe:
             httpGet:
               path: /api/v1/health
