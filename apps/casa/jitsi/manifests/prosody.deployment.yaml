@@ -81,6 +81,11 @@ spec:
                 secretKeyRef:
                   name: jitsi-auth
                   key: JVB_AUTH_PASSWORD
+            - name: JITSI_MODERATOR_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: jitsi-auth
+                  key: JITSI_MODERATOR_PASSWORD
             - name: AUTH_TYPE
               value: internal
             - name: ENABLE_AUTH
@@ -171,8 +176,8 @@ spec:
           emptyDir:
             sizeLimit: 16Mi
         - name: storage
-          emptyDir:
-            sizeLimit: 64Mi
+          persistentVolumeClaim:
+            claimName: jitsi-prosody-storage
         - name: run
           emptyDir:
             sizeLimit: 16Mi

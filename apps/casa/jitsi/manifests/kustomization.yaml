@@ -11,6 +11,7 @@ resources:
   - jicofo.deployment.yaml
   - jvb.deployment.yaml
   - prosody.deployment.yaml
+  - pvcs.yaml
   - networkpolicy.yaml
   - route.yaml
   - vaultauth.yaml

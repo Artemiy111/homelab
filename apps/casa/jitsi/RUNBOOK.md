@@ -2,8 +2,31 @@
 
 ## Учётная запись организатора
 
-Создать пользователя, которому разрешено открывать новые комнаты.
-Первый участник входит с этой учётной записью и создаёт комнату; остальные подключаются как гости по ссылке.
+Комнату открывает только аутентифицированный пользователь; остальные входят
+гостями по ссылке. Логин — `admin` (в поле имени домен не вводится, клиент
+дописывает `meet.jitsi`), пароль лежит в Vault по пути `kv/jitsi/auth` под
+ключом `JITSI_MODERATOR_PASSWORD` и приходит в контейнер prosody переменной
+окружения, поэтому в командной строке пароль не появляется.
+
+Регистрация:
+
+```sh
+kubectl -n jitsi exec deploy/jitsi-prosody -c prosody -- \
+  sh -c 'prosodyctl --config /run/prosody/config/prosody.cfg.lua \
+    register admin meet.jitsi "$JITSI_MODERATOR_PASSWORD"'
+```
+
+Учётная запись лежит в томе `jitsi-prosody-storage`: перезапуск пода её не
+сносит, а удаление тома — сносит.
+
+Ротация пароля: обновить значение в Vault, форсировать синхронизацию секрета,
+перезапустить prosody (переменная окружения читается при старте пода) и задать
+тот же пароль учётной записи — `passwd` спросит его дважды:
+
+```sh
+kubectl -n jitsi exec -it deploy/jitsi-prosody -c prosody -- \
+  prosodyctl --config /run/prosody/config/prosody.cfg.lua passwd admin@meet.jitsi
+```
 
 ## Проверка
 
