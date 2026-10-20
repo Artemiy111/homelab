@@ -1,0 +1,43 @@
+configuration:
+  features: EnableCSI
+
+priorityClassName: platform-critical
+
+tolerations:
+  - operator: Exists
+
+resources:
+  requests:
+    cpu: 125m
+    memory: 128Mi
+  limits:
+    cpu: "1"
+    memory: 512Mi
+
+metrics:
+  serviceMonitor:
+    enabled: false
+  nodeAgentPodMonitor:
+    enabled: false
+
+backupsEnabled: false
+snapshotsEnabled: false
+
+credentials:
+  useSecret: false
+
+deployNodeAgent: true
+
+nodeAgent:
+  podVolumePath: /var/lib/k0s/kubelet/pods
+  pluginVolumePath: /var/lib/k0s/kubelet/plugins
+  priorityClassName: platform-critical
+  tolerations:
+    - operator: Exists
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: "1"
+      memory: 512Mi

@@ -87,5 +87,6 @@ resources:
   - platform/trivy-operator.yaml
   - platform/vault-secrets-operator.yaml
   - platform/vault.yaml
+  - platform/velero.yaml
   - platform/victoria-metrics-operator.yaml
   - platform/vpa.yaml
