@@ -51,6 +51,18 @@ spec:
                     secretKeyRef:
                       name: rustfs-credentials
                       key: RUSTFS_SECRET_KEY
+                - name: PROXY_USERNAME
+                  valueFrom:
+                    secretKeyRef:
+                      name: mirror-sync-egress
+                      key: username
+                      optional: true
+                - name: PROXY_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: mirror-sync-egress
+                      key: password
+                      optional: true
               resources:
                 requests:
                   cpu: 50m

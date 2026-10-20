@@ -126,6 +126,8 @@ resource "vault_policy" "app_rustfs" {
   policy = <<-EOT
     path "kv/data/rustfs/credentials"      { capabilities = ["read"] }
     path "kv/metadata/rustfs/credentials"  { capabilities = ["read", "list"] }
+    path "kv/data/3x-ui/@mirror-sync/egress"     { capabilities = ["read"] }
+    path "kv/metadata/3x-ui/@mirror-sync/egress" { capabilities = ["read", "list"] }
   EOT
 }
 

@@ -150,6 +150,138 @@ sync_cr_schemas() {
   rm -rf "$tmp"
 }
 
+sync_provider() {
+  local tmp="$1" proxy="$2" addr="$3" ver="$4" hashes="$5" os="$6" arch="$7"
+  local type="${addr##*/}"
+  local fname="terraform-provider-${type}_${ver}_${os}_${arch}.zip"
+  local obj="providers/$addr/$fname"
+
+  if object_exists "$obj"; then
+    echo "skip $obj"
+    return 0
+  fi
+  if [ -z "$proxy" ]; then
+    echo "нет кредов прокси 3x-ui, не скачать $obj" >&2
+    return 1
+  fi
+  case "$addr" in
+    registry.terraform.io/*) ;;
+    *)
+      echo "неподдерживаемый хост реестра: $addr" >&2
+      return 1
+      ;;
+  esac
+
+  local rest="${addr#registry.terraform.io/}"
+  local meta url shasum rname
+  if ! meta="$(curl -fsSL -x "$proxy" \
+    "https://registry.terraform.io/v1/providers/${rest}/${ver}/download/${os}/${arch}")"; then
+    echo "реестр недоступен: $addr $ver" >&2
+    return 1
+  fi
+  read -r url shasum rname <<<"$(printf '%s' "$meta" |
+    python3 -c 'import json,sys; d=json.load(sys.stdin); print(d["download_url"], d["shasum"], d["filename"])' 2>/dev/null || true)"
+  if [ -z "$url" ] || [ -z "$shasum" ]; then
+    echo "не разобран ответ реестра: $addr $ver" >&2
+    return 1
+  fi
+  if [ "$rname" != "$fname" ]; then
+    echo "имя файла в реестре не совпало с ожидаемым: $rname != $fname" >&2
+    return 1
+  fi
+
+  local dir="$tmp/$addr"
+  local file="$dir/$fname"
+  mkdir -p "$dir"
+  if ! curl -fsSL -x "$proxy" -o "$file" "$url"; then
+    echo "не скачался пакет: $url" >&2
+    rm -f "$file"
+    return 1
+  fi
+  local got
+  got="$(sha256sum "$file" | awk '{print $1}')"
+  if [ "$got" != "$shasum" ]; then
+    echo "sha256 не совпал с реестром: $obj" >&2
+    rm -f "$file"
+    return 1
+  fi
+  if ! printf ' %s ' "$hashes" | grep -q " $got "; then
+    echo "sha256 не входит в zh-хэши lock-файла: $obj" >&2
+    rm -f "$file"
+    return 1
+  fi
+  echo "fetch $obj"
+  s3cp "$file" "s3://$BUCKET/$obj"
+  rm -f "$file"
+}
+
+sync_providers() {
+  local repo="https://github.com/Artemiy111/homelab.git"
+  local os="linux" arch="amd64"
+  ensure_build_tools
+
+  local tmp
+  tmp="$(mktemp -d)"
+  if ! git clone --depth 1 --no-single-branch -q "$repo" "$tmp/repo"; then
+    echo "не склонировалось зеркало репозитория: $repo" >&2
+    rm -rf "$tmp"
+    return 1
+  fi
+
+  local proxy=""
+  if [ -n "${PROXY_USERNAME:-}" ] && [ -n "${PROXY_PASSWORD:-}" ]; then
+    proxy="http://${PROXY_USERNAME}:${PROXY_PASSWORD}@xui-egress.3x-ui.svc.cluster.local:8440"
+  fi
+
+  local -A zhset=()
+  local ref path addr ver hashes key h
+  local -a parts=()
+  while read -r ref; do
+    while read -r path; do
+      [ -z "$path" ] && continue
+      while IFS=$'\t' read -r addr ver hashes; do
+        if [ -z "$addr" ] || [ -z "$ver" ]; then
+          continue
+        fi
+        key="$addr@$ver"
+        read -ra parts <<<"$hashes"
+        for h in "${parts[@]}"; do
+          case " ${zhset[$key]:-} " in
+            *" $h "*) ;;
+            *) zhset[$key]="${zhset[$key]:-} $h" ;;
+          esac
+        done
+      done < <(git -C "$tmp/repo" show "$ref:$path" | awk '
+        $1 == "provider" { addr = $2; gsub(/"/, "", addr); ver = ""; hashes = ""; next }
+        addr != "" && $1 == "version" { ver = $3; gsub(/"/, "", ver); next }
+        addr != "" && /"zh:/ {
+          line = $0; gsub(/[" ,]/, "", line); sub(/^zh:/, "", line); hashes = hashes " " line; next
+        }
+        addr != "" && $0 == "}" {
+          if (ver != "") print addr "\t" ver "\t" hashes
+          addr = ""
+        }')
+    done < <(git -C "$tmp/repo" ls-tree -r --name-only "$ref" -- infra/casa/terraform |
+      grep -E '\.terraform\.lock\.hcl$' || true)
+  done < <(git -C "$tmp/repo" for-each-ref --format='%(refname)' refs/remotes/origin)
+
+  local found=0
+  for key in "${!zhset[@]}"; do
+    found=$((found + 1))
+    addr="${key%@*}"
+    ver="${key##*@}"
+    if ! sync_provider "$tmp" "$proxy" "$addr" "$ver" "${zhset[$key]}" "$os" "$arch"; then
+      failed+=("terraform-providers/$addr@$ver")
+    fi
+  done
+
+  rm -rf "$tmp"
+  if [ "$found" -eq 0 ]; then
+    echo "в lock-файлах не найдено ни одного провайдера" >&2
+    return 1
+  fi
+}
+
 failed=()
 
 while read -r path sha url _; do
@@ -171,6 +303,10 @@ if [ -n "${CRD_SCHEMAS_REV:-}" ]; then
   if ! sync_cr_schemas "$CRD_SCHEMAS_REV"; then
     failed+=("kubeconform-cr-schemas/$CRD_SCHEMAS_REV")
   fi
+fi
+
+if ! sync_providers; then
+  failed+=("terraform-providers")
 fi
 
 if [ "${#failed[@]}" -gt 0 ]; then
