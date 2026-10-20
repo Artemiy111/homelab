@@ -49,6 +49,8 @@ spec:
       namespace: victoria-metrics-operator
     - server: https://kubernetes.default.svc
       namespace: vpa
+    - server: https://kubernetes.default.svc
+      namespace: velero
   clusterResourceWhitelist:
     - group: "*"
       kind: "*"
