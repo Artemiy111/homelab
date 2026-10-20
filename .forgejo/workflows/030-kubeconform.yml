@@ -13,8 +13,7 @@ on:
     paths: *paths
 
 # Скрипт проверки лежит среди путей: правка набора путей или схем без запуска
-# гейта оставила бы main с непроверенными манифестами ровно настолько же,
-# насколько сейчас непроверенным был фикс lute (#788, #789).
+# гейта оставила бы main с непроверенными манифестами.
 
 jobs:
   kubeconform:
@@ -22,8 +21,12 @@ jobs:
     timeout-minutes: 10
     env:
       # Ревизия datreeio/CRDs-catalog. Объявлена на уровне job, а не в шаге
-      # Validate manifests: значение нужно и ключу кэша, и команде.
+      # Validate manifests: значение нужно и пути объекта в зеркале тоже.
       CRD_SCHEMAS_REV: fd90051867733c60d32d16450556e9cd18459aef
+      # Схемы берутся только из локальных наборов. Внешний DNS ноды
+      # периодически отвечает отказом (docs/incidents/0011), поэтому гейт не
+      # должен зависеть от raw.githubusercontent.com (#1185).
+      KUBECONFORM_OFFLINE: "1"
     steps:
       - uses: actions/checkout@v7
       - name: Cache kubeconform
@@ -38,50 +41,37 @@ jobs:
         with:
           path: ~/.cache/kubeconform-schemas
           key: kubeconform-schemas-1.36.3-mirror-${{ runner.os }}
-      - name: Cache kubeconform HTTP responses
-        uses: actions/cache@v6
-        with:
-          path: ~/.cache/kubeconform-http
-          key: kubeconform-cr-schemas-${{ env.CRD_SCHEMAS_REV }}-${{ runner.os }}
-      # Набор CR лежит в зеркале целиком (#910): раньше он тянулся с GitHub по
-      # HTTPS, а раннер туда не ходит, и гейт падал на каждом холодном кэше.
+      # Набор CR — весь каталог одной ревизии, объект в зеркале RustFS. Файлы
+      # считаются по списку архива до распаковки: проверка «есть хотя бы один
+      # json» пропускает обрезанный архив, а неполный набор даёт красный гейт,
+      # причину которого видно только по именам отсутствующих схем.
       #
-      # Проверка ниже ищет любой файл через find -quit, а не глобом в test -f:
-      # каталог каталога CRD-схем разворачивается в 4056 файлов, и
-      # `test -f dir/*/*.json` передаёт их все аргументами — test принимает
-      # не больше трёх и падает с «too many arguments». Шаг не под кэшем и
-      # выполняется на каждом прогоне, так что ошибка была не про холодный кэш,
-      # а про проверку: джоба падала до шага валидации.
+      # Объект обязан существовать: ревизию публикует зеркало, и порядок
+      # «сначала опубликовать, потом пинить» описан в apps/casa/rustfs/RUNBOOK.md.
       - name: Install CR schemas
         run: |
           set -euo pipefail
-          # Шаг необязательный. Зеркало наполняет CronJob раз в сутки, поэтому
-          # смена CRD_SCHEMAS_REV опережает его на сутки: падать здесь нельзя,
-          # иначе красное означало бы «подожди», а не «сломано». Пока объекта
-          # нет, scripts/kubeconform.sh берёт схемы по HTTP-фолбэку.
           url="http://rustfs.rustfs.svc.cluster.local/mirror/kubeconform-cr-schemas/${CRD_SCHEMAS_REV}/crds-catalog_${CRD_SCHEMAS_REV}.tar.gz"
-          if ! curl -fsSL --max-time 60 -o /tmp/crds.tar.gz "$url"; then
-            echo "схемы CR в зеркале ещё нет, используется HTTP-фолбэк"
-            exit 0
+          curl -fsSL --max-time 60 -o /tmp/crds.tar.gz "$url"
+          count="$(tar -tzf /tmp/crds.tar.gz | grep -c '\.json$' || true)"
+          if [ "$count" -lt 4000 ]; then
+            echo "в архиве CR-схем $count json, ожидалось не меньше 4000" >&2
+            exit 1
           fi
           mkdir -p "$HOME/.cache/kubeconform-schemas/crds"
           tar -xzf /tmp/crds.tar.gz -C "$HOME/.cache/kubeconform-schemas/crds"
-          find "$HOME/.cache/kubeconform-schemas/crds" -name '*.json' -print -quit \
-            | grep -q .
-          echo "схемы CR взяты из зеркала"
-      # Бинарь и набор схем Kubernetes берём из зеркала RustFS (issue #149).
-      # У скачанного бинаря сверяем sha256 с apps/casa/rustfs/manifests/artifacts.tsv; схемы
-      # собираются в зеркало воспроизводимо, поэтому хэш в манифесте не пинится.
-      # Зеркало наполняет CronJob mirror-sync (apps/casa/rustfs).
+          echo "схемы CR из зеркала: $count json"
+      # Бинарь и наборы схем Kubernetes берём из зеркала RustFS (issue #149).
+      # У скачанного бинаря сверяем sha256 с apps/casa/rustfs/manifests/artifacts.tsv;
+      # схемы собираются в зеркало воспроизводимо, поэтому хэш не пинится.
       #
       # Схемы Kubernetes нужны локальными ради привязки к версии: kubeconform
       # подставляет {{.NormalizedKubernetesVersion}} из -kubernetes-version, то
       # есть проверяет манифесты по API 1.36.3, а не по master. Ставятся оба
       # набора, standalone и standalone-strict: скрипт зовёт kubeconform со
-      # -strict, и имя каталога схемы меняется на standalone-strict, поэтому
-      # одного нестрогого набора недостаточно — при отсутствии строгого
-      # kubeconform не откатывается на нестрогий, а падает с «could not find
-      # schema». Схемы CR выведены из CRD конкретной версии оператора (#791).
+      # -strict, и в пути схемы появляется суффикс -standalone-strict, поэтому
+      # одного нестрогого набора недостаточно — на строгий kubeconform не
+      # откатывается и падает с «could not find schema».
       - name: Install kubeconform
         if: steps.kubeconform.outputs.cache-hit != 'true'
         run: |
@@ -101,22 +91,21 @@ jobs:
           base="http://rustfs.rustfs.svc.cluster.local/mirror/kubeconform-schemas/1.36.3"
           mkdir -p "$HOME/.cache/kubeconform-schemas"
           for set in standalone standalone-strict; do
-            curl -fsSL -o "/tmp/schemas-$set.tar.gz" \
-              "$base/kubernetes-json-schema_1.36.3_$set.tar.gz"
-            tar -xzf "/tmp/schemas-$set.tar.gz" -C "$HOME/.cache/kubeconform-schemas"
+            archive="/tmp/schemas-$set.tar.gz"
+            curl -fsSL -o "$archive" "$base/kubernetes-json-schema_1.36.3_$set.tar.gz"
+            count="$(tar -tzf "$archive" | grep -c '\.json$' || true)"
+            if [ "$count" -lt 1300 ]; then
+              echo "в наборе $set $count json, ожидалось не меньше 1300" >&2
+              exit 1
+            fi
+            tar -xzf "$archive" -C "$HOME/.cache/kubeconform-schemas"
           done
-          test -f "$HOME/.cache/kubeconform-schemas/v1.36.3-standalone-strict/configmap.json"
       - name: Add kubeconform to PATH
         run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-      # Второй -schema-location — схемы CR из datreeio/CRDs-catalog: они не в
-      #ходят в набор схем Kubernetes, а без них 40% ресурсов (все CR операторов)
-      #не проверялись бы. Ревизия каталога зафиксирована коммитом и передаётся
-      # скрипту через CRD_SCHEMAS_REV — она же ключ кэша выше.
-      #
       # Набор путей, схем, фильтров и -strict живёт в scripts/kubeconform.sh:
       # тот же скрипт вызывают .githooks/pre-commit и scripts/check.sh, и
       # расхождение трёх прогонов хуже, чем отсутствие проверки. Здесь только
-      # ставим бинарь и раскладываем схемы Kubernetes из зеркала.
+      # ставим бинарь и раскладываем схемы из зеркала.
       - name: Validate manifests
         run: |
           set -euo pipefail

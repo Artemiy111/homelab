@@ -36,3 +36,24 @@ kubectl -n rustfs exec deploy/rustfs -- \
   curl -fsS -o /dev/null -w '%{http_code}\n' \
   http://rustfs/mirror/kubeconform/0.8.0/kubeconform_0.8.0_linux_amd64.tar.gz
 ```
+
+## Обновление ревизии CR-схем
+
+Гейт `manifests` работает офлайн: схемы CR он берёт только из зеркала по
+ревизии `CRD_SCHEMAS_REV`. Поэтому ревизия сначала публикуется, потом пинится —
+PR, который поднимает пин раньше публикации, падает на своём же гейте.
+
+1. Поднять `CRD_SCHEMAS_REV` в `apps/casa/rustfs/manifests/mirror-sync.cronjob.yaml`
+   и смержить.
+2. Дождаться синка Argo и прогнать Job:
+   `kubectl -n rustfs create job --from=cronjob/mirror-sync mirror-sync-rev`.
+3. Проверить, что объект появился:
+
+   ```sh
+   kubectl -n rustfs exec deploy/rustfs -- \
+     curl -fsS -o /dev/null -w '%{http_code}\n' \
+     http://rustfs/mirror/kubeconform-cr-schemas/<rev>/crds-catalog_<rev>.tar.gz
+   ```
+
+4. Поднять ту же ревизию в `scripts/kubeconform.sh` (дефолт `crd_catalog_rev`) и
+   в `env.CRD_SCHEMAS_REV` обоих `030-kubeconform.yml`, смержить.
