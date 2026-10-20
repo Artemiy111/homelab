@@ -30,7 +30,10 @@ SCHEMA_REPO="${SCHEMA_REPO:-https://github.com/yannh/kubernetes-json-schema.git}
 CRD_SCHEMA_REPO="${CRD_SCHEMA_REPO:-https://github.com/datreeio/CRDs-catalog.git}"
 
 s3api() { aws --endpoint-url "$S3_ENDPOINT" s3api "$@"; }
-s3cp() { aws --endpoint-url "$S3_ENDPOINT" s3 cp "$@"; }
+
+s3put() {
+  s3api put-object --bucket "$BUCKET" --key "$2" --body "$1" >/dev/null
+}
 
 ensure_build_tools() {
   command -v git >/dev/null 2>&1 && command -v tar >/dev/null 2>&1 && return 0
@@ -60,7 +63,11 @@ sync_url() {
     rm -f "$tmp"
     return 1
   fi
-  s3cp "$tmp" "s3://$BUCKET/$path"
+  if ! s3put "$tmp" "$path"; then
+    echo "upload failed for $path" >&2
+    rm -f "$tmp"
+    return 1
+  fi
   rm -f "$tmp"
 }
 
@@ -104,7 +111,11 @@ sync_schemas() {
     tar -C "$tmp/schemas" \
       --sort=name --mtime='@0' --owner=0 --group=0 --numeric-owner \
       -czf "$tmp/schemas.tar.gz" "$dir"
-    s3cp "$tmp/schemas.tar.gz" "s3://$BUCKET/kubeconform-schemas/$ver/kubernetes-json-schema_${ver}_${variant}.tar.gz"
+    if ! s3put "$tmp/schemas.tar.gz" "kubeconform-schemas/$ver/kubernetes-json-schema_${ver}_${variant}.tar.gz"; then
+      echo "upload failed: kubeconform-schemas/$ver/kubernetes-json-schema_${ver}_${variant}.tar.gz" >&2
+      rm -rf "$tmp"
+      return 1
+    fi
   done
   rm -rf "$tmp"
 }
@@ -146,7 +157,11 @@ sync_cr_schemas() {
     --exclude=.git \
     -czf "$tmp/crds.tar.gz" .
   mkdir -p "kubeconform-cr-schemas/$rev"
-  s3cp "$tmp/crds.tar.gz" "s3://$BUCKET/$path"
+  if ! s3put "$tmp/crds.tar.gz" "$path"; then
+    echo "upload failed: $path" >&2
+    rm -rf "$tmp"
+    return 1
+  fi
   rm -rf "$tmp"
 }
 
@@ -211,7 +226,11 @@ sync_provider() {
     return 1
   fi
   echo "fetch $obj"
-  s3cp "$file" "s3://$BUCKET/$obj"
+  if ! s3put "$file" "$obj"; then
+    echo "upload failed: $obj" >&2
+    rm -f "$file"
+    return 1
+  fi
   rm -f "$file"
 }
 
