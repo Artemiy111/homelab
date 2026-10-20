@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: gotenberg
-          image: "gotenberg/gotenberg:8.34@sha256:67097317623a503ba2a6a7e9ae8db6929a1f7e1bbd88077bacf2d325fbdab923"
+          image: "gotenberg/gotenberg:8.38@sha256:aa552cc115db488e0f0bcb07446aac13071ad51505b642c84bb894500907b42b"
           args:
             - gotenberg
             - --chromium-disable-javascript=true
