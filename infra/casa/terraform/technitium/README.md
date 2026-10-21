@@ -35,37 +35,17 @@ read -rs TECHNITIUM_API_TOKEN && echo
 export TECHNITIUM_API_TOKEN
 ```
 
-## Переезд зоны на новый домен
+## Состояние после переезда на `biplane.casa`
 
-Зона и записи переехали с `biplane.v6.rocks` на `biplane.casa`. Обе зоны
-одновременно существовали в state: старая как `domain_zone`/`wildcard`/`dns`,
-новая как `domain_zone_new`/`wildcard_new`/`dns_new`. Код теперь знает только
-новые имена, поэтому state надо перенести вручную — `plan` без этого предложит
-уничтожить новую зону и создать её же заново.
+State канонический: зона — `technitium_zone.domain_zone`, записи — `apex`,
+`wildcard`, `dns`; адресов с суффиксом `_new` не осталось, зона
+`biplane.v6.rocks` в Technitium удалена.
 
-Порядок: сначала `state rm` старых адресов (зона `biplane.v6.rocks` в консоли
-Technitium останется, но управлять ей больше нечем), затем `state mv` новых на
-канонические имена. `mv` обязателен именно в этом порядке: наоборот адреса
-конфликтуют.
-
-```sh macOS
-cd infra/casa/terraform/technitium
-terraform state rm technitium_zone.domain_zone
-terraform state rm technitium_record.wildcard
-terraform state rm technitium_record.dns
-
-terraform state mv technitium_zone.domain_zone_new   technitium_zone.domain_zone
-terraform state mv technitium_record.wildcard_new    technitium_record.wildcard
-terraform state mv technitium_record.dns_new         technitium_record.dns
-
-terraform plan
-```
-
-Ожидается `No changes`. Если `plan` показывает создание зоны — `mv` не прошёл
-или порядок был нарушен; apply в этом состоянии удалит живую зону `biplane.casa`
-вместе с wildcard-записью, и apex перестанет резолвиться.
-
-Зону `biplane.v6.rocks` после этого удаляют руками в консоли Technitium.
+`terraform plan` перед `apply` обязателен: `technitium_zone` не управляет
+содержимым зоны, поэтому замена зоны (смена `name`) удаляет её целиком вместе с
+записями, включая неуправляемые ACME-челленджи cert-manager. Сами записи
+объявляют `depends_on` на зону: без него при пересоздании они уходят в API
+раньше, чем зона появится, и падают с `No such zone was found`.
 
 ## Значения
 
