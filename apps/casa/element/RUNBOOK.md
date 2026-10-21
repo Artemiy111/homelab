@@ -52,3 +52,24 @@ curl -fsS https://element.example.com/livekit/jwt/healthz
 
 Полная проверка Element Call требует двух авторизованных клиентов в LAN или
 tailnet: создать комнату, начать звонок и проверить аудио/видео.
+
+## Element Call
+
+`matrix-rtc-auth` проверяет OpenID-токен пользователя в federation API Synapse.
+Адрес он берёт из `https://example.com/.well-known/matrix/server`: Synapse
+отдаёт `{"m.server":"example.com:443"}`, то есть запрос уходит на apex-домен.
+Отсюда две зависимости, без которых звонок не начинается: apex резолвится
+(A-запись Technitium) и на apex есть маршрут `/_matrix` (`element-well-known`
+HTTPRoute). Симптом поломки — `OPEN_ID_ERROR` в Element и
+`OpenIDUserInfo: Failed to look up user info` в логах `matrix-rtc-auth`.
+
+```sh
+curl -fsS https://example.com/.well-known/matrix/server
+curl -sS -o /dev/null -w '%{http_code}\n' \
+  'https://example.com/_matrix/federation/v1/openid/userinfo?access_token=x'
+```
+
+Ожидаемый результат: `{"m.server":"example.com:443"}` и `401`. Невалидный токен
+Synapse отвергает; `404` значит, что маршрута на apex нет, transport error —
+apex не резолвится.
+

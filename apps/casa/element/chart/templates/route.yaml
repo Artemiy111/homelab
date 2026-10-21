@@ -73,8 +73,9 @@ spec:
   hostnames:
     - biplane.casa
   rules:
-    # Apex-домен обслуживает только well-known: Gateway-слушатель отдаёт
-    # wildcard, и без этих точных правил хост ушёл бы в catch-all.
+    # Apex-домен обслуживает well-known и federation API. Gateway-слушатель
+    # `apex` объявлен на этот хост отдельно от wildcard, поэтому без правил
+    # ниже хост ушёл бы в catch-all.
     - matches:
         - path:
             type: Exact
@@ -86,6 +87,16 @@ spec:
         - path:
             type: Exact
             value: /.well-known/matrix/server
+      backendRefs:
+        - name: synapse
+          port: 80
+    # Federation delegation: Synapse объявляет `m.server: biplane.casa:443`,
+    # поэтому federation API (в том числе openid/userinfo, которым
+    # matrix-rtc-auth проверяет токен Element Call) приходит на apex-хост.
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /_matrix
       backendRefs:
         - name: synapse
           port: 80

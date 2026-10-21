@@ -26,7 +26,9 @@ MatrixRTC authorization service.
 
 Там же публикуется Matrix Federation delegation на HTTPS-порт `443`; он нужен
 MatrixRTC authorization service, чтобы проверить OpenID-токен пользователя у
-Synapse.
+Synapse. Delegation ссылается на apex-домен (`example.com`), поэтому apex обязан
+резолвиться (A-запись в Technitium) и иметь маршрут `/_matrix` на слушателе
+`apex` Gateway.
 
 ## Сеть
 

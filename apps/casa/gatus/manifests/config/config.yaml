@@ -435,6 +435,19 @@ endpoints:
       - "[CERTIFICATE_EXPIRATION] > 168h"
     alerts: *alerts-all
 
+  - name: Matrix federation delegation
+    group: Applications
+    # Apex-домен: matrix-rtc-auth читает отсюда адрес federation API, без него
+    # Element Call не получает LiveKit-токен (`OPEN_ID_ERROR`).
+    url: https://${DOMAIN}/.well-known/matrix/server
+    interval: 60s
+    client: *https-client
+    conditions:
+      - "[STATUS] == 200"
+      - "[BODY] == pat(*m.server*)"
+      - "[CERTIFICATE_EXPIRATION] > 168h"
+    alerts: *alerts-all
+
   - name: Talk signaling
     group: Applications
     # Nextcloud Talk high-performance backend (eturnal); префикс

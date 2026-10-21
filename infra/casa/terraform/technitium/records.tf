@@ -3,6 +3,14 @@ resource "technitium_zone" "domain_zone" {
   type = "Primary"
 }
 
+resource "technitium_record" "apex" {
+  zone  = var.domain
+  name  = var.domain
+  type  = "A"
+  value = var.host_ip
+  ttl   = 3600
+}
+
 resource "technitium_record" "wildcard" {
   zone  = var.domain
   name  = "*.${var.domain}"

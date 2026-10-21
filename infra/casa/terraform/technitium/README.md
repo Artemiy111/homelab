@@ -81,6 +81,7 @@ host_ip = "192.0.2.10"   # адрес сервера
 
 | Ресурс | Запись |
 | --- | --- |
+| `technitium_record.apex` | `<домен>` A → сервер: wildcard apex не покрывает, а на него ссылается federation delegation Element (`m.server: <домен>:443`) |
 | `technitium_record.wildcard` | `*.<домен>` A → сервер |
 | `technitium_record.dns` | `dns.<домен>` A → сервер |
 | `technitium_record.cloudflare_bootstrap_*` | две A-записи зоны `cloudflare-dns.com` (обход DPI, см. `apps/casa/technitium/README.md`) |
