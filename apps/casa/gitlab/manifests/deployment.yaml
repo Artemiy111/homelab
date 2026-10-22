@@ -14,7 +14,7 @@ spec:
   strategy:
     type: Recreate
   revisionHistoryLimit: 1
-  replicas: 1
+  replicas: 0
   selector:
     matchLabels:
       app: gitlab
