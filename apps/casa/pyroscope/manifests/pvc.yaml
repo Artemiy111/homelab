@@ -13,6 +13,6 @@ spec:
     requests:
       # Профили — сэмплы стеков, поток невелик, но растёт с числом
       # инструментируемых процессов. Pyroscope сам удаляет старые блоки при
-      # нехватке места (retention-policy + limits.retention_period), 10Gi —
+      # нехватке места (retention-policy + limits.retention_period); объём —
       # с запасом под неделю данных.
-      storage: 10Gi
+      storage: 20Gi

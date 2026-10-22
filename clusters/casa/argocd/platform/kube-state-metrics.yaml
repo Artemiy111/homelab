@@ -25,6 +25,9 @@ spec:
     - repoURL: https://github.com/Artemiy111/homelab.git
       targetRevision: main
       ref: values
+    - repoURL: https://github.com/Artemiy111/homelab.git
+      targetRevision: main
+      path: platform/casa/kube-state-metrics/manifests
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring

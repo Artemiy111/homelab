@@ -51,7 +51,7 @@ vmagent не имеет job'а `pyroscope` в `apps/casa/victoria-metrics/manife
 ## Цена
 
 - **CPU:** ~1–2% на ядро непрерывно, пока работает сэмплирование.
-- **Диск:** PVC 10 Gi. Pyroscope сам удаляет старые блоки при нехватке места
+- **Диск:** PVC `pyroscope-data`. Pyroscope сам удаляет старые блоки при нехватке места
   (`retention-policy-*`), плюс `limits.retention_period: 168h`.
 - **Привилегии:** компонент с eBPF-доступом (второй после Beyla). Взят набор
   capabilities, а не `privileged: true`.

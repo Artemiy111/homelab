@@ -280,6 +280,22 @@ kubectl get pv pvc-<uuid>          # обычно уже NotFound
   attempt … will not retry» и ждёт нового revision или ручного sync:
   `kubectl -n argocd patch application <name> --type merge -p '{"operation":{"sync":{"prune":true}}}'`
   (`operation` — поле верхнего уровня Application, не в `spec`).
+- **`VolumeAttachment` зависает в `deleting` на перегруженном узле.** Под висит в
+  `ContainerCreating`, в событиях `FailedAttachVolume: volume attachment is being
+  deleted`, а `kubectl get volumeattachment` показывает объект с `deletionTimestamp`
+  и `attached: false`. Причина не в Longhorn: под нагрузкой kube-apiserver отвечает
+  таймаутами, `external-attacher` теряет лидерство и не успевает снять финалайзер
+  `external-attacher/driver-longhorn-io`. При `attached: false` detach уже не нужен,
+  финалайзер снимается руками — attach-detach controller сразу создаёт новый
+  `VolumeAttachment` и том прикрепляется:
+
+  ```sh
+  kubectl get volumeattachment -o custom-columns=NAME:.metadata.name,PV:.spec.source.persistentVolumeName,ATTACHED:.status.attached,DELETING:.metadata.deletionTimestamp
+  kubectl patch volumeattachment <name> -p '{"metadata":{"finalizers":null}}' --type=merge
+  ```
+
+  Если `attached: true`, сначала выяснить, какой под держит том: снятие финалайзера
+  оставит том прикреплённым к узлу.
 - **`longhorn-static` — не наш класс.** Его создаёт Longhorn (`defaultLonghornStaticStorageClass`)
   для PV, которые вручную привязывают к уже существующим Longhorn-томам. Политика `Delete`.
 
@@ -296,6 +312,7 @@ kubectl get pv pvc-<uuid>          # обычно уже NotFound
 | Том `Released` после удаления PVC | использован класс `longhorn-retain` — так задумано | сначала проверить бэкап, затем удалить PV и том в UI |
 | `VolumeSnapshot` висит `readyToUse=false` с `backup target default is not available` | в VolumeSnapshotClass нет `type: snap` — драйвер ушёл в бэкапную ветку | использовать класс `longhorn-snapshot`; у зависшего снапшота снять финалайзеры с `VolumeSnapshot` и `VolumeSnapshotContent` |
 | `sc` не меняется: `reclaimPolicy: field is immutable` | поля StorageClass неизменяемы | удалить SC и дать Argo создать заново; при необходимости сделать ручной sync |
+| Под висит в `ContainerCreating`, `FailedAttachVolume: volume attachment is being deleted` | узел перегружен: `external-attacher` потерял лидерство и не снял финалайзер с зависшего `VolumeAttachment` | проверить `attached` у объекта; при `false` снять финалайзер — `kubectl patch volumeattachment <name> -p '{"metadata":{"finalizers":null}}' --type=merge` |
 
 Настройки Longhorn (включая backup target и пороги) — это CR `settings.longhorn.io` в
 `longhorn-system`, а не ConfigMap чарта: изменение values после установки их не перепишет.
