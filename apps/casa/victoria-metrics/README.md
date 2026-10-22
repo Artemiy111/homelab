@@ -27,7 +27,7 @@ Netdata скрейпится только за метриками хоста и 
 `%{VAR}` (env-подстановка в `-promscrape.config`); окружение приходит из k8s
 Secrets и ConfigMap.
 
-Цели: `victoriametrics`, `vmagent`, `traefik`, `authentik`, `wud`,
+Цели: `victoriametrics`, `vmagent`, `traefik`, `authentik`,
 `gatus`, `synapse`, `immich`, `livekit`, `tempo`, `athens`, `glitchtip`, `zot`,
 `prosody`, `talk-hpb`, `longhorn` (без аутентификации); `uptime-kuma`,
 `navidrome`, `dawarich`, `forgejo`, `technitium`, `stalwart`, `seafile` (креды из

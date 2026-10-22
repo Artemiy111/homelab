@@ -111,11 +111,6 @@ scrape_configs:
       - targets:
           - authentik.authentik.svc.cluster.local:9300
 
-  - job_name: wud
-    static_configs:
-      - targets:
-          - wud.monitoring.svc.cluster.local:3000
-
   - job_name: gatus
     static_configs:
       - targets:

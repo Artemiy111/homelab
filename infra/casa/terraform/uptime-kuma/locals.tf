@@ -162,16 +162,6 @@ locals {
       accepted_status_codes = ["200"]
     }
 
-    "wud" = {
-      name                  = "WUD"
-      group                 = "monitoring"
-      kind                  = "keyword"
-      description           = "Health endpoint WUD в кластере; публичный маршрут закрыт forward auth. Тело содержит uptime, то есть агент жив."
-      keyword               = "uptime"
-      url                   = "http://wud.monitoring.svc.cluster.local/health"
-      accepted_status_codes = ["200"]
-    }
-
     "jitsi-meet" = {
       name                  = "Jitsi Meet"
       group                 = "applications"

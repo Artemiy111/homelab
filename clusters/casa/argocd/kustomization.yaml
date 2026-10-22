@@ -26,7 +26,6 @@ resources:
   - apps/grafana.yaml
   - apps/home-assistant.yaml
   - apps/homepage.yaml
-  - apps/image-updates.yaml
   - apps/immich.yaml
   - apps/infisical.yaml
   - apps/jellyfin.yaml

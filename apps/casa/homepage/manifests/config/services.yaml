@@ -15,10 +15,6 @@
         icon: mdi-chart-line
         href: https://beszel.{{HOMEPAGE_VAR_DOMAIN}}/
         description: Метрики хоста и контейнеров
-    - WUD:
-        icon: mdi-update
-        href: https://wud.{{HOMEPAGE_VAR_DOMAIN}}/
-        description: Обновления Docker images
     - 3x-ui:
         icon: mdi-vpn
         href: https://xui.{{HOMEPAGE_VAR_DOMAIN}}/

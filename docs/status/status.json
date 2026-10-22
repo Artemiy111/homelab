@@ -1,11 +1,11 @@
 {
   "schema": 1,
   "source": "scripts/status-badges.sh",
-  "services": 59,
-  "manifests": 667,
+  "services": 58,
+  "manifests": 660,
   "images": {
-    "pinned": 137,
-    "total": 137,
+    "pinned": 135,
+    "total": 135,
     "percent": 100,
     "exceptions": []
   },

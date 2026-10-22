@@ -170,19 +170,6 @@ endpoints:
       - "[STATUS] == 200"
     alerts: *alerts-all
 
-  # Публичный URL WUD закрыт forward auth (oauth2-proxy@file) и для
-  # неавторизованного запроса отдаёт 302, поэтому проверяем приложение напрямую
-  # по имени сервиса в кластере.
-  - name: WUD
-    group: Monitoring
-    url: http://wud.monitoring.svc.cluster.local/health
-    interval: 60s
-    client: *docker-client
-    conditions:
-      - "[STATUS] == 200"
-      - "[BODY] == pat(*uptime*)"
-    alerts: *alerts-all
-
   - name: Jitsi Meet
     group: Applications
     url: https://meet.${DOMAIN}/

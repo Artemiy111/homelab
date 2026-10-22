@@ -1,7 +1,7 @@
 # Базовый NetworkPolicy для namespace monitoring: default-deny ingress плюс
-# явные разрешения. traefik — UI (grafana, vm, wud); gatus и
+# явные разрешения. traefik — UI (grafana, vm); gatus и
 # uptime-kuma проверяют внутренние сервисы (victoriametrics, vmagent,
-# grafana, wud) напрямую по к8s-именам; kube-state-metrics приходит из default;
+# grafana) напрямую по к8s-именам; kube-state-metrics приходит из default;
 # radar читает метрики ворклоадов из victoriametrics; opencost — метрики для
 # расчёта стоимости; grafana-operator ходит в
 # API инстанса Grafana, которым сам же управляет (#645).
