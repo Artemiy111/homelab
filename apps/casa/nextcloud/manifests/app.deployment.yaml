@@ -19,7 +19,7 @@ spec:
     spec:
       initContainers:
         - name: wait-for-db
-          image: "postgres:18-alpine@sha256:d3e1620b530c944afa6e887d22eb899824da68e19c52024bf98f5220c88a65b2"
+          image: "postgres:18-alpine@sha256:898c60cb390d1085bc97bdd6a1ae968757421df394b071848b52b1c09c89d6a5"
           command: ["/bin/sh", "-c", "until pg_isready -h shared-rw.databases.svc.cluster.local -p 5432 -U nextcloud; do echo waiting for db; sleep 2; done"]
           securityContext:
             runAsUser: 70
