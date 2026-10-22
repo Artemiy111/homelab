@@ -80,7 +80,7 @@ spec:
             - name: data
               mountPath: /data
         - name: dind
-          image: "docker.io/library/docker:29.8.2-dind@sha256:1e08cdb63405ca788aea94ef35b792d1e299607c667d33d7bcbcae1fd2611ced"
+          image: "docker.io/library/docker:29.9.2-dind@sha256:9e79b879b177fbd72c34376a3dd3d91747da5db49e1f560f76aea59561471977"
           # Privileged нужен самому dockerd (создание namespaces, монтирования).
           # Это не доступ к демону узла: внутри пода свой изолированный daemon.
           securityContext:
