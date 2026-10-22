@@ -1,5 +1,25 @@
 # Beyla: эксплуатация
 
+## Включение и выключение
+
+Beyla запускается только на узлах с лейблом `homelab.io/beyla=enabled`.
+Включить на узле:
+
+```sh
+kubectl label node homelab homelab.io/beyla=enabled
+kubectl -n monitoring get ds beyla    # DESIRED 1, READY 1
+```
+
+Выключить, сняв лейбл:
+
+```sh
+kubectl label node homelab homelab.io/beyla-
+kubectl -n monitoring get ds beyla    # DESIRED 0
+```
+
+Лейбл живёт на узле, а не в git: после пересоздания узла Beyla останется
+выключенной, пока лейбл не поставят снова. Argo при этом остаётся `Synced`.
+
 ## Проверка
 
 ```sh

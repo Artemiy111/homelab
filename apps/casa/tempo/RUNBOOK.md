@@ -22,3 +22,15 @@ kubectl -n monitoring exec deploy/grafana-deployment -- \
 ```
 
 В Grafana — Explore, datasource `Tempo`.
+
+## Расширение тома
+
+Размер меняется в `tempo.pvc.yaml`, дальше Argo применяет изменение, а CSI-resizer
+растит том Longhorn на месте. Под перезапускать не нужно, данные сохраняются.
+
+```sh
+kubectl -n monitoring get pvc tempo-data   # CAPACITY вырос, STATUS Bound
+kubectl -n longhorn-system get volumes.longhorn.io | grep tempo
+```
+
+Уменьшить том нельзя: Longhorn не поддерживает shrink.

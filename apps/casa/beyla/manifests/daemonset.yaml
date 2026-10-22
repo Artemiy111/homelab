@@ -26,6 +26,8 @@ spec:
       serviceAccountName: beyla
       hostPID: true
       enableServiceLinks: false
+      nodeSelector:
+        homelab.io/beyla: enabled
       containers:
         - name: beyla
           image: "grafana/beyla:3.39.0@sha256:9319563766b263b4f60de6f657e0f33c1783f112228e1019d5d922cff7bb7c1a"
