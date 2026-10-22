@@ -70,7 +70,7 @@ spec:
               command: ["/bin/sh", "-c", "curl -fsS http://127.0.0.1:8080/api/v1/info/status | grep -q '\"status\":\"UP\"'"]
             periodSeconds: 5
             timeoutSeconds: 10
-            failureThreshold: 12
+            failureThreshold: 30
           livenessProbe:
             exec:
               command: ["/bin/sh", "-c", "curl -fsS http://127.0.0.1:8080/api/v1/info/status | grep -q '\"status\":\"UP\"'"]
@@ -97,7 +97,7 @@ spec:
               cpu: 10m
               memory: 896Mi
             limits:
-              cpu: 200m
+              cpu: 500m
               memory: 1100Mi
           volumeMounts:
             - name: tessdata
