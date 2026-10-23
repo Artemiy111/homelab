@@ -32,8 +32,14 @@ cert-manager в облаке не нужен.
 - **Адрес назначения приходит из Secret, а не из манифеста.** MagicDNS на узлах
   `yc` выключен (`--accept-dns=false`, чтобы tailscaled не трогал `resolv.conf`
   под kubelet и containerd), поэтому имена `*.ts.net` в кластере не резолвятся.
-  Значение — tailnet-адрес, то есть «внутреннее» по
+  Значение — домашний адрес ingress'а, то есть «внутреннее» по
   `docs/agents/information-handling.md`, ему не место в git.
+- **Цель — домашний адрес ingress'а, а не tailnet-адрес `casa`.** Traefik в
+  `casa` слушает не на адресе узла, а на `externalIPs` своего Service
+  (VIP MetalLB), поэтому `<tailnet-адрес>:443` не отвечает вовсе — проверено:
+  на нём открыт только SSH. Маршрут до домашней подсети приходит по subnet
+  route, который `casa` анонсирует и который одобрен в admin console; узлы
+  принимают его через `--accept-routes`.
 - **`socat`, а не Envoy/NGINX.** Задача — копировать байты между двумя сокетами.
   Конфиг NGINX `stream` в официальном образе требует своего `nginx.conf` ради
   одного `server {}`, а Envoy уже занят HTTP-входом и не должен решать две

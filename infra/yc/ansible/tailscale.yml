@@ -10,5 +10,5 @@
           - k8s
         tailscale_oauth_ephemeral: false
         tailscale_oauth_preauthorized: true
-        tailscale_args: "--accept-dns=false --hostname={{ inventory_hostname }}"
+        tailscale_args: "--accept-dns=false --accept-routes --hostname={{ inventory_hostname }}"
         state: latest

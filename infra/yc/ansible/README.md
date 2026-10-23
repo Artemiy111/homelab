@@ -89,6 +89,7 @@ ssh <логин OS Login>@yc-d1
 | OAuth-ключ, а не auth key | auth key живёт максимум 90 дней, то есть требует ручной ротации; OAuth secret не истекает, а роль выпускает по нему ключ на час |
 | `tailscale_oauth_ephemeral: false` | эфемерный узел удаляется из tailnet, когда offline; control plane должен возвращаться сам |
 | `--accept-dns=false` | DNS узла обслуживает systemd-resolved, и MagicDNS не должен менять `resolv.conf` под kubelet и containerd |
+| `--accept-routes` | трафик к домашней LAN идёт через `casa` по одобренному subnet route: на этом держится публичный вход `apps/yc/casa-edge`, который ходит на домашний адрес ingress'а |
 | `--hostname={{ inventory_hostname }}` | имена в tailnet совпадают с именами инвентаря (`yc-d1`, ...) |
 | `state: latest` | сторонний репозиторий не покрыт `unattended-upgrades`, прогон плейбука — единственный механизм обновления |
 | Tailscale SSH не включён | вход остаётся через OpenSSH и OS Login, как раньше |

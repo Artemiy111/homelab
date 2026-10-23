@@ -7,15 +7,16 @@
 
 ```sh
 kubectl -n casa-edge create secret generic casa-edge-target \
-  --from-literal=target=<tailnet-адрес casa>:443
+  --from-literal=target=<домашний адрес ingress>:443
 kubectl -n casa-edge rollout restart daemonset/casa-edge
 ```
 
-Адрес — тот, по которому `casa` виден из tailnet (Tailscale-адрес узла, не
-LAN-адрес). Проверить с узла `yc`:
+Адрес — тот, по которому `casa` отдаёт HTTPS из домашней сети (VIP MetalLB,
+на нём же висит Traefik), а не tailnet-адрес узла: на tailnet-адресе открыт
+только SSH. Проверить с узла `yc`, что маршрут до домашней подсети есть:
 
 ```sh
-ssh <логин OS Login>@yc-d1 'tailscale ping <имя узла casa>'
+ssh <логин OS Login>@yc-d1 'tailscale status | head -3; ping -c1 <домашний адрес ingress>'
 ```
 
 `ping` отвечает `pong` — значит маршрут есть и адрес годится.
