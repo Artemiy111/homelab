@@ -36,8 +36,7 @@ Technitium рекомендует не выпускать токен для `adm
 | `technitium_record.ts_wildcard` | `*.ts.<домен>` A → сервер: публичный вход через `yc` (`apps/yc/casa-edge`) дома и в tailnet ведёт напрямую, а не через облако |
 | `technitium_record.dns` | `dns.<домен>` A → сервер |
 | `technitium_record.cloudflare_bootstrap_*` | две A-записи зоны `cloudflare-dns.com` (обход DPI, см. `apps/casa/technitium/README.md`) |
-
-Делегирования подзон в Terraform нет — причина ниже.
+| `technitium_record.delegation` | NS-записи делегированных подзон, по одной на сервер имён (см. ниже) |
 
 Две bootstrap-записи живут в одном RRset, поэтому у них `overwrite = false` —
 иначе вторая затирала бы первую.
@@ -46,32 +45,36 @@ Technitium рекомендует не выпускать токен для `adm
 
 Technitium держит зону домена как split-horizon: публично домен делегирован
 Spaceship, а Technitium отвечает только клиентам, которые им пользуются
-(домашняя сеть, tailnet). NS-записи подзоны нужны ровно тогда, когда она должна
-резолвиться изнутри дома так же, как снаружи; публичное делегирование делается в
-авторитетной зоне у регистратора.
+(домашняя сеть, tailnet). Поэтому NS-записи здесь нужны ровно тогда, когда
+подзона должна резолвиться изнутри дома так же, как снаружи; публичное
+делегирование делается в авторитетной зоне у регистратора.
 
-**Terraform этих записей не ведёт.** Провайдер `darkhonor/technitium` не умеет
-читать NS: в ответе API значение лежит в `rData.nameServer`, а провайдер ищет
-`rData.value`, получает `null` и считает запись удалённой. Дальше `apply` падает
-с `Cannot add record: record already exists`, а `terraform import` — с
-`Cannot import non-existent remote object`: импорт вызывает то же чтение.
+Список подзон и их NS-серверы лежат в `locals.tf`, рядом с доменом и адресом
+сервера:
 
-Поэтому делегирование подзоны заводится в консоли Technitium руками, один раз на
-подзону. Для `yc.clusters.<домен>` серверы имён берутся из вывода
-`dns_delegation_ns` модуля `infra/yc/terraform/cluster`:
-
-```sh
-cd infra/yc/terraform/cluster && terraform output dns_delegation_ns
+```hcl
+delegations = {
+  "yc.clusters" = ["ns1.yandexcloud.net", "ns2.yandexcloud.net"]
+}
 ```
 
-Записи одного имени живут в одном RRset, поэтому добавлять их надо обе, и
-повторное добавление того же имени затрёт предыдущее значение.
-
-Проверка:
+**Без точки на конце.** Technitium хранит NS-значение в `rData.nameServer` и
+отдаёт его без завершающей точки; провайдер собирает id ресурса
+(`<зона>::<имя>::NS::<значение>`) из этого значения. С точкой в конфиге id не
+совпадает с тем, что отдаёт API: при `refresh` запись считается удалённой,
+`plan` показывает создание, а `apply` падает с `record already exists`. Поэтому
+и в `locals.tf`, и при ручном `terraform import` значение пишется без точки:
 
 ```sh
-dig +short @<адрес Technitium> NS yc.clusters.<домен>
+terraform import 'technitium_record.delegation["yc.clusters/ns1.yandexcloud.net"]' \
+  'biplane.casa::yc.clusters.<домен>::NS::ns1.yandexcloud.net'
 ```
+
+Имя подзоны может быть многоуровневым; промежуточная зона при этом не нужна.
+Серверы имён для подзоны `yc.clusters.<домен>` берутся из вывода
+`dns_delegation_ns` модуля `infra/yc/terraform/cluster`. Записи одного имени
+живут в одном RRset, поэтому у них `overwrite = false`: с `true` вторая запись
+затирала бы первую.
 
 ## Чего модуль не делает
 

@@ -39,6 +39,18 @@ resource "technitium_record" "dns" {
   depends_on = [technitium_zone.domain_zone]
 }
 
+resource "technitium_record" "delegation" {
+  for_each = local.delegation_records
+
+  zone       = local.domain
+  name       = "${each.value.subdomain}.${local.domain}"
+  type       = "NS"
+  value      = each.value.nameserver
+  ttl        = 3600
+  overwrite  = false
+  depends_on = [technitium_zone.domain_zone]
+}
+
 resource "technitium_zone" "cloudflare_dns_zone" {
   name = "cloudflare-dns.com"
   type = "Primary"
