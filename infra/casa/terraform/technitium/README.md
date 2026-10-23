@@ -36,6 +36,7 @@ Technitium рекомендует не выпускать токен для `adm
 | `technitium_record.ts_wildcard` | `*.ts.<домен>` A → сервер: публичный вход через `yc` (`apps/yc/casa-edge`) дома и в tailnet ведёт напрямую, а не через облако |
 | `technitium_record.dns` | `dns.<домен>` A → сервер |
 | `technitium_record.zone_ns` | apex `NS` зоны → `dns.<домен>`: имя, которым зона объявляет себя авторитетной (см. ниже) |
+| `technitium_record.zone_ns_cloudflare` | то же для локальной заглушки зоны `cloudflare-dns.com` |
 | `technitium_record.cloudflare_bootstrap_*` | две A-записи зоны `cloudflare-dns.com` (обход DPI, см. `apps/casa/technitium/README.md`) |
 | `technitium_record.delegation` | NS-записи делегированных подзон, по одной на сервер имён (см. ниже) |
 
@@ -58,14 +59,13 @@ NS провайдера нельзя: тогда клиент пойдёт на�
 
 | Что | Чем | Почему |
 | --- | --- | --- |
-| apex `NS` | `technitium_record.zone_ns` | тип `NS` провайдер поддерживает, `overwrite = true` заменяет существующий RRset |
-| `SOA` | руками, один раз | провайдер не умеет `SOA`: у `technitium_record` нет полей для `mname`/`rname`/таймингов, у `technitium_zone` — только `soa_serial` |
-| `dnsServerDomain` | руками | в `technitium_server_settings` такого поля нет; влияет только на новые зоны |
+| apex `NS` | `technitium_record.zone_ns` и `zone_ns_cloudflare` | тип `NS` провайдер поддерживает, `overwrite = true` заменяет существующий RRset |
+| `SOA` | следом за `NS` | Technitium пересчитывает SOA из NS зоны: после смены apex `NS` в `SOA` появилось то же имя и вырос serial. Отдельного ресурса не нужно |
+| `dnsServerDomain` | руками | в `technitium_server_settings` такого поля нет; влияет только на новые зоны, у существующих имя задано их `NS` |
 
-Ручной шаг для `SOA` (консоль → Zones → `<домен>` → Records → `SOA`): primary
-name server — `dns.<домен>.`, admin — `hostadmin.<домен>.`, тайминги не трогать,
-serial Technitium поднимет сам. Значение хранится в зоне на PVC `technitium-etc`
-(`/etc/dns/zones/`), поэтому переустановка пода его не сбрасывает.
+Проверено на стенде: после `apply` `dig NS <домен>` отдаёт `dns.<домен>.`,
+`dig SOA` — `dns.<домен>. hostadmin.<домен>.`, записи `A` зоны не изменились,
+публичное делегирование не тронуто.
 
 Проверка:
 

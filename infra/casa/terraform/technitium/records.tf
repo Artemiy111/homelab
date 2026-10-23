@@ -85,3 +85,13 @@ resource "technitium_record" "zone_ns" {
   overwrite  = true
   depends_on = [technitium_zone.domain_zone]
 }
+
+resource "technitium_record" "cloudflare_zone_ns" {
+  zone       = "cloudflare-dns.com"
+  name       = "cloudflare-dns.com"
+  type       = "NS"
+  value      = "dns.${local.domain}"
+  ttl        = 3600
+  overwrite  = true
+  depends_on = [technitium_zone.cloudflare_dns_zone]
+}
