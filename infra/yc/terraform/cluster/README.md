@@ -15,7 +15,7 @@
 | `yandex_compute_instance.node` | по одной ВМ на узел из `local.nodes` (`d1`, `d2`, `e1`): 2 ядра, 4 ГБ, 10 ГБ `network-ssd`, публичный адрес через `nat`, доступ по SSH через OS Login |
 | `yandex_vpc_address.api` | статический публичный адрес балансировщика в зоне `ru-central1-e` |
 | `yandex_lb_target_group.nodes` | целевая группа из внутренних адресов узлов — одна на оба слушателя |
-| `yandex_lb_network_load_balancer.api` | внешний балансировщик `nlb-k8s-vm`: TCP `6443` (kube-api), TCP `80` → NodePort Envoy Gateway `30081`, TCP `443` → NodePort форвардера в tailnet `30443` — все на одной целевой группе |
+| `yandex_lb_network_load_balancer.api` | внешний балансировщик `nlb-k8s-vm`: TCP `6443` (kube-api), TCP `80` → NodePort Envoy Gateway `30081`, TCP `443` → порт форвардера в tailnet — все на одной целевой группе |
 | `yandex_dns_zone.cluster` | публичная зона `<dns_zone_name>.<parent_domain>` |
 | `yandex_dns_recordset.api` | `api.<зона>` A → статический адрес балансировщика |
 | `yandex_dns_recordset.wildcard` | `*.<зона>` A → тот же адрес: любое имя приложения резолвится без правки Terraform |
@@ -296,11 +296,11 @@ Terraform provider registry`; отсюда и зеркало в `TF_CLI_CONFIG_F
 подсети, и добавление узла — одна строка.
 
 `gateway_node_port` — тот же порт, что `nodePort` у `Service` Envoy Gateway
-(патч в `EnvoyProxy`, юнит `platform/yc/envoy-gateway`). `edge_node_port` — тот
-же порт, что `nodePort` у `Service` форвардера в tailnet (юнит
-`apps/yc/casa-edge`). Это единственные связки Terraform и payload:
-балансировщик не умеет читать Service, поэтому порты приходится держать в двух
-местах и менять одновременно.
+(патч в `EnvoyProxy`, юнит `platform/yc/envoy-gateway`). `edge_port` — порт, на
+котором форвардер в tailnet (`apps/yc/casa-edge`) слушает на узле: он поднят с
+`hostNetwork`, поэтому балансировщик идёт прямо на узел, без NodePort. Порты
+приходится держать в Terraform и в манифестах, меняя одновременно:
+балансировщик не умеет читать Service.
 
 Обе цели (kube-api и HTTP) живут в **одной** целевой группе: в Yandex Cloud адрес
 не может входить в две группы одновременно (`One of the targets already a part of

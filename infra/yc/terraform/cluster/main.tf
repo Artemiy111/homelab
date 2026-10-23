@@ -27,7 +27,7 @@ locals {
   http_allowed_cidrs  = ["0.0.0.0/0"]
   https_allowed_cidrs = ["0.0.0.0/0"]
   gateway_node_port   = 30081
-  edge_node_port      = 30443
+  edge_port           = 443
   deletion_protection = false
 
   subnets = {

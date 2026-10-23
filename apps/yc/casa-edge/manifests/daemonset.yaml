@@ -1,10 +1,9 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: DaemonSet
 metadata:
   name: casa-edge
   namespace: casa-edge
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app.kubernetes.io/name: casa-edge
@@ -13,7 +12,12 @@ spec:
       labels:
         app.kubernetes.io/name: casa-edge
     spec:
+      hostNetwork: true
+      dnsPolicy: Default
       automountServiceAccountToken: false
+      priorityClassName: system-node-critical
+      tolerations:
+        - operator: Exists
       containers:
         - name: socat
           image: alpine/socat:1.8.1.3

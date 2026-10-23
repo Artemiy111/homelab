@@ -54,7 +54,7 @@ resource "yandex_vpc_security_group" "node" {
   ingress {
     description    = "HTTPS от балансировщика на форвардер в tailnet"
     protocol       = "TCP"
-    port           = local.edge_node_port
+    port           = local.edge_port
     v4_cidr_blocks = local.https_allowed_cidrs
   }
 

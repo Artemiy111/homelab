@@ -70,7 +70,7 @@ resource "yandex_lb_network_load_balancer" "api" {
   listener {
     name        = "https"
     port        = 443
-    target_port = local.edge_node_port
+    target_port = local.edge_port
     protocol    = "tcp"
 
     external_address_spec {
