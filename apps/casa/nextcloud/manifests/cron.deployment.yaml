@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: cron
-          image: "nextcloud:34.0.3-apache@sha256:b97df9e0e1ee3c8c6cc009cb3f12ddce915d624d543b3bb93882025fe323a407"
+          image: "nextcloud:34.0.5-apache@sha256:1f9212adecae32010cdbf137d7e0db78d08c696dc3e77f1eddcbf902d10209b4"
           command: ["/cron.sh"]
           env:
             - name: DOMAIN
