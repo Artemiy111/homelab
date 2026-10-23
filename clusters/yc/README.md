@@ -27,7 +27,8 @@ Renovate. Коммиты делает человек в Forgejo, кластер 
 | `flux-system/gotk-components.yaml` | CRD и контроллеры Flux; сгенерирован `flux install --export`, руками не правится |
 | `flux-system/gotk-sync.yaml` | `GitRepository` на GitHub и корневой `Kustomization` с `path: ./clusters/yc` |
 | `flux-system/kustomization.yaml` | собирает два файла выше |
-| `kustomization.yaml` | список юнитов кластера; пока пуст |
+| `kustomization.yaml` | список юнитов кластера: один Flux `Kustomization` на приложение |
+| `apps/test-nginx.yaml` | Flux `Kustomization` тестовой страницы (`path: ./apps/yc/test-nginx/manifests`) |
 
 ## Первичная установка
 
@@ -46,9 +47,11 @@ flux -n flux-system get kustomizations
 
 ## Как добавить юнит
 
-1. Манифесты — в `apps/yc/<сервис>/`, как у остальных кластеров.
-2. Ссылку — в `clusters/yc/kustomization.yaml` (`resources`).
-3. Коммит в Forgejo, дальше зеркало и Flux сделают остальное.
+1. Манифесты — в `apps/yc/<сервис>/manifests/`, со своим `kustomization.yaml`.
+2. Flux `Kustomization` — в `clusters/yc/apps/<сервис>.yaml`: один объект на
+   приложение, `path` указывает на каталог из шага 1.
+3. Ссылку на этот объект — в `clusters/yc/kustomization.yaml` (`resources`).
+4. Коммит в Forgejo, дальше зеркало и Flux сделают остальное.
 
 ## Проверка
 
