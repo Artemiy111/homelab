@@ -14,9 +14,10 @@ HTTPS-точку входа `websecure`, а `web` перенаправляет H
 ## TLS
 
 TLS терминируется на entrypoint `websecure`. Сертификат отдаёт `Gateway`
-`homelab` — `certificateRef` на секрет `wildcard-tls` в namespace `traefik`.
-TLSStore `default` (`tlsstore.yaml`) остался для маршрутов, которые ещё не
-переведены на Gateway API.
+`homelab` — `certificateRef` на секрет `wildcard-casa-tls` в namespace
+`traefik`. TLSStore `default` (`tlsstore.yaml`) указывает на тот же секрет: он
+нужен как fallback для SNI, которого нет среди сертификатов, и раньше ссылался
+на секрет старого домена — такой запрос получал чужой сертификат.
 
 ## Middleware
 

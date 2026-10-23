@@ -7,4 +7,4 @@ metadata:
   namespace: traefik
 spec:
   defaultCertificate:
-    secretName: wildcard-tls
+    secretName: wildcard-casa-tls
