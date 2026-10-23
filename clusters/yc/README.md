@@ -28,6 +28,8 @@ Renovate. Коммиты делает человек в Forgejo, кластер 
 | `flux-system/gotk-sync.yaml` | `GitRepository` на GitHub и корневой `Kustomization` с `path: ./clusters/yc` |
 | `flux-system/kustomization.yaml` | собирает два файла выше |
 | `kustomization.yaml` | список юнитов кластера: один Flux `Kustomization` на приложение или платформенный компонент |
+| `platform/envoy-gateway.yaml` | `OCIRepository` и `HelmRelease` Envoy Gateway; `path: ./platform/yc/envoy-gateway/releases` |
+| `platform/envoy-gateway-config.yaml` | `GatewayClass`, `EnvoyProxy`, `Gateway`; поднимается после `HelmRelease` |
 | `apps/test-nginx.yaml` | Flux `Kustomization` тестовой страницы (`path: ./apps/yc/test-nginx/manifests`) |
 
 ## Первичная установка
