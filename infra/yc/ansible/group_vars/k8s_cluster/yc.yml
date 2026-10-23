@@ -1,0 +1,7 @@
+---
+kube_network_plugin: calico
+kube_service_addresses: 10.96.0.0/12
+kube_pods_subnet: 10.244.0.0/16
+kubeconfig_localhost: true
+supplementary_addresses_in_ssl_keys:
+  - api.yc.clusters.biplane.casa

@@ -10,6 +10,6 @@ terraform {
 }
 
 provider "technitium" {
-  server_url = "https://dns.${var.domain}"
-  api_token  = var.api_token
+  server_url = "https://dns.${local.domain}"
+  api_token  = ""
 }

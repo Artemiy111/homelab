@@ -1,0 +1,10 @@
+services:
+  kubespray:
+    image: quay.io/kubespray/kubespray:v2.32.0
+    platform: linux/amd64
+    working_dir: /kubespray
+    volumes:
+      - ./:/inventory
+      - ${HOME}/.ssh/ssh-key-1791963705698:/root/.ssh/id_rsa:ro
+    entrypoint: ["/bin/bash", "-lc"]
+#    command: "ansible-playbook -i /inventory/inventory.yml cluster.yml"

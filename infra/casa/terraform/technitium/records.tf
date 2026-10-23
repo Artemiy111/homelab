@@ -1,32 +1,44 @@
 resource "technitium_zone" "domain_zone" {
-  name = var.domain
+  name = local.domain
   type = "Primary"
 }
 
 resource "technitium_record" "apex" {
-  zone       = var.domain
-  name       = var.domain
+  zone       = local.domain
+  name       = local.domain
   type       = "A"
-  value      = var.host_ip
+  value      = local.host_ip
   ttl        = 3600
   depends_on = [technitium_zone.domain_zone]
 }
 
 resource "technitium_record" "wildcard" {
-  zone       = var.domain
-  name       = "*.${var.domain}"
+  zone       = local.domain
+  name       = "*.${local.domain}"
   type       = "A"
-  value      = var.host_ip
+  value      = local.host_ip
   ttl        = 3600
   depends_on = [technitium_zone.domain_zone]
 }
 
 resource "technitium_record" "dns" {
-  zone       = var.domain
-  name       = "dns.${var.domain}"
+  zone       = local.domain
+  name       = "dns.${local.domain}"
   type       = "A"
-  value      = var.host_ip
+  value      = local.host_ip
   ttl        = 3600
+  depends_on = [technitium_zone.domain_zone]
+}
+
+resource "technitium_record" "delegation" {
+  for_each = local.delegation_records
+
+  zone       = local.domain
+  name       = "${each.value.subdomain}.${local.domain}"
+  type       = "NS"
+  value      = each.value.nameserver
+  ttl        = 3600
+  overwrite  = false
   depends_on = [technitium_zone.domain_zone]
 }
 
