@@ -51,13 +51,6 @@ resource "yandex_vpc_security_group" "node" {
     v4_cidr_blocks = local.http_allowed_cidrs
   }
 
-  ingress {
-    description       = "Проверки доступности NodePort"
-    protocol          = "TCP"
-    port              = local.http_node_port
-    predefined_target = "loadbalancer_healthchecks"
-  }
-
   egress {
     description    = "Исходящий трафик"
     protocol       = "ANY"

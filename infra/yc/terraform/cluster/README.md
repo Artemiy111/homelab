@@ -14,9 +14,8 @@
 | `yandex_vpc_security_group.node` | SSH и kube-api из разрешённых сетей, проверки доступности балансировщика, весь трафик между узлами, любой исходящий |
 | `yandex_compute_instance.node` | по одной ВМ на узел из `local.nodes` (`d1`, `d2`, `e1`): 2 ядра, 2 ГБ, 10 ГБ `network-ssd`, публичный адрес через `nat`, доступ по SSH через OS Login |
 | `yandex_vpc_address.api` | статический публичный адрес балансировщика в зоне `ru-central1-e` |
-| `yandex_lb_target_group.nodes` | целевая группа из внутренних адресов узлов для kube-api |
-| `yandex_lb_target_group.http` | та же целевая группа для HTTP: NodePort `30080` на узлах |
-| `yandex_lb_network_load_balancer.api` | внешний балансировщик `nlb-k8s-vm`: TCP `6443` с проверкой доступности и TCP `80` → NodePort `30080` |
+| `yandex_lb_target_group.nodes` | целевая группа из внутренних адресов узлов — одна на оба слушателя |
+| `yandex_lb_network_load_balancer.api` | внешний балансировщик `nlb-k8s-vm`: TCP `6443` (kube-api) и TCP `80` → NodePort `30080` на тех же целях |
 | `yandex_dns_zone.cluster` | публичная зона `<dns_zone_name>.<parent_domain>` |
 | `yandex_dns_recordset.api` | `api.<зона>` A → статический адрес балансировщика |
 
@@ -283,6 +282,13 @@ Terraform provider registry`; отсюда и зеркало в `TF_CLI_CONFIG_F
 `apps/yc/test-nginx`. Это единственная связка Terraform и payload: балансировщик
 не умеет читать Service, поэтому порт приходится держать в двух местах и менять
 одновременно.
+
+Обе цели (kube-api и HTTP) живут в **одной** целевой группе: в Yandex Cloud адрес
+не может входить в две группы одновременно (`One of the targets already a part of
+the another target group`). Поэтому проверка доступности у группы одна — TCP
+`6443`: она говорит о здоровье узла, а не о том, жив ли nginx. Для HTTP это
+приемлемо: `kube-proxy` на любом узле умеет отдать трафик поду, где бы тот ни
+работал.
 
 Внутренние адреса закреплены явно (`ip_address`): `d1` — `10.133.0.11`, `d2` —
 `10.133.0.12`, `e1` — `10.134.0.11`. Поэтому внутренние адреса не меняются при
