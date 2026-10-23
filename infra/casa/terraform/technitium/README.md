@@ -35,11 +35,45 @@ Technitium рекомендует не выпускать токен для `adm
 | `technitium_record.wildcard` | `*.<домен>` A → сервер |
 | `technitium_record.ts_wildcard` | `*.ts.<домен>` A → сервер: публичный вход через `yc` (`apps/yc/casa-edge`) дома и в tailnet ведёт напрямую, а не через облако |
 | `technitium_record.dns` | `dns.<домен>` A → сервер |
+| `technitium_record.zone_ns` | apex `NS` зоны → `dns.<домен>`: имя, которым зона объявляет себя авторитетной (см. ниже) |
 | `technitium_record.cloudflare_bootstrap_*` | две A-записи зоны `cloudflare-dns.com` (обход DPI, см. `apps/casa/technitium/README.md`) |
 | `technitium_record.delegation` | NS-записи делегированных подзон, по одной на сервер имён (см. ниже) |
 
 Две bootstrap-записи живут в одном RRset, поэтому у них `overwrite = false` —
 иначе вторая затирала бы первую.
+
+## Имя сервера в зоне: NS и SOA
+
+Зона объявляет себя авторитетной с каким-то именем сервера. Исторически там
+осталось имя контейнера Docker-эпохи (`6ea60cf21452.`), которое не резолвится:
+любой, кто спросит у Technitium `NS`/`SOA` зоны, получал мусор — на этом
+спотыкался self-check cert-manager'а (`#1441`).
+
+Правильное имя — `dns.<домен>`: внутри дома авторитетен именно Technitium, и это
+имя резолвится в него же записью `technitium_record.dns`. Указывать на публичные
+NS провайдера нельзя: тогда клиент пойдёт наружу за данными, которых там для
+внутренних имён нет — зона split-horizon.
+
+Что в Terraform, а что нет:
+
+| Что | Чем | Почему |
+| --- | --- | --- |
+| apex `NS` | `technitium_record.zone_ns` | тип `NS` провайдер поддерживает, `overwrite = true` заменяет существующий RRset |
+| `SOA` | руками, один раз | провайдер не умеет `SOA`: у `technitium_record` нет полей для `mname`/`rname`/таймингов, у `technitium_zone` — только `soa_serial` |
+| `dnsServerDomain` | руками | в `technitium_server_settings` такого поля нет; влияет только на новые зоны |
+
+Ручной шаг для `SOA` (консоль → Zones → `<домен>` → Records → `SOA`): primary
+name server — `dns.<домен>.`, admin — `hostadmin.<домен>.`, тайминги не трогать,
+serial Technitium поднимет сам. Значение хранится в зоне на PVC `technitium-etc`
+(`/etc/dns/zones/`), поэтому переустановка пода его не сбрасывает.
+
+Проверка:
+
+```sh
+dig +short @<адрес Technitium> NS <домен>      # dns.<домен>.
+dig +short @<адрес Technitium> SOA <домен>     # dns.<домен>. hostadmin.<домен>. ...
+dig +short @1.1.1.1 NS <домен>                 # публичное делегирование не изменилось
+```
 
 ## Делегирование подзон
 

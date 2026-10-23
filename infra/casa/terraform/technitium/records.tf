@@ -75,3 +75,13 @@ resource "technitium_record" "cloudflare_dns_secondary" {
   overwrite  = false
   depends_on = [technitium_zone.cloudflare_dns_zone]
 }
+
+resource "technitium_record" "zone_ns" {
+  zone       = local.domain
+  name       = local.domain
+  type       = "NS"
+  value      = "dns.${local.domain}"
+  ttl        = 3600
+  overwrite  = true
+  depends_on = [technitium_zone.domain_zone]
+}
