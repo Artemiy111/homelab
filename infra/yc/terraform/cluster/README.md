@@ -15,9 +15,10 @@
 | `yandex_compute_instance.node` | по одной ВМ на узел из `local.nodes` (`d1`, `d2`, `e1`): 2 ядра, 2 ГБ, 10 ГБ `network-ssd`, публичный адрес через `nat`, доступ по SSH через OS Login |
 | `yandex_vpc_address.api` | статический публичный адрес балансировщика в зоне `ru-central1-e` |
 | `yandex_lb_target_group.nodes` | целевая группа из внутренних адресов узлов — одна на оба слушателя |
-| `yandex_lb_network_load_balancer.api` | внешний балансировщик `nlb-k8s-vm`: TCP `6443` (kube-api) и TCP `80` → NodePort `30080` на тех же целях |
+| `yandex_lb_network_load_balancer.api` | внешний балансировщик `nlb-k8s-vm`: TCP `6443` (kube-api) и TCP `80` → NodePort Envoy Gateway `30081` на тех же целях |
 | `yandex_dns_zone.cluster` | публичная зона `<dns_zone_name>.<parent_domain>` |
 | `yandex_dns_recordset.api` | `api.<зона>` A → статический адрес балансировщика |
+| `yandex_dns_recordset.test_nginx` | `test-nginx.<зона>` A → тот же адрес |
 
 Ничего не импортируется: сеть, подсети, узлы, балансировщик и его адрес
 создаются с нуля, поэтому `terraform destroy` убирает за собой всё.
@@ -278,10 +279,10 @@ Terraform provider registry`; отсюда и зеркало в `TF_CLI_CONFIG_F
 подсети, `nodes` — имя → подсеть и адрес в ней. Так две ВМ могут жить в одной
 подсети, и добавление узла — одна строка.
 
-`http_node_port` — тот же порт, что `nodePort` в `Service` юнита
-`apps/yc/test-nginx`. Это единственная связка Terraform и payload: балансировщик
-не умеет читать Service, поэтому порт приходится держать в двух местах и менять
-одновременно.
+`gateway_node_port` — тот же порт, что `nodePort` у `Service` Envoy Gateway
+(патч в `EnvoyProxy`, юнит `platform/yc/envoy-gateway`). Это единственная связка
+Terraform и payload: балансировщик не умеет читать Service, поэтому порт
+приходится держать в двух местах и менять одновременно.
 
 Обе цели (kube-api и HTTP) живут в **одной** целевой группе: в Yandex Cloud адрес
 не может входить в две группы одновременно (`One of the targets already a part of
@@ -379,11 +380,11 @@ yc compute ssh --name yc-a
   у сервисного аккаунта модуля нет и быть не должно. При необходимости — отдельный
   модуль с отдельным аккаунтом и org-ролью.
 - **Фиксированные адреса узлов.** Упирается в квоту статических адресов.
-- **Ingress.** Наружу открыты kube-api и один NodePort под тестовую страницу.
-  HTTP-балансировщик работает на L4 и про Kubernetes не знает: слушает `80` и
-  передаёт на `30080` узлов. Нормальный ingress — отдельный контроллер со своим
-  Service и балансировщиком; тогда тестовый слушатель и правило на `30080`
-  убираются.
+- **HTTP-маршрутизация.** Сама по себе Terraform её не делает: наружу открыт
+  NodePort Envoy Gateway, а хосты и пути описываются объектами Gateway API в
+  юнитах. Балансировщик про них не знает — он просто передаёт `80` на `30081`.
+- **TLS.** Gateway слушает только HTTP; сертификаты — отдельная задача
+  (cert-manager + солвер для Cloud DNS).
 - **Проверка в CI.** `terraform fmt` и `tflint` каталог видят, а
   `scripts/terraform-validate.sh` — нет: на раннере нет интернета, и архива
   провайдера `yandex-cloud/yandex` в зеркале RustFS пока нет. Пока не добавлена

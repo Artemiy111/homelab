@@ -27,7 +27,9 @@ Renovate. Коммиты делает человек в Forgejo, кластер 
 | `flux-system/gotk-components.yaml` | CRD и контроллеры Flux; сгенерирован `flux install --export`, руками не правится |
 | `flux-system/gotk-sync.yaml` | `GitRepository` на GitHub и корневой `Kustomization` с `path: ./clusters/yc` |
 | `flux-system/kustomization.yaml` | собирает два файла выше |
-| `kustomization.yaml` | список юнитов кластера: один Flux `Kustomization` на приложение |
+| `kustomization.yaml` | список юнитов кластера: один Flux `Kustomization` на приложение или платформенный компонент |
+| `platform/envoy-gateway.yaml` | Flux `Kustomization` установки Envoy Gateway (CRD + контроллер) |
+| `platform/envoy-gateway-config.yaml` | `GatewayClass`, `EnvoyProxy`, `Gateway`; зависит от предыдущего |
 | `apps/test-nginx.yaml` | Flux `Kustomization` тестовой страницы (`path: ./apps/yc/test-nginx/manifests`) |
 
 ## Первичная установка

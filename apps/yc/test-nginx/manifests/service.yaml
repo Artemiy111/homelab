@@ -4,11 +4,9 @@ metadata:
   name: test-nginx
   namespace: test-nginx
 spec:
-  type: NodePort
   selector:
     app: test-nginx
   ports:
     - name: http
       port: 80
       targetPort: http
-      nodePort: 30080

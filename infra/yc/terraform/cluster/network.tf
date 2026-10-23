@@ -47,7 +47,7 @@ resource "yandex_vpc_security_group" "node" {
   ingress {
     description    = "HTTP от балансировщика на NodePort"
     protocol       = "TCP"
-    port           = local.http_node_port
+    port           = local.gateway_node_port
     v4_cidr_blocks = local.http_allowed_cidrs
   }
 

@@ -58,7 +58,7 @@ resource "yandex_lb_network_load_balancer" "api" {
   listener {
     name        = "http"
     port        = 80
-    target_port = local.http_node_port
+    target_port = local.gateway_node_port
     protocol    = "tcp"
 
     external_address_spec {
