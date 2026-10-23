@@ -12,7 +12,7 @@
 | `yandex_vpc_network.cluster` | сеть кластера `k8s-vm` |
 | `yandex_vpc_subnet.node` | по одной подсети на зону из `local.subnets`: `k8s-vm-ru-central1-{d,e}` |
 | `yandex_vpc_security_group.node` | SSH и kube-api из разрешённых сетей, проверки доступности балансировщика, весь трафик между узлами, любой исходящий |
-| `yandex_compute_instance.node` | по одной ВМ на узел из `local.nodes` (`d1`, `d2`, `e1`): 2 ядра, 2 ГБ, 10 ГБ `network-ssd`, публичный адрес через `nat`, доступ по SSH через OS Login |
+| `yandex_compute_instance.node` | по одной ВМ на узел из `local.nodes` (`d1`, `d2`, `e1`): 2 ядра, 4 ГБ, 10 ГБ `network-ssd`, публичный адрес через `nat`, доступ по SSH через OS Login |
 | `yandex_vpc_address.api` | статический публичный адрес балансировщика в зоне `ru-central1-e` |
 | `yandex_lb_target_group.nodes` | целевая группа из внутренних адресов узлов — одна на оба слушателя |
 | `yandex_lb_network_load_balancer.api` | внешний балансировщик `nlb-k8s-vm`: TCP `6443` (kube-api) и TCP `80` → NodePort Envoy Gateway `30081` на тех же целях |
@@ -125,6 +125,8 @@ Cloud DNS ещё нет, резолверы получают от Yandex `REFUSE
 | `vpc.subnets.count` | 6/12 | две подсети узлов помещаются |
 | `compute.instanceCores.count.ru-central1-d` | 2/4 | под `d1` и `d2` нужно ровно 4, запаса нет |
 | `compute.instanceCores.count.ru-central1-e` | 2/2 | `e1` занимает зону целиком |
+| `compute.instanceMemory.size.ru-central1-d` | 4/16 ГиБ | после подъёма до 4 ГБ на узел будет 8 из 16 |
+| `compute.instanceMemory.size.ru-central1-e` | 2/16 ГиБ | после подъёма до 4 ГБ на узел будет 4 из 16 |
 | `compute.ssdDisks.size.ru-central1-d` | 10/20 ГиБ | два диска по 10 гибают квоту ровно в ноль |
 | `compute.ssdDisks.size.ru-central1-e` | 10/10 ГиБ | один диск занимает зону целиком |
 | `vpc.externalStaticAddresses.count` | 2/2 | занято адресом балансировщика и старым `153.51.118.237`, который пора освободить |
@@ -301,9 +303,15 @@ the another target group`). Поэтому проверка доступност
 публичные и коммитятся — значит `variable` была бы константой с лишним слоем
 indirection. Менять их — правка `locals` через PR, `tfvars` не используется.
 
-Железо узлов — константы в `instances.tf`: 2 ядра, 2 ГБ, 10 ГБ `network-ssd`,
+Железо узлов — константы в `instances.tf`: 2 ядра, 4 ГБ, 10 ГБ `network-ssd`,
 платформа `standard-v3` (Intel Ice Lake), образ `ubuntu-2404-lts-oslogin`
 (агент OS Login предустановлен).
+
+Память 4 ГБ, а не 2: на узле живут три control plane вместе с etcd, и один
+`kube-apiserver` с сорока CRD Gateway API держит около гигабайта. На 2 ГБ узел
+уходил в `MemoryPressure`, kubelet эвиктил поды Flux (в dmesg —
+`Memory cgroup out of memory`), apiserver перезапускался, и реконсиляция падала с
+таймаутами. Ядра поднять нельзя — квота зон выбрана полностью, а память свободна.
 
 ## Доступ по SSH (OS Login)
 
