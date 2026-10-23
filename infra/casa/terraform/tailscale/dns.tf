@@ -4,9 +4,9 @@ resource "tailscale_dns_configuration" "tailnet" {
   search_paths       = []
 
   split_dns {
-    domain = var.domain
+    domain = local.domain
     nameservers {
-      address            = var.host_ip
+      address            = local.host_ip
       use_with_exit_node = true
     }
   }

@@ -36,18 +36,19 @@ prompt. `export` обязателен — без него значение ос�
 ## Значения
 
 ```hcl
-domain  = "example.com"   # основной домен, тот же что в Gateway (platform/casa/traefik/manifests/gateway-homelab.yaml)
-host_ip = "192.0.2.10"    # адрес Technitium: ему tailnet отдаёт зоны
+locals {
+  domain  = "biplane.casa"
+  host_ip = "192.168.1.254"
+}
 ```
 
-Значения — внутренние, в git не идут; реальные лежат в
-`infra/casa/terraform/tailscale/terraform.tfvars` (gitignored).
+Переменных у модуля нет: значения лежат в `locals` (`main.tf`). Прятать их не в
+чем — домен публичен (wildcard-сертификат Let's Encrypt публикуется в Certificate
+Transparency), а адрес Technitium уже стоит открытым текстом в
+`infra/casa/terraform/technitium/locals.tf` и в values Forgejo. Приватного слоя
+(`terraform.tfvars`) у модуля больше нет.
 
-Домен задан в `dns.tf` литералом и в переменную не вынесен: реальный домен
-стенда публичен (wildcard-сертификат Let's Encrypt публикуется в Certificate
-Transparency, `docs/agents/information-handling.md`), поэтому держать его в
-приватном слое нечего. `var.domain` остаётся основным доменом — тем, что в
-манифестах Traefik.
+`local.domain` — основной домен, тот же, что в манифестах Traefik.
 
 ## Что управляется
 
@@ -63,7 +64,7 @@ Transparency, `docs/agents/information-handling.md`), поэтому держа�
   резолверы. `use_with_exit_node = true` сохраняет маршрут и при использовании
   exit node.
 
-Зона одна: `var.domain`. На время переезда домен был прописан дважды — вторым
+Зона одна: `local.domain`. На время переезда домен был прописан дважды — вторым
 `split_dns` шёл литерал старого имени как страховка, чтобы откат не блокировал
 DNS. Со сменой домена он убран, и `terraform apply` заберёт его из tailnet:
 ресурс описывает конфигурацию целиком, поэтому запись исчезнет сама.
@@ -76,10 +77,35 @@ split-DNS записи, которые в admin console приходилось �
 меняться между версиями. При обновлении провайдера читать release notes, а не
 только план.
 
+### Политика (ACL)
+
+`acl.tf` описывает файл политики tailnet целиком (`tailscale_acl`). Провайдер
+проверяет политику при `plan`, поэтому синтаксическая ошибка видна до `apply`.
+
+- `tag:k8s` объявлен и принадлежит `autogroup:admin`: под этим тегом узлы
+  кластера `yc` подключаются к tailnet (`infra/yc/ansible/tailscale.yml`);
+- `tag:k8s-operator` убран: он остался от Kubernetes-оператора, который ставили и
+  откатили (`docs/troubleshoot/tailscale-k8s-ingress-access.md`), и через него же
+  был объявлен владелец `tag:k8s`;
+- `grants` перенесены как были: `src` и `dst` — `*`, то есть правило действует и
+  для пользователей, и для тегированных устройств;
+- `ssh`, `nodeAttrs` (Funnel) и `autoApprovers.services` перенесены как были: это
+  части того же файла, и терять их при переносе нельзя;
+- идентификаторов людей в файле нет: вместо email'ов `autogroup:member` и
+  `autogroup:admin`. Если понадобится правило для отдельного человека или
+  группы, email идёт в untracked `terraform.tfvars`, а в `acl.tf` остаётся
+  переменная;
+- tailnet-адресов и имён в файле нет: `hosts` не используется, адресация задана
+  тегами. Причина — «внутреннее» в `docs/agents/information-handling.md`.
+
+Файл, как и DNS, описывает политику целиком: правка в admin console
+перезапишется на следующем `apply`. Решение и границы — `docs/adr/0017`.
+
 ## Первый apply
 
 Конфигурация уже существует в admin console, поэтому `imports.tf` переносит её
-в state (`id = "dns_configuration"`). Проверять надо именно план:
+в state (`id = "dns_configuration"` для DNS, `id = "acl"` для политики).
+Проверять надо именно план:
 
 ```sh macOS
 terraform plan
@@ -90,14 +116,16 @@ console, — сначала чинить конфиг, а не нажимать 
 целиком, поэтому перед apply убедиться, что в плане нет удаления нужных
 глобальных nameserver'ов.
 
+У политики та же цена ошибки выше: план покажет, какие разделы из console
+исчезнут (`ssh`, `nodeAttrs`, `hosts`, отдельные `grants`). Если в них есть
+что-то нужное, это переносится в `acl.tf` до apply, а не после.
+
 После apply `terraform plan` обязан быть пустым. Повторный импорт ничего не
 меняет, `imports.tf` можно оставить.
 
 ## Чего модуль не делает
 
-- **ACL-policy.** По `docs/agents/information-handling.md` это секрет (раскрывает
-  топологию), в репозиторий и state не попадает. Остаётся в admin console.
 - **Auth keys.** `tailscale_key` кладёт сгенерированный ключ в state — запрещено
-  теми же правилами.
+  `docs/agents/information-handling.md`.
 - **Устройства** (одобрение subnet route, key expiry, теги). Отдельный этап:
   требует имён нод, которые тоже внутренние.
