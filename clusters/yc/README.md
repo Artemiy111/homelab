@@ -30,6 +30,7 @@ Renovate. Коммиты делает человек в Forgejo, кластер 
 | `kustomization.yaml` | список юнитов кластера: один Flux `Kustomization` на приложение или платформенный компонент |
 | `platform/envoy-gateway.yaml` | `OCIRepository` и `HelmRelease` Envoy Gateway; `path: ./platform/yc/envoy-gateway/releases` |
 | `platform/envoy-gateway-config.yaml` | `GatewayClass`, `EnvoyProxy`, `Gateway`; поднимается после `HelmRelease` |
+| `platform/metrics-server.yaml` | `HelmRelease` metrics-server в `kube-system` |
 | `apps/test-nginx.yaml` | Flux `Kustomization` тестовой страницы (`path: ./apps/yc/test-nginx/manifests`) |
 
 ## Первичная установка
