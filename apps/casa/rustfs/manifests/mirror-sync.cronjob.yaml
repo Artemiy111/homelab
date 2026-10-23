@@ -26,7 +26,7 @@ spec:
           restartPolicy: Never
           containers:
             - name: sync
-              image: "amazon/aws-cli:2.36.49@sha256:f42bf088cb1456ba9e179ce71fdeb22cc46ff64ea1e3aeae8251ff81391f5bb1"
+              image: "amazon/aws-cli:2.38.5@sha256:c8156a0e74e13929a42d7e60f0d4e14e7d28d980cd21822505d4bff80e5460c1"
               command:
                 - /bin/bash
                 - /scripts/mirror-sync.sh
