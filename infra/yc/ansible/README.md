@@ -43,7 +43,65 @@ docker compose -f infra/yc/ansible/compose.yaml run --rm kubespray
 15–20 минут. Образ только `linux/amd64`, на Apple Silicon он идёт через эмуляцию
 (в Docker Desktop должен быть включён Rosetta) — медленнее, на результат не влияет.
 
-## 4. kubeconfig
+## 4. Tailscale на узлах
+
+Узлы подключаются к tailnet тем же инвентарём и тем же контейнером, что и
+kubespray: роль `artis3n.tailscale.machine` из коллекции `artis3n.tailscale`,
+версия зафиксирована в `requirements.yml`. Плейбук идемпотентен: пакет ставится
+из репозитория Tailscale, `tailscale up` вызывается только когда меняются флаги
+или ключ.
+
+До первого прогона в admin console нужны две вещи:
+
+- OAuth client (Settings → OAuth clients) со scope `auth_keys: write`;
+- тег `tag:k8s` в ACL, в `tagOwners` которого указан этот OAuth client: для
+  OAuth-ключа тег обязателен.
+
+Секрет клиента в репозиторий не попадает и в `compose.yaml` не описывается — он
+прокидывается из окружения оболочки в контейнер на один запуск:
+
+```sh macOS
+read -rs TS_OAUTH_CLIENT_SECRET && export TS_OAUTH_CLIENT_SECRET
+docker compose -f infra/yc/ansible/compose.yaml run --rm \
+  -e TS_OAUTH_CLIENT_SECRET kubespray \
+  "ansible-galaxy collection install -r /inventory/requirements.yml && \
+   ansible-playbook -i /inventory/inventory.yml /inventory/tailscale.yml"
+```
+
+Коллекция ставится внутрь контейнера, а не в репозиторий: контейнер одноразовый,
+поэтому `collection install` идёт на каждый запуск — это секунды.
+
+Проверка:
+
+```sh macOS
+tailscale status | grep yc-
+tailscale ping yc-d1
+ssh <логин OS Login>@yc-d1
+```
+
+Что плейбук делает и почему так:
+
+| Решение | Причина |
+| --- | --- |
+| OAuth-ключ, а не auth key | auth key живёт максимум 90 дней, то есть требует ручной ротации; OAuth secret не истекает, а роль выпускает по нему ключ на час |
+| `tailscale_oauth_ephemeral: false` | эфемерный узел удаляется из tailnet, когда offline; control plane должен возвращаться сам |
+| `--accept-dns=false` | DNS узла обслуживает systemd-resolved, и MagicDNS не должен менять `resolv.conf` под kubelet и containerd |
+| `--hostname={{ inventory_hostname }}` | имена в tailnet совпадают с именами инвентаря (`yc-d1`, ...) |
+| `state: latest` | сторонний репозиторий не покрыт `unattended-upgrades`, прогон плейбука — единственный механизм обновления |
+| Tailscale SSH не включён | вход остаётся через OpenSSH и OS Login, как раньше |
+
+Key expiry у узлов кластера надо выключить (Machines → узел → Disable key
+expiry): иначе через 180 дней все три узла молча выпадают из tailnet. То же
+правило уже записано для `homelab` в `apps/casa/tailscale/RUNBOOK.md`.
+
+Ловушка на будущее: как только из tailnet пойдёшь в NodePort/LoadBalancer на
+этих узлах, ответы kube-proxy уйдут мимо `tailscale0`. Нужен тот же policy
+routing, что на `casa` — юнит
+`infra/casa/host/etc/systemd/tailscale-policy-route.service`, разбор в
+`docs/troubleshoot/tailscale-k8s-ingress-access.md`. Сейчас юнит не ставится:
+пока в кластер ходят по SSH и по адресу балансировщика, правило не требуется.
+
+## 5. kubeconfig
 
 Kubespray кладёт его в `infra/yc/ansible/artifacts/admin.conf` (`artifacts_dir`
 внутри inventory-каталога). `server` там указывает на внутренний адрес первого
@@ -63,7 +121,7 @@ TLS сходится. Если локальный DNS ещё отдаёт wildca
 проверить `dig +short api.yc.clusters.biplane.casa` или временно добавить запись в
 `/etc/hosts`.
 
-## 5. Проверка
+## 6. Проверка
 
 ```sh macOS
 kubectl get nodes -o wide
@@ -80,6 +138,8 @@ nc -vz api.yc.clusters.biplane.casa 6443
 | --- | --- |
 | `compose.yaml` | образ kubespray, монтирование инвентаря и ключа |
 | `inventory.py` | генерирует `inventory.yml` из `terraform output` |
+| `requirements.yml` | версия коллекции `artis3n.tailscale` для плейбука `tailscale.yml` |
+| `tailscale.yml` | установка Tailscale и подключение узлов к tailnet |
 | `group_vars/all/yc.yml` | пользователь, путь к ключу внутри контейнера, sudo |
 | `group_vars/k8s_cluster/yc.yml` | calico, `podCIDR`/`serviceCIDR`, SAN, локальный kubeconfig |
 

@@ -1,0 +1,14 @@
+---
+- name: Tailscale на узлах кластера
+  hosts: all
+  become: true
+  roles:
+    - role: artis3n.tailscale.machine
+      vars:
+        tailscale_authkey: "{{ lookup('env', 'TS_OAUTH_CLIENT_SECRET') }}"
+        tailscale_tags:
+          - k8s
+        tailscale_oauth_ephemeral: false
+        tailscale_oauth_preauthorized: true
+        tailscale_args: "--accept-dns=false --hostname={{ inventory_hostname }}"
+        state: latest
