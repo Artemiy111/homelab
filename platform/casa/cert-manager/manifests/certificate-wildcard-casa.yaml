@@ -15,4 +15,5 @@ spec:
   dnsNames:
   - '*.biplane.casa'
   - biplane.casa
+  - '*.ts.biplane.casa'
   renewBefore: 720h

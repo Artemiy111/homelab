@@ -21,6 +21,15 @@ resource "technitium_record" "wildcard" {
   depends_on = [technitium_zone.domain_zone]
 }
 
+resource "technitium_record" "ts_wildcard" {
+  zone       = local.domain
+  name       = "*.ts.${local.domain}"
+  type       = "A"
+  value      = local.host_ip
+  ttl        = 3600
+  depends_on = [technitium_zone.domain_zone]
+}
+
 resource "technitium_record" "dns" {
   zone       = local.domain
   name       = "dns.${local.domain}"

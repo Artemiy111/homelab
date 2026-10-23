@@ -5,3 +5,4 @@ resources:
   - platform/envoy-gateway-config.yaml
   - platform/metrics-server.yaml
   - apps/test-nginx.yaml
+  - apps/casa-edge.yaml

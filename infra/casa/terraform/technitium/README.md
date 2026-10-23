@@ -33,6 +33,7 @@ Technitium рекомендует не выпускать токен для `adm
 | --- | --- |
 | `technitium_record.apex` | `<домен>` A → сервер: wildcard apex не покрывает, а на него ссылается federation delegation Element (`m.server: <домен>:443`) |
 | `technitium_record.wildcard` | `*.<домен>` A → сервер |
+| `technitium_record.ts_wildcard` | `*.ts.<домен>` A → сервер: публичный вход через `yc` (`apps/yc/casa-edge`) дома и в tailnet ведёт напрямую, а не через облако |
 | `technitium_record.dns` | `dns.<домен>` A → сервер |
 | `technitium_record.cloudflare_bootstrap_*` | две A-записи зоны `cloudflare-dns.com` (обход DPI, см. `apps/casa/technitium/README.md`) |
 | `technitium_record.delegation` | NS-записи делегированных подзон, по одной на сервер имён (см. ниже) |

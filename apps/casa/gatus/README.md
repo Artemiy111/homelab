@@ -3,6 +3,10 @@
 Gatus — основной декларативный монитор доступности homelab.
 URL: `https://uptime.example.com/`.
 
+Второе имя, `https://uptime.ts.example.com/`, смотрит наружу через облако:
+публичный адрес `yc` → форвардер `apps/yc/casa-edge` → tailnet → Traefik. Это
+пилот публичного входа; дома и в tailnet оба имени ведут в один и тот же Traefik.
+
 ## Хранилище
 
 История проверок — PostgreSQL в общем кластере CNPG `shared` (namespace

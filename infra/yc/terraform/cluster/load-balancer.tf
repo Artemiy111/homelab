@@ -66,4 +66,16 @@ resource "yandex_lb_network_load_balancer" "api" {
       ip_version = "ipv4"
     }
   }
+
+  listener {
+    name        = "https"
+    port        = 443
+    target_port = local.edge_node_port
+    protocol    = "tcp"
+
+    external_address_spec {
+      address    = yandex_vpc_address.api.external_ipv4_address[0].address
+      ip_version = "ipv4"
+    }
+  }
 }

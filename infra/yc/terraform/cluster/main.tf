@@ -25,7 +25,9 @@ locals {
   ssh_allowed_cidrs   = ["0.0.0.0/0"]
   api_allowed_cidrs   = ["0.0.0.0/0"]
   http_allowed_cidrs  = ["0.0.0.0/0"]
+  https_allowed_cidrs = ["0.0.0.0/0"]
   gateway_node_port   = 30081
+  edge_node_port      = 30443
   deletion_protection = false
 
   subnets = {

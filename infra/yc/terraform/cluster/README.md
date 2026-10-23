@@ -11,11 +11,11 @@
 | --- | --- |
 | `yandex_vpc_network.cluster` | сеть кластера `k8s-vm` |
 | `yandex_vpc_subnet.node` | по одной подсети на зону из `local.subnets`: `k8s-vm-ru-central1-{d,e}` |
-| `yandex_vpc_security_group.node` | SSH и kube-api из разрешённых сетей, проверки доступности балансировщика, весь трафик между узлами, любой исходящий |
+| `yandex_vpc_security_group.node` | SSH и kube-api из разрешённых сетей, проверки доступности балансировщика, NodePort-порты HTTP и HTTPS, весь трафик между узлами, любой исходящий |
 | `yandex_compute_instance.node` | по одной ВМ на узел из `local.nodes` (`d1`, `d2`, `e1`): 2 ядра, 4 ГБ, 10 ГБ `network-ssd`, публичный адрес через `nat`, доступ по SSH через OS Login |
 | `yandex_vpc_address.api` | статический публичный адрес балансировщика в зоне `ru-central1-e` |
 | `yandex_lb_target_group.nodes` | целевая группа из внутренних адресов узлов — одна на оба слушателя |
-| `yandex_lb_network_load_balancer.api` | внешний балансировщик `nlb-k8s-vm`: TCP `6443` (kube-api) и TCP `80` → NodePort Envoy Gateway `30081` на тех же целях |
+| `yandex_lb_network_load_balancer.api` | внешний балансировщик `nlb-k8s-vm`: TCP `6443` (kube-api), TCP `80` → NodePort Envoy Gateway `30081`, TCP `443` → NodePort форвардера в tailnet `30443` — все на одной целевой группе |
 | `yandex_dns_zone.cluster` | публичная зона `<dns_zone_name>.<parent_domain>` |
 | `yandex_dns_recordset.api` | `api.<зона>` A → статический адрес балансировщика |
 | `yandex_dns_recordset.wildcard` | `*.<зона>` A → тот же адрес: любое имя приложения резолвится без правки Terraform |
@@ -224,9 +224,10 @@ state с пометкой `tainted`; следующий `apply` его пере�
 
 ## Открытый доступ
 
-`ssh_allowed_cidrs` и `api_allowed_cidrs` (в `locals` модуля) по умолчанию —
-`0.0.0.0/0`: источник подключения заранее неизвестен (прокси, смена сети), а
-перечислять адреса вручную неудобно. Что это значит на практике:
+`ssh_allowed_cidrs`, `api_allowed_cidrs`, `http_allowed_cidrs` и
+`https_allowed_cidrs` (в `locals` модуля) по умолчанию — `0.0.0.0/0`: источник
+подключения заранее неизвестен (прокси, смена сети), а перечислять адреса
+вручную неудобно. Что это значит на практике:
 
 - **SSH защищён OS Login, а не ключом в метаданных.** Пароля на узлах нет,
   вход — по SSH-ключу из профиля OS Login или по короткоживущему сертификату,
@@ -295,9 +296,11 @@ Terraform provider registry`; отсюда и зеркало в `TF_CLI_CONFIG_F
 подсети, и добавление узла — одна строка.
 
 `gateway_node_port` — тот же порт, что `nodePort` у `Service` Envoy Gateway
-(патч в `EnvoyProxy`, юнит `platform/yc/envoy-gateway`). Это единственная связка
-Terraform и payload: балансировщик не умеет читать Service, поэтому порт
-приходится держать в двух местах и менять одновременно.
+(патч в `EnvoyProxy`, юнит `platform/yc/envoy-gateway`). `edge_node_port` — тот
+же порт, что `nodePort` у `Service` форвардера в tailnet (юнит
+`apps/yc/casa-edge`). Это единственные связки Terraform и payload:
+балансировщик не умеет читать Service, поэтому порты приходится держать в двух
+местах и менять одновременно.
 
 Обе цели (kube-api и HTTP) живут в **одной** целевой группе: в Yandex Cloud адрес
 не может входить в две группы одновременно (`One of the targets already a part of

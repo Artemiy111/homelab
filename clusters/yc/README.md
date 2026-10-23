@@ -32,6 +32,7 @@ Renovate. Коммиты делает человек в Forgejo, кластер 
 | `platform/envoy-gateway-config.yaml` | `GatewayClass`, `EnvoyProxy`, `Gateway`; поднимается после `HelmRelease` |
 | `platform/metrics-server.yaml` | `HelmRelease` metrics-server в `kube-system` |
 | `apps/test-nginx.yaml` | Flux `Kustomization` тестовой страницы (`path: ./apps/yc/test-nginx/manifests`) |
+| `apps/casa-edge.yaml` | Flux `Kustomization` форвардера в tailnet (`path: ./apps/yc/casa-edge/manifests`) |
 
 ## Первичная установка
 
