@@ -45,31 +45,34 @@ docker compose -f infra/yc/ansible/compose.yaml run --rm kubespray
 
 ## 4. Tailscale на узлах
 
-Узлы подключаются к tailnet тем же инвентарём и тем же контейнером, что и
-kubespray: роль `artis3n.tailscale.machine` из коллекции `artis3n.tailscale`,
-версия зафиксирована в `requirements.yml`. Плейбук идемпотентен: пакет ставится
-из репозитория Tailscale, `tailscale up` вызывается только когда меняются флаги
-или ключ.
+Узлы подключаются к tailnet тем же инвентарём, что и kubespray, но Ansible для
+этого запускается с контроллера (macOS), а не из контейнера: контейнер существует
+ради зафиксированного окружения kubespray, а роли `artis3n.tailscale.machine`
+нужны только SSH и `python3` на узле. Версия коллекции — в `requirements.yml`.
+Плейбук идемпотентен: пакет ставится из репозитория Tailscale, `tailscale up`
+вызывается только когда меняются флаги или ключ.
 
 До первого прогона в admin console нужны две вещи:
 
-- OAuth client (Settings → OAuth clients) со scope `auth_keys: write`;
-- тег `tag:k8s` в ACL, в `tagOwners` которого указан этот OAuth client: для
+- OAuth client (Settings → OAuth clients) со scope `auth_keys: write` и
+  выбранным тегом `tag:k8s`;
+- сам тег `tag:k8s` объявлен в `infra/casa/terraform/tailscale/acl.tf`: для
   OAuth-ключа тег обязателен.
 
-Секрет клиента в репозиторий не попадает и в `compose.yaml` не описывается — он
-прокидывается из окружения оболочки в контейнер на один запуск:
+Секрет клиента в репозиторий не попадает и в `compose.yaml` не описывается:
 
 ```sh macOS
+cd infra/yc/ansible
+ansible-galaxy collection install -r requirements.yml
 read -rs TS_OAUTH_CLIENT_SECRET && export TS_OAUTH_CLIENT_SECRET
-docker compose -f infra/yc/ansible/compose.yaml run --rm \
-  -e TS_OAUTH_CLIENT_SECRET kubespray \
-  "ansible-galaxy collection install -r /inventory/requirements.yml && \
-   ansible-playbook -i /inventory/inventory.yml /inventory/tailscale.yml"
+ansible-playbook -i inventory.yml tailscale.yml \
+  -e ansible_ssh_private_key_file="<ключ из compose.yaml>"
 ```
 
-Коллекция ставится внутрь контейнера, а не в репозиторий: контейнер одноразовый,
-поэтому `collection install` идёт на каждый запуск — это секунды.
+`-e` обязателен: в `group_vars/all/yc.yml` путь к ключу контейнерный
+(`/root/.ssh/id_rsa`), он писался под монтирование в `compose.yaml`. `-e`
+перекрывает `group_vars`, поэтому с контроллера подставляется путь на macOS.
+Коллекция ставится в `~/.ansible/collections` и в репозиторий не попадает.
 
 Проверка:
 
