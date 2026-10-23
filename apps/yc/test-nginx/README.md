@@ -22,7 +22,7 @@ curl -s -H 'Host: test-nginx.yc.clusters.biplane.casa' http://<ip баланси
 
 ## Что важно знать
 
-- **DNS-запись заводится в Terraform**, в зоне кластера (`infra/yc/terraform/cluster`): подзона делегирована в Cloud DNS, wildcard'а там нет, поэтому каждое имя добавляется явно.
+- **Отдельной DNS-записи не нужно**: в зоне кластера есть wildcard `*.yc.clusters.biplane.casa` на адрес балансировщика, он покрывает любое имя одного уровня. Нужен только `HTTPRoute` с этим именем.
 - **TLS нет.** Gateway слушает только HTTP; сертификат появится вместе с cert-manager и солвером, умеющим писать в Cloud DNS.
 - **Образ unprivileged**: работает под UID 101, слушает 8080, root в контейнере не нужен.
 - **Namespace не удаляется автоматически** (`prune: disabled`): снятие манифеста уносит Deployment, Service и HTTPRoute, но не namespace. Убирать руками.

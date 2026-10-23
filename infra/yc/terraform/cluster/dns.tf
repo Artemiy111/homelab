@@ -13,9 +13,9 @@ resource "yandex_dns_recordset" "api" {
   data    = [yandex_vpc_address.api.external_ipv4_address[0].address]
 }
 
-resource "yandex_dns_recordset" "test_nginx" {
+resource "yandex_dns_recordset" "wildcard" {
   zone_id = yandex_dns_zone.cluster.id
-  name    = "test-nginx.${local.dns_zone}"
+  name    = "*.${local.dns_zone}"
   type    = "A"
   ttl     = 300
   data    = [yandex_vpc_address.api.external_ipv4_address[0].address]
