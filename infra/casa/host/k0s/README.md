@@ -27,12 +27,6 @@ Single-node k0s на Fedora Server 44, максимально близкий к 
 cd infra/casa/ansible && ansible-playbook host.yml
 ```
 
-Issuer Zitadel для OIDC-входа apiserver задан прямо в
-`infra/casa/host/etc/k0s/k0s.yaml`. Приватного слоя нет: домен не секрет, он виден
-в Certificate Transparency (docs/adr/0009), а apiserver сверяет claim `iss` с
-объявленным issuer'ом, поэтому значение обязано совпадать с
-`/.well-known/openid-configuration` Zitadel.
-
 ## Установка
 
 Установку делает `install.sh`. Повторный запуск не идемпотентен: бинарь,
@@ -176,7 +170,6 @@ infra/casa/host/etc/k0s/
 | Слой | Где |
 |---|---|
 | Gateway | Traefik — единый вход на `<node1-ip>`, Gateway API (`platform/casa/traefik/`) |
-| UI кластера | Headlamp (`platform/casa/headlamp/`) |
 | Секреты | Vault и Vault Secrets Operator — `VaultStaticSecret` (`platform/casa/vault/`, `platform/casa/vault-secrets-operator/`) |
 | GitOps | Argo CD — пробный стенд (`platform/casa/argocd/RUNBOOK.md`); целевое решение — Flux |
 

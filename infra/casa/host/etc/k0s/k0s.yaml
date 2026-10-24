@@ -5,29 +5,6 @@ metadata:
 spec:
   api:
     port: 6443
-    # Аутентификация Headlamp через OIDC: apiserver проверяет подпись токена
-    # Zitadel сам и читает из него имя пользователя и группу. Claim `role`
-    # кладёт action `addRole` (infra/casa/terraform/zitadel/actions.tf), а группа
-    # `oidc:admin` даёт cluster-admin
-    # (platform/casa/headlamp/manifests/headlamp-admins.clusterrolebinding.yaml).
-    #
-    # Issuer обязан совпадать с тем, что Zitadel объявляет в
-    # /.well-known/openid-configuration: apiserver сверяет claim iss и отклоняет
-    # токен при расхождении. Домен — ZITADEL_EXTERNALDOMAIN из
-    # apps/casa/zitadel/manifests/zitadel.deployment.yaml, он же hostname
-    # в Gateway (platform/casa/traefik/manifests/gateway-homelab.yaml).
-    #
-    # Инициализация issuer асинхронная (retry каждые 10 с), поэтому apiserver
-    # стартует и при недоступном Zitadel — падает только вход через него.
-    # spec.api не обновляется динамически: после правки нужен
-    # `k0s stop && k0s start`.
-    extraArgs:
-      oidc-issuer-url: https://id.biplane.casa
-      oidc-client-id: "392923102339689485"
-      oidc-username-claim: sub
-      oidc-username-prefix: "-"
-      oidc-groups-claim: role
-      oidc-groups-prefix: "oidc:"
 
   network:
     provider: calico

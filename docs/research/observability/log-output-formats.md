@@ -21,7 +21,7 @@ kubectl -n monitoring exec deploy/grafana-deployment -- curl -sG \
 
 ## JSON
 
-traefik (access), authentik, zot, headlamp, infisical, postgres (CNPG отдаёт
+traefik (access), authentik, zot, infisical, postgres (CNPG отдаёт
 JSON по умолчанию), cert-controller, manager, worker, zitadel-login, rustfs
 (после #468), open-webui (после #498).
 

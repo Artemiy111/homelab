@@ -15,6 +15,6 @@
     owner: root
     group: root
   # diff на уровне задачи, а не в аргументах модуля: action-плагин копирования
-  # не принимает diff, а сам файл содержит адрес issuer'а и clientID.
+  # не принимает diff.
   diff: false
   notify: Restart k0s

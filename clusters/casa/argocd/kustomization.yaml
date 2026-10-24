@@ -72,7 +72,6 @@ resources:
   - platform/forgejo.yaml
   - platform/gateway-api.yaml
   - platform/grafana-operator.yaml
-  - platform/headlamp.yaml
   - platform/kube-state-metrics.yaml
   - platform/local-path-provisioner.yaml
   - platform/local-storage.yaml

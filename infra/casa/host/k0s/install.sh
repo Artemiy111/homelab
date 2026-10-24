@@ -122,12 +122,10 @@ mkdir -p /etc/k0s
 # ClusterConfig лежит в infra/casa/host/etc/k0s/ (источник правды для /etc, см.
 # infra/casa/host/etc/README.md), а Ansible разворачивает его ролью k0s_config.
 # Здесь то же самое вручную: install.sh идёт до установки k0s, когда Ansible
-# ещё не на что опереться. Рендерить нечего — шаблон отслужил своё, когда
-# issuer перестал быть приватным значением.
+# ещё не на что опереться. Рендерить нечего: переменных в файле нет.
 K0S_CONFIG="${REPO_ROOT}/infra/casa/host/etc/k0s/k0s.yaml"
 
 install -D -m 0600 -o root -g root "${K0S_CONFIG}" /etc/k0s/k0s.yaml
-echo "OIDC issuer: $(sed -n 's/.*oidc-issuer-url:[[:space:]]*//p' /etc/k0s/k0s.yaml | head -1)"
 
 if k0s status 2>/dev/null | grep -q "Version"; then
   echo "k0s already installed. To reinstall: k0s reset && reboot"

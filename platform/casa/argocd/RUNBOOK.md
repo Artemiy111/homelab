@@ -345,8 +345,7 @@ argocd app diff traefik               # пусто
 
 ### Внутренние значения (домен, externalIPs)
 
-Часть values — environment-specific: адрес узла в `traefik` и `forgejo`, issuer и
-redirect URL в `headlamp`, домен в `dns01-webhook`. Секретов среди них
+Часть values — environment-specific: адрес узла в `traefik` и `forgejo`, домен в `dns01-webhook`. Секретов среди них
 нет: реальные credentials приходят из Vault через VSO, в Application лежат
 ссылки `existingSecret` и `secretKeyRef`.
 
@@ -541,9 +540,9 @@ kubectl -n argocd get application \
 
 Единственное кластерное право — свой `Namespace`. Приложение обязано уметь
 создать свой, но не может трогать `CRD`, `ClusterRole`, `StorageClass` и прочее
-на уровне кластера. Это структурная защита от эскалации: нельзя случайно
-выдать сервису кластерные права, как это делал чарт headlamp
-(`clusterRoleBinding.create: true`).
+на уровне кластера. Это структурная защита от эскалации: даже чарт, у которого
+`clusterRoleBinding.create` по умолчанию `true`, не получит здесь это право —
+приложение упадёт на синке, а не выдаст cluster-admin своему поду.
 
 `namespaceResourceWhitelist` не задан намеренно. Он не только разрешает, но и
 фильтрует resource tree в UI: не внесённые в него `Pod`/`ReplicaSet`
@@ -696,18 +695,19 @@ argocd app get kube-state-metrics
 `apps/casa/victoria-metrics/manifests/config/vmagent/scrape.yml`) — после синка нужно
 перезапустить vmagent.
 
-## Адопция существующего Helm-релиза (на примере headlamp)
+## Адопция существующего Helm-релиза
 
-`headlamp.yaml` переводит уже работающий Helm-релиз под Argo **без
-пересоздания** ресурсов. Порядок применим и к боевому Traefik.
+Юнит, который уже работает Helm-релизом, переводится под Argo **без
+пересоздания** ресурсов. Порядок ниже применён к `kube-state-metrics`, а следом
+— к боевому Traefik.
 
 ```sh
-kubectl apply -f clusters/casa/argocd/platform/headlamp.yaml
+kubectl apply -f clusters/casa/argocd/platform/<юнит>.yaml
 
-argocd app diff headlamp        # желаемое (чарт) vs живое: расхождений быть не должно
-argocd app sync headlamp        # server-side apply берёт ownership, Pod не пересоздаётся
+argocd app diff <юнит>           # желаемое (чарт) vs живое: расхождений быть не должно
+argocd app sync <юнит>           # server-side apply берёт ownership, Pod не пересоздаётся
 
-kubectl -n headlamp get pods    # AGE не должен сброситься
+kubectl -n <namespace> get pods  # AGE не должен сброситься
 ```
 
 Так как релиз ставился Helm 4 (server-side apply), адопция идёт
@@ -721,27 +721,21 @@ kubectl -n headlamp get pods    # AGE не должен сброситься
 при этом не трогаются, а релиз пропадает из `helm list`:
 
 ```sh
-kubectl -n headlamp delete secret -l owner=helm,name=headlamp
+kubectl -n <namespace> delete secret -l owner=helm,name=<релиз>
 ```
 
-Проверка: `helm list -n headlamp` пуст, ресурсы и Pod на месте.
+Проверка: `helm list -n <namespace>` пуст, ресурсы и Pod на месте.
 
-Границы владения: чарт по умолчанию создаёт `ClusterRoleBinding headlamp-admin`
-на SA пода `headlamp` — то есть выдаёт cluster-admin самому поду. Здесь это
-выключено (`clusterRoleBinding.create: false`): под остаётся бесправным и
-бежит под SA `headlamp`. Права приходят из OIDC: Headlamp отдаёт apiserver'у
-`id_token`, который тот проверяет по подписи Zitadel и читает из него claim
-`role` как группу. `cluster-admin` выдаётся группе `oidc:admin`
-(`platform/casa/headlamp/manifests/headlamp-admins.clusterrolebinding.yaml`), поэтому он есть
-только у пользователей с ролью `admin` в Zitadel. `extraManifests` в этом
-Application больше нет. Маршрут
-(`platform/casa/headlamp/manifests/route.yaml`) — вне Application.
+Границы владения: чарт может создавать cluster-scoped объекты, и после адопции
+они переходят под Argo. Смотреть их надо до синка — `argocd app diff` покажет,
+что именно меняет хозяина, а `skipCrds` в Application решает, попадают ли туда
+CRD.
 
 ### Traefik
 
 `traefik.yaml` — тот же приём для боевого ingress (единственный вход на
 `<node1-ip>`, поэтому проверять `argocd app diff` особенно внимательно).
-Отличия от headlamp:
+Особенности:
 
 - `skipCrds: true` — CRD `*.traefik.io` кластерные; под управлением Argo они
   при удалении приложения снесли бы все `IngressRoute`/`Middleware` кластера.
@@ -757,7 +751,7 @@ Application больше нет. Маршрут
 - Значения из приватного репозитория сюда не возвращаются (`docs/adr/0009`):
   домен и адрес узла публичны по решению.
 - Чарт сам создаёт `ClusterRole`/`ClusterRoleBinding`/`IngressClass` — они под
-  управлением Argo (в отличие от RBAC headlamp, который вне чарта).
+  управлением Argo.
 
 ## Отклонения от дефолтов чарта
 

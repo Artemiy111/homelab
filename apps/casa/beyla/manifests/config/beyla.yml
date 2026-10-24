@@ -78,7 +78,6 @@ discovery:
     - k8s_namespace: pdf
     - k8s_namespace: mermaid-live-editor
     - k8s_namespace: structurizr
-    - k8s_namespace: headlamp
     - k8s_namespace: homepage
     - k8s_namespace: oauth2-proxy
     - k8s_namespace: 3x-ui

@@ -1,8 +1,6 @@
 ---
 # ClusterConfig k0s для узла homelab. Переменных в файле нет, поэтому роль
-# копирует его как есть, а не рендерит: issuer Zitadel не секрет (домен виден
-# в Certificate Transparency, docs/adr/0009) и обязан совпадать с тем, что
-# объявляет /.well-known/openid-configuration.
+# копирует его как есть, а не рендерит.
 #
 # Файл применяется ролью k0s_config и install.sh; правка требует
 # `k0s stop && k0s start` — spec.api не обновляется динамически.

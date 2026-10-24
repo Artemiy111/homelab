@@ -64,9 +64,7 @@ Claim кладёт action `addRole` (`infra/casa/terraform/zitadel/actions.tf`) 
 `autoRegister` создаёт пользователя при первом входе.
 
 Действие на `POST_AUTHENTICATION` нужно именно Immich: этот триггер срабатывает
-при входе в Zitadel и кладёт claim в профиль. Headlamp использует другой
-триггер, `PRE_USERINFO_CREATION`, потому что apiserver проверяет подпись и
-читает claim из самого токена.
+при входе в Zitadel и кладёт claim в профиль пользователя.
 
 ## Ревизия ML-моделей
 

@@ -187,23 +187,16 @@ resource "zitadel_application_v2" "headlamp" {
   name       = "Headlamp"
 
   oidc {
-    grant_types       = ["OIDC_GRANT_TYPE_AUTHORIZATION_CODE"]
-    response_types    = ["OIDC_RESPONSE_TYPE_CODE"]
-    redirect_uris     = ["https://headlamp.${var.domain}/oidc-callback"]
-    app_type          = "OIDC_APP_TYPE_WEB"
-    auth_method_type  = "OIDC_AUTH_METHOD_TYPE_BASIC"
-    version           = "OIDC_VERSION_1_0"
-    access_token_type = "OIDC_TOKEN_TYPE_BEARER"
-    clock_skew        = "0s"
-    # Claim `role` кладёт zitadel_trigger_actions.add_role_userinfo.
-    # Headlamp шлёт id_token прямо в apiserver, поэтому claim должен быть в
-    # самом токене, а не только в ответе userinfo.
+    grant_types                  = ["OIDC_GRANT_TYPE_AUTHORIZATION_CODE"]
+    response_types               = ["OIDC_RESPONSE_TYPE_CODE"]
+    redirect_uris                = ["https://headlamp.${var.domain}/oidc-callback"]
+    app_type                     = "OIDC_APP_TYPE_WEB"
+    auth_method_type             = "OIDC_AUTH_METHOD_TYPE_BASIC"
+    version                      = "OIDC_VERSION_1_0"
+    access_token_type            = "OIDC_TOKEN_TYPE_BEARER"
+    clock_skew                   = "0s"
     id_token_userinfo_assertion  = true
     skip_native_app_success_page = false
-  }
-
-  lifecycle {
-    prevent_destroy = true
   }
 }
 

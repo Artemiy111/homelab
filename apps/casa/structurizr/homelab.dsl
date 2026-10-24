@@ -83,10 +83,6 @@ workspace {
                 tags "monitoring"
             }
 
-            headlamp = softwareSystem "Headlamp" "Веб-UI для Kubernetes (headlamp.example.com)" {
-                tags "monitoring"
-            }
-
             glitchtip = softwareSystem "GlitchTip" "Сбор ошибок фронтендов (glitchtip.example.com)" {
                 tags "monitoring"
             }
@@ -320,9 +316,6 @@ workspace {
             tags "http"
         }
         traefik -> netdata "маршрутизирует Host(netdata.*)" "HTTPS" {
-            tags "http"
-        }
-        traefik -> headlamp "маршрутизирует Host(headlamp.*)" "HTTPS" {
             tags "http"
         }
         traefik -> glitchtip "маршрутизирует Host(glitchtip.*)" "HTTPS" {
