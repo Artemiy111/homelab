@@ -20,7 +20,7 @@ spec:
       priorityClassName: platform-critical
       containers:
         - name: zitadel-login
-          image: "ghcr.io/zitadel/zitadel-login:v4.17.1@sha256:8035df2409afb35a3999482ee98e453261715f98d47e4b62e948e4a1ddf4345f"
+          image: "ghcr.io/zitadel/zitadel-login:v4.20.0@sha256:f1abfdf3c5d16eda03cad3b584226207ecc640ca5c679d7c45abbbce7d1d63f0"
           ports:
             - name: http
               containerPort: 3000
