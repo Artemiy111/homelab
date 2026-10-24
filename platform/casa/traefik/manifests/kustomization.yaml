@@ -2,6 +2,10 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - dashboard.route.yaml
+  - default-content.configmap.yaml
+  - default-content.deployment.yaml
+  - default-content.route.yaml
+  - default-content.service.yaml
   - namespace.yaml
   - oauth2-proxy.middleware.yaml
   - secure-headers.middleware.yaml

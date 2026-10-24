@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: edge-default-content
+  namespace: traefik
+spec:
+  selector:
+    app: edge-default-content
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
