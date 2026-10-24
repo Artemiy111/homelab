@@ -16,7 +16,6 @@ data:
       timeout tunnel 1h
 
     frontend edge
-      bind :443
       bind :8443
       stick-table type ip size 20k expire 1m store conn_rate(10s),conn_cur
       tcp-request connection track-sc0 src

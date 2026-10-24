@@ -33,7 +33,7 @@ kubectl -n casa-edge logs daemonset/casa-edge --tail=20
 самом узле, поэтому проверяется там, а не в Service:
 
 ```sh
-ssh <логин OS Login>@yc-d1 'ss -ltn | grep -E ":(443|8443)"'
+ssh <логин OS Login>@yc-d1 'ss -ltn | grep :8443'
 ```
 
 Снаружи (не из дома и не из tailnet):

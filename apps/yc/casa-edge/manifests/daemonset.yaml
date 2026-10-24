@@ -36,9 +36,6 @@ spec:
             - name: https
               containerPort: 8443
               protocol: TCP
-            - name: https-legacy
-              containerPort: 443
-              protocol: TCP
           readinessProbe:
             tcpSocket:
               port: https
@@ -54,12 +51,10 @@ spec:
             limits:
               memory: 64Mi
           securityContext:
-            runAsUser: 0
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
             capabilities:
               drop: ["ALL"]
-              add: ["NET_BIND_SERVICE"]
           volumeMounts:
             - name: config
               mountPath: /etc/haproxy
