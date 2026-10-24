@@ -9,7 +9,6 @@ spec:
       namespace: traefik
   hostnames:
     - uptime.biplane.casa
-    - uptime.ts.biplane.casa
   rules:
     - backendRefs:
         - name: gatus

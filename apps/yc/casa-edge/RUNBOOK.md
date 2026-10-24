@@ -39,12 +39,12 @@ ssh <логин OS Login>@yc-d1 'ss -ltn | grep :443'
 Снаружи (не из дома и не из tailnet):
 
 ```sh
-curl -sI https://uptime.ts.biplane.casa/
-openssl s_client -connect uptime.ts.biplane.casa:443 \
-  -servername uptime.ts.biplane.casa </dev/null | openssl x509 -noout -subject -dates
+curl -sI https://uptime.biplane.casa/
+openssl s_client -connect uptime.biplane.casa:443 \
+  -servername uptime.biplane.casa </dev/null | openssl x509 -noout -subject -dates
 ```
 
-Ожидается `200`/`302` и сертификат на `*.ts.biplane.casa` от Let's Encrypt.
+Ожидается `200`/`302` и сертификат на `*.biplane.casa` от Let's Encrypt.
 
 Если порт не отвечает, проверять по порядку:
 
@@ -53,7 +53,7 @@ openssl s_client -connect uptime.ts.biplane.casa:443 \
    тот же порт.
 2. `kubectl -n casa-edge get pods` — под на каждом узле запущен; под в
    `CreateContainerConfigError` значит нет Secret.
-3. С узла `yc`: `curl -sI https://<tailnet-адрес casa>/ -H 'Host: uptime.ts.biplane.casa'`
+3. С узла `yc`: `curl -sI https://<tailnet-адрес casa>/ -H 'Host: uptime.biplane.casa'`
    — если не отвечает, проблема не в форвардере, а в tailnet или в Traefik.
 4. В логах пода `HAProxy` печатает ошибки разбора конфига и недоступность
    апстрима. Заголовок PROXY protocol виден не здесь, а в Traefik: если он не
@@ -78,4 +78,4 @@ kubectl -n casa-edge rollout restart daemonset/casa-edge
 
 В `infra/yc/terraform/cluster` слушатель `443` и правило на `edge_port` убираются
 отдельным коммитом, иначе балансировщик продолжит отдавать порт в никуда. После
-этого — запись `*.ts.biplane.casa` в Spaceship.
+этого — запись `*.biplane.casa` в Spaceship.

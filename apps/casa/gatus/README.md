@@ -3,9 +3,8 @@
 Gatus — основной декларативный монитор доступности homelab.
 URL: `https://uptime.example.com/`.
 
-Второе имя, `https://uptime.ts.example.com/`, смотрит наружу через облако:
-публичный адрес `yc` → форвардер `apps/yc/casa-edge` → tailnet → Traefik. Это
-пилот публичного входа; дома и в tailnet оба имени ведут в один и тот же Traefik.
+Публичный вход по тому же имени идёт через облако: адрес `yc` → форвардер
+`apps/yc/casa-edge`; дома и в tailnet — напрямую в тот же Traefik.
 
 ## Хранилище
 
