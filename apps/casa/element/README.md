@@ -81,6 +81,12 @@ capabilities и `RuntimeDefault` seccomp; токен ServiceAccount в них н
 `/tmp` у всех, каталог конфигов nginx у Element Web. Конфиги и ключи из
 Secret'ов монтируются только на чтение.
 
+`NET_BIND_SERVICE` оставлен у Element Web и coturn. Element Web слушает порт
+`80` внутри образа. У coturn порты выше `1024`, но бинарь в образе несёт
+file-capability на этот же capability, а ядро отказывает в `exec` такого файла,
+если capability нет в bounding set контейнера: с одним `drop: ALL` получается
+`exec /usr/bin/turnserver: operation not permitted`.
+
 Сеть закрыта в обе стороны. Внутрь пускают Traefik (порты сервисов) и vmagent
 (метрики); наружу — DNS, адреса кластера и LAN, а из внешнего мира только порты
 протокола: federation у Synapse, OIDC и LiveKit у сервиса авторизации. Доступ к

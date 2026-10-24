@@ -8,3 +8,5 @@ metadata:
 data:
   homeserver.yaml: |-
 {{ .Files.Get "files/homeserver.yaml" | indent 4 }}
+  log.config: |-
+{{ .Files.Get "files/synapse-log.config" | trim | indent 4 }}

@@ -88,10 +88,6 @@ spec:
             - name: config
               mountPath: /etc/synapse
               readOnly: true
-            - name: log-config
-              mountPath: /etc/synapse/log.config
-              subPath: log.config
-              readOnly: true
             - name: element-secrets
               mountPath: /run/secrets/element
               readOnly: true
@@ -107,9 +103,6 @@ spec:
         - name: config
           configMap:
             name: element-synapse-config
-        - name: log-config
-          configMap:
-            name: element-synapse-log
         - name: element-secrets
           secret:
             secretName: element-secrets
