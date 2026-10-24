@@ -14,7 +14,6 @@ spec:
         name: caretta
   targetNamespace: caretta
   install:
-    createNamespace: true
     remediation:
       retries: 3
   upgrade:
@@ -30,3 +29,6 @@ spec:
       limits:
         cpu: 150m
         memory: 1Gi
+    victoria-metrics-single:
+      rbac:
+        create: false
