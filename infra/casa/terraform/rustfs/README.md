@@ -51,6 +51,7 @@ domain = "example.com"   # тот же домен, что в Gateway (platform/c
 | `aws_s3_bucket.state` | бакет `terraform-state` — state всех root-модулей `infra/casa/terraform` |
 | `aws_s3_bucket_versioning.state` | версионирование объектов state |
 | `aws_s3_bucket_public_access_block.state` | публичный доступ закрыт |
+| `aws_s3_bucket_lifecycle_configuration.state` | noncurrent-версии удаляются через 30 дней |
 
 Policy здесь не «висит просто так»: отдельного пользователя только на чтение
 RustFS не отдаёт (IAM API нет, есть только root-креды), поэтому анонимный
@@ -73,15 +74,22 @@ RustFS не отдаёт (IAM API нет, есть только root-креды)
 
 Версионирование здесь не украшение: каждый `apply` перезаписывает объект state,
 и noncurrent-версии — единственный способ откатиться, если в state попала
-ошибка.
+ошибка. Правило `expire-noncurrent-versions` ограничивает историю тридцатью
+днями: версия, перестав быть текущей, удаляется через 30 дней, текущая не
+удаляется никогда.
 
-Ограничения на число версий нет: правило lifecycle в RustFS 1.0.3 не
-заводится через провайдер. `PutBucketLifecycleConfiguration` уходит успешно, но
+Правило заведено **импортом**, а не обычным `apply`. Create-путь против RustFS
+1.0.3 нестабилен: `PutBucketLifecycleConfiguration` проходит, а следующим за ним
 `GetBucketLifecycleConfiguration`, которым провайдер подтверждает запись и ждёт
-`Status == true`, не отвечает — ресурс падает по таймауту три минуты (#1519).
-Версии при этом копятся: объект state — сотни килобайт, объект лока
-(`<key>.tflock`) — сотни байт, так что практически это не проблема, но правило
-вернуть стоит, когда апстрим починят.
+`Status == true`, не отвечает — ресурс падает по таймауту три минуты, хотя
+правило к этому моменту уже лежит в хранилище. Чтение при обычном `refresh`
+работает, поэтому ресурс ведётся в state и меняется без проблем; опасно только
+создание с нуля — если правила в бакете нет, `apply` с большой вероятностью
+упадёт и оставит его в хранилище без записи в state. Тогда:
+
+```sh macOS
+terraform import aws_s3_bucket_lifecycle_configuration.state terraform-state
+```
 
 Сам бакет закрыт: policy, как у `mirror`, у него нет, а anonymous-доступ
 выключен явно. Содержимое — state модулей: там нет секретов по правилам
@@ -91,6 +99,13 @@ RustFS не отдаёт (IAM API нет, есть только root-креды)
 ## Первый apply
 
 Бакет и policy уже существуют, поэтому `imports.tf` переносит их в state.
+Правило lifecycle бакета `terraform-state` тоже уже существует — оно заведено
+упавшим create (см. выше) и импортируется отдельной командой:
+
+```sh macOS
+terraform import aws_s3_bucket_lifecycle_configuration.state terraform-state
+```
+
 Проверять надо план:
 
 ```sh macOS
