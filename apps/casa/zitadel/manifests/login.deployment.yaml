@@ -43,6 +43,11 @@ spec:
               value: /ui/v2/login
             - name: ZITADEL_LOGINCLIENT_KEYFILE
               value: /login-service-key/tls.key
+            - name: ZITADEL_SESSION_COOKIE_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: zitadel-session-cookie
+                  key: secret
             - name: AUDIENCE
               value: "https://id.$(DOMAIN)"
             - name: CUSTOM_REQUEST_HEADERS

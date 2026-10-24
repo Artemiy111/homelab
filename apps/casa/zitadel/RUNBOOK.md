@@ -19,14 +19,39 @@
 DOMAIN=example.com ZITADEL_PAT=... ./zitadel/zitadel-passkey-link.sh
 ```
 
+## Ключ подписи cookie (Login V2)
+
+Login V2 подписывает session cookie и короткоживущие proof'ы (подтверждение
+почты и инвайта, привязка IdP, device code) ключом
+`ZITADEL_SESSION_COOKIE_SECRET` — `kv/zitadel/session-cookie`, ключ `secret`.
+Требования: не короче 32 символов, одинаковое значение на всех репликах.
+Короткое значение не откатывается на fallback: под пишет ошибку и не проходит
+`/ready`.
+
+Ротация без разлогина — списком: первым идёт новое значение (им подписываем),
+дальше старые (ими ещё принимаем).
+
+```sh
+# 1. Новое значение первым, старое вторым
+vault kv patch kv/zitadel/session-cookie secret="<новое>,<старое>"
+
+# 2. Дождаться, пока VSO перезапишет Secret (refreshAfter 1h, можно форсировать)
+kubectl -n zitadel annotate vaultstaticsecret zitadel-session-cookie \
+  vso.secrets.hashicorp.com/force-sync="$(date +%s)" --overwrite
+
+# 3. Перезапустить под: значение читается из env при старте
+kubectl -n zitadel delete pod -l app=zitadel-login
+
+# 4. Через 24 часа (максимальная жизнь сессии) убрать старое значение
+vault kv patch kv/zitadel/session-cookie secret="<новое>"
+```
+
 ## Обновление
 
 Проверять release notes: после 4.11 были passkey-регрессии (#11656, #11682),
 в 4.16.1 — #12473. Версии `zitadel` и `login` закреплены в манифестах и должны
 обновляться одним тегом. Раздел `Upgrade notes` читать целиком: в 4.20.0 это
-подпись session cookie в Login V2 (все входят в UI заново) и
-`ZITADEL_SESSION_COOKIE_SECRET`, который пока не задан — пока ключ выводится из
-login-client, warning в логах `zitadel-login` ожидаем.
+подпись session cookie в Login V2 — все пользователи входят в UI заново.
 
 Перед merge минорного апгрейда:
 

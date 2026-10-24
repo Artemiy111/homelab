@@ -89,5 +89,7 @@ resource "vault_policy" "app_zitadel" {
     path "kv/metadata/zitadel/masterkey"          { capabilities = ["read", "list"] }
     path "kv/data/zitadel/login-service-key"      { capabilities = ["read"] }
     path "kv/metadata/zitadel/login-service-key"  { capabilities = ["read", "list"] }
+    path "kv/data/zitadel/session-cookie"         { capabilities = ["read"] }
+    path "kv/metadata/zitadel/session-cookie"     { capabilities = ["read", "list"] }
   EOT
 }
