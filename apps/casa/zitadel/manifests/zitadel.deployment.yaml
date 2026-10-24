@@ -40,7 +40,7 @@ spec:
               memory: 64Mi
       containers:
         - name: zitadel
-          image: "ghcr.io/zitadel/zitadel:v4.17.1@sha256:3ac6910685d48f32481f01f45e3e6215efe5a9df2c069591b481e9a101712db5"
+          image: "ghcr.io/zitadel/zitadel:v4.20.0@sha256:9ea0e9ecfdc43115da871242e40a0320f2ece864c7cd8b5d41a863a7f4902499"
           # ENTRYPOINT образа — /app/zitadel, поэтому дополнительные команды
           # передаём через args (в compose command приклеивался к entrypoint).
           args:
