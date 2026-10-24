@@ -4,3 +4,4 @@ resources:
   - namespace.yaml
   - networkpolicy.yaml
   - networkpolicy-metrics.yaml
+  - networkpolicy-server.yaml

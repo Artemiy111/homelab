@@ -8,3 +8,14 @@ value: 1000000
 globalDefault: false
 preemptionPolicy: PreemptLowerPriority
 description: Платформенные компоненты, без которых кластер не управляет собой и не выдаёт секреты
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: batch-low
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false
+value: -10
+globalDefault: false
+preemptionPolicy: Never
+description: Фоновые задачи — сканы, бэкапы, разовые job'ы. Вытесняются первыми и сами никого не вытесняют

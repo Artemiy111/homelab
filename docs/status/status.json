@@ -2,7 +2,7 @@
   "schema": 1,
   "source": "scripts/status-badges.sh",
   "services": 59,
-  "manifests": 676,
+  "manifests": 677,
   "images": {
     "pinned": 127,
     "total": 127,
@@ -10,7 +10,7 @@
     "exceptions": []
   },
   "network_policy": {
-    "objects": 122,
+    "objects": 123,
     "namespaces": 53,
     "namespaces_total": 66,
     "percent": 80,
