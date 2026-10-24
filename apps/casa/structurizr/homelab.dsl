@@ -87,10 +87,6 @@ workspace {
                 tags "monitoring"
             }
 
-            radar = softwareSystem "Radar" "Сводка состояния сервисов и инцидентов (radar.example.com)" {
-                tags "monitoring"
-            }
-
             glitchtip = softwareSystem "GlitchTip" "Сбор ошибок фронтендов (glitchtip.example.com)" {
                 tags "monitoring"
             }
@@ -327,9 +323,6 @@ workspace {
             tags "http"
         }
         traefik -> headlamp "маршрутизирует Host(headlamp.*)" "HTTPS" {
-            tags "http"
-        }
-        traefik -> radar "маршрутизирует Host(radar.*)" "HTTPS" {
             tags "http"
         }
         traefik -> glitchtip "маршрутизирует Host(glitchtip.*)" "HTTPS" {

@@ -33,7 +33,7 @@ applicationset-controller, repo-server, server), calico-node,
 konnectivity-agent, longhorn-manager, longhorn-csi-plugin, instance-manager,
 csi-attacher, csi-provisioner, jicofo, jvb, navidrome, athens, synapse, vault,
 sure, sure-worker, runner, talk-hpb, beszel-agent, cert-manager-cainjector,
-zitadel, dind, radar.
+zitadel, dind.
 
 ## Чистый текст
 

@@ -80,7 +80,6 @@ resources:
   - platform/mariadb-operator.yaml
   - platform/monitoring.yaml
   - platform/priorityclasses.yaml
-  - platform/radar.yaml
   - platform/snapshot-controller.yaml
   - platform/traefik.yaml
   - platform/trivy-operator.yaml

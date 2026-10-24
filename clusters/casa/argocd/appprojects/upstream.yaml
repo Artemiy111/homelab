@@ -36,8 +36,6 @@ spec:
     - server: https://kubernetes.default.svc
       namespace: monitoring
     - server: https://kubernetes.default.svc
-      namespace: radar
-    - server: https://kubernetes.default.svc
       namespace: traefik
     - server: https://kubernetes.default.svc
       namespace: trivy-system

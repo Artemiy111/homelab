@@ -34,7 +34,6 @@ spec:
     - paperless
     - pdf
     - postgres
-    - radar
     - rustfs
     - samba
     - seafile

@@ -153,15 +153,6 @@ locals {
       accepted_status_codes = ["200"]
     }
 
-    "radar" = {
-      name                  = "Radar"
-      group                 = "monitoring"
-      kind                  = "http"
-      description           = "Health API Radar в кластере; публичный маршрут закрыт forward auth."
-      url                   = "http://radar.radar.svc.cluster.local/api/health"
-      accepted_status_codes = ["200"]
-    }
-
     "mermaid" = {
       name                  = "Mermaid Live Editor"
       group                 = "applications"

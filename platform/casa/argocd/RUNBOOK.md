@@ -346,7 +346,7 @@ argocd app diff traefik               # пусто
 ### Внутренние значения (домен, externalIPs)
 
 Часть values — environment-specific: адрес узла в `traefik` и `forgejo`, issuer и
-redirect URL в `radar` и `headlamp`, домен в `dns01-webhook`. Секретов среди них
+redirect URL в `headlamp`, домен в `dns01-webhook`. Секретов среди них
 нет: реальные credentials приходят из Vault через VSO, в Application лежат
 ссылки `existingSecret` и `secretKeyRef`.
 

@@ -73,7 +73,6 @@ discovery:
     - k8s_namespace: code-server
     - k8s_namespace: home-assistant
     - k8s_namespace: beszel
-    - k8s_namespace: radar
     - k8s_namespace: talk-hpb
     - k8s_namespace: lute
     - k8s_namespace: pdf

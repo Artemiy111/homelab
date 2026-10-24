@@ -236,10 +236,6 @@ resource "zitadel_application_v2" "radar" {
     id_token_userinfo_assertion  = true
     skip_native_app_success_page = false
   }
-
-  lifecycle {
-    prevent_destroy = true
-  }
 }
 
 resource "zitadel_application_v2" "element" {

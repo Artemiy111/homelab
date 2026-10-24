@@ -159,17 +159,6 @@ endpoints:
       - "[BODY].database == ok"
     alerts: *alerts-all
 
-  - name: Radar
-    group: Monitoring
-    # UI закрыт forward auth (302 без авторизации), поэтому проверяем health
-    # API напрямую; доступ из monitoring в radar разрешён NetworkPolicy.
-    url: http://radar.radar.svc.cluster.local/api/health
-    interval: 60s
-    client: *docker-client
-    conditions:
-      - "[STATUS] == 200"
-    alerts: *alerts-all
-
   - name: Mermaid Live Editor
     group: Applications
     url: https://mermaid.${DOMAIN}/
