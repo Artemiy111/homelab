@@ -57,12 +57,11 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: uptime-kuma-mariadb
-                  key: DB_USERNAME
-            - name: UPTIME_KUMA_DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: uptime-kuma-mariadb
-                  key: DB_PASSWORD
+                  key: username
+            # Пароль читается из файла, а не из env: окружение наследуют
+            # дочерние процессы, включая Chromium со внешними URL мониторов.
+            - name: UPTIME_KUMA_DB_PASSWORD_FILE
+              value: "/etc/uptime-kuma/db/password"
           startupProbe:
             failureThreshold: 18
             httpGet:
@@ -100,6 +99,9 @@ spec:
               mountPath: /app/data
             - name: tmp
               mountPath: /tmp
+            - name: db-password
+              mountPath: /etc/uptime-kuma/db
+              readOnly: true
       volumes:
         # В /app/data остаются
         # db-config.json, upload/, screenshots/ и error.log: первый Kuma
@@ -109,6 +111,13 @@ spec:
         - name: data
           emptyDir:
             sizeLimit: 32Mi
+        - name: db-password
+          secret:
+            secretName: uptime-kuma-mariadb
+            defaultMode: 0440
+            items:
+              - key: password
+                path: password
         # Рабочий каталог Chromium и временные файлы Node.
         - name: tmp
           emptyDir:

@@ -1,7 +1,7 @@
 # Пользователь Uptime Kuma и его права в uptime-kuma-mariadb.
 #
 # Пароль берём из Secret uptime-kuma-mariadb (путь kv/uptime-kuma/db) — того
-# же, из которого Deployment читает UPTIME_KUMA_DB_USERNAME/DB_PASSWORD.
+# же, из которого Deployment читает username и password.
 # Один источник значения: смена пароля в Vault доезжает и в БД, и в приложение.
 #
 # maxUserConnections: 0 = без персонального лимита. CRD по умолчанию ставит 10,
@@ -21,7 +21,7 @@ spec:
   name: uptime_kuma
   passwordSecretKeyRef:
     name: uptime-kuma-mariadb
-    key: DB_PASSWORD
+    key: password
   host: "%"
   maxUserConnections: 0
 ---
