@@ -1,7 +1,76 @@
 # Terraform
 
-Один каталог на root-модуль, у каждого свой state. State локальный на macOS,
-в git не попадает.
+Один каталог на root-модуль, у каждого свой state. State хранится в RustFS, в
+git не попадает.
+
+## State
+
+Все модули `infra/casa/terraform` пишут state в бакет `terraform-state` в RustFS
+(объявлен в `infra/casa/terraform/rustfs/state.tf`), по ключу на модуль:
+
+```text
+casa/forgejo/terraform.tfstate
+casa/rustfs/terraform.tfstate
+casa/tailscale/terraform.tfstate
+casa/technitium/terraform.tfstate
+casa/uptime-kuma/terraform.tfstate
+casa/vault/terraform.tfstate
+casa/zitadel/terraform.tfstate
+```
+
+Бэкенд — S3 с `use_lockfile`: лок берётся объектом `<key>.tflock` рядом со state,
+поэтому два запуска одного модуля одновременно невозможны. Атомарность
+conditional PUT на этом хранилище проверена: из двух параллельных `PUT` с
+`If-None-Match: *` второй получает `412 PreconditionFailed`. Без этого лок был бы
+фикцией.
+
+Бакет версионируется, noncurrent-версии живут 30 дней — это окно отката, см.
+«Восстановление state».
+
+Креды приходят из окружения; в блоках `backend` их нет, иначе они осели бы в
+`.terraform/`:
+
+```sh macOS
+read -rs AWS_ACCESS_KEY_ID && echo;     export AWS_ACCESS_KEY_ID
+read -rs AWS_SECRET_ACCESS_KEY && echo; export AWS_SECRET_ACCESS_KEY
+```
+
+Значения — в Vault по пути `kv/rustfs/credentials` (`RUSTFS_ACCESS_KEY`,
+`RUSTFS_SECRET_KEY`): это root-ключ RustFS, отдельного пользователя на бакет
+хранилище не отдаёт. Те же переменные нужны провайдеру в модуле `rustfs`,
+поэтому теперь они обязательны для любого модуля, а не только для него.
+
+После смены конфигурации бэкенда запускать `terraform init -migrate-state`. Без
+`init` команды падают с «Backend initialization required» — это ожидаемо, а не
+поломка.
+
+`infra/yc/terraform` в этом бакете не лежит: его state не должен зависеть от
+кластера, который может быть пересобран (bootstrap-порядок), поэтому там state
+локальный.
+
+### Восстановление state
+
+Выгрузить нужную версию объекта и вернуть её в работу:
+
+```sh macOS
+aws --endpoint-url https://s3.biplane.casa s3api list-object-versions \
+  --bucket terraform-state --prefix casa/vault/terraform.tfstate \
+  --query 'Versions[].{VersionId:VersionId,LastModified:LastModified}' --output table
+```
+
+```sh macOS
+aws --endpoint-url https://s3.biplane.casa s3api get-object \
+  --bucket terraform-state --key casa/vault/terraform.tfstate \
+  --version-id <VersionId> terraform.tfstate.restore
+```
+
+```sh macOS
+cd infra/casa/terraform/vault && terraform state push terraform.tfstate.restore
+```
+
+`state push` перезаписывает state целиком: сверить `serial` в выгруженном файле
+с тем, что показывает `terraform state pull`, и не пушить файл от другой ревизии
+конфигурации.
 
 ## Модули
 
@@ -20,6 +89,10 @@
 Набор доступов у каждого модуля свой, он описан в README модуля — ссылки в
 таблице выше. Общего «залогиниться один раз» нет: Vault, Technitium, Zitadel и
 Uptime Kuma проверяют разные креды.
+
+Одно требование общее для всех: `AWS_ACCESS_KEY_ID` и `AWS_SECRET_ACCESS_KEY`
+(раздел «State» выше). Без них `init` и `plan` падают на чтении state ещё до
+того, как дело дойдёт до провайдера модуля.
 
 ## Доступ к Zitadel
 

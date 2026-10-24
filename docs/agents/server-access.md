@@ -157,7 +157,9 @@ KUBECONFIG=~/.kube/configs/homelab.yaml kubectl -n <ns> get vaultstaticsecret -o
 
 `kubectl` на macOS работает с `KUBECONFIG=~/.kube/configs/homelab.yaml` и имеет
 те же права, что `ops` на сервере. `helm` и `argocd` на macOS тоже стоят; там же
-лежит и приватный слой (`terraform`, state).
+лежит приватный слой (`terraform`, `terraform.tfvars`). State Terraform при этом
+не на macOS, а в бакете `terraform-state` в RustFS — см.
+`infra/casa/terraform/README.md`.
 
 SELinux находится в режиме enforcing, firewalld включён. Не отключать их ради
 обхода ошибок доступа.
