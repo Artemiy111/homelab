@@ -1,40 +1,44 @@
-# Базовый NetworkPolicy для namespace сервиса: default-deny ingress плюс
-# явные разрешения. Метрики Uptime Kuma отдаются на основном порту (3001),
-# поэтому скрейп vmagent разрешён на него. Egress не ограничивается.
+# Сеть namespace uptime-kuma: default-deny в обе стороны плюс перечисленные
+# потоки.
+#
+# uptime-kuma           → uptime-kuma-mariadb:3306; наружу — любые хосты и
+#                         порты: проверки бывают HTTP/HTTPS, TCP и DNS, в
+#                         интернете, LAN и кластере, поэтому egress приложения
+#                         не сужается.
+# uptime-kuma-mariadb   → DNS; ingress: uptime-kuma:3306,
+#                         uptime-kuma-mariadb-exporter:3306, mariadb-system:3306.
+# mariadb-exporter      → DNS, uptime-kuma-mariadb:3306; ingress от vmagent:9104.
+# traefik               → uptime-kuma:3001.
+# vmagent               → uptime-kuma:3001, mariadb-exporter:9104.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: default-deny-ingress
+  name: default-deny
   namespace: uptime-kuma
 spec:
   podSelector: {}
   policyTypes:
     - Ingress
+    - Egress
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: allow-ingress
+  name: allow-ingress-uptime-kuma
   namespace: uptime-kuma
 spec:
-  podSelector: {}
+  podSelector:
+    matchLabels:
+      app: uptime-kuma
   policyTypes:
     - Ingress
   ingress:
     - from:
-        - podSelector: {}
-    - from:
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: traefik
-    # mariadb-system — оператор, который управляет uptime-kuma-mariadb: без
-    # доступа к 3306 он не сможет ни создать базу, ни применить гранты.
-    - from:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: mariadb-system
       ports:
-        - port: 3306
+        - port: 3001
           protocol: TCP
     - from:
         - namespaceSelector:
@@ -46,5 +50,149 @@ spec:
       ports:
         - port: 3001
           protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-mariadb
+  namespace: uptime-kuma
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: mariadb
+      app.kubernetes.io/instance: uptime-kuma-mariadb
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: uptime-kuma
+      ports:
+        - port: 3306
+          protocol: TCP
+    - from:
+        - podSelector:
+            matchLabels:
+              app: uptime-kuma-mariadb-exporter
+      ports:
+        - port: 3306
+          protocol: TCP
+    # mariadb-system — оператор, который управляет uptime-kuma-mariadb: без
+    # доступа к 3306 он не сможет ни создать базу, ни применить гранты.
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: mariadb-system
+      ports:
+        - port: 3306
+          protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-mariadb-exporter
+  namespace: uptime-kuma
+spec:
+  podSelector:
+    matchLabels:
+      app: uptime-kuma-mariadb-exporter
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+          podSelector:
+            matchLabels:
+              app: vmagent
+      ports:
         - port: 9104
+          protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-egress-uptime-kuma
+  namespace: uptime-kuma
+spec:
+  podSelector:
+    matchLabels:
+      app: uptime-kuma
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - port: 53
+          protocol: TCP
+        - port: 53
+          protocol: UDP
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: mariadb
+              app.kubernetes.io/instance: uptime-kuma-mariadb
+      ports:
+        - port: 3306
+          protocol: TCP
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-egress-mariadb
+  namespace: uptime-kuma
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: mariadb
+      app.kubernetes.io/instance: uptime-kuma-mariadb
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - port: 53
+          protocol: TCP
+        - port: 53
+          protocol: UDP
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-egress-mariadb-exporter
+  namespace: uptime-kuma
+spec:
+  podSelector:
+    matchLabels:
+      app: uptime-kuma-mariadb-exporter
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - port: 53
+          protocol: TCP
+        - port: 53
+          protocol: UDP
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: mariadb
+              app.kubernetes.io/instance: uptime-kuma-mariadb
+      ports:
+        - port: 3306
           protocol: TCP

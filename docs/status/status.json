@@ -10,7 +10,7 @@
     "exceptions": []
   },
   "network_policy": {
-    "objects": 110,
+    "objects": 115,
     "namespaces": 53,
     "namespaces_total": 66,
     "percent": 80,
