@@ -24,7 +24,6 @@ spec:
     - immich
     - infisical
     - jellyfin
-    - jitsi
     - local-ai
     - mailserver
     - monitoring

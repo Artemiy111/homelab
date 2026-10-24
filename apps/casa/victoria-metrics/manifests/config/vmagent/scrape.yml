@@ -154,11 +154,6 @@ scrape_configs:
       - targets:
           - longhorn-backend.longhorn-system.svc.cluster.local:9500
 
-  - job_name: jitsi-jvb
-    static_configs:
-      - targets:
-          - jitsi-jvb.jitsi.svc.cluster.local:8080
-
   - job_name: oauth2-proxy
     static_configs:
       - targets:
@@ -197,12 +192,6 @@ scrape_configs:
     static_configs:
       - targets:
           - zot.zot.svc.cluster.local
-
-  - job_name: prosody
-    metrics_path: /metrics
-    static_configs:
-      - targets:
-          - prosody.jitsi.svc.cluster.local:5280
 
   - job_name: talk-hpb
     metrics_path: /metrics

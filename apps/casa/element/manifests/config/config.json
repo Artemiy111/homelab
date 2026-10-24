@@ -10,13 +10,6 @@
   },
   "trusted_domains": ["biplane.casa"],
   "default_theme": "light",
-  "plugins": [
-    {
-      "type": "module",
-      "name": "Jitsi",
-      "url": "https://voluble-rose-baboon.netlify.app/jitsi.js"
-    }
-  ],
   "element_call": {
     "enabled": true,
     "url": "https://element.biplane.casa/",

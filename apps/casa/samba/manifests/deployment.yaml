@@ -81,8 +81,6 @@ spec:
             #
             # hostPort в этом кластере работает: CNI-конфиг содержит плагин
             # portmap с portMappings, поэтому порт публикуется на узле.
-            # Комментарий в jitsi о неработающем hostPort в Calico этому
-            # противоречит и перепроверен пробой.
             - name: smb
               containerPort: 445
               hostPort: 445

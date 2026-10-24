@@ -170,22 +170,6 @@ endpoints:
       - "[STATUS] == 200"
     alerts: *alerts-all
 
-  - name: Jitsi Meet
-    group: Applications
-    url: https://meet.${DOMAIN}/
-    interval: 60s
-    client: *https-client
-    conditions: *https-ok
-    alerts: *alerts-all
-
-  - name: Jitsi Meet XMPP
-    group: Applications
-    url: https://meet.${DOMAIN}/xmpp-websocket
-    interval: 60s
-    client: *https-client
-    conditions: *https-ok
-    alerts: *alerts-all
-
   - name: Mermaid Live Editor
     group: Applications
     url: https://mermaid.${DOMAIN}/

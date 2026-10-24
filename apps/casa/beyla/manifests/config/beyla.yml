@@ -58,7 +58,6 @@ discovery:
     - k8s_namespace: dawarich
     - k8s_namespace: navidrome
     - k8s_namespace: jellyfin
-    - k8s_namespace: jitsi
     - k8s_namespace: local-ai
     - k8s_namespace: open-webui
     - k8s_namespace: infisical

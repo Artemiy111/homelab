@@ -162,15 +162,6 @@ locals {
       accepted_status_codes = ["200"]
     }
 
-    "jitsi-meet" = {
-      name                  = "Jitsi Meet"
-      group                 = "applications"
-      kind                  = "http"
-      description           = "Пользовательский HTTPS-маршрут Jitsi Meet."
-      url                   = "https://meet.${var.domain}/"
-      accepted_status_codes = ["200"]
-    }
-
     "mermaid" = {
       name                  = "Mermaid Live Editor"
       group                 = "applications"

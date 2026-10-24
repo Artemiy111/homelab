@@ -187,10 +187,6 @@ workspace {
                 tags "media"
             }
 
-            jitsi = softwareSystem "Jitsi Meet" "Приватные видеоконференции (meet.example.com); медиа по UDP :10000" {
-                tags "media"
-            }
-
             spotdl = softwareSystem "spotDL" "По требованию: импорт музыки из Spotify/YouTube в /storage/media/music" {
                 tags "media"
             }
@@ -254,7 +250,6 @@ workspace {
         owner -> traefik "HTTPS-запросы (LAN / Tailscale)" "HTTPS"
         owner -> forgejo "Git over SSH (:2222)" "SSH"
         owner -> xui "Xray-клиенты (TCP/UDP :8443)" "TCP/UDP"
-        owner -> jitsi "медиа-потоки (UDP :10000)" "UDP"
         owner -> sure "HTTPS (sure.example.com)" "HTTPS"
         owner -> tailscale "удалённый доступ к сервисам извне LAN" "Tailscale"
 
@@ -293,9 +288,6 @@ workspace {
             tags "http"
         }
         traefik -> navidrome "маршрутизирует Host(music.*)" "HTTPS" {
-            tags "http"
-        }
-        traefik -> jitsi "маршрутизирует Host(meet.*)" "HTTPS" {
             tags "http"
         }
         traefik -> dawarich "маршрутизирует Host(dawarich.*)" "HTTPS" {

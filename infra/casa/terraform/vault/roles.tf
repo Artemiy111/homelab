@@ -19,7 +19,6 @@ locals {
     "immich"         = { namespace = "immich", policy = "app/immich" },
     "infisical"      = { namespace = "infisical", policy = "app/infisical" },
     "jellyfin"       = { namespace = "jellyfin", policy = "app/jellyfin" },
-    "jitsi"          = { namespace = "jitsi", policy = "app/jitsi" },
     "local-ai"       = { namespace = "local-ai", policy = "app/local-ai" },
     "mailserver"     = { namespace = "mailserver", policy = "app/mailserver" },
     "navidrome"      = { namespace = "navidrome", policy = "app/navidrome" },

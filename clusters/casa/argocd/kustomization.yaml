@@ -29,7 +29,6 @@ resources:
   - apps/immich.yaml
   - apps/infisical.yaml
   - apps/jellyfin.yaml
-  - apps/jitsi.yaml
   - apps/local-ai.yaml
   - apps/loki.yaml
   - apps/lute.yaml

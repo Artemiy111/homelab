@@ -33,10 +33,6 @@
         icon: mdi-play-circle
         href: https://jellyfin.{{HOMEPAGE_VAR_DOMAIN}}/
         description: Медиасервер
-    - Jitsi Meet:
-        icon: mdi-video-account
-        href: https://meet.{{HOMEPAGE_VAR_DOMAIN}}/
-        description: Видеоконференции
     - Nextcloud:
         icon: mdi-cloud
         href: https://nextcloud.{{HOMEPAGE_VAR_DOMAIN}}/

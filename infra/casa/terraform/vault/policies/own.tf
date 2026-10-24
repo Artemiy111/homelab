@@ -55,15 +55,6 @@ resource "vault_policy" "app_jellyfin" {
   EOT
 }
 
-resource "vault_policy" "app_jitsi" {
-  name = "app/jitsi"
-
-  policy = <<-EOT
-    path "kv/data/jitsi/auth"      { capabilities = ["read"] }
-    path "kv/metadata/jitsi/auth"  { capabilities = ["read", "list"] }
-  EOT
-}
-
 resource "vault_policy" "app_local_ai" {
   name = "app/local-ai"
 

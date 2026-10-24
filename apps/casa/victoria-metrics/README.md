@@ -29,7 +29,7 @@ Secrets и ConfigMap.
 
 Цели: `victoriametrics`, `vmagent`, `traefik`, `authentik`,
 `gatus`, `synapse`, `immich`, `livekit`, `tempo`, `athens`, `glitchtip`, `zot`,
-`prosody`, `talk-hpb`, `longhorn`, `trivy-operator` (без аутентификации);
+`talk-hpb`, `longhorn`, `trivy-operator` (без аутентификации);
 `uptime-kuma`, `navidrome`, `dawarich`, `forgejo`, `technitium`, `stalwart`,
 `seafile` (креды из Secrets).
 
