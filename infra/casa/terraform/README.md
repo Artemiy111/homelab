@@ -8,7 +8,7 @@
 | Модуль | Что описывает | Документация |
 | --- | --- | --- |
 | `forgejo/` | Защита ветки `main` репозитория `homelab` | `infra/casa/terraform/forgejo/README.md` |
-| `vault/` | Политики, роли и kubernetes-auth в HashiCorp Vault | `apps/casa/vault/README.md` |
+| `vault/` | Политики, роли и kubernetes-auth в HashiCorp Vault | `infra/casa/terraform/vault/README.md` |
 | `uptime-kuma/` | Мониторы, теги, status page и настройки Uptime Kuma | `infra/casa/terraform/uptime-kuma/README.md` |
 | `zitadel/` | Организация, проект, OIDC-приложения, роли, членства, гранты и политика логина Zitadel | `infra/casa/terraform/zitadel/README.md` |
 | `tailscale/` | DNS tailnet: MagicDNS и split DNS на домашний домен | `infra/casa/terraform/tailscale/README.md` |
@@ -17,27 +17,9 @@
 
 ## Запуск
 
-```sh cluster
-# Создать токен
-vault token create -policy=terraform -period=24h -orphan -display-name=terraform-macos
-```
-
-```sh macOS
-# Залогиниться на macOS
-export VAULT_ADDR="https://vault.<домен>"
-vault login
-```
-
-```sh macOS
-cd infra/casa/terraform/vault
-terraform init
-terraform plan
-```
-
-Значения окружения для `infra/casa/terraform/vault` не нужны: провайдер берёт адрес из
-`VAULT_ADDR`, токен — из `~/.vault-token`. У `infra/casa/terraform/uptime-kuma`,
-`infra/casa/terraform/zitadel`, `infra/casa/terraform/tailscale`, `infra/casa/terraform/technitium` и
-`infra/casa/terraform/rustfs` свои наборы, они описаны в их README.
+Набор доступов у каждого модуля свой, он описан в README модуля — ссылки в
+таблице выше. Общего «залогиниться один раз» нет: Vault, Technitium, Zitadel и
+Uptime Kuma проверяют разные креды.
 
 ## Доступ к Zitadel
 
