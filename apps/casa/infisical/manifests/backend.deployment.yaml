@@ -18,7 +18,7 @@ spec:
     spec:
       initContainers:
         - name: wait-for-redis
-          image: "redis:7-alpine@sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499"
+          image: "redis:7-alpine@sha256:57e4255cc971b1c8d6f8a6ca283ac01bc3ecdd914273ef6bfaede87aaecd6541"
           command: ["/bin/sh", "-c", "until redis-cli -h infisical-redis ping | grep -q PONG; do echo waiting for infisical-redis; sleep 2; done"]
           securityContext:
             runAsUser: 999
