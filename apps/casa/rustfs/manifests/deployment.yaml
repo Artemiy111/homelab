@@ -24,7 +24,7 @@ spec:
         fsGroup: 1000
       containers:
         - name: rustfs
-          image: "rustfs/rustfs:1.0.0-beta.12@sha256:41fe89380f4120a337790c02af192c3fe7bb55c3edc2e6e9357b487b47c6ab21"
+          image: "rustfs/rustfs:1.0.3@sha256:9ca9559533b537d10482fe923288b676ad08f92a7069d9a17327fbae3cab688b"
           ports:
             - name: s3
               containerPort: 9000

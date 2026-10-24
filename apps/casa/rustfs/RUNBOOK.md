@@ -13,6 +13,61 @@ aws --endpoint-url https://s3.${DOMAIN} \
 достаточно стандартного доверия; флаг `--no-verify-ssl` нужен только при
 обращении по IP.
 
+## Обновление образа
+
+Версия пинится по digest индекса, а не по тегу: `crane digest rustfs/rustfs:<версия>`
+возвращает тот digest, который и нужно вписать в манифест. Тег без digest
+означает, что при перезапуске пода может подняться другая сборка, чем та, что
+проверяли.
+
+Хранилище одно, без избыточности, поэтому порядок такой.
+
+1. Снять инвентарь данных — с ним сравнивается результат после обновления:
+
+   ```sh
+   kubectl -n rustfs exec deploy/rustfs -- \
+     sh -c 'find /data/mirror -type f | wc -l; du -sb /data/mirror | cut -f1'
+   ```
+
+2. Сделать снапшот тома Longhorn. Он нужен не ради диска, а из-за того, что
+   новая версия может мигрировать раскладку на диске на месте, и тогда откат
+   образа сам по себе данные не вернёт:
+
+   ```sh
+   kubectl -n rustfs get pvc rustfs-data -o jsonpath='{.spec.volumeName}'
+   ```
+
+   Имя из ответа подставить в `longhornvolume` и `spec.volume`:
+
+   ```yaml
+   apiVersion: longhorn.io/v1beta2
+   kind: Snapshot
+   metadata:
+     name: rustfs-preupgrade-<дата>
+     namespace: longhorn-system
+     labels:
+       longhornvolume: <volume>
+   spec:
+     volume: <volume>
+     createSnapshot: true
+   ```
+
+   Готовность — `status.readyToUse: true`.
+
+3. Смержить PR с новым digest. Argo применит манифест, под пересоздастся
+   (`strategy: Recreate`, один реплика), S3 API недоступен всё время старта.
+
+4. Проверить: `/health`, анонимное чтение из зеркала, число файлов и байт из
+   шага 1 и отсутствие ошибок миграции в логах.
+
+   ```sh
+   kubectl -n rustfs logs deploy/rustfs --since=10m | grep -iE 'migrat|error|panic'
+   ```
+
+Откат: revert коммита возвращает прежний digest, но если данные уже мигрированы
+— восстановить том из снапшота шага 2. Бакет `mirror` в худшем случае
+пересобирается прогоном `mirror-sync`.
+
 ## Смена root-креденшелов
 
 Смена root-креденшелов: обновить значение в Vault по пути `kv/rustfs/credentials`,
