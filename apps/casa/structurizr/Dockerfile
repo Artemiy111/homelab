@@ -1,4 +1,4 @@
-FROM eclipse-temurin:21-alpine AS clone
+FROM eclipse-temurin:24-alpine AS clone
 RUN apk add --no-cache git \
     && git clone --depth 1 --branch v2026.06.28 https://github.com/structurizr/structurizr.git /src
 
@@ -7,7 +7,7 @@ COPY --from=clone /src /src
 WORKDIR /src
 RUN ./mvnw -q -Dmaven.test.skip=true -Dapp.revision=2026.06.28 package
 
-FROM eclipse-temurin:21-alpine AS runtime
+FROM eclipse-temurin:24-alpine AS runtime
 ENV PORT=8080
 COPY --from=build /src/structurizr-application/target/structurizr-2026.06.28.war /usr/local/structurizr.war
 COPY --from=build /src/structurizr-themes /usr/local/structurizr-themes
