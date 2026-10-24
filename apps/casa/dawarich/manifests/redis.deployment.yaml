@@ -1,6 +1,8 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
   name: dawarich-redis
   namespace: dawarich
 spec:
@@ -16,9 +18,16 @@ spec:
       labels:
         app: dawarich-redis
     spec:
-      # fsGroup даёт групповую запись в том Longhorn для пользователя 999.
+      automountServiceAccountToken: false
+      enableServiceLinks: false
       securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
         fsGroup: 999
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: redis
           image: "redis:7.4-alpine@sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499"
@@ -54,14 +63,10 @@ spec:
             timeoutSeconds: 5
             failureThreshold: 3
           securityContext:
-            runAsUser: 999
-            runAsGroup: 999
-            runAsNonRoot: true
             allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
             capabilities:
               drop: ["ALL"]
-            seccompProfile:
-              type: RuntimeDefault
           resources:
             requests:
               cpu: 10m

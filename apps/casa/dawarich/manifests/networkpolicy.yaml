@@ -1,38 +1,116 @@
-# NetworkPolicy для namespace dawarich: default-deny ingress + явные разрешения.
-# traefik — веб; vmagent из monitoring скрейпит экспортёры (9187/9121).
-# Приложение, sidekiq, база и Redis общаются внутри namespace. Оператор CNPG из
-# cnpg-system обязан ходить в под кластера: 8000 — instance manager (status),
-# 5432 — PostgreSQL. Egress не ограничен.
+# Сеть namespace dawarich: default-deny в обе стороны плюс перечисленные потоки.
 #
-# Порт-лист — часть конкретного правила ingress, а не общий для всего spec:
-# блок без ports не ограничен, поэтому доступы с ограничением портов выносятся
-# отдельными правилами.
+# Внутри namespace общаются:
+#   dawarich          → dawarich-db:5432, dawarich-redis:6379,
+#                       dawarich-sidekiq:9394 (сборка /metrics)
+#   dawarich-sidekiq  → dawarich-db:5432, dawarich-redis:6379
+# Снаружи:
+#   traefik     → dawarich:3000
+#   cnpg-system → dawarich-db:8000, 5432
+#   vmagent     → dawarich-db:9187, dawarich-redis-exporter:9121
+#
+# Egress не «в интернет вообще»: приложению нужны DNS, поды namespace и
+# приватные сети (кластер, LAN), а из внешнего мира — только 80/443
+# (геокодеры, проверка версий, тайлы для постеров).
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: default-deny-ingress
+  name: default-deny
   namespace: dawarich
 spec:
   podSelector: {}
   policyTypes:
     - Ingress
+    - Egress
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: allow-ingress
+  name: allow-ingress-dawarich
   namespace: dawarich
 spec:
-  podSelector: {}
+  podSelector:
+    matchLabels:
+      app: dawarich
   policyTypes:
     - Ingress
   ingress:
     - from:
-        - podSelector: {}
-    - from:
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: traefik
+      ports:
+        - port: 3000
+          protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-sidekiq-metrics
+  namespace: dawarich
+spec:
+  podSelector:
+    matchLabels:
+      app: dawarich-sidekiq
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: dawarich
+      ports:
+        - port: 9394
+          protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-redis
+  namespace: dawarich
+spec:
+  podSelector:
+    matchLabels:
+      app: dawarich-redis
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: dawarich
+        - podSelector:
+            matchLabels:
+              app: dawarich-sidekiq
+        - podSelector:
+            matchLabels:
+              app: dawarich-redis-exporter
+      ports:
+        - port: 6379
+          protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-db
+  namespace: dawarich
+spec:
+  podSelector:
+    matchLabels:
+      cnpg.io/cluster: dawarich-db
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: dawarich
+        - podSelector:
+            matchLabels:
+              app: dawarich-sidekiq
+      ports:
+        - port: 5432
+          protocol: TCP
     - from:
         - namespaceSelector:
             matchLabels:
@@ -52,5 +130,63 @@ spec:
       ports:
         - port: 9187
           protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-redis-exporter
+  namespace: dawarich
+spec:
+  podSelector:
+    matchLabels:
+      app: dawarich-redis-exporter
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+          podSelector:
+            matchLabels:
+              app: vmagent
+      ports:
         - port: 9121
+          protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-egress
+  namespace: dawarich
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - port: 53
+          protocol: TCP
+        - port: 53
+          protocol: UDP
+    - to:
+        - podSelector: {}
+    - to:
+        - ipBlock:
+            cidr: 10.0.0.0/8
+        - ipBlock:
+            cidr: 172.16.0.0/12
+        - ipBlock:
+            cidr: 192.168.0.0/16
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+      ports:
+        - port: 80
+          protocol: TCP
+        - port: 443
           protocol: TCP

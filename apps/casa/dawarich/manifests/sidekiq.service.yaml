@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+  name: dawarich-sidekiq
+  namespace: dawarich
+spec:
+  type: ClusterIP
+  selector:
+    app: dawarich-sidekiq
+  ports:
+    - name: metrics
+      port: 9394
+      targetPort: metrics
+      protocol: TCP

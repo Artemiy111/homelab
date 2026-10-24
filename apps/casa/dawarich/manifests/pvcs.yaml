@@ -3,6 +3,7 @@ kind: PersistentVolumeClaim
 metadata:
   annotations:
     argocd.argoproj.io/sync-options: Prune=false
+    argocd.argoproj.io/sync-wave: "0"
   name: dawarich-storage
   namespace: dawarich
 spec:
@@ -19,6 +20,7 @@ kind: PersistentVolumeClaim
 metadata:
   annotations:
     argocd.argoproj.io/sync-options: Prune=false
+    argocd.argoproj.io/sync-wave: "0"
   name: dawarich-watched
   namespace: dawarich
 spec:
@@ -35,6 +37,7 @@ kind: PersistentVolumeClaim
 metadata:
   annotations:
     argocd.argoproj.io/sync-options: Prune=false
+    argocd.argoproj.io/sync-wave: "0"
   name: dawarich-redis
   namespace: dawarich
 spec:

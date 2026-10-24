@@ -19,6 +19,7 @@ kind: Cluster
 metadata:
   annotations:
     argocd.argoproj.io/sync-options: Prune=false
+    argocd.argoproj.io/sync-wave: "0"
   name: dawarich-db
   namespace: dawarich
 spec:

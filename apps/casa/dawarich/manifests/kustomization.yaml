@@ -8,6 +8,7 @@ resources:
   - redis.service.yaml
   - app.deployment.yaml
   - sidekiq.deployment.yaml
+  - sidekiq.service.yaml
   - redis.deployment.yaml
   - pvcs.yaml
   - networkpolicy.yaml

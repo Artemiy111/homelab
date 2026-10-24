@@ -1,6 +1,8 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
   name: dawarich-sidekiq
   namespace: dawarich
 spec:
@@ -17,69 +19,46 @@ spec:
       labels:
         app: dawarich-sidekiq
     spec:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
       initContainers:
-        - name: wait-for-db
-          image: "postgis/postgis:17-3.5-alpine@sha256:61cb994f576480f5736974e5c9aff965d039d965301bcaec9c7ea72f94b61908"
-          command: ["/bin/sh", "-c", "until pg_isready -h dawarich-db-rw.dawarich.svc.cluster.local -p 5432 -U dawarich; do echo waiting for dawarich-db; sleep 2; done"]
-          securityContext:
-            runAsUser: 70
-            runAsGroup: 70
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: ["ALL"]
-            seccompProfile:
-              type: RuntimeDefault
-          resources:
-            requests:
-              cpu: 10m
-              memory: 32Mi
-            limits:
-              cpu: 100m
-              memory: 64Mi
-        - name: wait-for-redis
-          image: "redis:7.4-alpine@sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499"
-          command: ["/bin/sh", "-c", "until redis-cli -h dawarich-redis ping | grep -q PONG; do echo waiting for dawarich-redis; sleep 2; done"]
-          securityContext:
-            runAsUser: 999
-            runAsGroup: 999
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: ["ALL"]
-            seccompProfile:
-              type: RuntimeDefault
-          resources:
-            requests:
-              cpu: 10m
-              memory: 32Mi
-            limits:
-              cpu: 100m
-              memory: 64Mi
-        - name: wait-for-app
+        # /tmp и /var/app/tmp — emptyDir с правами 0777 без sticky-бита: Ruby
+        # (Dir.tmpdir) такие каталоги отвергает. Готовим каталог 0700 и
+        # направляем туда TMPDIR.
+        - name: prepare-tmp
           image: "freikin/dawarich:1.16.0@sha256:3cfab81737267d486757db638fe614610df454d161a389c34eb59944ac32ee58"
-          # Порт 80, а не 3000: 3000 — containerPort пода, у Service `dawarich`
-          # его нет. С 3000 этот init висел вечно, пока pod не пересоздавали.
-          command: ["/bin/sh", "-c", "until wget -q --spider -T 8 --header='X-Forwarded-Proto: https' http://dawarich.dawarich.svc.cluster.local/api/v1/health; do echo waiting for dawarich; sleep 3; done"]
+          command: ["/bin/sh", "-c", "mkdir -p /var/app/tmp/tmpdir && chmod 700 /var/app/tmp/tmpdir"]
           securityContext:
             allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
             capabilities:
               drop: ["ALL"]
-              add: ["SETUID", "SETGID", "CHOWN", "DAC_OVERRIDE"]
-            seccompProfile:
-              type: RuntimeDefault
           resources:
             requests:
               cpu: 10m
               memory: 32Mi
             limits:
               cpu: 100m
-              memory: 64Mi
+              memory: 128Mi
+          volumeMounts:
+            - name: tmp
+              mountPath: /var/app/tmp
       containers:
         - name: sidekiq
           image: "freikin/dawarich:1.16.0@sha256:3cfab81737267d486757db638fe614610df454d161a389c34eb59944ac32ee58"
           command: ["sidekiq-entrypoint.sh"]
           args: ["sidekiq"]
+          ports:
+            - name: metrics
+              containerPort: 9394
           envFrom:
             - configMapRef:
                 name: homelab-config
@@ -94,6 +73,10 @@ spec:
                 configMapKeyRef:
                   name: homelab-config
                   key: TZ
+            - name: HOME
+              value: /tmp
+            - name: TMPDIR
+              value: /var/app/tmp/tmpdir
             - name: RAILS_ENV
               value: production
             - name: REDIS_URL
@@ -147,11 +130,9 @@ spec:
             failureThreshold: 3
           securityContext:
             allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
             capabilities:
               drop: ["ALL"]
-              add: ["SETUID", "SETGID", "CHOWN", "DAC_OVERRIDE"]
-            seccompProfile:
-              type: RuntimeDefault
           resources:
             requests:
               cpu: 100m
@@ -160,18 +141,29 @@ spec:
               cpu: "1"
               memory: 2Gi
           volumeMounts:
-            - name: public
-              mountPath: /var/app/public
+            - name: tmp
+              mountPath: /var/app/tmp
+            - name: imports
+              mountPath: /var/app/tmp/imports
             - name: watched
               mountPath: /var/app/tmp/imports/watched
             - name: storage
               mountPath: /var/app/storage
+            - name: system-tmp
+              mountPath: /tmp
       volumes:
-        - name: public
-          emptyDir: {}
+        - name: tmp
+          emptyDir:
+            sizeLimit: 1Gi
+        - name: imports
+          emptyDir:
+            sizeLimit: 512Mi
         - name: watched
           persistentVolumeClaim:
             claimName: dawarich-watched
         - name: storage
           persistentVolumeClaim:
             claimName: dawarich-storage
+        - name: system-tmp
+          emptyDir:
+            sizeLimit: 256Mi
