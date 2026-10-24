@@ -1,7 +1,7 @@
 # Кластер `yc`
 
-Доставка для кластера `yc` на Flux. Payload — в `apps/yc/` и `platform/yc/`
-(пока пусто); здесь только то, что читает движок.
+Доставка для кластера `yc` на Flux. Payload — в `apps/yc/` и `platform/yc/`;
+здесь только то, что читает движок.
 
 ## Как устроена цепочка
 
@@ -31,6 +31,7 @@ Renovate. Коммиты делает человек в Forgejo, кластер 
 | `platform/envoy-gateway.yaml` | `OCIRepository` и `HelmRelease` Envoy Gateway; `path: ./platform/yc/envoy-gateway/releases` |
 | `platform/envoy-gateway-config.yaml` | `GatewayClass`, `EnvoyProxy`, `Gateway`; поднимается после `HelmRelease` |
 | `platform/metrics-server.yaml` | `HelmRelease` metrics-server в `kube-system` |
+| `platform/caretta.yaml` | `HelmRepository` и `HelmRelease` caretta: eBPF-карта зависимостей, VictoriaMetrics и Grafana (`path: ./platform/yc/caretta/releases`) |
 | `apps/test-nginx.yaml` | Flux `Kustomization` тестовой страницы (`path: ./apps/yc/test-nginx/manifests`) |
 | `apps/casa-edge.yaml` | Flux `Kustomization` форвардера в tailnet (`path: ./apps/yc/casa-edge/manifests`) |
 

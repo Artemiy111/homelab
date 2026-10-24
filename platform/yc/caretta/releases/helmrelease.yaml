@@ -1,0 +1,32 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: caretta
+  namespace: flux-system
+spec:
+  interval: 1h
+  chart:
+    spec:
+      chart: caretta
+      version: 0.0.16
+      sourceRef:
+        kind: HelmRepository
+        name: caretta
+  targetNamespace: caretta
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    image:
+      tag: v0.0.17
+    resources:
+      requests:
+        cpu: 10m
+        memory: 128Mi
+      limits:
+        cpu: 150m
+        memory: 1Gi
