@@ -95,6 +95,10 @@ accessLog:
   fields:
     queryParameters:
       defaultMode: drop
+    headers:
+      defaultMode: drop
+      names:
+        User-Agent: keep
 
 tracing:
   sampleRate: 1.0
