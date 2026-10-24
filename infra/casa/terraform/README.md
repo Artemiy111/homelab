@@ -6,17 +6,27 @@ git не попадает.
 ## State
 
 Все модули `infra/casa/terraform` пишут state в бакет `terraform-state` в RustFS
-(объявлен в `infra/casa/terraform/rustfs/state.tf`), по ключу на модуль:
+(объявлен в `infra/casa/terraform/rustfs/state.tf`), по ключу на модуль. Ключ
+начинается с области, к которой ресурс принадлежит: `clusters/<кластер>/` или
+`global/` — то, что относится к аккаунту целиком, а не к одному стенду.
 
 ```text
-casa/forgejo/terraform.tfstate
-casa/rustfs/terraform.tfstate
-casa/tailscale/terraform.tfstate
-casa/technitium/terraform.tfstate
-casa/uptime-kuma/terraform.tfstate
-casa/vault/terraform.tfstate
-casa/zitadel/terraform.tfstate
+clusters/casa/forgejo/terraform.tfstate
+clusters/casa/rustfs/terraform.tfstate
+clusters/casa/technitium/terraform.tfstate
+clusters/casa/uptime-kuma/terraform.tfstate
+clusters/casa/vault/terraform.tfstate
+clusters/casa/zitadel/terraform.tfstate
+global/tailscale/terraform.tfstate
 ```
+
+`tailscale` — единственный пока модуль уровня аккаунта: `acl.tf` описывает
+политику tailnet, `dns.tf` — MagicDNS и split DNS, и то и другое общее для всех
+кластеров (тег `tag:k8s` из того же `acl.tf` использует и `yc`). Поэтому ключ
+`global/`, хотя каталог модуля пока лежит в `infra/casa/terraform/tailscale`:
+перенос каталога в `infra/global/terraform/` — отдельная задача после миграции,
+и она меняет ADR 0016, где сказано, что принадлежность ресурса кластеру
+определяет его место.
 
 Бэкенд — S3 с `use_lockfile`: лок берётся объектом `<key>.tflock` рядом со state,
 поэтому два запуска одного модуля одновременно невозможны. Атомарность

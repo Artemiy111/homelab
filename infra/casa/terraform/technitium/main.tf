@@ -3,7 +3,7 @@ terraform {
 
   backend "s3" {
     bucket = "terraform-state"
-    key    = "casa/technitium/terraform.tfstate"
+    key    = "clusters/casa/technitium/terraform.tfstate"
     region = "us-east-1"
 
     endpoints = {

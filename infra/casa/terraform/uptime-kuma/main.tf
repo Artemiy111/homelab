@@ -3,7 +3,7 @@ terraform {
 
   backend "s3" {
     bucket = "terraform-state"
-    key    = "casa/uptime-kuma/terraform.tfstate"
+    key    = "clusters/casa/uptime-kuma/terraform.tfstate"
     region = "us-east-1"
 
     endpoints = {

@@ -3,7 +3,7 @@ terraform {
 
   backend "s3" {
     bucket = "terraform-state"
-    key    = "casa/zitadel/terraform.tfstate"
+    key    = "clusters/casa/zitadel/terraform.tfstate"
     region = "us-east-1"
 
     endpoints = {
