@@ -2,18 +2,19 @@
 
 ## Первый запуск
 
-Под не поднимется, пока нет Secret с адресом назначения: `socat` берёт его из
+Под не поднимется, пока нет Secret с адресом назначения: `HAProxy` берёт его из
 переменной окружения и без неё падает.
 
 ```sh
 kubectl -n casa-edge create secret generic casa-edge-target \
-  --from-literal=target=<домашний адрес ingress>:443
+  --from-literal=target=<домашний адрес ingress>:8443
 kubectl -n casa-edge rollout restart daemonset/casa-edge
 ```
 
-Адрес — тот, по которому `casa` отдаёт HTTPS из домашней сети (VIP MetalLB,
-на нём же висит Traefik), а не tailnet-адрес узла: на tailnet-адресе открыт
-только SSH. Проверить с узла `yc`, что маршрут до домашней подсети есть:
+Адрес — тот, по которому `casa` отдаёт HTTPS из домашней сети (внешний адрес
+Traefik), а не tailnet-адрес узла: на tailnet-адресе открыт только SSH. Порт —
+entrypoint `edge`, который принимает PROXY protocol. Проверить с узла `yc`, что
+маршрут до домашней подсети есть:
 
 ```sh
 ssh <логин OS Login>@yc-d1 'tailscale status | head -3; ping -c1 <домашний адрес ingress>'
@@ -54,9 +55,9 @@ openssl s_client -connect uptime.ts.biplane.casa:443 \
    `CreateContainerConfigError` значит нет Secret.
 3. С узла `yc`: `curl -sI https://<tailnet-адрес casa>/ -H 'Host: uptime.ts.biplane.casa'`
    — если не отвечает, проблема не в форвардере, а в tailnet или в Traefik.
-4. В логах пода `socat` печатает по строке на соединение. Строки
-   `connect ... Operation timed out` значат, что до `casa` не доходит: проверять
-   `tailscale status` и одобрение маршрутов на домашнем узле.
+4. В логах пода `HAProxy` печатает ошибки разбора конфига и недоступность
+   апстрима. Заголовок PROXY protocol виден не здесь, а в Traefik: если он не
+   пришёл, entrypoint `edge` отвечает ошибкой TLS вместо страницы.
 
 ## Смена адреса назначения
 
@@ -64,7 +65,7 @@ openssl s_client -connect uptime.ts.biplane.casa:443 \
 
 ```sh
 kubectl -n casa-edge create secret generic casa-edge-target \
-  --from-literal=target=<новый tailnet-адрес>:443 \
+  --from-literal=target=<новый tailnet-адрес>:8443 \
   --dry-run=client -o yaml | kubectl apply -f -
 kubectl -n casa-edge rollout restart daemonset/casa-edge
 ```

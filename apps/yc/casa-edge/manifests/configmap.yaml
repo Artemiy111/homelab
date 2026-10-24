@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: casa-edge-haproxy
+  namespace: casa-edge
+data:
+  haproxy.cfg: |
+    global
+      maxconn 2048
+
+    defaults
+      mode tcp
+      timeout connect 5s
+      timeout client 1h
+      timeout server 1h
+      timeout tunnel 1h
+
+    frontend edge
+      bind :443
+      default_backend ingress
+
+    backend ingress
+      server ingress "${CASA_EDGE_TARGET}" send-proxy-v2
