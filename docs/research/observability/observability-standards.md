@@ -6,7 +6,7 @@
 и как сигналы сочетаются между собой. Сравнение конкретных продуктов и выбор
 стека для этого homelab — в отдельном исследовании.
 
-**См. также: [docs/research/monitoring-systems-overview.md](monitoring-systems-overview.md)**
+**См. также: [docs/research/observability/monitoring-stacks-overview.md](monitoring-stacks-overview.md)**
 — сравнение продуктов (Prometheus-стек, LGTM, VictoriaMetrics, Zabbix и т.д.),
 аудит уже установленных приложений и план внедрения.
 
@@ -244,7 +244,7 @@ CRD (`VMServiceScrape`, `VMPodScrape`, `VMRule` и т.д. —
 если это его естественный формат, иначе logfmt; платформенные компоненты на
 Go/Grafana оставляем на logfmt. JSON-логи включаются у Traefik, Immich, Vault,
 Stalwart переменными окружения (см.
-[monitoring-systems-overview.md](monitoring-systems-overview.md) §7).
+[monitoring-stacks-overview.md](monitoring-stacks-overview.md) §7).
 
 ### 3.2 Уровни (severity)
 
@@ -292,7 +292,7 @@ ERROR(17–20), FATAL(21–24); рядом хранится исходная с�
 - **Elasticsearch/OpenSearch** строят инвертированный индекс по токенам —
   произвольный поиск быстрый, но индекс сопоставим по объёму с данными;
   OpenSearch — Apache-2.0 форк ES 7.10 с бесплатными SAML/OIDC (см.
-  [monitoring-systems-overview.md](monitoring-systems-overview.md) §3).
+  [monitoring-stacks-overview.md](monitoring-stacks-overview.md) §3).
 - **VictoriaLogs** — «user-friendly cost-efficient database for logs» от
   команды VictoriaMetrics: колонко-ориентированный движок с битовыми индексами,
   полнотекстовый поиск по полям, LogsQL; принимает данные от Fluent Bit, Vector,
@@ -301,7 +301,7 @@ ERROR(17–20), FATAL(21–24); рядом хранится исходная с�
   [data ingestion](https://docs.victoriametrics.com/victorialogs/data-ingestion/)).
 - **ClickHouse-стеки** (SigNoz, qryn, HyperDX) используют колонко-ориентированную
   СУБД для логов+трейсов+метрик — скорость SQL-запросов по историческим данным
-  (сравнение стеков: [monitoring-systems-overview.md](monitoring-systems-overview.md) §3).
+  (сравнение стеков: [monitoring-stacks-overview.md](monitoring-stacks-overview.md) §3).
 
 ### 3.5 Языки запросов — кратко
 
@@ -586,7 +586,7 @@ connector** — из трейсов строит RED-метрики (`duration`,
 ### 6.2 VictoriaMetrics стек: vmagent + VictoriaMetrics + VictoriaLogs + vmalert
 
 Та же топология, другой набор продуктов (Apache-2.0, меньше ресурсов — детали
-выбора в [monitoring-systems-overview.md](monitoring-systems-overview.md) §2.3):
+выбора в [monitoring-stacks-overview.md](monitoring-stacks-overview.md) §2.3):
 
 ```
 exporters ──pull──▶ vmagent ──remote_write──▶ VictoriaMetrics ◀──OTLP── Alloy/OTel Collector
@@ -680,7 +680,7 @@ Loki/VictoriaLogs, Tempo/Jaeger/Elasticsearch + **Grafana Unified Alerting**
 
 Оба стека решают одну задачу — «весь мониторинг кластера из Helm-чарта», разница
 в хранилище и CRD-механике (детальное сравнение —
-[monitoring-systems-overview.md](monitoring-systems-overview.md) §5):
+[monitoring-stacks-overview.md](monitoring-stacks-overview.md) §5):
 
 | | kube-prometheus-stack | victoria-metrics-k8s-stack |
 |---|---|---|
@@ -729,7 +729,7 @@ Fluent Bit (лёгкий и многоцелевой). Метаданные по
 ## 8. 🏠 Вывод для этого homelab
 
 Детальный план внедрения — в
-[monitoring-systems-overview.md](monitoring-systems-overview.md) (§8, этапы 1–3).
+[monitoring-stacks-overview.md](monitoring-stacks-overview.md) (§8, этапы 1–3).
 Здесь — только **выбор стандартов**, чтобы не запереться в вендоре:
 
 1. **Метрики — формат Prometheus (OpenMetrics) как язык данных** и

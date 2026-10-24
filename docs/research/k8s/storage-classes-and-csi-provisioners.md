@@ -19,8 +19,8 @@
 Смежные исследования: [k0s-kubernetes-distribution.md](./k0s-kubernetes-distribution.md),
 [k0s-setup-guide-vanilla.md](./k0s-setup-guide-vanilla.md),
 [cni-solutions.md](./cni-solutions.md),
-[../network-filesystem-extension.md](../network-filesystem-extension.md) (NFS/iSCSI/ZFS/SeaweedFS/JuiceFS),
-[../registry-lightweight-comparison.md](../registry-lightweight-comparison.md) (реестры и кэш пакетов).
+[laptop-disk-as-storage.md](../storage/laptop-disk-as-storage.md) (NFS/iSCSI/ZFS/SeaweedFS/JuiceFS),
+[artifact-caching.md](../artifacts/artifact-caching.md) (реестры и кэш пакетов).
 
 ---
 
@@ -446,7 +446,7 @@ VirtualMachineSnapshot (KubeVirt) и подобные — надстройки �
 - **Требования:** минимум три мон-узла для нормального quorum, OSD-диски, отдельная RAM/CPU; официальные
   рекомендации Ceph — 512 МБ–1 ГБ RAM минимум на демон, 1–2 ГБ рекомендуемо
   ([Ceph hardware recommendations](https://docs.ceph.com/en/latest/start/hardware-recommendations/),
-  см. также [network-filesystem-extension.md](../network-filesystem-extension.md)).
+  см. также [laptop-disk-as-storage.md](../storage/laptop-disk-as-storage.md)).
 - **Вывод для homelab:** на одном узле Ceph не даёт ни HA, ни смысла; тяжёл и сложен. Хороший учебный проект
   на 3+ узлах, плохой выбор для одноузлового кластера.
 
@@ -476,7 +476,7 @@ VirtualMachineSnapshot (KubeVirt) и подобные — надстройки �
 | **Synology CSI** | Официальный драйвер: iSCSI + NFS + SMB, thin-provisioned LUN, снапшоты/клоны/расширение, RWX; требует DSM 7+ и хотя бы один storage pool ([README](https://github.com/SynologyOpenSource/synology-csi)) |
 
 NFS в homelab — самый честный способ получить **RWX** (медиа, общие каталоги) без блочного хранилища.
-Обратите внимание на оговорки из [network-filesystem-extension.md](../network-filesystem-extension.md):
+Обратите внимание на оговорки из [laptop-disk-as-storage.md](../storage/laptop-disk-as-storage.md):
 один TCP-поток на маунт, отсутствие шифрования (кроме Kerberos krb5p), UID-маппинг, «не бэкап».
 
 ### 5.8. democratic-csi и TrueNAS/ZFS
@@ -789,7 +789,7 @@ NFS) — для восстановления.** В этом репозитори
 **Rook/Ceph (E)** — только когда будет 3+ узла; на одном узле это дорого и бессмысленно.
 
 **NFS (B)** — если появится потребность в RWX (медиа, общие каталоги) и внешний NFS-сервер (например,
-диск ноутбука из [network-filesystem-extension.md](../network-filesystem-extension.md)). Помните: NFS-том —
+диск ноутбука из [laptop-disk-as-storage.md](../storage/laptop-disk-as-storage.md)). Помните: NFS-том —
 не бэкап и не HA.
 
 ### 8.5. Чек-лист перед сменой провижионера

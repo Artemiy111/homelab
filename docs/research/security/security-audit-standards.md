@@ -7,9 +7,9 @@
 именно считается чувствительным для homelab, и как должны вести себя AI-агенты,
 которым дали доступ к серверу.
 
-**См. также: [docs/research/secret-management-providers.md](secret-management-providers.md)**
+**См. также: [docs/research/secrets/secret-management-providers.md](../secrets/secret-management-providers.md)**
 (что такое секреты, static/dynamic, провайдеры vault) и
-**[docs/research/ai-agent-remote-server-access.md](ai-agent-remote-server-access.md)**
+**[docs/research/agents/agent-remote-server-access.md](../agents/agent-remote-server-access.md)**
 (как давать агенту доступ к серверу).
 
 ## Вывод
@@ -491,7 +491,7 @@ DNS-зоны по определению раскрывают имена. Для
 
 1. **Least privilege.** Агенту выдаётся минимально нужный доступ (отдельный
    SSH-пользователь, ограниченные права); см.
-   [ai-agent-remote-server-access.md](ai-agent-remote-server-access.md).
+   [agent-remote-server-access.md](../agents/agent-remote-server-access.md).
 2. **Не передавать секреты в промпт.** Значения загружаются из vault/переменных
    окружения, а не из текста задачи. Никогда не логировать и не печатать
    расшифрованные значения.

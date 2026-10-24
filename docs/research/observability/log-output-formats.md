@@ -2,7 +2,7 @@
 
 Дата: 2026-09-28. Инвентарь фактического вывода логов: какой контейнер отдаёт
 структуру (JSON или logfmt), а какой — чистый текст. Дополняет
-[observability-standards-and-approaches.md](observability-standards-and-approaches.md)
+[observability-standards.md](observability-standards.md)
 §3.1 (logfmt и JSON — оба структурированы) и issue #461.
 
 ## Как получено

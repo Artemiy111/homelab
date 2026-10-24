@@ -7,10 +7,10 @@ GitHub Releases API и исходниками чартов/CRD на дату и�
 
 **См. также:**
 
-- [monitoring-systems-overview.md](../monitoring-systems-overview.md) — сравнение
+- [monitoring-stacks-overview.md](../observability/monitoring-stacks-overview.md) — сравнение
   продуктов (Prometheus-стек, LGTM, VictoriaMetrics, Zabbix…), аудит уже
   установленного и поэтапный план внедрения. Здесь это **не повторяется**.
-- [observability-standards-and-approaches.md](../observability-standards-and-approaches.md)
+- [observability-standards.md](../observability/observability-standards.md)
   — стандарты и протоколы (exposition format, remote write, OTLP, service
   discovery, паттерн ServiceMonitor CRD как концепция).
 
@@ -414,7 +414,7 @@ kubelet running on controllers by default»
 
 И VM, и Prometheus принимают OTLP (VM — `/opentelemetry/v1/metrics`, Prometheus —
 флагом `--web.enable-otlp-receiver`). Детали, статусы и семантику resource-атрибутов
-см. в [observability-standards-and-approaches.md](../observability-standards-and-approaches.md)
+см. в [observability-standards.md](../observability/observability-standards.md)
 §5. Для этого репозитория важно, что push OTLP от приложений попадает в любой из
 бэкендов, а `otel-collector` уже скрейпится отдельным job'ом.
 

@@ -2,8 +2,8 @@
 
 Дата исследования: 2026-08-18.
 
-Дополнение к [authentication-services.md](./authentication-services.md) и
-[unified-identity-management.md](./unified-identity-management.md). Здесь —
+Дополнение к [identity-providers.md](identity-providers.md) и
+[identity-lifecycle.md](identity-lifecycle.md). Здесь —
 компактные таблицы по всем параметрам для всех рассматриваемых провайдеров.
 
 ## Провайдеры
@@ -225,9 +225,9 @@
 
 ## 10. Что покрыто в других документах
 
-- [authentication-services.md](./authentication-services.md) — полный обзор 21 сервиса с описаниями,
+- [identity-providers.md](identity-providers.md) — полный обзор 21 сервиса с описаниями,
   учебный маршрут, рекомендации
-- [oidc-support.md](./oidc-support.md) — матрица поддержки OIDC в конкретных сервисах homelab
+- [per-service-auth-strategies.md](per-service-auth-strategies.md) — матрица поддержки OIDC в конкретных сервисах homelab
   (Beszel, Immich, Gitea, Dawarich, Gatus, Nextcloud, Navidrome, Jellyfin и др.)
-- [unified-identity-management.md](./unified-identity-management.md) — SCIM, JML lifecycle,
+- [identity-lifecycle.md](identity-lifecycle.md) — SCIM, JML lifecycle,
   Back-Channel Logout, «один клик — отключён везде», token introspection/revocation

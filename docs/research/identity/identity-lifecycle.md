@@ -329,8 +329,8 @@ OAuth2 Proxy спроектирован как stateless proxy. Он не под
 
 Общий cookie domain `.example.com` обеспечивает SSO-эффект.
 
-**Источники:** [authentication-services.md](./authentication-services.md),
-[oidc-support.md](./oidc-support.md)
+**Источники:** [identity-providers.md](identity-providers.md),
+[per-service-auth-strategies.md](per-service-auth-strategies.md)
 
 ### Рекомендации по «одному клику — отключён везде»
 

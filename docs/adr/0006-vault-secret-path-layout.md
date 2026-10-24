@@ -6,8 +6,8 @@ status: accepted
 
 Документ отвечает, где лежит секрет в Vault, как называется и кто имеет на
 него право. Входные данные — обследование репозитория
-(`docs/research/secrets-consumers-inventory.md`) и внешнее исследование
-(`docs/research/vault-secret-path-layout.md`).
+(`docs/research/secrets/secrets-consumers-inventory.md`) и внешнее исследование
+(`docs/research/secrets/vault-secret-path-layout.md`).
 
 ## Форма пути
 

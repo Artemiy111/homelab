@@ -23,7 +23,7 @@ Longhorn подключается явным `storageClassName` в PVC. Тома
 `oauth2-proxy` и `secure-headers` продублированы в `longhorn-system`: `ExtensionRef` ищет
 `Middleware` рядом с маршрутом, а не в `traefik`.
 
-Исследование по теме: [docs/research/k8s/storage-classes-and-csi-provisioners.md](../../docs/research/k8s/storage-classes-and-csi-provisioners.md).
+Исследование по теме: [docs/research/k8s/storage-classes-and-csi-provisioners.md](../../../docs/research/k8s/storage-classes-and-csi-provisioners.md).
 
 ## Почему недостаточно `kubectl apply` чарта
 

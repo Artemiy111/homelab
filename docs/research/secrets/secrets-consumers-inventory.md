@@ -5,7 +5,7 @@
 Это не исследование внешних технологий, а описание состояния на дату сбора:
 перечень секретов в репозитории, кто их читает и из какого неймспейса. Нужно было
 как входные данные для раскладки путей в Vault (см.
-`docs/research/vault-secret-path-layout.md` и ADR 0005).
+`docs/research/secrets/vault-secret-path-layout.md` и ADR 0005).
 
 Инвентарь снят до миграции: он описывает `SealedSecret` и `secrets.enc.env`.
 Сейчас секреты лежат в Vault и доставляются VSO, реестр удалён — см.
@@ -164,7 +164,7 @@ nextcloud/nextcloud                ← доставка: под приложен
 
 ## Связанные документы
 
-- `docs/research/vault-secret-path-layout.md` — как раскладывают пути и ACL,
+- `docs/research/secrets/vault-secret-path-layout.md` — как раскладывают пути и ACL,
   со ссылками на документацию.
 - `docs/adr/0005-vault-secrets-operator.md` — почему выбран VSO, и миграция на
   ESO.

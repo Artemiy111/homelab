@@ -92,7 +92,7 @@ PostgreSQL, Redis, Prometheus, Grafana и десятки других компо
 
 ### Потребление RAM (локальные измерения, Reference doc)
 
-Из документа [registry-lightweight-comparison.md](registry-lightweight-comparison.md):
+Из документа [artifact-caching.md](../artifacts/artifact-caching.md):
 - Forgejo: idle RAM ~104–125 MiB (SQLite, Actions и индексаторы отключены,
   Docker Desktop macOS)
 - GitLab CE: официальные требования — **16 GB RAM** minimum (baseline),

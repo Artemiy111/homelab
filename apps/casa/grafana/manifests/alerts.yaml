@@ -894,7 +894,7 @@ spec:
         summary: "Всплеск ошибок в логах (namespace {{ $labels.namespace }})"
         description: >-
           Больше 20 строк с level=error за 5 минут в namespace {{ $labels.namespace }}. Открыть Grafana → Explore → Loki и отфильтровать `{namespace="{{ $labels.namespace }}"} | level=~"(?i)error"`.
-        runbook: "docs/research/log-output-formats.md"
+        runbook: "docs/research/observability/log-output-formats.md"
     - uid: logs-pipeline-stalled
       title: Логи не пишутся
       condition: C

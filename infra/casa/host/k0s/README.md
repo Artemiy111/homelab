@@ -205,5 +205,5 @@ helm install metallb metallb/metallb -n metallb --create-namespace \
 ## Источники
 
 - [docs.k0sproject.io](https://docs.k0sproject.io/)
-- [docs/research/k8s/k0s-kubernetes-distribution.md](../../../docs/research/k8s/k0s-kubernetes-distribution.md)
-- [docs/research/k8s/k3s-vs-k0s-detailed-comparison.md](../../../docs/research/k8s/k3s-vs-k0s-detailed-comparison.md)
+- [docs/research/k8s/k0s-kubernetes-distribution.md](../../../../docs/research/k8s/k0s-kubernetes-distribution.md)
+- [docs/research/k8s/k3s-vs-k0s-detailed-comparison.md](../../../../docs/research/k8s/k3s-vs-k0s-detailed-comparison.md)

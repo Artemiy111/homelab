@@ -283,8 +283,7 @@ SNO) — тридцатикратный при одном и том же Kuberne
    подах, [system requirements](https://docs.k0sproject.io/stable/system-requirements/#controller-node-measured-memory-consumption)),
    у остальных рост не документирован и проверяется только на практике.
 2. Для ~30 сервисов этого homelab решает не минимум дистрибутива, а суммарный бюджет
-   хоста: к требованиям control-plane добавляются requests/limits всех приложений
-   (см. раздел 6.11 в [docker-compose-to-kubernetes-migration.md](./docker-compose-to-kubernetes-migration.md)).
+   хоста: к требованиям control-plane добавляются requests/limits всех приложений.
 
 ---
 
@@ -315,8 +314,7 @@ SNO) — тридцатикратный при одном и том же Kuberne
 ## 7. Рекомендация для этого хоумлаба
 
 Контекст: Fedora Server 44, одна машина `<node1-ip>`, цель — обучение, ручной
-подход (`kubectl apply`), параллельная жизнь с Docker Compose (см.
-[docker-compose-to-kubernetes-migration.md](./docker-compose-to-kubernetes-migration.md)).
+подход (`kubectl apply`), параллельная жизнь с Docker Compose.
 
 | Вариант | Вердикт | Почему |
 |---|---|---|
@@ -403,4 +401,4 @@ SNO) — тридцатикратный при одном и том же Kuberne
 
 ### Внутри репозитория
 
-- [docker-compose-to-kubernetes-migration.md](./docker-compose-to-kubernetes-migration.md) · [argo-cd-vs-flux-cd.md](./argo-cd-vs-flux-cd.md)
+- [argo-cd-vs-flux-cd.md](./argo-cd-vs-flux-cd.md)

@@ -538,7 +538,7 @@ mode**, Ubuntu 24.04, интернет. Ограничения: PV на диск
 4. **L7-балансировка вместо L4** — YC советует использовать Ingress/Gateway для маршрутизации, а NLB только
    для адреса; ровно наш путь Traefik → Gateway API.
 5. **KMS для секретов** — в MK8S это кластерная опция; в homelab аналог — внешний secret-store
-   (см. [secret-management-providers.md](../secret-management-providers.md)).
+   (см. [secret-management-providers.md](../secrets/secret-management-providers.md)).
 
 ---
 

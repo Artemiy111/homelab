@@ -441,7 +441,7 @@ apps                  (HelmRelease + Database + SealedSecret по сервиса
 | `route.yaml` в каталоге сервиса | IngressRoute namespaced, а namespace — граница владения; централизованный `k8s/traefik/` противоречит ADR 0001 |
 | Один Flux `Kustomization` на сервис | Per-app prune/health, `flux tree` как карта; Flux не умеет wildcard, явный список — это осознанный компромисс |
 | `sealedsecret.yaml` в каталоге сервиса | Delivery через SealedSecrets сохраняется; Flux применяет SealedSecret как обычный манифест, контроллер расшифровывает ([Flux: Sealed Secrets](https://fluxcd.io/flux/guides/sealed-secrets/)) |
-| `secrets.enc.env` рядом | Реестр SOPS+age+vals из `config-secrets-templating.md`; в доставке не участвует, но остаётся расшифровываемым источником |
+| `secrets.enc.env` рядом | Реестр SOPS+age+vals из `docs/research/secrets/config-templating.md`; в доставке не участвует, но остаётся расшифровываемым источником |
 
 ### 9.3. Скетчи манифестов
 
@@ -603,9 +603,9 @@ practices; OpenGitOps principles. Следующее **не** подтвержд
 ## См. также
 
 - [argo-cd-vs-flux-cd.md](./argo-cd-vs-flux-cd.md) — почему целевой инструмент Flux.
-- [../config-secrets-templating.md](../config-secrets-templating.md) — принятая
+- [config-templating.md](../secrets/config-templating.md) — принятая
   схема SOPS + age + vals (реестр секретов).
-- [../secret-management-providers.md](../secret-management-providers.md) —
+- [../secret-management-providers.md](../secrets/secret-management-providers.md) —
   обоснование маршрута секретов.
 - `k8s/argocd/README.md` — текущий пробный стенд и правило «не пересекать пути».
 - `docs/adr/0001-namespace-ownership.md`, `docs/adr/0002-cnpg-cluster-grouping.md`,

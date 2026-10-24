@@ -9,7 +9,7 @@ Apache Traffic Server (ATS) — обратный прокси с **дисков�
 (Go) понимают свои протоколы, а произвольные HTTPS-файлы — нет. RustFS-зеркало
 закрывает их перечислением каждого артефакта; ATS вместо этого кэширует по URL
 из **allowlist**. Обоснование выбора ATS — в
-`docs/research/generic-http-cache-mirrors.md`.
+`docs/research/artifacts/http-binary-cache.md`.
 
 ## Как это работает
 

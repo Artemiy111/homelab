@@ -20,7 +20,7 @@ OIDC Provider, но он покрывает только узкий и совр�
 
 1. Новые интеграции делать через **native OIDC** с ZITADEL. Начать с Beszel,
    Gitea, Dawarich, Gatus и Immich по уже составленной
-   [матрице поддержки](./oidc-support.md).
+   [матрице поддержки](per-service-auth-strategies.md).
 2. Passkey оставить способом входа **в ZITADEL**, а OIDC — способом передачи
    результата входа приложениям. Это не взаимоисключающие варианты.
 3. Для приложений без OIDC использовать **OAuth2 Proxy перед ZITADEL** (нативных

@@ -171,4 +171,4 @@ Credentials отделены от имён и адресов: секреты л�
 
 Правило `.gitleaks.toml` исключает известные плейсхолдеры из примеров и
 документации. Первоисточники и сравнение инструментов — в
-`docs/research/security-audit-standards.md`.
+`docs/research/security/security-audit-standards.md`.

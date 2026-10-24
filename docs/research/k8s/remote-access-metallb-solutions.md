@@ -319,7 +319,7 @@ MetalLB в режиме L2 работает, отправляя **безарпн
 2. Настроить Tailscale на advertise `<metallb-ip>/32` как subnet route
 3. kube-proxy обрабатывает трафик, приходящий с любого интерфейса
 
-**Актуальное состояние (after experiment):** Этот вариант был протестирован в августе 2026 ([troubleshot/tailscale-k8s-ingress-access.md](docs/troubleshoot/tailscale-k8s-ingress-access.md)). При `ip addr add <metallb-ip>/32 dev tailscale0`: VIP появился на tailscale0, но ядро перестало считать его входом LoadBalancer и отправило пакеты в loopback. Трафик завис (нет слушателя на <node1-vip>:443).
+**Актуальное состояние (after experiment):** Этот вариант был протестирован в августе 2026 ([troubleshot/tailscale-k8s-ingress-access.md](../../troubleshoot/tailscale-k8s-ingress-access.md)). При `ip addr add <metallb-ip>/32 dev tailscale0`: VIP появился на tailscale0, но ядро перестало считать его входом LoadBalancer и отправило пакеты в loopback. Трафик завис (нет слушателя на <node1-vip>:443).
 
 **Вывод эксперимента:** сделать VIP локальным адресом на tailscale-интерфейсе **не работает** — это ломает механизм входа MetalLB. LoadBalancer в L2-режиме работает через ARP + DNAT на LAN-интерфейсе, а не как процесс, слушающий VIP. Поэтому подход с dummy-интерфейсом требует замены MetalLB L2 на альтернативу (BGP, Tailscale Operator или self-hosted tunnel), а не патчинга адресов.
 

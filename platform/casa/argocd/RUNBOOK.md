@@ -804,5 +804,5 @@ kubectl delete crd applications.argoproj.io applicationsets.argoproj.io appproje
 
 - [argo-cd Helm chart](https://artifacthub.io/packages/helm/argo/argo-cd)
 - [Argo CD Operator Manual](https://argo-cd.readthedocs.io/en/stable/operator-manual/)
-- [argo-cd-vs-flux-cd.md](../research/k8s/argo-cd-vs-flux-cd.md)
-- [k0s-kubernetes-distribution.md](../research/k8s/k0s-kubernetes-distribution.md)
+- [argo-cd-vs-flux-cd.md](../../../docs/research/k8s/argo-cd-vs-flux-cd.md)
+- [k0s-kubernetes-distribution.md](../../../docs/research/k8s/k0s-kubernetes-distribution.md)

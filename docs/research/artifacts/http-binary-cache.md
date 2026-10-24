@@ -2,7 +2,7 @@
 
 Дата проверки: 2026-09-23.
 
-Дополнение к `docs/research/registry-lightweight-comparison.md` (тот документ про
+Дополнение к `docs/research/artifacts/artifact-caching.md` (тот документ про
 **protocol mirrors**: OCI, npm, Go, apt). Здесь — только **произвольный HTTP**:
 бинарники и релизные ассеты, которые CI и провижининг хоста тянут по
 обычному HTTPS с `github.com`, `go.dev`, `static.rust-lang.org`, `get.helm.sh`,
@@ -232,7 +232,7 @@ setup-node#1285, setup-python#1302). Для setup-java официального 
 
 ### 5.5 Nexus CE raw proxy
 
-- Уже разобран в `registry-lightweight-comparison.md`: raw proxy умеет
+- Уже разобран в `docs/research/artifacts/artifact-caching.md`: raw proxy умеет
   проксировать статические деревья (пример из доков — `https://nodejs.org/dist/`),
   один upstream на репозиторий: [Raw Repositories](https://help.sonatype.com/en/raw-repositories.html);
   требования Small — **2 CPU / 8 GB RAM / 20 GB**, контейнерный деплой с H2 в k8s
@@ -351,7 +351,7 @@ generic HTTP-артефактов среди них нет. Для не-OCI пр
      kubectl-cnpg, gitleaks) требуют **переписывания URL** в CI на адрес кэша
      (по аналогии с `RUSTUP_DIST_SERVER` и `GO_DOWNLOAD_BASE_URL`).
    - Поэтому параллельно с кэшем остаётся практика из
-     `registry-lightweight-comparison.md`: **предзакачивать критичные версии в
+     `docs/research/artifacts/artifact-caching.md`: **предзакачивать критичные версии в
      RustFS** (`mirror-sync`) и/или наполнять tool-cache runner'а
      (`RUNNER_TOOL_CACHE`), чтобы action'ы могли не ходить в сеть вообще.
 5. **Практичная композиция:** `ATS` (generic HTTP, allowlist + follow-302) для

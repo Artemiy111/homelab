@@ -130,7 +130,7 @@ Pi-hole использует собственную session-based аутенти
 
 В обоих случаях внутренняя auth Pi-hole сохраняется. OIDC не заменяет пароль.
 
-Источник: [Pi-hole API Auth](https://docs.pi-hole.net/api/auth/), `docs/research/oidc-support.md:35,65,552`
+Источник: [Pi-hole API Auth](https://docs.pi-hole.net/api/auth/), `docs/research/identity/per-service-auth-strategies.md:35,65,552`
 
 ---
 
@@ -246,6 +246,6 @@ Settings → SSO → Enable OpenID Connect → ввести:
 
 ## 📎 Связанные документы
 
-- [oidc-support.md](oidc-support.md) — матрица OIDC поддержки всех сервисов homelab
-- [idp-comparison-matrix.md](idp-comparison-matrix.md) — сравнение IdP провайдеров
-- [authentication-services.md](authentication-services.md) — стратегии аутентификации
+- [per-service-auth-strategies.md](../identity/per-service-auth-strategies.md) — матрица OIDC поддержки всех сервисов homelab
+- [idp-comparison-matrix.md](../identity/idp-comparison-matrix.md) — сравнение IdP провайдеров
+- [identity-providers.md](../identity/identity-providers.md) — стратегии аутентификации

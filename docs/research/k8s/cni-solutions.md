@@ -11,7 +11,6 @@
 
 Смежные исследования: [k3s-vs-k0s-detailed-comparison.md](./k3s-vs-k0s-detailed-comparison.md),
 [kubernetes-distributions-comparison.md](./kubernetes-distributions-comparison.md),
-[docker-compose-to-kubernetes-migration.md](./docker-compose-to-kubernetes-migration.md),
 [remote-access-metallb-solutions.md](./remote-access-metallb-solutions.md) (MetalLB L2 + Tailscale).
 
 ---

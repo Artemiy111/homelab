@@ -897,14 +897,14 @@ Registry даны там, где их приводит сама документ
 
 ## Связанные документы
 
-- [`docs/research/secret-management-providers.md`](./secret-management-providers.md) —
+- [`docs/research/secrets/secret-management-providers.md`](./secret-management-providers.md) —
   сравнение **провайдеров** (SOPS, Sealed Secrets, External Secrets Operator, Vault,
   Infisical). Этот документ не повторяет его: здесь про layout и ACL внутри Vault.
-- [`docs/adr/0005-vault-secrets-operator.md`](../adr/0005-vault-secrets-operator.md) —
+- [`docs/adr/0005-vault-secrets-operator.md`](../../adr/0005-vault-secrets-operator.md) —
   решение использовать `hashicorp/vault-secrets-operator` (VSO) вместо External
   Secrets Operator. VSO stateless, и именно поэтому конфигурация Vault (роли,
   политики, mount'ы) остаётся единственным источником правды.
-- [`docs/research/secrets-consumers-inventory.md`](./secrets-consumers-inventory.md) —
+- [`docs/research/secrets/secrets-consumers-inventory.md`](./secrets-consumers-inventory.md) —
   обследование текущего состояния: 40 файлов SealedSecret, реестр паролей ролей
   CNPG, хаб креденшелов в Secret `vmagent`. Входные данные для выбора раскладки,
   включая два подтверждённых дубля значений.

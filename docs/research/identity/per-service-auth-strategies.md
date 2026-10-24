@@ -4,8 +4,8 @@
 
 ## Область исследования
 
-Источник активного состава — корневой `README.md`, `docs/research/oidc-support.md`
-(предыдущая версия этого документа) и `docs/research/authentication-services.md`.
+Источник активного состава — корневой `README.md`, предыдущая версия этого
+документа и `docs/research/identity/identity-providers.md`.
 Дополнительно включены Gatus и Navidrome. Старые и экспериментальные каталоги не
 анализировались.
 
