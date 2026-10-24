@@ -34,6 +34,9 @@ spec:
                   key: target
           ports:
             - name: https
+              containerPort: 8443
+              protocol: TCP
+            - name: https-legacy
               containerPort: 443
               protocol: TCP
           readinessProbe:

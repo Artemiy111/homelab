@@ -17,6 +17,10 @@ data:
 
     frontend edge
       bind :443
+      bind :8443
+      stick-table type ip size 20k expire 1m store conn_rate(10s),conn_cur
+      tcp-request connection track-sc0 src
+      tcp-request connection reject if { sc_conn_rate(0) gt 30 } || { sc_conn_cur(0) gt 20 }
       default_backend ingress
 
     backend ingress
