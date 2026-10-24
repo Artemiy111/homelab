@@ -47,6 +47,11 @@ cert-manager в облаке не нужен.
   читает заголовок на отдельном entrypoint. NGINX `stream` в официальном образе
   потребовал бы своего `nginx.conf` ради одного `server {}`, а Envoy уже занят
   HTTP-входом и не должен решать две разные задачи одним процессом.
+- **Root в контейнере, но без capabilities.** Образ `haproxy` запускается
+  пользователем `haproxy`, а Kubernetes не выдаёт non-root процессу ambient
+  capabilities: `NET_BIND_SERVICE` не попадает в effective set, и порт 443 не
+  биндится. `runAsUser: 0` возвращает root, а `drop: ["ALL"]` плюс
+  `NET_BIND_SERVICE` оставляют только право на привилегированный порт.
 - **Клиентский IP передаётся заголовком.** Балансировщик сохраняет адрес клиента
   (проверено `ss` на узле), `HAProxy` кладёт его в PROXY protocol, и Traefik на
   entrypoint `edge` подставляет его в `ClientHost`. Без заголовка все запросы
