@@ -122,3 +122,17 @@ spec:
   configMapRef:
     name: grafana-dashboards
     key: logs-overview.json
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: trivy-operator
+  namespace: monitoring
+spec:
+  instanceSelector:
+    matchLabels:
+      app: grafana
+  folderRef: homelab
+  configMapRef:
+    name: grafana-dashboards
+    key: trivy-operator.json

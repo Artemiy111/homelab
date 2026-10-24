@@ -102,7 +102,7 @@ API отвечала 403. У `UpdateDataSourceCommand` поля `editable` не�
 
 ## Дашборды
 
-Шесть дашбордов описаны CR `GrafanaDashboard`, все в
+Семь дашбордов описаны CR `GrafanaDashboard`, все в
 папке `homelab` (`GrafanaFolder`, та же CR — на неё ссылаются и правила
 алертинга). JSON лежит в `config/dashboards/`, собирается в ConfigMap
 `grafana-dashboards` и подтягивается оператором через `spec.configMapRef` — JSON
@@ -114,7 +114,14 @@ Grafana; `traefik.json` — написан руками под метрики Tr
 `traefik-official.json` — официальный дашборд Traefik с grafana.com, вендорен с
 правками под наш datasource (см. ниже); `storage-capacity.json` — обзор
 заполняемости томов: PVC по `kubelet_volume_stats_*`, тома и узлы Longhorn по
-`longhorn_*`, файловые системы узла.
+`longhorn_*`, файловые системы узла; `trivy-operator.json` — community-дашборд
+Trivy Operator с grafana.com, вендорен так же, как `traefik-official.json`.
+
+`trivy-operator.json` живёт на метриках trivy-operator (`trivy_image_vulnerabilities`,
+`trivy_resource_configaudits`, `trivy_role_rbacassessments` и т. д.). Их забирает
+vmagent — job `trivy-operator` в
+`apps/casa/victoria-metrics/manifests/config/vmagent/scrape.yml`; без него
+панели пустые, а дашборд при этом выглядит рабочим.
 
 `traefik.json` и `traefik-official.json` не дублируют друг друга: официальный
 не содержит ни одного запроса `traefik_router_*` (все 14 панелей смотрят на
@@ -159,18 +166,19 @@ ConfigMap, упомянутых в CR. Отсюда следует, что су�
 оператора это было главным дефектом схемы (ротация пароля БД не применялась до
 рестарта).
 
-JSON-файлы хранятся в читаемом виде (`indent=2`), суммарно 337946 Б. Это больше
+JSON-файлы хранятся в читаемом виде (`indent=2`), суммарно 437234 Б. Это больше
 лимита аннотации `kubectl.kubernetes.io/last-applied-configuration` (262144 Б),
 с которым падает client-side apply, поэтому **Grafana применяется только
 server-side apply** — он эту аннотацию не пишет. Проверено на стенде:
-`metadata.annotations: Too long` при 337946 Б.
+`metadata.annotations: Too long` при 437234 Б.
 
 Дашборды: `cloudnative-pg.json` и `postgresql-database.json` — экспорт из UI
 Grafana; `traefik.json` — написан руками под метрики Traefik;
 `traefik-official.json` — официальный дашборд Traefik с grafana.com, вендорен с
 правками под наш datasource (см. ниже); `storage-capacity.json` — написан
 руками обзор заполняемости томов: PVC по `kubelet_volume_stats_*`, тома и узлы
-Longhorn по `longhorn_*`, файловые системы узла.
+Longhorn по `longhorn_*`, файловые системы узла; `trivy-operator.json` —
+community-дашборд Trivy Operator с grafana.com, вендорен по тем же правилам.
 
 `traefik.json` и `traefik-official.json` не дублируют друг друга: официальный
 не содержит ни одного запроса `traefik_router_*` (все 14 панелей смотрят на
@@ -187,6 +195,7 @@ Grafana не умеет импортировать дашборд с grafana.com
 | Файл | grafana.com ID | Ревизия | revisionId | uid в Grafana |
 |---|---|---|---|---|
 | `traefik-official.json` | 17346 | 9 | 33826 | `traefik-official` |
+| `trivy-operator.json` | 17813 | 2 | 28179 | `trivy-operator` |
 
 Файл **не** хранится дословной копией оригинала — в нём три отличия, каждое
 вызвано конкретной ошибкой, а не stylistic выбором:

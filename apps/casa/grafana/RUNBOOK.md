@@ -48,6 +48,22 @@ kubectl -n monitoring logs deploy/grafana-operator --since=30s | grep -c Dashboa
 `app.kubernetes.io/managed-by` на ConfigMap'е watch не срабатывает и правка
 молча не применяется.
 
+## Проверка дашборда Trivy
+
+Дашборд `trivy-operator` живёт на метриках оператора, поэтому проверяются две
+вещи: цель скрейпится и число на панели совпадает с отчётами в кластере.
+
+```sh
+kubectl -n monitoring exec deploy/victoriametrics -- wget -qO- \
+  'http://127.0.0.1:8428/api/v1/query?query=count(trivy_image_vulnerabilities)'
+kubectl get vulnerabilityreports -A -o json |
+  jq '[.items[].report.summary.criticalCount] | add'
+```
+
+Первая команда отдаёт непустой `result` с числом серий, вторая — сумму
+`CRITICAL` по всем образам; на панели «Severity Breakdown» должно быть то же
+число.
+
 ## Проверка лейбла managed-by
 
 ```sh

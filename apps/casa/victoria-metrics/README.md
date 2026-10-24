@@ -29,9 +29,9 @@ Secrets и ConfigMap.
 
 Цели: `victoriametrics`, `vmagent`, `traefik`, `authentik`,
 `gatus`, `synapse`, `immich`, `livekit`, `tempo`, `athens`, `glitchtip`, `zot`,
-`prosody`, `talk-hpb`, `longhorn` (без аутентификации); `uptime-kuma`,
-`navidrome`, `dawarich`, `forgejo`, `technitium`, `stalwart`, `seafile` (креды из
-Secrets).
+`prosody`, `talk-hpb`, `longhorn`, `trivy-operator` (без аутентификации);
+`uptime-kuma`, `navidrome`, `dawarich`, `forgejo`, `technitium`, `stalwart`,
+`seafile` (креды из Secrets).
 
 cert-manager скрейпится отдельными job'ами (`cert-manager`,
 `cert-manager-webhook`, `cert-manager-cainjector`) по Service'ам.
