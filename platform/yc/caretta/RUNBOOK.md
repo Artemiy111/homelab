@@ -72,7 +72,7 @@ Flux применит изменение после того, как Forgejo о�
 | под агента в CrashLoopBackOff, `lastState.terminated.reason: OOMKilled` | лимита памяти не хватает на разбор BTF текущего ядра |
 | в логах `error loading BPF objects` или `Verifier Error` | ядро не приняло eBPF-программу: сверить версию ядра и наличие `/sys/kernel/btf/vmlinux` на узле |
 | `Warning: couldn't retrieve owner ... - Node` в логах | норма: у узлов нет владельца, связи с ними остаются в карте как есть |
-| в Grafana «No data» | скрейп: `kubectl -n caretta logs sts/caretta-victoria-metrics-single`; датасорс `Prometheus` должен указывать на `http://caretta-vm:8428` |
+| в Grafana «No data» | скрейп: `kubectl -n caretta logs sts/caretta-vm`; датасорс `Prometheus` должен указывать на `http://caretta-vm:8428` |
 | метрика есть, карта пустая | увеличить окно на панели: графики считают `increase` за интервал |
 | `HelmRelease` в Ready=False, в сообщении `mapping key "rules" already defined` | снова включили RBAC субчарта VictoriaMetrics; вернуть `victoria-metrics-single.rbac.create: false` |
 
