@@ -1,26 +1,22 @@
-# NetworkPolicy для namespace zitadel: default-deny ingress + явные разрешения.
-# traefik — zitadel и login; vmagent из monitoring скрейпит метрики zitadel
-# (8080) и встроенного экспортёра CNPG (9187). Оператор CNPG из cnpg-system
-# обязан ходить в под кластера: 8000 — instance manager (status), 5432 —
-# PostgreSQL. Egress не ограничен.
-#
-# Порт-лист — часть конкретного правила ingress, а не общий для всего spec:
-# блок без ports не ограничен, поэтому доступы с ограничением портов выносятся
-# отдельными правилами.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: default-deny-ingress
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+  name: default-deny
   namespace: zitadel
 spec:
   podSelector: {}
   policyTypes:
     - Ingress
+    - Egress
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: allow-ingress
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+  name: allow-ingress-traefik
   namespace: zitadel
 spec:
   podSelector: {}
@@ -28,20 +24,49 @@ spec:
     - Ingress
   ingress:
     - from:
-        - podSelector: {}
-    - from:
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: traefik
-    - from:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: cnpg-system
       ports:
-        - port: 8000
+        - port: 8080
           protocol: TCP
-        - port: 5432
+        - port: 3000
           protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+  name: allow-ingress-zitadel-login
+  namespace: zitadel
+spec:
+  podSelector:
+    matchLabels:
+      app: zitadel
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: zitadel-login
+      ports:
+        - port: 8080
+          protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+  name: allow-ingress-metrics
+  namespace: zitadel
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
     - from:
         - namespaceSelector:
             matchLabels:
@@ -53,4 +78,138 @@ spec:
         - port: 8080
           protocol: TCP
         - port: 9187
+          protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+  name: allow-ingress-db
+  namespace: zitadel
+spec:
+  podSelector:
+    matchLabels:
+      cnpg.io/cluster: zitadel-db
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: zitadel
+      ports:
+        - port: 5432
+          protocol: TCP
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: cnpg-system
+      ports:
+        - port: 8000
+          protocol: TCP
+        - port: 5432
+          protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+  name: allow-egress-dns
+  namespace: zitadel
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+  name: allow-egress-zitadel
+  namespace: zitadel
+spec:
+  podSelector:
+    matchLabels:
+      app: zitadel
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              cnpg.io/cluster: zitadel-db
+      ports:
+        - port: 5432
+          protocol: TCP
+    - to:
+        - ipBlock:
+            cidr: 10.0.0.0/8
+      ports:
+        - port: 4317
+          protocol: TCP
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+      ports:
+        - port: 80
+          protocol: TCP
+        - port: 443
+          protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+  name: allow-egress-zitadel-login
+  namespace: zitadel
+spec:
+  podSelector:
+    matchLabels:
+      app: zitadel-login
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: zitadel
+      ports:
+        - port: 8080
+          protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+  name: allow-egress-db
+  namespace: zitadel
+spec:
+  podSelector:
+    matchLabels:
+      cnpg.io/cluster: zitadel-db
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - podSelector: {}
+    - to:
+        - ipBlock:
+            cidr: 10.0.0.0/8
+      ports:
+        - port: 443
           protocol: TCP

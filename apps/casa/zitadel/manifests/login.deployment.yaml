@@ -1,6 +1,8 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
   name: zitadel-login
   namespace: zitadel
 spec:
@@ -16,8 +18,15 @@ spec:
       labels:
         app: zitadel-login
     spec:
+      automountServiceAccountToken: false
       enableServiceLinks: false
       priorityClassName: platform-critical
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 65533
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: zitadel-login
           image: "ghcr.io/zitadel/zitadel-login:v4.20.0@sha256:f1abfdf3c5d16eda03cad3b584226207ecc640ca5c679d7c45abbbce7d1d63f0"
@@ -71,14 +80,10 @@ spec:
             timeoutSeconds: 30
             failureThreshold: 3
           securityContext:
-            runAsUser: 0
-            runAsGroup: 0
             allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
             capabilities:
               drop: ["ALL"]
-              add: ["CHOWN", "DAC_OVERRIDE", "FOWNER", "SETGID", "SETUID"]
-            seccompProfile:
-              type: RuntimeDefault
           resources:
             requests:
               cpu: 35m

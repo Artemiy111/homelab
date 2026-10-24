@@ -71,3 +71,20 @@ vault kv patch kv/zitadel/session-cookie secret="<новое>"
    Если единственный резолвер — Technitium (`192.168.1.254`), pull нового
    образа может не состояться именно тогда, когда он нужен: оба пода со
    `strategy: Recreate` удаляются до загрузки образа.
+
+## База недоступна
+
+Готовность базы перед стартом пода больше не проверяет init-контейнер: порядок
+задают волны Argo, а ZITADEL, потерявший базу, завершается и перезапускается с
+backoff. Поэтому `CrashLoopBackOff` у `deploy/zitadel` — это в первую очередь
+проверка базы, а не приложения.
+
+```sh
+kubectl -n zitadel get cluster zitadel-db
+kubectl -n zitadel get databases.postgresql.cnpg.io zitadel
+kubectl -n zitadel logs deploy/zitadel --since=5m | grep -iE "postgres|database"
+```
+
+Ожидаемо: `Cluster in healthy state`, `APPLIED = true` у базы. Ошибки
+соединения в логах ZITADEL указывают на кластер; успешные миграции — на то, что
+идёт обычный старт (после апгрейда он бывает долгим).

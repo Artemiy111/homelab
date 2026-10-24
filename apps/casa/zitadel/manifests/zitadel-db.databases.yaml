@@ -1,7 +1,8 @@
-# База кластера zitadel-db.
 apiVersion: postgresql.cnpg.io/v1
 kind: Database
 metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
   name: zitadel
   namespace: zitadel
 spec:

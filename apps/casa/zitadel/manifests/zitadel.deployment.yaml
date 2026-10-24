@@ -1,6 +1,8 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
   name: zitadel
   namespace: zitadel
 spec:
@@ -16,28 +18,15 @@ spec:
       labels:
         app: zitadel
     spec:
+      automountServiceAccountToken: false
       enableServiceLinks: false
       priorityClassName: platform-critical
-      initContainers:
-        - name: wait-for-db
-          image: "postgres:18-alpine@sha256:d3e1620b530c944afa6e887d22eb899824da68e19c52024bf98f5220c88a65b2"
-          command: ["/bin/sh", "-c", "until pg_isready -h zitadel-db-rw.zitadel.svc.cluster.local -p 5432 -U zitadel -d zitadel; do echo waiting for zitadel-db; sleep 3; done"]
-          securityContext:
-            runAsUser: 70
-            runAsGroup: 70
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: ["ALL"]
-            seccompProfile:
-              type: RuntimeDefault
-          resources:
-            requests:
-              cpu: 10m
-              memory: 32Mi
-            limits:
-              cpu: 100m
-              memory: 64Mi
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: zitadel
           image: "ghcr.io/zitadel/zitadel:v4.20.0@sha256:9ea0e9ecfdc43115da871242e40a0320f2ece864c7cd8b5d41a863a7f4902499"
@@ -149,14 +138,10 @@ spec:
             timeoutSeconds: 30
             failureThreshold: 3
           securityContext:
-            runAsUser: 0
-            runAsGroup: 0
             allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
             capabilities:
               drop: ["ALL"]
-              add: ["CHOWN", "DAC_OVERRIDE", "FOWNER", "SETGID", "SETUID"]
-            seccompProfile:
-              type: RuntimeDefault
           resources:
             requests:
               cpu: 80m

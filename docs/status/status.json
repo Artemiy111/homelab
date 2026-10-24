@@ -4,13 +4,13 @@
   "services": 58,
   "manifests": 649,
   "images": {
-    "pinned": 119,
-    "total": 119,
+    "pinned": 118,
+    "total": 118,
     "percent": 100,
     "exceptions": []
   },
   "network_policy": {
-    "objects": 119,
+    "objects": 126,
     "namespaces": 51,
     "namespaces_total": 64,
     "percent": 79,
