@@ -4,6 +4,7 @@ metadata:
   name: element-turn
   namespace: element
   annotations:
+    argocd.argoproj.io/sync-wave: "2"
     ignore-check.kube-linter.io/host-network: "TURN публикует relay 21000-21499 на LAN-адресе узла; без hostNetwork недоступно (#161)"
 spec:
   strategy:
@@ -18,54 +19,28 @@ spec:
       labels:
         app: element-turn
     spec:
-      # TURN слушает 3479 и relay 21000-21499 на LAN-адресе узла
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
+      automountServiceAccountToken: false
       enableServiceLinks: false
-      initContainers:
-        - name: render-config
-          image: "valkey/valkey:9.1.2@sha256:418652cfb58ef879d4978c33553735d7147016032d5aefaa14c828e611eb9dfd"
-          command:
-            - /bin/sh
-            - -c
-            - 'printf "listening-port=3479\nlistening-ip=0.0.0.0\nrelay-ip=%s\nexternal-ip=%s\nrealm=%s\nuse-auth-secret\nstatic-auth-secret=%s\nlog-file=stdout\nno-multicast-peers\nno-cli\nno-tls\nno-tlsv1\nno-tlsv1_1\nproc-quota=20\ntotal-quota=100\nstale-nonce=600\nmax-bps=0\nmin-port=21000\nmax-port=21499\nprometheus\nprometheus-port=9641\n" "$SERVER_IP" "$SERVER_IP" "$DOMAIN" "$TURN_SHARED_SECRET" > /etc/turn/turnserver.conf'
-          env:
-            - name: SERVER_IP
-              valueFrom:
-                fieldRef:
-                  fieldPath: status.hostIP
-            - name: DOMAIN
-              valueFrom:
-                configMapKeyRef:
-                  name: homelab-config
-                  key: DOMAIN
-            - name: TURN_SHARED_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: element-secrets
-                  key: TURN_SHARED_SECRET
-          securityContext:
-            runAsUser: 999
-            runAsGroup: 999
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: ["ALL"]
-            seccompProfile:
-              type: RuntimeDefault
-          resources:
-            requests:
-              cpu: 10m
-              memory: 16Mi
-            limits:
-              cpu: 50m
-              memory: 32Mi
-          volumeMounts:
-            - name: config
-              mountPath: /etc/turn
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        fsGroup: 65534
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: turn
           image: "coturn/coturn:4.18.0@sha256:bbefd3e1fdfdc0d58770fe01b581fd8b00d9f3a5580d00acb77cf719a6bc78e3"
+          command:
+            - turnserver
+          args:
+            - -c
+            - /etc/turn/turnserver.conf
+            - --relay-ip=$(HOST_IP)
+            - --external-ip=$(HOST_IP)
           ports:
             - name: metrics
               containerPort: 9641
@@ -75,10 +50,15 @@ spec:
                 configMapKeyRef:
                   name: homelab-config
                   key: TZ
+            - name: HOST_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
           securityContext:
             allowPrivilegeEscalation: false
-            seccompProfile:
-              type: RuntimeDefault
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
           resources:
             requests:
               cpu: 50m
@@ -88,9 +68,21 @@ spec:
               memory: 256Mi
           volumeMounts:
             - name: config
-              mountPath: /etc/turnserver.conf
-              subPath: turnserver.conf
+              mountPath: /etc/turn
               readOnly: true
+            - name: data
+              mountPath: /var/lib/coturn
+            - name: tmp
+              mountPath: /tmp
       volumes:
         - name: config
+          secret:
+            secretName: element-turn-config
+            defaultMode: 0440
+            items:
+              - key: turnserver.conf
+                path: turnserver.conf
+        - name: data
+          emptyDir: {}
+        - name: tmp
           emptyDir: {}

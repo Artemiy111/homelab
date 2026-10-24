@@ -3,6 +3,8 @@ kind: ConfigMap
 metadata:
   name: element-livekit-config
   namespace: element
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
 data:
   config.yaml: |-
 {{ .Files.Get "files/livekit.yaml" | trim | indent 4 }}

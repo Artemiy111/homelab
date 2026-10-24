@@ -1,10 +1,10 @@
-# Конфиг общего окружения стенда. Копия лежит в каждом namespace, который его
-# читает: ConfigMap виден только внутри своего namespace.
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: homelab-config
   namespace: element
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
 data:
   DOMAIN: biplane.casa
   TZ: Asia/Yekaterinburg

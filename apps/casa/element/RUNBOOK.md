@@ -15,7 +15,7 @@
 ```sh
 kubectl exec -i -n element deploy/element-synapse -c synapse -- sh -s <<'EOS'
 set -eu
-SECRET=$(sed -n 's/^registration_shared_secret: *//p' /data/homeserver.yaml)
+SECRET=$(tr -d '\r\n' < /run/secrets/element/registration_shared_secret)
 PW=$(head -c 32 /dev/urandom | base64 | tr -d '\n')
 register_new_matrix_user -k "$SECRET" -u admin -p "$PW" -a --exists-ok http://localhost:8080
 EOS
@@ -52,6 +52,28 @@ curl -fsS https://element.example.com/livekit/jwt/healthz
 
 Полная проверка Element Call требует двух авторизованных клиентов в LAN или
 tailnet: создать комнату, начать звонок и проверить аудио/видео.
+
+Секреты и конфиги, собранные из Vault:
+
+```sh
+kubectl exec -n element deploy/element-synapse -c synapse -- \
+  python -m synapse.config -c /etc/synapse/homeserver.yaml
+kubectl exec -n element deploy/element-turn -- \
+  grep -c '^static-auth-secret=' /etc/turn/turnserver.conf
+kubectl exec -n element deploy/matrix-rtc-auth -- env | sort | grep LIVEKIT_
+```
+
+Ожидаемый результат: `Config parses OK!`; `1`; пути `LIVEKIT_KEY_FROM_FILE` и
+`LIVEKIT_SECRET_FROM_FILE`, а не сами ключи.
+
+Порядок и изоляция подов:
+
+```sh
+kubectl -n element get pods -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.spec.containers[0].securityContext.readOnlyRootFilesystem}{"\n"}{end}'
+kubectl -n element get pods -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.spec.initContainers}{"\n"}{end}'
+```
+
+Ожидаемый результат: у каждого пода `true` и пустой список init-контейнеров.
 
 ## Element Call
 

@@ -3,6 +3,8 @@ kind: HTTPRoute
 metadata:
   name: element
   namespace: element
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
 spec:
   parentRefs:
     - name: homelab
@@ -10,9 +12,6 @@ spec:
   hostnames:
     - element.biplane.casa
   rules:
-    # Element Call: SFU signaling. Порядок правил заменяет priority: Traefik
-    # считает приоритет по длине правила, Gateway API — по порядку, и точное
-    # совпадение всегда выигрывает у префикса.
     - matches:
         - path:
             type: PathPrefix
@@ -26,7 +25,6 @@ spec:
       backendRefs:
         - name: livekit
           port: 80
-    # MatrixRTC authorization service.
     - matches:
         - path:
             type: PathPrefix
@@ -40,7 +38,6 @@ spec:
       backendRefs:
         - name: matrix-rtc-auth
           port: 80
-    # Matrix client/federation API.
     - matches:
         - path:
             type: PathPrefix
@@ -48,7 +45,6 @@ spec:
       backendRefs:
         - name: synapse
           port: 80
-    # Synapse endpoints: OIDC callback и пр.
     - matches:
         - path:
             type: PathPrefix
@@ -56,7 +52,6 @@ spec:
       backendRefs:
         - name: synapse
           port: 80
-    # Сам web-клиент Element: без match ловит всё, что не разобрали выше.
     - backendRefs:
         - name: element-web
           port: 80
@@ -66,6 +61,8 @@ kind: HTTPRoute
 metadata:
   name: element-well-known
   namespace: element
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
 spec:
   parentRefs:
     - name: homelab
@@ -73,9 +70,6 @@ spec:
   hostnames:
     - biplane.casa
   rules:
-    # Apex-домен обслуживает well-known и federation API. Gateway-слушатель
-    # `apex` объявлен на этот хост отдельно от wildcard, поэтому без правил
-    # ниже хост ушёл бы в catch-all.
     - matches:
         - path:
             type: Exact
@@ -90,9 +84,6 @@ spec:
       backendRefs:
         - name: synapse
           port: 80
-    # Federation delegation: Synapse объявляет `m.server: biplane.casa:443`,
-    # поэтому federation API (в том числе openid/userinfo, которым
-    # matrix-rtc-auth проверяет токен Element Call) приходит на apex-хост.
     - matches:
         - path:
             type: PathPrefix

@@ -3,6 +3,8 @@ kind: Service
 metadata:
   name: element-turn-metrics
   namespace: element
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
   labels:
     app: element-turn
 spec:
@@ -10,7 +12,6 @@ spec:
   selector:
     app: element-turn
   ports:
-    # coturn prometheus-экспортёр (директива prometheus в turnserver.conf).
     - name: metrics
       port: 9641
       targetPort: metrics

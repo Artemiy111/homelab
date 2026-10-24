@@ -3,8 +3,9 @@ kind: Deployment
 metadata:
   name: element-synapse
   namespace: element
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
 spec:
-  # RWO-том /data: два пода при rolling update пишут в один каталог.
   strategy:
     type: Recreate
   revisionHistoryLimit: 1
@@ -17,140 +18,16 @@ spec:
       labels:
         app: element-synapse
     spec:
-      # Synapse читает POSTGRES_-переменные и SYNAPSE_-настройки; лишние
-      # <SVC>_PORT из service-links не нужны.
+      automountServiceAccountToken: false
       enableServiceLinks: false
-      # fsGroup соответствует uid пользователя synapse в образе (991): том
-      # Longhorn должен быть доступен на запись этому пользователю.
       securityContext:
+        runAsNonRoot: true
+        runAsUser: 991
+        runAsGroup: 991
         fsGroup: 991
-      initContainers:
-        - name: wait-for-db
-          image: "postgres:18-alpine@sha256:d3e1620b530c944afa6e887d22eb899824da68e19c52024bf98f5220c88a65b2"
-          command: ["/bin/sh", "-c", "until pg_isready -h shared-rw.databases.svc.cluster.local -p 5432 -U synapse -d synapse; do echo waiting for shared-rw; sleep 3; done"]
-          securityContext:
-            runAsUser: 70
-            runAsGroup: 70
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: ["ALL"]
-            seccompProfile:
-              type: RuntimeDefault
-          resources:
-            requests:
-              cpu: 10m
-              memory: 32Mi
-            limits:
-              cpu: 100m
-              memory: 64Mi
-        - name: wait-for-redis
-          image: "valkey/valkey:9.1.2@sha256:418652cfb58ef879d4978c33553735d7147016032d5aefaa14c828e611eb9dfd"
-          command: ["/bin/sh", "-c", "until valkey-cli -h element-valkey ping | grep -q PONG; do echo waiting for element-valkey; sleep 2; done"]
-          securityContext:
-            runAsUser: 999
-            runAsGroup: 999
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: ["ALL"]
-            seccompProfile:
-              type: RuntimeDefault
-          resources:
-            requests:
-              cpu: 10m
-              memory: 32Mi
-            limits:
-              cpu: 100m
-              memory: 64Mi
-        - name: render-config
-          image: "valkey/valkey:9.1.2@sha256:418652cfb58ef879d4978c33553735d7147016032d5aefaa14c828e611eb9dfd"
-          command:
-            - /bin/sh
-            - -c
-            - |
-              set -eu
-              sed \
-                -e "s|__SERVER_NAME__|$SYNAPSE_SERVER_NAME|g" \
-                -e "s|__PUBLIC_BASEURL__|$SYNAPSE_PUBLIC_BASEURL|g" \
-                -e "s|__LIVEKIT_URL__|$SYNAPSE_LIVEKIT_URL|g" \
-                -e "s|__DB_PASSWORD__|$POSTGRES_PASSWORD|g" \
-                -e "s|__REGISTRATION_SHARED_SECRET__|$SYNAPSE_REGISTRATION_SHARED_SECRET|g" \
-                -e "s|__TURN_SHARED_SECRET__|$SYNAPSE_TURN_SHARED_SECRET|g" \
-                -e "s|__TURN_URI_UDP__|$SYNAPSE_TURN_URI_UDP|g" \
-                -e "s|__TURN_URI_TCP__|$SYNAPSE_TURN_URI_TCP|g" \
-                -e "s|__ISSUER__|$SYNAPSE_OIDC_ISSUER|g" \
-                -e "s|__OIDC_CLIENT_ID__|$OIDC_CLIENT_ID|g" \
-                -e "s|__OIDC_CLIENT_SECRET__|$OIDC_CLIENT_SECRET|g" \
-                /etc/synapse-template/homeserver.yaml > /data/homeserver.yaml
-          env:
-            - name: DOMAIN
-              valueFrom:
-                configMapKeyRef:
-                  name: homelab-config
-                  key: DOMAIN
-            - name: SERVER_IP
-              valueFrom:
-                fieldRef:
-                  fieldPath: status.hostIP
-            - name: SYNAPSE_SERVER_NAME
-              value: "$(DOMAIN)"
-            - name: SYNAPSE_PUBLIC_BASEURL
-              value: "https://element.$(DOMAIN)/"
-            - name: SYNAPSE_LIVEKIT_URL
-              value: "https://element.$(DOMAIN)/livekit/jwt"
-            - name: SYNAPSE_TURN_URI_UDP
-              value: "turn:$(SERVER_IP):3479?transport=udp"
-            - name: SYNAPSE_TURN_URI_TCP
-              value: "turn:$(SERVER_IP):3479?transport=tcp"
-            - name: POSTGRES_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: element-db-auth
-                  key: password
-            - name: SYNAPSE_REGISTRATION_SHARED_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: element-secrets
-                  key: REGISTRATION_SHARED_SECRET
-            - name: SYNAPSE_TURN_SHARED_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: element-secrets
-                  key: TURN_SHARED_SECRET
-            - name: SYNAPSE_OIDC_ISSUER
-              value: "https://id.$(DOMAIN)"
-            - name: OIDC_CLIENT_ID
-              valueFrom:
-                secretKeyRef:
-                  name: element-oidc
-                  key: OIDC_CLIENT_ID
-            - name: OIDC_CLIENT_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: element-oidc
-                  key: OIDC_CLIENT_SECRET
-          securityContext:
-            runAsUser: 991
-            runAsGroup: 991
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: ["ALL"]
-            seccompProfile:
-              type: RuntimeDefault
-          resources:
-            requests:
-              cpu: 10m
-              memory: 16Mi
-            limits:
-              cpu: 50m
-              memory: 32Mi
-          volumeMounts:
-            - name: synapse-template
-              mountPath: /etc/synapse-template
-            - name: data
-              mountPath: /data
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: synapse
           image: "matrixdotorg/synapse:v1.161.0@sha256:6b95dd129e35e97e8032cb759e5db4a516a5f7ef6c98d34d716fea1ae239b62a"
@@ -160,59 +37,18 @@ spec:
             - name: metrics
               containerPort: 9009
           env:
-            - name: DOMAIN
-              valueFrom:
-                configMapKeyRef:
-                  name: homelab-config
-                  key: DOMAIN
             - name: TZ
               valueFrom:
                 configMapKeyRef:
                   name: homelab-config
                   key: TZ
-            - name: SERVER_IP
-              valueFrom:
-                fieldRef:
-                  fieldPath: status.hostIP
-            - name: SYNAPSE_SERVER_NAME
-              value: "$(DOMAIN)"
-            - name: SYNAPSE_REPORT_STATS
-              value: "no"
-            - name: SYNAPSE_CONFIG_DIR
-              value: /data
-            - name: SYNAPSE_CONFIG_FILE
-              value: /data/homeserver.yaml
-            - name: SYNAPSE_PUBLIC_BASEURL
-              value: "https://element.$(DOMAIN)/"
-            - name: SYNAPSE_LIVEKIT_URL
-              value: "https://element.$(DOMAIN)/livekit/jwt"
-            - name: SYNAPSE_TURN_URI_UDP
-              value: "turn:$(SERVER_IP):3479?transport=udp"
-            - name: SYNAPSE_TURN_URI_TCP
-              value: "turn:$(SERVER_IP):3479?transport=tcp"
-            - name: POSTGRES_HOST
-              value: shared-rw.databases.svc.cluster.local
-            - name: POSTGRES_PORT
-              value: "5432"
-            - name: POSTGRES_DB
-              value: synapse
-            - name: POSTGRES_USER
-              value: synapse
-            - name: POSTGRES_PASSWORD
+            - name: SYNAPSE_CONFIG_PATH
+              value: /etc/synapse/homeserver.yaml
+            - name: PGPASSWORD
               valueFrom:
                 secretKeyRef:
                   name: element-db-auth
                   key: password
-            - name: SYNAPSE_REGISTRATION_SHARED_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: element-secrets
-                  key: REGISTRATION_SHARED_SECRET
-            - name: SYNAPSE_TURN_SHARED_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: element-secrets
-                  key: TURN_SHARED_SECRET
           startupProbe:
             httpGet:
               path: /health
@@ -236,15 +72,12 @@ spec:
             failureThreshold: 3
           securityContext:
             allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
             capabilities:
               drop: ["ALL"]
-              add: ["CHOWN", "DAC_OVERRIDE", "FOWNER", "SETGID", "SETUID"]
-            seccompProfile:
-              type: RuntimeDefault
           resources:
             requests:
               cpu: 200m
-              # Фактическое потребление ~110 МиБ; request — бронь, а не лимит.
               memory: 256Mi
             limits:
               cpu: "2"
@@ -252,17 +85,46 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /data
+            - name: config
+              mountPath: /etc/synapse
+              readOnly: true
             - name: log-config
               mountPath: /etc/synapse/log.config
               subPath: log.config
               readOnly: true
+            - name: element-secrets
+              mountPath: /run/secrets/element
+              readOnly: true
+            - name: oidc
+              mountPath: /run/secrets/oidc
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
       volumes:
         - name: data
           persistentVolumeClaim:
             claimName: element-synapse
-        - name: synapse-template
+        - name: config
           configMap:
             name: element-synapse-config
         - name: log-config
           configMap:
             name: element-synapse-log
+        - name: element-secrets
+          secret:
+            secretName: element-secrets
+            defaultMode: 0440
+            items:
+              - key: REGISTRATION_SHARED_SECRET
+                path: registration_shared_secret
+              - key: TURN_SHARED_SECRET
+                path: turn_shared_secret
+        - name: oidc
+          secret:
+            secretName: element-oidc
+            defaultMode: 0440
+            items:
+              - key: OIDC_CLIENT_SECRET
+                path: client_secret
+        - name: tmp
+          emptyDir: {}

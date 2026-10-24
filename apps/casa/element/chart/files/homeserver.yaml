@@ -1,12 +1,13 @@
-server_name: __SERVER_NAME__
-public_baseurl: __PUBLIC_BASEURL__
+server_name: biplane.casa
+public_baseurl: https://element.biplane.casa/
 serve_server_wellknown: true
 extra_well_known_client_content:
   org.matrix.msc4143.rtc_foci:
     - type: livekit
-      livekit_service_url: __LIVEKIT_URL__
+      livekit_service_url: https://element.biplane.casa/livekit/jwt
 report_stats: false
 pid_file: /data/homeserver.pid
+signing_key_path: /data/biplane.casa.signing.key
 enable_metrics: true
 listeners:
   - port: 8080
@@ -30,7 +31,6 @@ database:
   name: psycopg2
   args:
     user: synapse
-    password: __DB_PASSWORD__
     database: synapse
     host: shared-rw.databases.svc.cluster.local
     cp_min: 5
@@ -49,7 +49,7 @@ url_preview_ip_range_blacklist:
   - 192.168.0.0/16
 enable_registration: false
 enable_registration_without_verification: false
-registration_shared_secret: __REGISTRATION_SHARED_SECRET__
+registration_shared_secret_path: /run/secrets/element/registration_shared_secret
 bcrypt_rounds: 12
 password_config:
   enabled: true
@@ -57,9 +57,9 @@ password_config:
 oidc_providers:
   - idp_id: zitadel
     idp_name: Zitadel
-    issuer: __ISSUER__
-    client_id: "__OIDC_CLIENT_ID__"
-    client_secret: "__OIDC_CLIENT_SECRET__"
+    issuer: https://id.biplane.casa
+    client_id: "392807610333555725"
+    client_secret_path: /run/secrets/oidc/client_secret
     scopes: ["openid", "profile", "email"]
     allow_existing_users: true
     user_mapping_provider:
@@ -89,14 +89,14 @@ experimental_features:
   msc4222_enabled: true
 max_event_delay_duration: 24h
 turn_uris:
-  - __TURN_URI_UDP__
-  - __TURN_URI_TCP__
-turn_shared_secret: __TURN_SHARED_SECRET__
+  - turn:192.168.1.254:3479?transport=udp
+  - turn:192.168.1.254:3479?transport=tcp
+turn_shared_secret_path: /run/secrets/element/turn_shared_secret
 turn_user_lifetime: 24h
 matrix_rtc:
   transports:
     - type: livekit
-      livekit_service_url: __LIVEKIT_URL__
+      livekit_service_url: https://element.biplane.casa/livekit/jwt
 max_upload_size: 104857600
 max_image_pixels: 26214400
 max_spider_size: 1048576

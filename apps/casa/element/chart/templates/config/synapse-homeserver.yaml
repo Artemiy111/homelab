@@ -3,6 +3,8 @@ kind: ConfigMap
 metadata:
   name: element-synapse-config
   namespace: element
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
 data:
   homeserver.yaml: |-
 {{ .Files.Get "files/homeserver.yaml" | indent 4 }}

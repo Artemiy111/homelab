@@ -4,20 +4,20 @@
   "services": 59,
   "manifests": 676,
   "images": {
-    "pinned": 133,
-    "total": 133,
+    "pinned": 127,
+    "total": 127,
     "percent": 100,
     "exceptions": []
   },
   "network_policy": {
-    "objects": 115,
+    "objects": 122,
     "namespaces": 53,
     "namespaces_total": 66,
     "percent": 80,
     "exceptions": ["argocd", "cert-manager", "cnpg-system", "default", "elastic-system", "gitlab", "grafana-operator", "kube-system", "local-path-storage", "mariadb-system", "traefik", "velero", "victoria-metrics-operator"]
   },
   "secrets": {
-    "vault_static_secret": 99
+    "vault_static_secret": 101
   },
   "docs": {
     "adr": 16,

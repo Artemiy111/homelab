@@ -3,6 +3,8 @@ kind: Deployment
 metadata:
   name: matrix-rtc-auth
   namespace: element
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
 spec:
   revisionHistoryLimit: 1
   replicas: 1
@@ -14,7 +16,16 @@ spec:
       labels:
         app: matrix-rtc-auth
     spec:
+      automountServiceAccountToken: false
       enableServiceLinks: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        fsGroup: 65532
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: matrix-rtc-auth
           image: "ghcr.io/element-hq/lk-jwt-service:0.7.0@sha256:e0c7cecfa74e2342a3e79d47e1d4ab4bd228fe05b1a4dc4ba7f807686b0c214b"
@@ -34,30 +45,16 @@ spec:
                   key: TZ
             - name: LIVEKIT_JWT_BIND
               value: ":8080"
-            # При info сервис пишет "Health check from <ip:port>" на каждый
-            # запрос Kubernetes-проб (3 пробы × каждые 30 с — это ~90% объёма
-            # логов контейнера). Сами пробы идут на /healthz и никуда не логируются.
             - name: LIVEKIT_LOG_LEVEL
               value: "warn"
             - name: LIVEKIT_URL
               value: "wss://element.$(DOMAIN)/livekit/sfu"
-            - name: LIVEKIT_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: element-secrets
-                  key: LIVEKIT_API_KEY
-            - name: LIVEKIT_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: element-secrets
-                  key: LIVEKIT_API_SECRET
+            - name: LIVEKIT_KEY_FROM_FILE
+              value: /run/secrets/livekit/api_key
+            - name: LIVEKIT_SECRET_FROM_FILE
+              value: /run/secrets/livekit/api_secret
             - name: LIVEKIT_FULL_ACCESS_HOMESERVERS
               value: "$(DOMAIN)"
-            # Хранилище delegated leave-событий (MSC4140). Без него сервис
-            # работает в памяти и теряет отложенные события при рестарте —
-            # в логах появляется "ActionRestart not found — emitting
-            # DelayedEventNotFound". Отдельная БД 1, чтобы не делить ключи
-            # с Synapse (который использует БД 0).
             - name: LIVEKIT_REDIS_URL
               value: "redis://element-valkey.element.svc.cluster.local:6379/1"
           startupProbe:
@@ -83,10 +80,9 @@ spec:
             failureThreshold: 3
           securityContext:
             allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
             capabilities:
               drop: ["ALL"]
-            seccompProfile:
-              type: RuntimeDefault
           resources:
             requests:
               cpu: 50m
@@ -94,3 +90,17 @@ spec:
             limits:
               cpu: "1"
               memory: 256Mi
+          volumeMounts:
+            - name: livekit-key
+              mountPath: /run/secrets/livekit
+              readOnly: true
+      volumes:
+        - name: livekit-key
+          secret:
+            secretName: element-secrets
+            defaultMode: 0440
+            items:
+              - key: LIVEKIT_API_KEY
+                path: api_key
+              - key: LIVEKIT_API_SECRET
+                path: api_secret

@@ -3,6 +3,8 @@ kind: ConfigMap
 metadata:
   name: element-synapse-log
   namespace: element
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
 data:
   log.config: |-
 {{ .Files.Get "files/synapse-log.config" | trim | indent 4 }}

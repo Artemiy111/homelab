@@ -4,6 +4,7 @@ metadata:
   name: element-livekit
   namespace: element
   annotations:
+    argocd.argoproj.io/sync-wave: "2"
     ignore-check.kube-linter.io/host-network: "UDP-медиадиапазон 50000-50499 публикуется напрямую на узле (#161)"
 spec:
   strategy:
@@ -18,66 +19,18 @@ spec:
       labels:
         app: element-livekit
     spec:
-      # UDP-медиадиапазон 50000-50499 публикуется напрямую на узле:
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
+      automountServiceAccountToken: false
       enableServiceLinks: false
-      initContainers:
-        - name: wait-for-redis
-          image: "valkey/valkey:9.1.2@sha256:418652cfb58ef879d4978c33553735d7147016032d5aefaa14c828e611eb9dfd"
-          command: ["/bin/sh", "-c", "until valkey-cli -h element-valkey ping | grep -q PONG; do echo waiting for element-valkey; sleep 2; done"]
-          securityContext:
-            runAsUser: 999
-            runAsGroup: 999
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: ["ALL"]
-            seccompProfile:
-              type: RuntimeDefault
-          resources:
-            requests:
-              cpu: 10m
-              memory: 32Mi
-            limits:
-              cpu: 100m
-              memory: 64Mi
-        - name: render-keys
-          image: "valkey/valkey:9.1.2@sha256:418652cfb58ef879d4978c33553735d7147016032d5aefaa14c828e611eb9dfd"
-          command:
-            - /bin/sh
-            - -c
-            - 'umask 077; printf "%s: %s\n" "$LIVEKIT_API_KEY" "$LIVEKIT_API_SECRET" > /etc/livekit-keys/keys.yaml'
-          env:
-            - name: LIVEKIT_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: element-secrets
-                  key: LIVEKIT_API_KEY
-            - name: LIVEKIT_API_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: element-secrets
-                  key: LIVEKIT_API_SECRET
-          securityContext:
-            runAsUser: 1000
-            runAsGroup: 1000
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: ["ALL"]
-            seccompProfile:
-              type: RuntimeDefault
-          resources:
-            requests:
-              cpu: 10m
-              memory: 16Mi
-            limits:
-              cpu: 50m
-              memory: 32Mi
-          volumeMounts:
-            - name: keys
-              mountPath: /etc/livekit-keys
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: livekit
           image: "livekit/livekit-server:v1.13.7@sha256:6fd3b7088874c4d119160dd688798dfec852bc014786d392caad15f6f63912a3"
@@ -126,13 +79,10 @@ spec:
             timeoutSeconds: 10
             failureThreshold: 3
           securityContext:
-            runAsUser: 1000
-            runAsGroup: 1000
             allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
             capabilities:
               drop: ["ALL"]
-            seccompProfile:
-              type: RuntimeDefault
           resources:
             requests:
               cpu: 500m
@@ -148,9 +98,18 @@ spec:
             - name: keys
               mountPath: /etc/livekit-keys
               readOnly: true
+            - name: tmp
+              mountPath: /tmp
       volumes:
         - name: config
           configMap:
             name: element-livekit-config
         - name: keys
+          secret:
+            secretName: element-livekit-keys
+            defaultMode: 0440
+            items:
+              - key: keys.yaml
+                path: keys.yaml
+        - name: tmp
           emptyDir: {}

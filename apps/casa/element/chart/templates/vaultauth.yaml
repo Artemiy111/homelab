@@ -3,12 +3,16 @@ kind: ServiceAccount
 metadata:
   name: vso-element
   namespace: element
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
 ---
 apiVersion: secrets.hashicorp.com/v1beta1
 kind: VaultAuth
 metadata:
   name: vso-element
   namespace: element
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
 spec:
   vaultAuthGlobalRef:
     name: vso-global
