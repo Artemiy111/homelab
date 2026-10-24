@@ -1,8 +1,8 @@
 # RustFS (Terraform)
 
-Бакет `mirror` и его policy. Развёртывание самого хранилища —
-`apps/casa/rustfs/`, здесь только бакет через S3 API: AWS-провайдер против кастомного
-эндпоинта RustFS.
+Бакеты `mirror` и `terraform-state`, их policy и служебные настройки.
+Развёртывание самого хранилища — `apps/casa/rustfs/`, здесь только бакеты через
+S3 API: AWS-провайдер против кастомного эндпоинта RustFS.
 
 ## Запуск
 
@@ -48,6 +48,10 @@ domain = "example.com"   # тот же домен, что в Gateway (platform/c
 | --- | --- |
 | `aws_s3_bucket.mirror` | бакет `mirror` |
 | `aws_s3_bucket_policy.mirror` | анонимный `s3:GetObject` на `mirror/*` — механизм доступа для CI |
+| `aws_s3_bucket.state` | бакет `terraform-state` — state всех root-модулей `infra/casa/terraform` |
+| `aws_s3_bucket_versioning.state` | версионирование объектов state |
+| `aws_s3_bucket_public_access_block.state` | публичный доступ закрыт |
+| `aws_s3_bucket_lifecycle_configuration.state` | noncurrent-версии удаляются через 30 дней |
 
 Policy здесь не «висит просто так»: отдельного пользователя только на чтение
 RustFS не отдаёт (IAM API нет, есть только root-креды), поэтому анонимный
@@ -58,6 +62,26 @@ RustFS не отдаёт (IAM API нет, есть только root-креды)
 Заливка объектов остаётся у CronJob `mirror-sync`
 (`apps/casa/rustfs/manifests/mirror-sync.sh`, манифест `artifacts.tsv`); из скрипта убран
 `ensure_bucket`, потому что бакет и policy теперь принадлежат Terraform.
+
+## Бакет состояния Terraform
+
+`terraform-state` объявлен здесь, а не отдельным модулем, по одной причине:
+бакет должен существовать до `terraform init`, а модуль `rustfs` — единственный,
+чей state при первом apply ещё локальный. Порядок такой: применить этот модуль
+(`state.tf` создаёт бакет), затем перевести бэкенды остальных модулей
+на этот бакет и последним — сам `rustfs`. Отдельный bootstrap-модуль дал бы
+восьмой state, который тоже надо куда-то положить.
+
+Версионирование здесь не украшение: каждый `apply` перезаписывает объект state,
+и noncurrent-версии — единственный способ откатиться, если в state попала
+ошибка. Lifecycle ограничивает их 30 днями, потому что объект лока
+(`<key>.tflock`) перезаписывается на каждом `plan` и `apply`, и без правила
+версии растут без предела.
+
+Сам бакет закрыт: policy, как у `mirror`, у него нет, а anonymous-доступ
+выключен явно. Содержимое — state модулей: там нет секретов по правилам
+`infra/casa/terraform/README.md`, но есть внутренние значения, и публиковать их
+незачем.
 
 ## Первый apply
 
