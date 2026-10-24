@@ -39,3 +39,27 @@ spec:
     allowedRoutes:
       namespaces:
         from: All
+  - name: edge
+    protocol: HTTPS
+    port: 8444
+    hostname: '*.biplane.casa'
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - kind: Secret
+        name: wildcard-casa-tls
+    allowedRoutes:
+      namespaces:
+        from: All
+  - name: edge-apex
+    protocol: HTTPS
+    port: 8444
+    hostname: biplane.casa
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - kind: Secret
+        name: wildcard-casa-tls
+    allowedRoutes:
+      namespaces:
+        from: All

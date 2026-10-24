@@ -72,6 +72,19 @@ ports:
     expose:
       default: true
     protocol: TCP
+  edge:
+    port: 8444
+    http:
+      tls:
+        enabled: true
+    expose:
+      default: true
+    exposedPort: 8443
+    protocol: TCP
+    proxyProtocol:
+      trustedIPs:
+        - 192.168.1.254/32
+        - 100.64.0.0/10
 
 # Prometheus-метрики Traefik. Чарт и так включает entrypoint metrics (:9100) и
 # --metrics.prometheus; отдельный Service (traefik-metrics) публикует порт для
