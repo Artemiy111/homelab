@@ -56,6 +56,7 @@ resources:
   - apps/talk-hpb.yaml
   - apps/technitium.yaml
   - apps/tempo.yaml
+  - apps/trivy-operator-dashboard.yaml
   - apps/uptime-kuma.yaml
   - apps/vault.yaml
   - apps/verdaccio.yaml

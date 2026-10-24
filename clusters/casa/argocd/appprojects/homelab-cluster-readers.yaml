@@ -12,7 +12,8 @@ spec:
   # Сервисы читают кластер целиком и без ClusterRole не работают вовсе:
   # alloy и alloy-profiler читают логи всех подов, vmagent — метрики ноды,
   # beyla — eBPF-профили, opencost — состояние объектов кластера ради расчёта
-  # стоимости. Шестой, elk, добавляется в волне 3 — filebeat читает
+  # стоимости, trivy-operator-dashboard — отчёты trivy-operator во всех
+  # namespace'ах. Шестой, elk, добавляется в волне 3 — filebeat читает
   # логи всех подов тоже, поэтому его запись добавлена заранее.
   # Перечислены конкретные имена, а не вид целиком: схема
   # ClusterResourceRestrictionItem допускает name с glob-паттернами, а без name
@@ -26,8 +27,8 @@ spec:
   # задеть чужой кластерный объект.
   clusterResourceWhitelist:
     # Свой Namespace нужен сервисам, которые приносят namespace.yaml в своих
-    # манифестах: homepage и opencost. Остальные живут в уже существующих
-    # namespace'ах кластера. Без этой записи синк падает с
+    # манифестах: homepage, opencost и trivy-operator-dashboard. Остальные живут
+    # в уже существующих namespace'ах кластера. Без этой записи синк падает с
     # «Namespace is not permitted in project».
     - group: ""
       kind: Namespace
@@ -35,6 +36,9 @@ spec:
     - group: ""
       kind: Namespace
       name: opencost
+    - group: ""
+      kind: Namespace
+      name: trivy-operator-dashboard
     - group: rbac.authorization.k8s.io
       kind: ClusterRole
       name: alloy-logs
@@ -71,6 +75,12 @@ spec:
     - group: rbac.authorization.k8s.io
       kind: ClusterRoleBinding
       name: opencost
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: trivy-operator-dashboard
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRoleBinding
+      name: trivy-operator-dashboard
     - group: rbac.authorization.k8s.io
       kind: ClusterRole
       name: vmagent-node-metrics

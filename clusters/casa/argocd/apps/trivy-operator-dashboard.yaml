@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "40"
+  name: trivy-operator-dashboard
+  namespace: argocd
+spec:
+  project: homelab-cluster-readers
+  sources:
+    - repoURL: https://github.com/raoulx24/trivy-operator-dashboard.git
+      targetRevision: v1.9.0
+      path: deploy/helm/trivy-operator-dashboard
+      helm:
+        releaseName: trivy-operator-dashboard
+        skipTests: true
+        valueFiles:
+          - $values/apps/casa/trivy-operator-dashboard/values.yaml
+    - repoURL: https://github.com/Artemiy111/homelab.git
+      targetRevision: main
+      ref: values
+    - repoURL: https://github.com/Artemiy111/homelab.git
+      targetRevision: main
+      path: apps/casa/trivy-operator-dashboard/manifests
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: trivy-operator-dashboard
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - ServerSideApply=true

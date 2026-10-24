@@ -1,0 +1,56 @@
+# Значения чарта trivy-operator-dashboard. Отклонения от дефолтов и причина
+# каждого — ниже; всё остальное оставлено как в чарте.
+
+# История требует сайдкар valkey и PVC, а PVC — storageClass, которого в
+# кластере нет. Без истории UI показывает живые CR: у trivy-operator это и есть
+# актуальное состояние отчётов.
+history:
+  enabled: false
+
+# Маршрут — HTTPRoute (manifests/route.yaml), Ingress-контроллера в кластере нет.
+ingress:
+  enabled: false
+
+image:
+  repository: ghcr.io/raoulx24/trivy-operator-dashboard
+  # Тег и дайджест вместе: чарт подставляет только tag, а тег у чужого образа
+  # может быть перезаписан.
+  tag: "1.9.0@sha256:27c3fbb29edc06d85cc255d1ab483098c4a7e38939941355dee203fb3f7d9460"
+  pullPolicy: IfNotPresent
+
+# По умолчанию приложение раз в несколько часов ходит на GitHub за версией.
+# Версия зафиксирована дайджестом, обновление ручное — запрос не нужен.
+gitHub:
+  serverCheckForUpdates: false
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: "1"
+    memory: 512Mi
+
+# Пробы заданы целиком: политика scripts/probe-timeouts.sh требует явный
+# timeoutSeconds и окно старта не больше 300 с, реакцию не больше 120 с.
+startupProbe:
+  httpGet:
+    path: /healthz/ready
+    port: http
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 18
+readinessProbe:
+  httpGet:
+    path: /healthz/ready
+    port: http
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+livenessProbe:
+  httpGet:
+    path: /healthz/live
+    port: http
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 3
