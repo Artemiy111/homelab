@@ -65,6 +65,36 @@ dig @${HOST_IP} cloudflare-dns.com +short   # должны вернуться з
 dig @${HOST_IP} google.com +short           # внешние имена
 ```
 
+## Обновление
+
+`strategy: Recreate`: старый под удаляется до того, как скачается новый образ, а
+образ тянется с `registry-1.docker.io` — имя резолвит сам Technitium. Если
+резолвер узла зависит от него же, новый под не стартует, и вместе с ним
+пропадает DNS всей сети (docs/incidents/0012). Поэтому образ оказывается на
+узле **до** merge:
+
+1. Скачать образ подом, который использует тот же kubelet и ничего не делает:
+
+   ```sh
+   kubectl run preload --image=technitium/dns-server:<версия> --restart=Never -- sleep 3600
+   kubectl wait --for=condition=Ready pod/preload --timeout=5m
+   kubectl delete pod preload
+   ```
+
+2. Убедиться, что узел резолвит внешние имена без кластера:
+
+   ```sh
+   dig +short registry-1.docker.io
+   ```
+
+3. Смержить PR и дождаться роллаута:
+
+   ```sh
+   kubectl -n technitium rollout status deploy/technitium
+   ```
+
+4. Проверить, что DNS сети вернулся: `dig @${HOST_IP} google.com +short`.
+
 ## Сброс пароля администратора
 
 ENV `DNS_ADMIN_PASSWORD` применяется только при первичной инициализации.
