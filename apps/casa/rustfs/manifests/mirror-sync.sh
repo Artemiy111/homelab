@@ -280,7 +280,7 @@ sync_providers() {
           if (ver != "") print addr "\t" ver "\t" hashes
           addr = ""
         }')
-    done < <(git -C "$tmp/repo" ls-tree -r --name-only "$ref" -- infra/casa/terraform |
+    done < <(git -C "$tmp/repo" ls-tree -r --name-only "$ref" |
       grep -E '\.terraform\.lock\.hcl$' || true)
   done < <(git -C "$tmp/repo" for-each-ref --format='%(refname)' refs/remotes/origin)
 
