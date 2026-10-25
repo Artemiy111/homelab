@@ -32,4 +32,8 @@ resource "aws_s3_bucket_lifecycle_configuration" "state" {
       noncurrent_days = 30
     }
   }
+
+  lifecycle {
+    ignore_changes = [transition_default_minimum_object_size]
+  }
 }

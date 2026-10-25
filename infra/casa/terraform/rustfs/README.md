@@ -96,6 +96,14 @@ terraform import aws_s3_bucket_lifecycle_configuration.state terraform-state
 `infra/casa/terraform/README.md`, но есть внутренние значения, и публиковать их
 незачем.
 
+В правиле lifecycle стоит `ignore_changes` на
+`transition_default_minimum_object_size`: это аргумент AWS-провайдера со
+значением по умолчанию (`all_storage_classes_128K`), RustFS его не поддерживает и
+в ответе не возвращает. Без `ignore_changes` план всегда показывает одно
+изменение, а `apply` отправляет `PutBucketLifecycleConfiguration` и снова ждёт
+подтверждения чтением — тот самый путь, который на этой версии RustFS падает по
+таймауту. Правило при этом не меняется, так что управлять этим полем нечего.
+
 ## Первый apply
 
 Бакет и policy уже существуют, поэтому `imports.tf` переносит их в state.
