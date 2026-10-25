@@ -48,6 +48,22 @@ PROXY-заголовок пришлось бы требовать и от лок
 приложения (forward auth, лимиты); у `secure-headers` они пока продублированы —
 на результат это не влияет.
 
+`X-Frame-Options` отдаётся со значением `SAMEORIGIN`, а не `DENY`: приложения
+встраивают собственный интерфейс во фрейм того же origin — Element Call живёт
+виджетом во фрейме Element Web. `SAMEORIGIN` закрывает для чужого origin то же
+самое; разница только в запрете на собственный фрейм, а именно он приложению и
+нужен. Браузеры считают `X-Frame-Options` устаревшим и предлагают вместо него
+`Content-Security-Policy: frame-ancestors 'self'`, но глобально этот заголовок
+через Traefik не поставить: `headers.contentSecurityPolicy` и
+`customResponseHeaders` перезаписывают одноимённый заголовок приложения, и
+собственный CSP (Vault, Grafana) был бы потерян.
+
+Проверка значения — на любом хосте, где приложению нужен свой фрейм:
+
+```sh
+curl -sI https://element.example.com/widgets/element-call/index.html | grep -i x-frame-options
+```
+
 ## Access-логи
 
 JSON access-лог уходит в stdout, оттуда его забирает Alloy и отправляет в Loki.

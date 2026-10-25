@@ -8,5 +8,5 @@ spec:
     stsSeconds: 31536000
     stsIncludeSubdomains: true
     stsPreload: false
-    frameDeny: true
+    customFrameOptionsValue: SAMEORIGIN
     contentTypeNosniff: true

@@ -95,3 +95,20 @@ curl -sS -o /dev/null -w '%{http_code}\n' \
 Synapse отвергает; `404` значит, что маршрута на apex нет, transport error —
 apex не резолвится.
 
+Второй режим отказа выглядит иначе: Element показывает бесконечную загрузку,
+ошибки в интерфейсе нет. Виджет Element Call живёт во фрейме того же origin,
+поэтому звонок не начнётся, если прокси запрещает фрейм. Проверять надо
+заголовок виджет-документа, а не SFU и не токены:
+
+```sh
+curl -sI https://element.example.com/widgets/element-call/index.html | grep -i x-frame-options
+```
+
+Ожидаемый результат: `x-frame-options: SAMEORIGIN` (значение задаёт
+`secure-headers` на entrypoint Traefik, см. `platform/casa/traefik/README.md`).
+`DENY` блокирует виджет на любом origin.
+
+Подтверждение, что дело в клиенте, а не в сервисах: в access-логе Traefik по
+`/livekit/sfu/rtc` нет ни одного `101`, а по `/livekit/jwt/sfu/get` — ни одного
+`POST` от браузера. Ассеты `/widgets/element-call/assets/*` при этом тоже не
+запрашиваются: заблокированный документ не доходит до разбора.
