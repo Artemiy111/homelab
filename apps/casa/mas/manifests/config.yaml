@@ -58,7 +58,7 @@ data:
           scope: "openid profile email"
           claims_imports:
             localpart:
-              action: suggest
+              action: require
               on_conflict: set
               template: "{{ user.email.split('@')[0] }}"
             displayname:
