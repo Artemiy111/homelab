@@ -7,7 +7,7 @@
 # Снаружи:
 #   traefik     → dawarich:3000
 #   cnpg-system → dawarich-db:8000, 5432
-#   vmagent     → dawarich-db:9187, dawarich-redis-exporter:9121
+#   vmagent     → dawarich:3000, dawarich-db:9187, dawarich-redis-exporter:9121
 #
 # Egress не «в интернет вообще»: приложению нужны DNS, поды namespace и
 # приватные сети (кластер, LAN), а из внешнего мира — только 80/443
@@ -39,6 +39,12 @@ spec:
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: traefik
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+          podSelector:
+            matchLabels:
+              app: vmagent
       ports:
         - port: 3000
           protocol: TCP

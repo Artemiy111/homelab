@@ -288,17 +288,19 @@ scrape_configs:
       - targets:
           - navidrome.navidrome.svc.cluster.local
 
-  # Dawarich редиректит внутренние запросы на публичный HTTPS-URL, поэтому
-  # скрейпим его через Traefik (basic auth).
+  # Dawarich проверяет Host по APPLICATION_HOSTS и редиректит не-https на
+  # публичный URL, поэтому имя и схему передаём заголовками, а не адресом.
   - job_name: dawarich
-    scheme: https
     metrics_path: /metrics
     basic_auth:
       username: netdata
       password: "%{DAWARICH_METRICS_PASSWORD}"
+    headers:
+      - "Host: dawarich.%{DOMAIN}"
+      - "X-Forwarded-Proto: https"
     static_configs:
       - targets:
-          - dawarich.%{DOMAIN}
+          - dawarich.dawarich.svc.cluster.local:80
 
   # Токен передаётся как Bearer (Forgejo [metrics] TOKEN).
   # Forgejo ставится чартом forgejo-helm (clusters/casa/argocd/platform/forgejo.yaml),
