@@ -4,9 +4,10 @@
 # без креденшелов. Бакет и public-read policy принадлежат infra/casa/terraform/rustfs, здесь
 # остаётся только заливка объектов.
 #
-# Запускается in-cluster как CronJob mirror-sync (образ amazon/aws-cli): у пода
-# есть egress к upstream'ам, aws-cli, curl и sha256sum; git/tar для сборки схем
-# доустанавливаются на ходу. Артефакты, уже лежащие в бакете, пропускаются —
+# Запускается in-cluster как CronJob mirror-sync (образ
+# forgejo.biplane.casa/artemiy/rustfs-mirror-sync, apps/casa/rustfs/mirror-sync-image):
+# у пода есть egress к upstream'ам, aws-cli, curl, sha256sum и заранее
+# установленные git/tar/gzip для сборки схем. Артефакты, уже лежащие в бакете, пропускаются —
 # зеркало append-only (чтобы заменить версию, удалить объект и перезапустить).
 # Недоступный апстрим не останавливает прогон: цикл доходит до конца манифеста,
 # неудачные артефакты перечисляются в конце, Job завершается ненулевым кодом.
@@ -35,14 +36,21 @@ s3put() {
   s3api put-object --bucket "$BUCKET" --key "$2" --body "$1" >/dev/null
 }
 
-ensure_build_tools() {
-  command -v git >/dev/null 2>&1 && command -v tar >/dev/null 2>&1 && return 0
-  dnf install -y git tar gzip >/dev/null 2>&1
-}
-
 object_exists() {
   s3api head-object --bucket "$BUCKET" --key "$1" >/dev/null 2>&1
 }
+
+require_build_tools() {
+  local tool
+  for tool in git tar gzip; do
+    if ! command -v "$tool" >/dev/null 2>&1; then
+      echo "нет $tool в образе: пересобрать apps/casa/rustfs/mirror-sync-image" >&2
+      return 1
+    fi
+  done
+}
+
+require_build_tools
 
 sync_url() {
   local path="$1" sha="$2" url="$3" tmp got
@@ -101,7 +109,6 @@ sync_schemas() {
   done
   [ "${#pending[@]}" -eq 0 ] && return 0
 
-  ensure_build_tools
   tmp="$(mktemp -d)"
   git clone --depth 1 --filter=blob:none --sparse "$SCHEMA_REPO" "$tmp/schemas"
   for variant in "${pending[@]}"; do
@@ -142,7 +149,6 @@ sync_cr_schemas() {
     return 0
   fi
 
-  ensure_build_tools
   tmp="$(mktemp -d)"
   git init -q "$tmp/crds"
   git -C "$tmp/crds" remote add origin "$CRD_SCHEMA_REPO"
@@ -237,7 +243,6 @@ sync_provider() {
 sync_providers() {
   local repo="https://github.com/Artemiy111/homelab.git"
   local os="linux" arch="amd64"
-  ensure_build_tools
 
   local tmp
   tmp="$(mktemp -d)"

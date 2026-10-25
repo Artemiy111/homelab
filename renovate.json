@@ -29,6 +29,12 @@
       "commitMessageTopic": "immich ml"
     },
     {
+      "description": "Свой образ в реестре Forgejo: Renovate туда не ходит (внутренний хост, нет кредов) и предлагал бы несуществующие версии. Дайджест обновляется после сборки workflow 130-mirror-sync-image (#1544)",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["forgejo.biplane.casa/artemiy/rustfs-mirror-sync"],
+      "enabled": false
+    },
+    {
       "description": "Версия bun живёт в четырёх местах, Renovate видит одно",
       "matchDepTypes": ["uses-with"],
       "matchPackageNames": ["bun"],

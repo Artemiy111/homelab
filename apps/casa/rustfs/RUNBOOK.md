@@ -92,6 +92,35 @@ kubectl -n rustfs exec deploy/rustfs -- \
   http://rustfs/mirror/kubeconform/0.8.0/kubeconform_0.8.0_linux_amd64.tar.gz
 ```
 
+## Образ mirror-sync
+
+Образ `forgejo.biplane.casa/artemiy/rustfs-mirror-sync` собирает
+`.forgejo/workflows/130-mirror-sync-image.yml` из
+`apps/casa/rustfs/mirror-sync-image/Dockerfile`. В манифесте он пинен
+дайджестом, поэтому смена тега сама по себе ничего не обновляет.
+
+Пересборка (новая версия aws-cli в Dockerfile, правка самого Dockerfile или
+плановый прогон):
+
+1. Смержить правку в `main` в `apps/casa/rustfs/mirror-sync-image/**` либо
+   запустить workflow `mirror-sync image` руками (`workflow_dispatch`).
+2. Взять дайджест из лога прогона (Actions → `mirror-sync image` → шаг `Push`):
+
+   ```text
+   digest: forgejo.biplane.casa/artemiy/rustfs-mirror-sync@sha256:…
+   ```
+
+3. Вписать адрес с дайджестом (часть строки после `digest: `) в `image:`
+   в `manifests/mirror-sync.cronjob.yaml` и смержить.
+
+Логин в реестр идёт через `secrets.PACKAGES_TOKEN` — PAT со `write:package`.
+Автоматический токен джобы прав на пакеты не даёт, `docker push` с ним
+возвращает `401`. Если секрета нет, шаг `Log in to registry` падает сразу.
+
+Проверить, что образ собрался и лежит в реестре, можно с macOS, не заходя в
+кластер: реестр читается анонимно, достаточно
+`docker manifest inspect forgejo.biplane.casa/artemiy/rustfs-mirror-sync:<версия>`.
+
 ## Обновление ревизии CR-схем
 
 Гейт `manifests` работает офлайн: схемы CR он берёт только из зеркала по
@@ -140,15 +169,19 @@ lock-файл и пакет в бакете расходятся, нужен р�
 «upload failed» — загрузка в RustFS не прошла; объекта в бакете нет, Job
 завершается ненулевым кодом, прогонить заново.
 
-Если Job падает с `OOMKilled`, смотреть надо не на размер пакета, а на
-`dnf install -y git tar gzip`: скрипт доустанавливает `git` на ходу, и `libdnf`
-на разборе метаданных репозиториев занимает 512–580 МиБ RSS — больше, чем любой
-пакет провайдера. Пик `dnf` плавает от прогона к прогону (метаданные качаются
-заново в каждом контейнере), поэтому на прежнем лимите падение было
-непостоянным: часть ночей Job доходил до `Complete`. Запас по памяти у Job'а
-считается по этому шагу, а не по заливке: `put-object` держит в памяти около
-90 МиБ независимо от размера файла (измерено на пакетах 31 МБ и 200 МБ) —
-aws-cli считает контрольную сумму потоком. Переменные
+Если Job падает с `OOMKilled`, запас по памяти считается по шагу, а не по
+размеру пакета: `put-object` держит в памяти около 90 МиБ независимо от размера
+файла (измерено на пакетах 31 МБ и 200 МБ) — aws-cli считает контрольную сумму
+потоком. Лимит `512Mi` поставлен по замеру: на прогоне, где все артефакты уже
+лежат в бакете, пик working set контейнера — 14 МиБ
+
+```sh
+max_over_time(container_memory_working_set_bytes{namespace="rustfs",
+  pod=~"mirror-sync-.*",container="sync"}[20m])
+```
+
+`git clone` схем и сборка архивов в этот замер не попали — они выполняются только
+когда объектов в бакете нет, — но оба шага потоковые. Переменные
 `AWS_REQUEST_CHECKSUM_CALCULATION=when_required` и
 `AWS_RESPONSE_CHECKSUM_VALIDATION=when_required` на потребление памяти не влияют
 (измерено) и только отключают проверку контрольной суммы, поэтому не заданы.

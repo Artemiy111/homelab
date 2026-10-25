@@ -80,7 +80,7 @@ http://rustfs.rustfs.svc.cluster.local/mirror/<path>
 404 на существующем объекте.
 
 Что зеркалировать — `artifacts.tsv` (`<path> <sha256> <url>`).
-Скачивает и складывает CronJob `mirror-sync` (образ `amazon/aws-cli`); схемы
+Скачивает и складывает CronJob `mirror-sync`; схемы
 kubeconform он же собирает из git. Артефакты с известным sha256 проверяются
 перед загрузкой, а CI — после скачивания. Бакет append-only: чтобы заменить
 версию, удалить объект и перезапустить.
@@ -98,6 +98,23 @@ kubeconform он же собирает из git. Артефакты с изве�
 
 Скрипт (`mirror-sync.sh`) и манифест (`artifacts.tsv`) едут в ConfigMap
 `mirror-sync` через kustomize — отдельного шага нет.
+
+### Образ mirror-sync
+
+Свой образ (`mirror-sync-image/Dockerfile`) на базе `amazon/aws-cli`: в нём
+заранее стоят `git tar gzip`. Они нужны скрипту по делу — `git` тянет схемы
+CRD по SHA и перечисляет `.terraform.lock.hcl` по веткам репозитория, `tar` с
+`gzip` собирают архивы схем, — но в базовом образе их нет, а `dnf install` в
+рантайме стоил 25–30 с на прогон и 512–580 МиБ RSS на метаданных `libdnf`,
+больше любого другого шага Job'а. Поэтому пакеты ставятся один раз на сборке
+образа, а не каждую ночь.
+
+Собирает `.forgejo/workflows/130-mirror-sync-image.yml` при изменении
+`mirror-sync-image/**` и по `workflow_dispatch`; пушит
+`forgejo.biplane.casa/artemiy/rustfs-mirror-sync` с тегами `<версия aws-cli>` и
+`sha-<short>`, дайджест печатает в лог. В манифесте образ пинится дайджестом,
+как и остальные образы репозитория. Парного workflow в `.github/workflows` нет
+намеренно: реестр живёт только на стенде, с публичного зеркала его не видно.
 
 Доступ из job'ов CI обеспечивает NetworkPolicy `allow-ingress` (namespace
 `forgejo` → порт 9000).

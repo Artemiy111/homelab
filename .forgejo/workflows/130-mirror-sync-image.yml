@@ -1,0 +1,53 @@
+name: mirror-sync image
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/casa/rustfs/mirror-sync-image/**"
+      - ".forgejo/workflows/130-mirror-sync-image.yml"
+  workflow_dispatch:
+
+concurrency:
+  cancel-in-progress: false
+
+jobs:
+  image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      REGISTRY: forgejo.biplane.casa
+      IMAGE: forgejo.biplane.casa/artemiy/rustfs-mirror-sync
+      CONTEXT: apps/casa/rustfs/mirror-sync-image
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Log in to registry
+        run: |
+          set -euo pipefail
+          echo "${{ secrets.PACKAGES_TOKEN }}" |
+            docker login "$REGISTRY" -u "${{ github.repository_owner }}" --password-stdin
+
+      - name: Read version from Dockerfile
+        run: |
+          set -euo pipefail
+          version="$(sed -n 's/^FROM .*:\([0-9][^@]*\)@.*/\1/p' "$CONTEXT/Dockerfile")"
+          test -n "$version"
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+          echo "SHORT=$(git rev-parse --short HEAD)" >> "$GITHUB_ENV"
+          echo "версия aws-cli: $version"
+
+      - name: Build
+        run: |
+          set -euo pipefail
+          docker build --platform linux/amd64 \
+            -t "$IMAGE:$VERSION" -t "$IMAGE:sha-$SHORT" "$CONTEXT"
+
+      - name: Push
+        run: |
+          set -euo pipefail
+          docker push "$IMAGE:$VERSION" | tee /tmp/push.log
+          docker push "$IMAGE:sha-$SHORT"
+          digest="$(sed -n 's/.*digest: \(sha256:[0-9a-f]\{64\}\).*/\1/p' /tmp/push.log | tail -n 1)"
+          test -n "$digest"
+          echo "digest: $IMAGE@$digest"
