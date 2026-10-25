@@ -32,6 +32,8 @@ Renovate. Коммиты делает человек в Forgejo, кластер 
 | `platform/envoy-gateway-config.yaml` | `GatewayClass`, `EnvoyProxy`, `Gateway`; поднимается после `HelmRelease` |
 | `platform/metrics-server.yaml` | `HelmRelease` metrics-server в `kube-system` |
 | `platform/caretta.yaml` | `HelmRepository` и `HelmRelease` caretta: eBPF-карта зависимостей, VictoriaMetrics и Grafana (`path: ./platform/yc/caretta/releases`) |
+| `platform/local-path-provisioner.yaml` | Flux `Kustomization` локального провижионера: StorageClass `local-path` (`path: ./platform/yc/local-path-provisioner/manifests`) |
+| `platform/external-secrets.yaml` | `HelmRelease` External Secrets Operator для синхронизации секретов Lockbox (`path: ./platform/yc/external-secrets/releases`) |
 | `apps/test-nginx.yaml` | Flux `Kustomization` тестовой страницы (`path: ./apps/yc/test-nginx/manifests`) |
 | `apps/casa-edge.yaml` | Flux `Kustomization` форвардера в tailnet (`path: ./apps/yc/casa-edge/manifests`) |
 

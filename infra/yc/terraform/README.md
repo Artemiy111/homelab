@@ -7,6 +7,7 @@
 | --- | --- | --- |
 | `state-backend/` | Бакет Object Storage, сервисный аккаунт и ключ для S3-бэкенда остальных модулей | `infra/yc/terraform/state-backend/README.md` |
 | `cluster/` | Две ВМ под kubespray в зонах `d`, `e`, внешний балансировщик на kube-api и публичная подзона в Cloud DNS | `infra/yc/terraform/cluster/README.md` |
+| `nexus/` | Managed PostgreSQL 18 для Nexus, Lockbox с паролем и сервисный аккаунт читателя | `infra/yc/terraform/nexus/README.md` |
 
 ## Бэкенд state
 

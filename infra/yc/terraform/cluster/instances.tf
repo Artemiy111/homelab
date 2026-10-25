@@ -13,7 +13,7 @@ resource "yandex_compute_instance" "node" {
 
   resources {
     cores         = 2
-    memory        = 4
+    memory        = 8
     core_fraction = 100
   }
 

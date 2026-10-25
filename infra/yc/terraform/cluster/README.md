@@ -12,7 +12,7 @@
 | `yandex_vpc_network.cluster` | сеть кластера `k8s-vm` |
 | `yandex_vpc_subnet.node` | по одной подсети на зону из `local.subnets`: `k8s-vm-ru-central1-{d,e}` |
 | `yandex_vpc_security_group.node` | SSH и kube-api из разрешённых сетей, проверки доступности балансировщика, NodePort-порты HTTP и HTTPS, весь трафик между узлами, любой исходящий |
-| `yandex_compute_instance.node` | по одной ВМ на узел из `local.nodes` (`d1`, `d2`, `e1`): 2 ядра, 4 ГБ, 10 ГБ `network-ssd`, публичный адрес через `nat`, доступ по SSH через OS Login |
+| `yandex_compute_instance.node` | по одной ВМ на узел из `local.nodes` (`d1`, `d2`, `e1`): 2 ядра, 8 ГБ, 10 ГБ `network-ssd`, публичный адрес через `nat`, доступ по SSH через OS Login |
 | `yandex_vpc_address.api` | статический публичный адрес балансировщика в зоне `ru-central1-e` |
 | `yandex_lb_target_group.nodes` | целевая группа из внутренних адресов узлов — одна на оба слушателя |
 | `yandex_lb_network_load_balancer.api` | внешний балансировщик `nlb-k8s-vm`: TCP `6443` (kube-api), TCP `80` → NodePort Envoy Gateway `30081`, TCP `443` → порт форвардера в tailnet — все на одной целевой группе |

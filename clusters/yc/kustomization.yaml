@@ -5,5 +5,7 @@ resources:
   - platform/envoy-gateway-config.yaml
   - platform/metrics-server.yaml
   - platform/caretta.yaml
+  - platform/local-path-provisioner.yaml
+  - platform/external-secrets.yaml
   - apps/test-nginx.yaml
   - apps/casa-edge.yaml
