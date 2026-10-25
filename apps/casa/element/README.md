@@ -20,9 +20,10 @@ Traefik маршрутизирует HTTP(S): корень домена ведё
 `/_matrix` — в Synapse, `/livekit/sfu` — в LiveKit, `/livekit/jwt` — в
 MatrixRTC authorization service.
 
-Для домена Matrix ID (`example.com`) Synapse также публикует
-`/.well-known/matrix/client`. В нём объявлен LiveKit MatrixRTC focus — именно
-так Element обнаруживает сервер звонков.
+`/.well-known/matrix/client` Synapse отдаёт и на apex-домене Matrix ID
+(`example.com`), и на `element.example.com`: клиенту, которому назвали второй,
+иначе отвечает Element Web (`404`) и теряется `org.matrix.msc4143.rtc_foci` —
+адрес LiveKit, по которому Element находит сервер звонков.
 
 Там же публикуется Matrix Federation delegation на HTTPS-порт `443`; он нужен
 MatrixRTC authorization service, чтобы проверить OpenID-токен пользователя у

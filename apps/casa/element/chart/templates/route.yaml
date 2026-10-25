@@ -52,6 +52,13 @@ spec:
       backendRefs:
         - name: synapse
           port: 80
+    - matches:
+        - path:
+            type: Exact
+            value: /.well-known/matrix/client
+      backendRefs:
+        - name: synapse
+          port: 80
     - backendRefs:
         - name: element-web
           port: 80

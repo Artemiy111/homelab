@@ -361,6 +361,17 @@ endpoints:
     conditions: *https-ok
     alerts: *alerts-all
 
+  - name: Element well-known
+    group: Applications
+    url: https://element.${DOMAIN}/.well-known/matrix/client
+    interval: 60s
+    client: *https-client
+    conditions:
+      - "[STATUS] == 200"
+      - "[BODY] == pat(*m.homeserver*)"
+      - "[CERTIFICATE_EXPIRATION] > 168h"
+    alerts: *alerts-all
+
   - name: Synapse
     group: Applications
     # Client-Server API Synapse, опубликованный по пути /_matrix.
