@@ -36,6 +36,10 @@ curl --resolve dawarich.example.com:443:<node1-ip> -fsS \
 ошибку видно в логе контейнера, а не в отдельном поде. Проверить также, что
 `PROMETHEUS_EXPORTER_ENABLED` не выключен.
 
+Метрики очередей (`sidekiq_queue_latency`, `sidekiq_jobs_waiting_count`) приходят
+из того же эндпоинта. Их отсутствие при живых `sidekiq_jobs_executed_total`
+означает, что выключен сбор кластерных метрик Sidekiq, а не что очереди пусты.
+
 ## Владелец томов
 
 Процесс работает от uid 1000, и столько же владелец томов `storage` и `watched`.

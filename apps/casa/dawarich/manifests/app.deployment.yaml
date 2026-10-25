@@ -133,6 +133,8 @@ spec:
               value: "true"
             - name: BACKGROUND_PROCESSING_CONCURRENCY
               value: "2"
+            - name: YABEDA_SIDEKIQ_COLLECT_CLUSTER_METRICS
+              value: "true"
           startupProbe:
             httpGet:
               path: /api/v1/health
