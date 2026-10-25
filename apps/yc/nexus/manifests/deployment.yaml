@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nexus
+  namespace: nexus
+spec:
+  replicas: 1
+  revisionHistoryLimit: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: nexus
+  template:
+    metadata:
+      labels:
+        app: nexus
+    spec:
+      terminationGracePeriodSeconds: 120
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 200
+        runAsGroup: 200
+        fsGroup: 200
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: nexus
+          image: "mirror.gcr.io/sonatype/nexus3:3.97.2@sha256:5a90cc609f47d1461282a314fbb78906a5d84c8961d515902e46e357c7278471"
+          ports:
+            - name: http
+              containerPort: 8081
+          envFrom:
+            - configMapRef:
+                name: nexus-config
+          env:
+            - name: INSTALL4J_ADD_VM_PARAMS
+              value: "-Xms2g -Xmx2g -XX:MaxDirectMemorySize=1g -Djava.util.prefs.userRoot=/nexus-data/javaprefs"
+            - name: NEXUS_DATASTORE_NEXUS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: nexus-db
+                  key: password
+          resources:
+            requests:
+              cpu: 100m
+              memory: 2Gi
+            limits:
+              cpu: 2
+              memory: 4Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          startupProbe:
+            httpGet:
+              path: /service/rest/v1/status
+              port: http
+            timeoutSeconds: 10
+            periodSeconds: 10
+            failureThreshold: 30
+          readinessProbe:
+            httpGet:
+              path: /service/rest/v1/status
+              port: http
+            timeoutSeconds: 5
+            periodSeconds: 10
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            timeoutSeconds: 10
+            periodSeconds: 30
+            failureThreshold: 3
+          volumeMounts:
+            - name: nexus-data
+              mountPath: /nexus-data
+      volumes:
+        - name: nexus-data
+          persistentVolumeClaim:
+            claimName: nexus-data

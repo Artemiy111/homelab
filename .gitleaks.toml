@@ -25,3 +25,11 @@ regexTarget = "match"
 regexes = [
   '''^\d+h0m0s$''',
 ]
+
+[[allowlists]]
+description = "Идентификатор секрета Lockbox — не credential"
+paths = ['''^apps/yc/nexus/manifests/externalsecret\.yaml$''']
+regexTarget = "match"
+regexes = [
+  '''e6q[a-z0-9]{17}''',
+]

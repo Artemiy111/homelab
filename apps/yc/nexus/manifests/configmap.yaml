@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nexus-config
+  namespace: nexus
+data:
+  NEXUS_DATASTORE_NEXUS_JDBCURL: "jdbc:postgresql://rc1d-est6lpl20645pfso.mdb.yandexcloud.net:6432,rc1e-er4i62vr0ja4nnu0.mdb.yandexcloud.net:6432/nexus?sslmode=require&tcpKeepAlive=true&targetServerType=primary&loginTimeout=5&connectionTimeout=5"
+  NEXUS_DATASTORE_NEXUS_USERNAME: nexus
+  NEXUS_DATASTORE_NEXUS_ADVANCED: maximumPoolSize=25

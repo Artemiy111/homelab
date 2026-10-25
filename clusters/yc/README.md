@@ -34,6 +34,8 @@ Renovate. Коммиты делает человек в Forgejo, кластер 
 | `platform/caretta.yaml` | `HelmRepository` и `HelmRelease` caretta: eBPF-карта зависимостей, VictoriaMetrics и Grafana (`path: ./platform/yc/caretta/releases`) |
 | `platform/local-path-provisioner.yaml` | Flux `Kustomization` локального провижионера: StorageClass `local-path` (`path: ./platform/yc/local-path-provisioner/manifests`) |
 | `platform/external-secrets.yaml` | `HelmRelease` External Secrets Operator для синхронизации секретов Lockbox (`path: ./platform/yc/external-secrets/releases`) |
+| `platform/external-secrets-config.yaml` | `ClusterSecretStore` для Lockbox; поднимается после оператора (`path: ./platform/yc/external-secrets/config`) |
+| `apps/nexus.yaml` | Flux `Kustomization` Nexus Repository CE (`path: ./apps/yc/nexus/manifests`) |
 | `apps/test-nginx.yaml` | Flux `Kustomization` тестовой страницы (`path: ./apps/yc/test-nginx/manifests`) |
 | `apps/casa-edge.yaml` | Flux `Kustomization` форвардера в tailnet (`path: ./apps/yc/casa-edge/manifests`) |
 
