@@ -166,3 +166,18 @@ spec:
   owner: openwebui
   encoding: UTF8
   databaseReclaimPolicy: retain
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "20"
+  name: mas
+  namespace: databases
+spec:
+  cluster:
+    name: shared
+  name: mas
+  owner: mas
+  encoding: UTF8
+  databaseReclaimPolicy: retain

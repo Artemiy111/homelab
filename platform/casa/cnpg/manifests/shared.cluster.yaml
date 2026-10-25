@@ -123,6 +123,11 @@ spec:
         login: true
         passwordSecret:
           name: element-db-auth
+      - name: mas
+        ensure: present
+        login: true
+        passwordSecret:
+          name: mas-db-auth
       - name: paperless
         ensure: present
         login: true

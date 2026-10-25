@@ -38,6 +38,15 @@ resource "vault_policy" "db_gatus" {
   EOT
 }
 
+resource "vault_policy" "db_mas" {
+  name = "db/mas"
+
+  policy = <<-EOT
+    path "kv/data/mas/db"     { capabilities = ["read"] }
+    path "kv/metadata/mas/db" { capabilities = ["read", "list"] }
+  EOT
+}
+
 resource "vault_policy" "db_glitchtip" {
   name = "db/glitchtip"
 

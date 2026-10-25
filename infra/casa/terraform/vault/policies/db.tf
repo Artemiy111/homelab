@@ -66,6 +66,17 @@ resource "vault_policy" "app_postgres" {
   EOT
 }
 
+resource "vault_policy" "app_mas" {
+  name = "app/mas"
+
+  policy = <<-EOT
+    path "kv/data/mas/db"           { capabilities = ["read"] }
+    path "kv/metadata/mas/db"       { capabilities = ["read", "list"] }
+    path "kv/data/mas/secrets"      { capabilities = ["read"] }
+    path "kv/metadata/mas/secrets"  { capabilities = ["read", "list"] }
+  EOT
+}
+
 resource "vault_policy" "app_zitadel" {
   name = "app/zitadel"
 

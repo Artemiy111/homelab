@@ -43,6 +43,25 @@ spec:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
+  name: vso-mas-db
+  namespace: databases
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultAuth
+metadata:
+  name: vso-mas-db
+  namespace: databases
+spec:
+  vaultAuthGlobalRef:
+    name: vso-global
+    namespace: vault-secrets-operator
+  kubernetes:
+    role: mas-db
+    serviceAccount: vso-mas-db
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
   name: vso-forgejo-db
   namespace: databases
 ---
