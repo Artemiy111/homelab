@@ -1,11 +1,24 @@
 # yc (Terraform)
 
 Провижининг кластера `yc` в Yandex Cloud. Один каталог на root-модуль, у
-каждого свой state; state локальный на macOS, в git не попадает.
+каждого свой state; state лежит в Object Storage, в git не попадает.
 
 | Модуль | Что описывает | Документация |
 | --- | --- | --- |
+| `state-backend/` | Бакет Object Storage, сервисный аккаунт и ключ для S3-бэкенда остальных модулей | `infra/yc/terraform/state-backend/README.md` |
 | `cluster/` | Две ВМ под kubespray в зонах `d`, `e`, внешний балансировщик на kube-api и публичная подзона в Cloud DNS | `infra/yc/terraform/cluster/README.md` |
+
+## Бэкенд state
+
+State модулей хранится в бакете `homelab-tfstate-<cloud-id>` (Object Storage,
+версионирование и блокировка через `use_lockfile`). Бакет и ключ создаёт
+`state-backend/` один раз; он же описывает, как разложить ключ по профилю
+`yc-tfstate` в `~/.aws/credentials`.
+
+Бэкенд прописан в `main.tf` каждого модуля статически: bucket, key и профиль —
+не секреты, а подставить в `backend` переменные нельзя. Подробности,
+bootstrap и переезд существующего state — в
+`infra/yc/terraform/state-backend/README.md`.
 
 ## Переменные окружения
 

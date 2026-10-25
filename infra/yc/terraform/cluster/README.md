@@ -23,6 +23,14 @@
 Ничего не импортируется: сеть, подсети, узлы, балансировщик и его адрес
 создаются с нуля, поэтому `terraform destroy` убирает за собой всё.
 
+## State
+
+State модуля хранится в Object Storage: бакет `homelab-tfstate-<cloud-id>`,
+ключ `yc/cluster/terraform.tfstate`. Бэкенд описан в начале `main.tf`, поэтому
+`init` требует профиль `yc-tfstate` в `~/.aws/credentials`. Создание бакета,
+ключа доступа и переезд локального state — в
+`infra/yc/terraform/state-backend/README.md`.
+
 ## Адресация
 
 Подсети узлов и внутренние диапазоны кластера — разные вещи, и пересекаться они
