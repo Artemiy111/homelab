@@ -364,14 +364,25 @@ endpoints:
       - "[CERTIFICATE_EXPIRATION] > 168h"
     alerts: *alerts-all
 
-  - name: Zitadel
+  - name: Zitadel OIDC discovery
     group: Applications
-    url: https://id.${DOMAIN}/debug/healthz
+    url: https://id.${DOMAIN}/.well-known/openid-configuration
     interval: 60s
     client: *https-client
     conditions:
       - "[STATUS] == 200"
-      - "[BODY] == ok"
+      - "[BODY].issuer == https://id.${DOMAIN}"
+      - "[CERTIFICATE_EXPIRATION] > 168h"
+    alerts: *alerts-all
+
+  - name: Zitadel login
+    group: Applications
+    url: https://id.${DOMAIN}/ui/v2/login
+    interval: 60s
+    client: *https-client
+    conditions:
+      - "[STATUS] == 200"
+      - "[BODY] == pat(*Login with Zitadel*)"
       - "[CERTIFICATE_EXPIRATION] > 168h"
     alerts: *alerts-all
 
