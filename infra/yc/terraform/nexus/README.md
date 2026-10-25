@@ -21,9 +21,13 @@ Data source `yandex_connectionmanager_connection.nexus` только читае�
 ## Почему два хоста
 
 Два хоста в разных зонах — минимум для автопереключения: отказ зоны `d` или `e`
-оставляет один живой хост, и `autofailover` переводит его в primary. Квоты
+оставляет один живой хост, и сервис переводит реплику в primary. Квоты
 `mdb.cpu.count` (4) и `mdb.memory.size` (16 GiB) покрывают ровно 2 × 2 CPU и
 2 × 8 GiB; третий хост потребовал бы запроса квоты.
+
+Имена хостов не задаются: имя делает хост неизменяемым, а `priority` API
+принимает только вместе с именем. Для двух хостов достаточно автоматического
+выбора primary.
 
 Хосты приватные (`assign_public_ip` не задан): кластер и Nexus живут в одной
 сети VPC `k8s-vm`, публичный адрес базе не нужен. Из-за этого не работает
@@ -78,6 +82,28 @@ terraform apply
 пользователя. Для регулярных прогонов сервисному аккаунту нужны `mdb.admin`,
 `lockbox.admin` и `iam.serviceAccounts.admin` — это отдельное расширение прав,
 а не часть модуля.
+
+### Если провайдер не дождался операции
+
+Создание кластера иногда дольше потока, которым провайдер ждёт операцию:
+`apply` падает с `code = DeadlineExceeded desc = stream timeout`, и кластер в
+облаке не появляется. Тогда его создают CLI с `--async`, а затем импортируют —
+state после этого обычный, и Terraform управляет кластером как своим:
+
+```sh macOS
+yc managed-postgresql cluster create nexus --postgresql-version 18 \
+  --resource-preset s3-c2-m8 --disk-size 20 --disk-type network-ssd \
+  --network-name k8s-vm --security-group-ids <security-group-id> \
+  --environment production \
+  --host zone-id=ru-central1-d,subnet-name=k8s-vm-ru-central1-d \
+  --host zone-id=ru-central1-e,subnet-name=k8s-vm-ru-central1-e --async
+
+terraform import yandex_mdb_postgresql_cluster.nexus <cluster-id>
+terraform apply
+```
+
+Импорт проходит без пересоздания, потому что имена и приоритеты хостов не
+заданы: иначе план потребовал бы заменить кластер.
 
 ## Что читать после apply
 
