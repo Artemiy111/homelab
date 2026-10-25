@@ -63,7 +63,7 @@ Elastic.
 ### Почему политика Tailscale больше не секрет
 
 Полиси-файл tailnet (`tailscale_acl` в
-`infra/casa/terraform/tailscale/acl.tf`) описывает, кто к кому ходит, и доступа
+`infra/global/terraform/tailscale/acl.tf`) описывает, кто к кому ходит, и доступа
 сам по себе не даёт: для доступа нужны ключ, OAuth-секрет и членство в tailnet.
 Это конфигурация, а не credentials, и держать её в консоли значило оставить без
 ревью и без проверки при `plan`. Решение — `docs/adr/0017`.

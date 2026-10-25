@@ -4,18 +4,16 @@ DNS tailnet: MagicDNS и split DNS (restricted nameserver на домашний 
 Развёртывание Tailscale на хосте — `apps/casa/tailscale/`, здесь только содержимое
 tailnet через API.
 
-Tailnet общий на аккаунт, а не на стенд, поэтому state этого модуля лежит под
-ключом `global/tailscale/terraform.tfstate`, хотя каталог пока внутри
-`infra/casa/terraform/`. Тег `tag:k8s` из `acl.tf` использует и `yc` — это не
-ресурс casa. Перенос каталога в `infra/global/terraform/` запланирован отдельно,
-после миграции state в RustFS.
+Tailnet общий на аккаунт, а не на стенд, поэтому модуль лежит на уровне
+аккаунта, и state у него под ключом `global/tailscale/terraform.tfstate`. Тег
+`tag:k8s` из `acl.tf` использует и `yc` — это не ресурс casa.
 
 ## Запуск
 
 Провайдер ходит в API Tailscale напрямую, маршрут в домашнюю сеть не нужен.
 
 ```sh macOS
-cd infra/casa/terraform/tailscale
+cd infra/global/terraform/tailscale
 terraform init
 terraform plan
 ```

@@ -1,14 +1,16 @@
 # Terraform
 
 Один каталог на root-модуль, у каждого свой state. State хранится в RustFS, в
-git не попадает.
+git не попадает. Здесь — модули стенда `casa`; то, что относится к аккаунту
+целиком, лежит в `infra/global/terraform/` и описано в его README.
 
 ## State
 
-Все модули `infra/casa/terraform` пишут state в бакет `terraform-state` в RustFS
-(объявлен в `infra/casa/terraform/rustfs/state.tf`), по ключу на модуль. Ключ
-начинается с области, к которой ресурс принадлежит: `clusters/<кластер>/` или
-`global/` — то, что относится к аккаунту целиком, а не к одному стенду.
+Все модули `infra/casa/terraform` и `infra/global/terraform` пишут state в бакет
+`terraform-state` в RustFS (объявлен в `infra/casa/terraform/rustfs/state.tf`),
+по ключу на модуль. Ключ начинается с области, к которой ресурс принадлежит:
+`clusters/<кластер>/` или `global/` — то, что относится к аккаунту целиком, а не
+к одному стенду.
 
 ```text
 clusters/casa/forgejo/terraform.tfstate
@@ -22,11 +24,7 @@ global/tailscale/terraform.tfstate
 
 `tailscale` — единственный пока модуль уровня аккаунта: `acl.tf` описывает
 политику tailnet, `dns.tf` — MagicDNS и split DNS, и то и другое общее для всех
-кластеров (тег `tag:k8s` из того же `acl.tf` использует и `yc`). Поэтому ключ
-`global/`, хотя каталог модуля пока лежит в `infra/casa/terraform/tailscale`:
-перенос каталога в `infra/global/terraform/` — отдельная задача после миграции,
-и она меняет ADR 0016, где сказано, что принадлежность ресурса кластеру
-определяет его место.
+кластеров (тег `tag:k8s` из того же `acl.tf` использует и `yc`).
 
 Бэкенд — S3 с `use_lockfile`: лок берётся объектом `<key>.tflock` рядом со state,
 поэтому два запуска одного модуля одновременно невозможны. Атомарность
@@ -90,9 +88,8 @@ cd infra/casa/terraform/vault && terraform state push terraform.tfstate.restore
 | `vault/` | Политики, роли и kubernetes-auth в HashiCorp Vault | `infra/casa/terraform/vault/README.md` |
 | `uptime-kuma/` | Мониторы, теги, status page и настройки Uptime Kuma | `infra/casa/terraform/uptime-kuma/README.md` |
 | `zitadel/` | Организация, проект, OIDC-приложения, роли, членства, гранты и политика логина Zitadel | `infra/casa/terraform/zitadel/README.md` |
-| `tailscale/` | DNS tailnet: MagicDNS и split DNS на домашний домен | `infra/casa/terraform/tailscale/README.md` |
 | `technitium/` | DNS-записи зоны стенда и bootstrap-зоны `cloudflare-dns.com` | `infra/casa/terraform/technitium/README.md` |
-| `rustfs/` | Бакет `mirror` и его policy | `infra/casa/terraform/rustfs/README.md` |
+| `rustfs/` | Бакеты `mirror` и `terraform-state`, их policy и служебные настройки | `infra/casa/terraform/rustfs/README.md` |
 
 ## Запуск
 

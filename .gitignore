@@ -37,6 +37,7 @@ crash-*.log
 # Значения параметров модуля: домен, адреса. В git лежит только пример в
 # README модуля.
 infra/casa/terraform/*/terraform.tfvars
+infra/global/terraform/*/terraform.tfvars
 infra/yc/terraform/*/terraform.tfvars
 infra/yc/ansible/inventory.yml
 infra/yc/ansible/artifacts/

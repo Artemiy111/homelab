@@ -56,7 +56,7 @@ docker compose -f infra/yc/ansible/compose.yaml run --rm kubespray
 
 - OAuth client (Settings → OAuth clients) со scope `auth_keys: write` и
   выбранным тегом `tag:k8s`;
-- сам тег `tag:k8s` объявлен в `infra/casa/terraform/tailscale/acl.tf`: для
+- сам тег `tag:k8s` объявлен в `infra/global/terraform/tailscale/acl.tf`: для
   OAuth-ключа тег обязателен.
 
 Секрет клиента в репозиторий не попадает и в `compose.yaml` не описывается:

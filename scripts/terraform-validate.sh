@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Валидация Terraform-модулей: init -backend=false и validate для каждого
-# root-модуля в infra/casa/terraform и для дочернего vault/policies.
+# root-модуля в infra/casa/terraform и infra/global/terraform, и для дочернего
+# vault/policies.
 #
 #   ./scripts/terraform-validate.sh
 #
@@ -41,12 +42,12 @@ trap 'rm -rf "$work"' EXIT
 while IFS= read -r -d '' file; do
   mkdir -p "$work/$(dirname "$file")"
   cp "$file" "$work/$file"
-done < <(git ls-files -z "infra/casa/terraform")
+done < <(git ls-files -z "infra/casa/terraform" "infra/global/terraform")
 
 # Root-модули — те, у кого есть lock-файл: без него версии провайдеров не
 # зафиксированы, и init тянет реестр напрямую.
 modules=()
-for d in "$work"/infra/casa/terraform/*/; do
+for d in "$work"/infra/casa/terraform/*/ "$work"/infra/global/terraform/*/; do
   [ -f "$d.terraform.lock.hcl" ] && modules+=("${d%/}")
 done
 if [ "${#modules[@]}" -eq 0 ]; then

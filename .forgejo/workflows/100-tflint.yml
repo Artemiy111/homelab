@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths: &paths
       - "infra/casa/terraform/**"
+      - "infra/global/terraform/**"
       - "infra/yc/terraform/**"
       - ".tflint.hcl"
       - "scripts/terraform-validate.sh"
@@ -43,7 +44,7 @@ jobs:
         run: |
           set -euo pipefail
           tflint --version
-          for dir in infra/casa/terraform infra/yc/terraform; do
+          for dir in infra/casa/terraform infra/global/terraform infra/yc/terraform; do
             tflint --recursive --no-color \
               --chdir="$dir" \
               --config="$(pwd)/.tflint.hcl"
@@ -77,7 +78,7 @@ jobs:
         run: |
           set -euo pipefail
           terraform version
-          terraform fmt -check -diff -no-color -recursive infra/casa/terraform infra/yc/terraform
+          terraform fmt -check -diff -no-color -recursive infra/casa/terraform infra/global/terraform infra/yc/terraform
   terraform-validate:
     runs-on: ubuntu-latest
     timeout-minutes: 15
