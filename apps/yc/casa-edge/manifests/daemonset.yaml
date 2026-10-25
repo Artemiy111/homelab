@@ -32,6 +32,10 @@ spec:
                 secretKeyRef:
                   name: casa-edge-target
                   key: target
+            - name: NODE_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
           ports:
             - name: https
               containerPort: 8443

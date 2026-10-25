@@ -20,7 +20,14 @@ data:
       stick-table type ip size 20k expire 1m store conn_rate(10s),conn_cur
       tcp-request connection track-sc0 src
       tcp-request connection reject if { sc_conn_rate(0) gt 30 } || { sc_conn_cur(0) gt 20 }
+      tcp-request inspect-delay 5s
+      tcp-request content accept if { req_ssl_hello_type 1 }
+      acl yc_sni req_ssl_sni -m end .yc.clusters.biplane.casa
+      use_backend yc_gateway if yc_sni
       default_backend ingress
 
     backend ingress
       server ingress "${CASA_EDGE_TARGET}" send-proxy-v2
+
+    backend yc_gateway
+      server gateway ${NODE_IP}:30082
