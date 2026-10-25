@@ -54,6 +54,7 @@ data:
           human_name: Zitadel
           client_id: "396710017585146780"
           client_secret_file: /run/secrets/mas-oidc/client_secret
+          token_endpoint_auth_method: client_secret_basic
           scope: "openid profile email"
           claims_imports:
             localpart:
