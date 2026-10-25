@@ -103,7 +103,8 @@ split-DNS записи, которые в admin console приходилось �
   тегами. Причина — «внутреннее» в `docs/agents/information-handling.md`.
 
 Файл, как и DNS, описывает политику целиком: правка в admin console
-перезапишется на следующем `apply`. Решение и границы — `docs/adr/0017`.
+перезапишется на следующем `apply`. Что можно класть в файл, а что нет —
+`docs/agents/information-handling.md`.
 
 ## Первый apply
 
