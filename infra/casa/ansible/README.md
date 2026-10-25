@@ -27,6 +27,7 @@
 | `autoupdates` | `dnf-automatic` (таймер + конфиг) |
 | `fail2ban` | `jail.local` |
 | `sysctl` | `99-inotify.conf` |
+| `resolver` | DNS узла: Technitium стенда и публичный резерв, `ignore-auto-dns` |
 | `tailscale_policy_route` | systemd-юнит policy routing для tailnet |
 | `longhorn_prereqs` | `iscsid`, каталог данных, SELinux-модуль |
 | `k0s_config` | `ClusterConfig` k0s в `/etc/k0s/k0s.yaml`, рестарт `k0scontroller` |

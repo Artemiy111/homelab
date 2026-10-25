@@ -1,0 +1,29 @@
+---
+- name: Задать резолверы на соединении
+  community.general.nmcli:
+    conn_name: "{{ resolver_interface }}"
+    type: ethernet
+    dns4: "{{ resolver_servers }}"
+    dns4_ignore_auto: true
+    autoconnect: true
+    state: present
+  notify: Применить настройки соединения
+
+- name: Применить настройки до проверок
+  ansible.builtin.meta: flush_handlers
+
+- name: Сбросить кэш systemd-resolved
+  ansible.builtin.command:
+    argv:
+      - resolvectl
+      - flush-caches
+  changed_when: false
+
+- name: Убедиться, что узел резолвит имена без кластера
+  ansible.builtin.command:
+    argv:
+      - resolvectl
+      - query
+      - --cache=no
+      - "{{ resolver_probe_external }}"
+  changed_when: false

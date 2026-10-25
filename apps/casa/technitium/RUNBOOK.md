@@ -65,6 +65,17 @@ dig @${HOST_IP} cloudflare-dns.com +short   # должны вернуться з
 dig @${HOST_IP} google.com +short           # внешние имена
 ```
 
+Проверка, что узел ходит в Technitium не только явным `dig @${HOST_IP}`, но и
+своим резолвером (иначе pull образов держится на кэше systemd-resolved, а новое
+имя в зоне не разрешится):
+
+```sh
+resolvectl query --cache=no probe-$(date +%s).${DOMAIN}
+```
+
+Ожидается `${HOST_IP}`. Резолверы узла задаёт Ansible-роль `resolver`; если
+запрос уходит в роутер, роль не применена.
+
 ## Обновление
 
 `strategy: Recreate`: старый под удаляется до того, как скачается новый образ, а

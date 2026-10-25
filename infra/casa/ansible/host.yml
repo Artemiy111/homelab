@@ -29,6 +29,8 @@
       tags: [fail2ban]
     - role: sysctl
       tags: [sysctl]
+    - role: resolver
+      tags: [resolver]
     - role: tailscale_policy_route
       tags: [tailscale_policy_route]
     - role: longhorn_prereqs

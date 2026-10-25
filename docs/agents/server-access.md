@@ -315,6 +315,23 @@ ssh homelab-agent 'dig +short @<node1-ip> uptime.example.com A'
 
 Ожидаемый ответ: `<node1-ip>`.
 
+Резолвер самого узла задаётся не DHCP, а Ansible-ролью `resolver`
+(`infra/casa/ansible/roles/resolver`): первым идёт Technitium стенда, вторым —
+публичный резерв. Руками DNS узла не править, и **не** «возвращать как было»
+через `resolvectl revert`: NetworkManager не отдаёт DNS в systemd-resolved, и
+узел останется без резолвера совсем (проверено в `docs/incidents/0012`).
+
+Проверка, что резолвер узла знает внутреннюю зону и не держится на кэше:
+
+```sh
+ssh homelab-agent 'resolvectl query --cache=no probe-$(date +%s).example.com'
+```
+
+Ожидается `<node1-ip>`. Если отвечает отказом — зона доступна только в
+Technitium, а узел спрашивает роутер; это состояние ломает pull образов из
+реестра и выпуск сертификатов, а на закэшированных именах выглядит как
+«DNS работает».
+
 HTTP-маршруты проверяются с macOS через `--resolve`: DNS клиента тут не
 участвует, а адрес узла известен.
 

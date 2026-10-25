@@ -1,0 +1,12 @@
+---
+# reapply, а не `connection up`: перечитывает настройки активного соединения без
+# пересоздания адреса, поэтому k0s и Tailscale не теряют связность на время
+# применения DNS.
+- name: Применить настройки соединения
+  ansible.builtin.command:
+    argv:
+      - nmcli
+      - device
+      - reapply
+      - "{{ resolver_interface }}"
+  changed_when: true
