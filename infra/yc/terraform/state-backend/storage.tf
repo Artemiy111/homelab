@@ -1,5 +1,6 @@
 resource "yandex_storage_bucket" "tfstate" {
   bucket        = local.bucket_name
+  folder_id     = data.yandex_client_config.current.folder_id
   force_destroy = false
 
   versioning {
