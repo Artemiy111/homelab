@@ -61,10 +61,6 @@
         icon: mdi-home-assistant
         href: https://ha.{{HOMEPAGE_VAR_DOMAIN}}/
         description: Автоматизация дома
-    - Infisical:
-        icon: mdi-key-variant
-        href: https://infisical.{{HOMEPAGE_VAR_DOMAIN}}/
-        description: Управление секретами
     - Vault:
         icon: mdi-safe-square
         href: https://vault.{{HOMEPAGE_VAR_DOMAIN}}/

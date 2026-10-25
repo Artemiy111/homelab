@@ -20,7 +20,6 @@ CR и ретраи операторов — почему так, в `platform/ca
 | `shared` | `databases` | `synapse` (element) | `synapse` | 15 МБ |
 | `shared` | `databases` | `paperless` | `paperless` | 17 МБ |
 | `shared` | `databases` | `glitchtip` | `glitchtip` | 34 МБ |
-| `shared` | `databases` | `infisical` | `infisical` | 160 МБ |
 | `shared` | `databases` | `playground` | `playground` | 8 МБ |
 | `shared` | `databases` | `gatus` (новая, не миграция) | `gatus` | — |
 | `shared` | `databases` | `grafana` | `grafana` | ~2 МБ (SQLite) |
@@ -96,7 +95,7 @@ cross-namespace** на `shared-rw.databases.svc.cluster.local`, а секрет 
 Обратно том не сжимается, поэтому запас — не бесплатная опция: Longhorn
 учитывает запрошенный размер при планировании.
 
-Ориентир для общего кластера: пол + 308 МБ (с `infisical` и `sure`) ≈ 347 МБ при
+Ориентир для общего кластера: пол + 148 МБ (с `sure`) ≈ 187 МБ при
 томе 1Gi. Размеры выделенных кластеров описаны в README их сервисов.
 
 **Запас нужен под миграции, а не только под данные.** Обновление приложения с
@@ -190,7 +189,7 @@ CRI-O 1.31+, чарт CNPG 0.26.0+. Расширение объявляется 
   keep по порту `metrics`, лейблы `cluster`/`role` из `cnpg.io/cluster` и
   `cnpg.io/podRole`, служебные базы (`template*`, `postgres`, `app`) отброшены
   по `datname`. Для баз на CNPG отдельные экспортёры больше не нужны: они сняты
-  для `immich`, `dawarich`, `zitadel`, `paperless`, `infisical`, `glitchtip`,
+  для `immich`, `dawarich`, `zitadel`, `paperless`, `glitchtip`,
   `playground`, `authentik`, `forgejo`, `sure`, `nextcloud` и `element`.
 - **Бэкапы.** Ради них всё и затевается: ObjectStore/ScheduledBackup в rustfs
   (S3-совместимый) + **Barman Cloud Plugin** дают непрерывные бэкапы и PITR

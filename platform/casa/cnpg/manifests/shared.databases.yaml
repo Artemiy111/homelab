@@ -157,21 +157,6 @@ kind: Database
 metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "20"
-  name: infisical
-  namespace: databases
-spec:
-  cluster:
-    name: shared
-  name: infisical
-  owner: infisical
-  encoding: UTF8
-  databaseReclaimPolicy: retain
----
-apiVersion: postgresql.cnpg.io/v1
-kind: Database
-metadata:
-  annotations:
-    argocd.argoproj.io/sync-wave: "20"
   name: openwebui
   namespace: databases
 spec:

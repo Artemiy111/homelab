@@ -21,7 +21,6 @@ spec:
     - glitchtip
     - home-assistant
     - immich
-    - infisical
     - jellyfin
     - local-ai
     - mailserver

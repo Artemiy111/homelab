@@ -172,11 +172,6 @@ scrape_configs:
           # см. telemetry в listener (clusters/casa/argocd/platform/vault.yaml).
           - vault.vault.svc.cluster.local:8200
 
-  - job_name: infisical
-    static_configs:
-      - targets:
-          - infisical.infisical.svc.cluster.local:9464
-
   # Метрики включаются флагом/конфигом самого приложения, аутентификации нет.
   - job_name: athens
     static_configs:
@@ -379,7 +374,6 @@ scrape_configs:
           - element-valkey-exporter.element.svc.cluster.local:9121
           - glitchtip-valkey-exporter.glitchtip.svc.cluster.local:9121
           - immich-valkey-exporter.immich.svc.cluster.local:9121
-          - infisical-redis-exporter.infisical.svc.cluster.local:9121
           - nextcloud-redis-exporter.nextcloud.svc.cluster.local:9121
           - paperless-broker-exporter.paperless.svc.cluster.local:9121
           - seafile-redis-exporter.seafile.svc.cluster.local:9121

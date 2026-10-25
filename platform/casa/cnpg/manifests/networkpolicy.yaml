@@ -3,7 +3,7 @@
 # (instance manager, PostgreSQL), поэтому ему разрешён весь трафик.
 # vmagent из monitoring скрейпит встроенный экспортёр instance-manager (9187).
 # Потребители общего кластера перечисляются явно: сейчас это paperless, forgejo,
-# infisical, glitchtip, postgres (pgweb), authentik, sure, nextcloud, open-webui,
+# glitchtip, postgres (pgweb), authentik, sure, nextcloud, open-webui,
 # gatus, grafana (под gatus/grafana из общего namespace monitoring) и element
 # (synapse).
 # Egress не ограничивается — см. комментарий в apps/casa/lute/manifests/networkpolicy.yaml.
@@ -65,9 +65,6 @@ spec:
               kubernetes.io/metadata.name: forgejo
         - namespaceSelector:
             matchLabels:
-              kubernetes.io/metadata.name: infisical
-        - namespaceSelector:
-            matchLabels:
               kubernetes.io/metadata.name: glitchtip
         - namespaceSelector:
             matchLabels:
@@ -82,7 +79,7 @@ spec:
             matchLabels:
               kubernetes.io/metadata.name: nextcloud
         # open-webui — выделенный namespace, поэтому доступ дан всем подам
-        # namespace'а (как paperless/forgejo/infisical/glitchtip/postgres/
+        # namespace'а (как paperless/forgejo/glitchtip/postgres/
         # authentik/sure/nextcloud).
         - namespaceSelector:
             matchLabels:
@@ -94,7 +91,7 @@ spec:
               kubernetes.io/metadata.name: element
         # monitoring — общий namespace, поэтому доступ к базе дан только подам
         # gatus и grafana, а не всем подам namespace'а (в отличие от paperless/
-        # forgejo/infisical/glitchtip/postgres/authentik/sure/nextcloud).
+        # forgejo/glitchtip/postgres/authentik/sure/nextcloud).
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: monitoring

@@ -376,18 +376,6 @@ locals {
       accepted_status_codes = ["200"]
     }
 
-    "infisical" = {
-      name                  = "Infisical"
-      group                 = "applications"
-      kind                  = "json"
-      description           = "Status endpoint Infisical через локальный DNS, TLS и Traefik; также отражает доступность Redis и Postgres."
-      url                   = "https://infisical.${var.domain}/api/status"
-      json_path             = "$.message"
-      json_path_operator    = "=="
-      expected_value        = "Ok"
-      accepted_status_codes = ["200"]
-    }
-
     "zitadel" = {
       name                  = "Zitadel"
       group                 = "applications"

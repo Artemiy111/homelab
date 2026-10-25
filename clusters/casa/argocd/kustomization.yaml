@@ -27,7 +27,6 @@ resources:
   - apps/home-assistant.yaml
   - apps/homepage.yaml
   - apps/immich.yaml
-  - apps/infisical.yaml
   - apps/jellyfin.yaml
   - apps/local-ai.yaml
   - apps/loki.yaml

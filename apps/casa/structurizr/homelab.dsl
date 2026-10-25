@@ -106,10 +106,6 @@ workspace {
                 tags "idm"
             }
 
-            infisical = softwareSystem "Infisical" "Веб-интерфейс к секретам (infisical.example.com)" {
-                tags "idm"
-            }
-
             xui = softwareSystem "3x-ui (Xray)" "Панель управления личным Xray-прокси; inbound :8443 (TCP/UDP)" {
                 tags "idm"
             }
@@ -322,9 +318,6 @@ workspace {
             tags "http"
         }
         traefik -> postgres "маршрутизирует Host(postgres.*)" "HTTPS" {
-            tags "http"
-        }
-        traefik -> infisical "маршрутизирует Host(infisical.*)" "HTTPS" {
             tags "http"
         }
         traefik -> oauth2proxy "маршрутизирует Host(oauth.*)" "HTTPS" {

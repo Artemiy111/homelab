@@ -56,15 +56,6 @@ resource "vault_policy" "db_grafana" {
   EOT
 }
 
-resource "vault_policy" "db_infisical" {
-  name = "db/infisical"
-
-  policy = <<-EOT
-    path "kv/data/infisical/db"     { capabilities = ["read"] }
-    path "kv/metadata/infisical/db" { capabilities = ["read", "list"] }
-  EOT
-}
-
 resource "vault_policy" "db_nextcloud" {
   name = "db/nextcloud"
 

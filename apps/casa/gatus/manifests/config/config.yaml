@@ -353,17 +353,6 @@ endpoints:
     conditions: *https-ok
     alerts: *alerts-all
 
-  - name: Infisical
-    group: Applications
-    url: https://infisical.${DOMAIN}/api/status
-    interval: 60s
-    client: *https-client
-    conditions:
-      - "[STATUS] == 200"
-      - "[BODY].message == Ok"
-      - "[CERTIFICATE_EXPIRATION] > 168h"
-    alerts: *alerts-all
-
   - name: Zitadel OIDC discovery
     group: Applications
     url: https://id.${DOMAIN}/.well-known/openid-configuration

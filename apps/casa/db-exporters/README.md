@@ -10,7 +10,7 @@ Prometheus-экспортеры для баз homelab, которые ещё н�
 **Базы в CloudNativePG сюда не входят.** Встроенный экспортёр instance-manager
 отдаёт `/metrics` на порту `metrics` (9187) каждого пода кластера, а vmagent
 находит их service discovery (job `cnpg`). Поэтому для `immich`, `dawarich`,
-`zitadel`, `paperless`, `infisical`, `glitchtip`, `playground`, `authentik`,
+`zitadel`, `paperless`, `glitchtip`, `playground`, `authentik`,
 `forgejo`, `sure`, `nextcloud` и `element` отдельных подов нет: их метрики
 приходят из кластеров `immich-db`, `dawarich-db`, `zitadel-db` и `shared`
 (различать базы внутри кластера нужно по `datname`).
@@ -30,7 +30,7 @@ Prometheus-экспортеры для баз homelab, которые ещё н�
 ## Что покрыто
 
 Redis/Valkey: `dawarich-redis`, `element-valkey`, `glitchtip-valkey`,
-`immich-valkey`, `infisical-redis`, `nextcloud-redis`, `paperless-broker`,
+`immich-valkey`, `nextcloud-redis`, `paperless-broker`,
 `seafile-redis`, `sure-redis` — все без аутентификации, экспортеру нужен только
 `REDIS_ADDR`.
 

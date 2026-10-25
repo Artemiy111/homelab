@@ -1,7 +1,6 @@
 # HashiCorp Vault — сервер и синхронизация секретов
 
 Секреты доставляет Vault через VSO — это единственный путь в кластере.
-Infisical остаётся отдельным тестовым сервисом.
 
 Политики, роли и конфигурация метода `kubernetes` управляются terraform —
 `infra/casa/terraform/vault/README.md`.

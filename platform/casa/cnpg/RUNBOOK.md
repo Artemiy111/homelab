@@ -38,7 +38,7 @@ kubectl -n <ns> delete pod <cluster>-1
    (`VaultStaticSecret`), **в namespace своего кластера**:
    - `databases`: `nextcloud-db-auth`, `forgejo-db-auth`, `element-db-auth`
      (роль `synapse`), `paperless-db-auth`, `glitchtip-db-auth`,
-     `infisical-db-auth`, `postgres-db-auth` (роль `playground`), `gatus-db-auth`,
+     `postgres-db-auth` (роль `playground`), `gatus-db-auth`,
      `grafana-db-auth`, `openwebui-db-auth`, `authentik-db-auth`, `sure-db-auth` —
      `db-auth.vaultstaticsecrets.yaml`;
    - `zitadel`: `zitadel-db-auth` — в юните `apps/casa/zitadel/`;

@@ -60,7 +60,6 @@ discovery:
     - k8s_namespace: jellyfin
     - k8s_namespace: local-ai
     - k8s_namespace: open-webui
-    - k8s_namespace: infisical
     - k8s_namespace: glitchtip
     - k8s_namespace: athens
     - k8s_namespace: zot

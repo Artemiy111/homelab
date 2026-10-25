@@ -119,25 +119,6 @@ spec:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: vso-infisical-db
-  namespace: databases
----
-apiVersion: secrets.hashicorp.com/v1beta1
-kind: VaultAuth
-metadata:
-  name: vso-infisical-db
-  namespace: databases
-spec:
-  vaultAuthGlobalRef:
-    name: vso-global
-    namespace: vault-secrets-operator
-  kubernetes:
-    role: infisical-db
-    serviceAccount: vso-infisical-db
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
   name: vso-nextcloud-db
   namespace: databases
 ---

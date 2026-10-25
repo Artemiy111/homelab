@@ -33,17 +33,6 @@ resource "vault_policy" "app_immich" {
   EOT
 }
 
-resource "vault_policy" "app_infisical" {
-  name = "app/infisical"
-
-  policy = <<-EOT
-    path "kv/data/infisical/db"           { capabilities = ["read"] }
-    path "kv/metadata/infisical/db"       { capabilities = ["read", "list"] }
-    path "kv/data/infisical/secrets"      { capabilities = ["read"] }
-    path "kv/metadata/infisical/secrets"  { capabilities = ["read", "list"] }
-  EOT
-}
-
 resource "vault_policy" "app_open_webui" {
   name = "app/open-webui"
 
