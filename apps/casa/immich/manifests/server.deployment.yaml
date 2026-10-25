@@ -42,7 +42,7 @@ spec:
               cpu: 100m
               memory: 64Mi
         - name: wait-for-valkey
-          image: "valkey/valkey:9@sha256:8e8d64b405ce18f41b8e5ee20aa4687a8ed0022d1298f2ce31cdcf3a76e09411"
+          image: "valkey/valkey:9@sha256:418652cfb58ef879d4978c33553735d7147016032d5aefaa14c828e611eb9dfd"
           command: ["/bin/sh", "-c", "until valkey-cli -h immich-valkey ping | grep -q PONG; do echo waiting for immich-valkey; sleep 2; done"]
           securityContext:
             runAsUser: 999
