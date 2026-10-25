@@ -59,13 +59,16 @@ Cert Manager хранит сертификат и продлевает его с
 
 ```sh macOS
 yc certificate-manager certificate content --name yc-wildcard \
-  --chain /tmp/yc-wildcard.crt --key /tmp/yc-wildcard.key
+  --chain /tmp/yc-wildcard.crt --key /tmp/yc-wildcard.key > /dev/null
 
 kubectl -n envoy-gateway-system create secret tls yc-wildcard-tls \
   --cert=/tmp/yc-wildcard.crt --key=/tmp/yc-wildcard.key
 
 rm /tmp/yc-wildcard.crt /tmp/yc-wildcard.key
 ```
+
+`> /dev/null` обязателен: без него `yc` печатает содержимое сертификата и
+приватный ключ в терминал, то есть ключ попадает в scrollback и логи оболочки.
 
 Секрет — `kubernetes.io/tls` с ключами `tls.crt` и `tls.key`: именно в таком
 виде его ждёт `certificateRefs` у Gateway.
