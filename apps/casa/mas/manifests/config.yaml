@@ -1,0 +1,68 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mas-config
+  namespace: mas
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+data:
+  config.yaml: |
+    http:
+      public_base: https://mas.biplane.casa/
+      trusted_proxies:
+        - 10.0.0.0/8
+        - 172.16.0.0/12
+        - 192.168.0.0/16
+      listeners:
+        - name: web
+          resources:
+            - name: discovery
+            - name: human
+            - name: oauth
+            - name: compat
+            - name: assets
+          binds:
+            - address: "[::]:8080"
+        - name: internal
+          resources:
+            - name: health
+          binds:
+            - address: "[::]:8081"
+    matrix:
+      kind: synapse
+      homeserver: biplane.casa
+      endpoint: http://synapse.element.svc.cluster.local:80/
+      secret_file: /run/secrets/mas/matrix_secret
+    database:
+      host: shared-rw.databases.svc.cluster.local
+      port: 5432
+      username: mas
+      password_file: /run/secrets/mas-db/password
+      database: mas
+    secrets:
+      encryption_file: /run/secrets/mas/encryption
+      keys:
+        - key_file: /run/secrets/mas/rsa_key
+        - key_file: /run/secrets/mas/ec_key
+    passwords:
+      enabled: false
+    upstream_oauth2:
+      providers:
+        - id: 01K9A2B3C4D5E6F7G8H9J0KMNP
+          synapse_idp_id: oidc-zitadel
+          issuer: https://id.biplane.casa
+          human_name: Zitadel
+          client_id: "396710017585146780"
+          client_secret_file: /run/secrets/mas-oidc/client_secret
+          scope: "openid profile email"
+          claims_imports:
+            localpart:
+              action: suggest
+              on_conflict: set
+              template: "{{ user.email.split('@')[0] }}"
+            displayname:
+              action: suggest
+              template: "{{ user.name }}"
+            email:
+              action: suggest
+              template: "{{ user.email }}"

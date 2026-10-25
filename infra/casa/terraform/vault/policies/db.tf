@@ -74,6 +74,8 @@ resource "vault_policy" "app_mas" {
     path "kv/metadata/mas/db"       { capabilities = ["read", "list"] }
     path "kv/data/mas/secrets"      { capabilities = ["read"] }
     path "kv/metadata/mas/secrets"  { capabilities = ["read", "list"] }
+    path "kv/data/mas/oidc"         { capabilities = ["read"] }
+    path "kv/metadata/mas/oidc"     { capabilities = ["read", "list"] }
   EOT
 }
 

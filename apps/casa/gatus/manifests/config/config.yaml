@@ -372,6 +372,17 @@ endpoints:
       - "[CERTIFICATE_EXPIRATION] > 168h"
     alerts: *alerts-all
 
+  - name: MAS
+    group: Applications
+    url: https://mas.${DOMAIN}/.well-known/openid-configuration
+    interval: 60s
+    client: *https-client
+    conditions:
+      - "[STATUS] == 200"
+      - "[BODY] == pat(*issuer*)"
+      - "[CERTIFICATE_EXPIRATION] > 168h"
+    alerts: *alerts-all
+
   - name: Synapse
     group: Applications
     # Client-Server API Synapse, опубликованный по пути /_matrix.

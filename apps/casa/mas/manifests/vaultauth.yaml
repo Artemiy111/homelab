@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: vso-mas
+  namespace: mas
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultAuth
+metadata:
+  name: vso-mas
+  namespace: mas
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  vaultAuthGlobalRef:
+    name: vso-global
+    namespace: vault-secrets-operator
+  kubernetes:
+    role: mas
+    serviceAccount: vso-mas

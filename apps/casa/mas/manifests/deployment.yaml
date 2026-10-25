@@ -1,0 +1,114 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mas
+  namespace: mas
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  revisionHistoryLimit: 1
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: mas
+  template:
+    metadata:
+      labels:
+        app: mas
+    spec:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        fsGroup: 65532
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: mas
+          image: "ghcr.io/element-hq/matrix-authentication-service:1.27.1@sha256:02712e68c90f3743fedbd5e3343517481b2b4f246a9fd9e2f050dc2553033847"
+          args:
+            - server
+            - --config
+            - /etc/mas/config.yaml
+          ports:
+            - name: web
+              containerPort: 8080
+            - name: internal
+              containerPort: 8081
+          env:
+            - name: TZ
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-config
+                  key: TZ
+          startupProbe:
+            httpGet:
+              path: /health
+              port: internal
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: internal
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: internal
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi
+          volumeMounts:
+            - name: config
+              mountPath: /etc/mas
+              readOnly: true
+            - name: db
+              mountPath: /run/secrets/mas-db
+              readOnly: true
+            - name: secrets
+              mountPath: /run/secrets/mas
+              readOnly: true
+            - name: oidc
+              mountPath: /run/secrets/mas-oidc
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: config
+          configMap:
+            name: mas-config
+        - name: db
+          secret:
+            secretName: mas-db
+            defaultMode: 0440
+        - name: secrets
+          secret:
+            secretName: mas-secrets
+            defaultMode: 0440
+        - name: oidc
+          secret:
+            secretName: mas-oidc
+            defaultMode: 0440
+        - name: tmp
+          emptyDir: {}
