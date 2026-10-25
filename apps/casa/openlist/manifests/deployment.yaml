@@ -20,7 +20,7 @@ spec:
         fsGroup: 1001
       containers:
         - name: openlist
-          image: "openlistteam/openlist:v4.2.7-lite@sha256:621a78386646a1795f22b17100a7d81da0280c50d5a42fd64a5d0a7260a9618c"
+          image: "openlistteam/openlist:v4.2.9-lite@sha256:e37bff47bcd73a344ac83a69d1ed5a6921efe4afb55ca75ebaac391bfdeb4bd9"
           ports:
             - name: http
               containerPort: 5244
