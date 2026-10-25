@@ -32,6 +32,7 @@ resources:
   - apps/loki.yaml
   - apps/lute.yaml
   - apps/mailserver.yaml
+  - apps/mas.yaml
   - apps/mermaid-live-editor.yaml
   - apps/monitoring-middlewares.yaml
   - apps/navidrome.yaml
