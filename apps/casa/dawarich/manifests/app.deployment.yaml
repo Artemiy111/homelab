@@ -21,6 +21,7 @@ spec:
     spec:
       automountServiceAccountToken: false
       enableServiceLinks: false
+      terminationGracePeriodSeconds: 60
       # uid 1000 — владелец томов storage/watched. Своего пользователя в образе
       # нет, поэтому HOME задан явно: без записи в /etc/passwd Dir.home падает.
       securityContext:
@@ -36,7 +37,7 @@ spec:
         # (Dir.tmpdir) такие каталоги отвергает. Готовим каталог 0700 и
         # направляем туда TMPDIR.
         - name: prepare-tmp
-          image: "freikin/dawarich:1.16.0@sha256:3cfab81737267d486757db638fe614610df454d161a389c34eb59944ac32ee58"
+          image: "freikin/dawarich:1.17.0@sha256:27567ccd0e526b5ae8f987b91312d394c912260487229f65c31eaf198f615f69"
           command: ["/bin/sh", "-c", "mkdir -p /var/app/tmp/tmpdir && chmod 700 /var/app/tmp/tmpdir"]
           securityContext:
             allowPrivilegeEscalation: false
@@ -55,7 +56,7 @@ spec:
               mountPath: /var/app/tmp
       containers:
         - name: dawarich
-          image: "freikin/dawarich:1.16.0@sha256:3cfab81737267d486757db638fe614610df454d161a389c34eb59944ac32ee58"
+          image: "freikin/dawarich:1.17.0@sha256:27567ccd0e526b5ae8f987b91312d394c912260487229f65c31eaf198f615f69"
           command: ["web-entrypoint.sh"]
           args: ["bin/rails", "server", "-p", "3000", "-b", "::"]
           ports:
@@ -112,11 +113,6 @@ spec:
                   key: DAWARICH_METRICS_PASSWORD
             - name: METRICS_USERNAME
               value: netdata
-            # /metrics собирается из двух процессов: свой ответ плюс метрики
-            # sidekiq-экспортёра на 9394. Без этого адреса агрегатор молча
-            # отдаёт только метрики web.
-            - name: SIDEKIQ_METRICS_URL
-              value: "http://dawarich-sidekiq.dawarich.svc.cluster.local:9394/metrics"
             - name: APPLICATION_HOSTS
               value: "dawarich.$(DOMAIN)"
             - name: APPLICATION_PROTOCOL
@@ -132,7 +128,11 @@ spec:
             - name: PROMETHEUS_EXPORTER_ENABLED
               value: "true"
             - name: WEB_CONCURRENCY
-              value: "1"
+              value: "0"
+            - name: SIDEKIQ_EMBEDDED
+              value: "true"
+            - name: BACKGROUND_PROCESSING_CONCURRENCY
+              value: "2"
           startupProbe:
             httpGet:
               path: /api/v1/health
@@ -170,10 +170,10 @@ spec:
               drop: ["ALL"]
           resources:
             requests:
-              cpu: 100m
-              memory: 512Mi
+              cpu: 200m
+              memory: 768Mi
             limits:
-              cpu: 500m
+              cpu: "1"
               memory: 4Gi
           volumeMounts:
             - name: tmp

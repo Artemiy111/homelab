@@ -2,15 +2,15 @@
   "schema": 1,
   "source": "scripts/status-badges.sh",
   "services": 57,
-  "manifests": 616,
+  "manifests": 613,
   "images": {
-    "pinned": 107,
-    "total": 107,
+    "pinned": 105,
+    "total": 105,
     "percent": 100,
     "exceptions": []
   },
   "network_policy": {
-    "objects": 126,
+    "objects": 125,
     "namespaces": 49,
     "namespaces_total": 62,
     "percent": 79,
