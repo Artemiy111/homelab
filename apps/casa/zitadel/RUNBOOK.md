@@ -88,3 +88,27 @@ kubectl -n zitadel logs deploy/zitadel --since=5m | grep -iE "postgres|database"
 Ожидаемо: `Cluster in healthy state`, `APPLIED = true` у базы. Ошибки
 соединения в логах ZITADEL указывают на кластер; успешные миграции — на то, что
 идёт обычный старт (после апгрейда он бывает долгим).
+
+## Terraform падает с 404 на v1 API
+
+Провайдер Terraform для `zitadel_action`, `zitadel_instance_member`,
+`zitadel_org_member`, `zitadel_project_role`, `zitadel_user_grant`,
+`zitadel_login_policy` и `zitadel_organization_domain` ходит в legacy v1 API по
+настоящему gRPC, а gRPC требует HTTP/2. ZITADEL отдаёт v1 только по gRPC и REST:
+Connect/JSON-транспорт для него убран в v4. Если Traefik идёт к поду по
+HTTP/1.1, каждый такой ресурс получает `404 Not Found` с content-type
+`application/json`, а провайдер показывает это как `rpc error: code =
+Unimplemented ... unexpected content-type`.
+
+Поэтому порт `http` в `zitadel.service.yaml` помечен `appProtocol:
+kubernetes.io/h2c` — по этому полю Gateway API провайдер Traefik выбирает схему
+бэкенда. Без него v2-ресурсы продолжают работать (Connect переживает HTTP/1.1),
+а v1 падают, и это выглядит как расхождение state, а не как проблема прокси.
+
+```sh
+kubectl -n zitadel get svc zitadel -o jsonpath='{.spec.ports[0].appProtocol}'
+```
+
+Ожидаемо: `kubernetes.io/h2c`. Пропал — значит Argo не досинхронизировал
+Service, и `terraform plan` снова покажет 404 на v1-ресурсах.
+

@@ -27,7 +27,7 @@ terraform {
 }
 
 provider "zitadel" {
-  domain = "id.${var.domain}"
+  domain = "id.${local.domain}"
 
   jwt_profile_file = pathexpand(var.jwt_profile_file)
 }

@@ -18,15 +18,18 @@ terraform plan
 ## Значения
 
 ```hcl
+# locals.tf
 domain = "example.com"
 ```
 
 `domain` — корневой домен стенда, а не адрес инстанса: в блок `provider`
-подставляется `id.${var.domain}`, ровно как `ZITADEL_EXTERNALDOMAIN` в
-`apps/casa/zitadel/manifests/zitadel.deployment.yaml`. Из того же `var.domain` собираются
-домен организации (`homelab.id.<домен>`) и redirect URI приложений. Реальное
-значение — в `terraform.tfvars`, который не коммитится; без него Terraform
-спросит его интерактивно.
+подставляется `id.${local.domain}`, ровно как `ZITADEL_EXTERNALDOMAIN` в
+`apps/casa/zitadel/manifests/zitadel.deployment.yaml`. Из того же `local.domain`
+собираются домен организации (`homelab.id.<домен>`) и redirect URI приложений.
+
+Значение лежит в `locals.tf` рядом с остальными модулями, а не в
+`terraform.tfvars`: домен — не секрет и не параметр стенда, у которого бывает
+больше одного значения (`docs/adr/0009`).
 
 ## Доступ провайдера
 
