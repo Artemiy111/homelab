@@ -42,7 +42,7 @@ Git и Argo CD, проходя те же проверки, что и перед 
 - **Данные:** CloudNativePG, MariaDB, RustFS
 - **Git:** Forgejo
 - **Мониторинг:** Grafana
-- **Приложения:** Immich, Jellyfin, Navidrome, Nextcloud, Seafile, Element, Stalwart,
+- **Приложения:** Immich, Jellyfin, Navidrome, Nextcloud, Element, Stalwart,
   Paperless, Home Assistant, Open WebUI
 
 У каждого юнита есть README и RUNBOOK рядом с манифестами: [`apps/casa/`](apps/casa/) и

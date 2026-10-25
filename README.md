@@ -42,7 +42,7 @@ Every number above is computed from git and checked by a CI gate, so it cannot d
 - **Data:** CloudNativePG, MariaDB, RustFS
 - **Git:** Forgejo
 - **Monitoring:** Grafana
-- **Applications:** Immich, Jellyfin, Navidrome, Nextcloud, Seafile, Element, Stalwart,
+- **Applications:** Immich, Jellyfin, Navidrome, Nextcloud, Element, Stalwart,
   Paperless, Home Assistant, Open WebUI
 
 Each unit has a README and a RUNBOOK under [`apps/casa/`](apps/casa/) and

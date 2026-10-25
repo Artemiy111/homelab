@@ -105,7 +105,7 @@ ClusterIP kube-dns тоже не нужен: Kuma сама резолвит им
 `json_path = "$trim($)"` с `==`: jsonata срезает пробелы по краям, и сравнение
 получается таким же строгим, как в Gatus.
 
-Для `Contains`-проверок Gatus'а (`Seafile`, `Synapse`, `Talk signaling`)
+Для `Contains`-проверок Gatus'а (`Synapse`, `Talk signaling`)
 достаточно `keyword` с подстрокой — это ровно то же сравнение.
 
 `Nextcloud` в Gatus проверяет три условия (`installed`, `maintenance`,

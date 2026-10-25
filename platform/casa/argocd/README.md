@@ -53,8 +53,8 @@ client-side apply Argo доводит сам — миграцией менедж
 перехвата владения не нужен: в Argo это другая опция (см. ниже).
 
 **Исключение — юниты, владеющие CR с admission-дефолтами** (это `cnpg` с общим
-кластером и пятеро с выделенными базами: `immich`, `zitadel`, `dawarich`,
-`seafile`, `uptime-kuma`). Они на client-side apply и с
+кластером и четверо с выделенными базами: `immich`, `zitadel`, `dawarich`,
+`uptime-kuma`). Они на client-side apply и с
 `argocd.argoproj.io/compare-options: ServerSideDiff=false`. Оба оператора
 дописывают значения в `spec` на admission (CNPG — `api/v1/cluster_defaults.go`,
 `func (r *Cluster) Default()` и guard-вебхук; mariadb-operator — вебхук
@@ -131,7 +131,7 @@ kind, и `Namespace` в этом списке первый — раньше и C
 У выделенных кластеров и MariaDB в юнитах сервисов волн **нет** намеренно: вместе
 с базой в юните живут рабочие нагрузки, а ожидание их готовности заблокировало бы
 применение объектов базы — синхронизация уходила бы в retry, и база молча не
-создавалась (так и вышло при переезде: `Deployment onlyoffice` не прошёл
+создавалась (так и вышло при переезде: один из Deployment'ов не прошёл
 `progressDeadline` и держал волну). Порядок «кластер → база» там дают сортировка по
 kind и ретраи операторов, а залипшую `Database` видно в UI: health-проверка CR
 показывает `Progressing`, пока `status.applied` не станет true.

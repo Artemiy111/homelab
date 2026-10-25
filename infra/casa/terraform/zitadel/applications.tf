@@ -106,10 +106,6 @@ resource "zitadel_application_v2" "seafile" {
     clock_skew                   = "0s"
     skip_native_app_success_page = false
   }
-
-  lifecycle {
-    prevent_destroy = true
-  }
 }
 
 resource "zitadel_application_v2" "immich" {

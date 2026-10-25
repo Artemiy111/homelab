@@ -1,10 +1,10 @@
 # db-exporters раскладывает экспортёры по чужим namespace: dawarich, element,
-# glitchtip, immich, nextcloud, paperless, seafile, sure,
-# uptime-kuma. Поэтому у Kustomization нет поля namespace, а у каждого
+# glitchtip, immich, nextcloud, paperless, sure, uptime-kuma. Поэтому у
+# Kustomization нет поля namespace, а у каждого
 # манифеста namespace задан явно, и destination.namespace здесь — только
 # значение по умолчанию для ресурсов без него.
 #
-# prune: true — все десять экспортёров stateless, PVC у них нет, и
+# prune: true — все восемь экспортёров stateless, PVC у них нет, и
 # удалённый из git экспортёр должен исчезнуть и из кластера.
 apiVersion: argoproj.io/v1alpha1
 kind: Application

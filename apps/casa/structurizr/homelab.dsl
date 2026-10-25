@@ -125,14 +125,6 @@ workspace {
                 tags "files"
             }
 
-            seafile = softwareSystem "Seafile" "Синхронизация файлов с OnlyOffice (seafile.example.com)" {
-                tags "files"
-            }
-
-            onlyoffice = softwareSystem "OnlyOffice" "Редактор документов для Seafile (onlyoffice.example.com)" {
-                tags "files"
-            }
-
             gitlab = softwareSystem "GitLab" "Второй Git-сервис; выключен (0 реплик) (gitlab.example.com)" {
                 tags "files"
             }
@@ -299,12 +291,6 @@ workspace {
         traefik -> localai "маршрутизирует Host(localai.*)" "HTTPS" {
             tags "http"
         }
-        traefik -> seafile "маршрутизирует Host(seafile.*)" "HTTPS" {
-            tags "http"
-        }
-        traefik -> onlyoffice "маршрутизирует Host(onlyoffice.*)" "HTTPS" {
-            tags "http"
-        }
         traefik -> gitlab "маршрутизирует Host(gitlab.*)" "HTTPS" {
             tags "http"
         }
@@ -359,7 +345,6 @@ workspace {
         navidrome -> mediaLibrary "читает /storage/media/music" "host bind mount"
         immich -> mediaLibrary "читает библиотеки /storage/media" "host bind mount"
         spotdl -> mediaLibrary "пишет в /storage/media/music" "host bind mount"
-        seafile -> persistentStorage "хранит данные в $APPS_STORAGE_PATH" "host bind mount"
         vault -> persistentStorage "хранит данные в $APPS_STORAGE_PATH" "host bind mount"
         forgejo -> vault "CI получает секреты (VaultAuth)" "Vault API"
         spotdl -> spotify "запрашивает метаданные треков" "Web API"

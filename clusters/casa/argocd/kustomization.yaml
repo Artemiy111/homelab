@@ -48,7 +48,6 @@ resources:
   - apps/pyroscope.yaml
   - apps/rustfs.yaml
   - apps/samba.yaml
-  - apps/seafile.yaml
   - apps/structurizr.yaml
   - apps/sure.yaml
   - apps/talk-hpb.yaml

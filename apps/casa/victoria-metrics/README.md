@@ -30,8 +30,8 @@ Secrets и ConfigMap.
 Цели: `victoriametrics`, `vmagent`, `traefik`, `authentik`,
 `gatus`, `synapse`, `immich`, `livekit`, `tempo`, `athens`, `glitchtip`, `zot`,
 `talk-hpb`, `longhorn`, `trivy-operator` (без аутентификации);
-`uptime-kuma`, `navidrome`, `dawarich`, `forgejo`, `technitium`, `stalwart`,
-`seafile` (креды из Secrets).
+`uptime-kuma`, `navidrome`, `dawarich`, `forgejo`, `technitium`, `stalwart`
+(креды из Secrets).
 
 cert-manager скрейпится отдельными job'ами (`cert-manager`,
 `cert-manager-webhook`, `cert-manager-cainjector`) по Service'ам.
@@ -108,7 +108,7 @@ Retention, порог свободного места и размер тома �
 `VaultStaticSecret` в неймспейсе `monitoring`, по одному на путь
 `kv/<владелец>/@monitoring/<кред>`. Владельцы: `uptime-kuma`, `dawarich`,
 `forgejo`, `technitium`, `mailserver`, `local-ai`, `home-assistant`,
-`navidrome`, `seafile`. Креды не хранятся в Secret `vmagent` скопом — каждый в
+`navidrome`. Креды не хранятся в Secret `vmagent` скопом — каждый в
 своём, и под каждый отдельная строка в политике `app/vmagent`.
 
 Отдельно от них — свой ключ vmagent: API-ключ Monium по пути

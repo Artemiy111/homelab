@@ -252,7 +252,6 @@ KUBECONFIG=~/.kube/configs/homelab.yaml kubectl apply -k apps/casa/grafana/ --dr
 |---|---|
 | `apps/casa/<сервис>/manifests/route.yaml` | Argo, `spec.sources[].path` у Application |
 | `apps/casa/3x-ui/chart/templates/route.yaml`, `apps/casa/element/chart/templates/route.yaml` | Argo, `chart` в Application |
-| `apps/casa/seafile/manifests/onlyoffice.route.yaml` | Argo, вместе с каталогом `apps/casa/seafile/manifests` |
 | `platform/casa/longhorn/manifests/route.yaml` | Argo, `spec.sources[].path` |
 | `platform/casa/traefik/manifests/dashboard.route.yaml` | Argo, `spec.sources[].path` |
 | `platform/casa/argocd/manifests/route.yaml` | Argo, `spec.sources[].path` |

@@ -345,28 +345,6 @@ locals {
       accepted_status_codes = ["200"]
     }
 
-    "seafile" = {
-      name                  = "Seafile"
-      group                 = "applications"
-      kind                  = "keyword"
-      description           = "Анонимный ping endpoint Seafile через локальный DNS, TLS и Traefik."
-      keyword               = "pong"
-      url                   = "https://seafile.${var.domain}/api2/ping/"
-      accepted_status_codes = ["200"]
-    }
-
-    "onlyoffice" = {
-      name                  = "OnlyOffice"
-      group                 = "applications"
-      kind                  = "json"
-      description           = "Healthcheck OnlyOffice Document Server через локальный DNS, TLS и Traefik; тело ответа — JSON true."
-      url                   = "https://onlyoffice.${var.domain}/healthcheck"
-      json_path             = "$"
-      json_path_operator    = "=="
-      expected_value        = "true"
-      accepted_status_codes = ["200"]
-    }
-
     "paperless" = {
       name                  = "Paperless"
       group                 = "applications"

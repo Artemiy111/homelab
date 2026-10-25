@@ -322,28 +322,6 @@ endpoints:
     conditions: *https-ok
     alerts: *alerts-all
 
-  - name: Seafile
-    group: Applications
-    url: https://seafile.${DOMAIN}/api2/ping/
-    interval: 60s
-    client: *https-client
-    conditions:
-      - "[STATUS] == 200"
-      - "[BODY] == pat(*pong*)"
-      - "[CERTIFICATE_EXPIRATION] > 168h"
-    alerts: *alerts-all
-
-  - name: OnlyOffice
-    group: Applications
-    url: https://onlyoffice.${DOMAIN}/healthcheck
-    interval: 60s
-    client: *https-client
-    conditions:
-      - "[STATUS] == 200"
-      - "[BODY] == true"
-      - "[CERTIFICATE_EXPIRATION] > 168h"
-    alerts: *alerts-all
-
   - name: Paperless
     group: Applications
     # Корень отдаёт 302 на страницу входа.

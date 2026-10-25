@@ -326,15 +326,6 @@ scrape_configs:
       - targets:
           - mailserver.mailserver.svc.cluster.local
 
-  # Seahub /metrics под HTTP Basic (ENABLE_METRIC).
-  - job_name: seafile
-    basic_auth:
-      username: prometheus
-      password: "%{SEAFILE_METRICS_PASSWORD}"
-    static_configs:
-      - targets:
-          - seafile.seafile.svc.cluster.local
-
   # CNPG: встроенный экспортёр instance-manager отдаёт /metrics на порту
   # metrics (9187) каждого пода кластера; цели находятся service discovery
   # (role: pod) по метке cnpg.io/cluster, поэтому новые кластеры не требуют
@@ -376,13 +367,11 @@ scrape_configs:
           - immich-valkey-exporter.immich.svc.cluster.local:9121
           - nextcloud-redis-exporter.nextcloud.svc.cluster.local:9121
           - paperless-broker-exporter.paperless.svc.cluster.local:9121
-          - seafile-redis-exporter.seafile.svc.cluster.local:9121
           - sure-redis-exporter.sure.svc.cluster.local:9121
 
   - job_name: mysql
     static_configs:
       - targets:
-          - seafile-mariadb-exporter.seafile.svc.cluster.local:9104
           - uptime-kuma-mariadb-exporter.uptime-kuma.svc.cluster.local:9104
 
   - job_name: loki

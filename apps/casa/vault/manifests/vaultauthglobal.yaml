@@ -34,7 +34,6 @@ spec:
     - postgres
     - rustfs
     - samba
-    - seafile
     - structurizr
     - sure
     - talk-hpb

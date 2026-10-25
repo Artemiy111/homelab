@@ -1,23 +1,23 @@
 {
   "schema": 1,
   "source": "scripts/status-badges.sh",
-  "services": 57,
-  "manifests": 627,
+  "services": 56,
+  "manifests": 606,
   "images": {
-    "pinned": 114,
-    "total": 114,
+    "pinned": 106,
+    "total": 106,
     "percent": 100,
     "exceptions": []
   },
   "network_policy": {
-    "objects": 122,
-    "namespaces": 49,
-    "namespaces_total": 62,
-    "percent": 79,
+    "objects": 120,
+    "namespaces": 48,
+    "namespaces_total": 61,
+    "percent": 78,
     "exceptions": ["argocd", "cert-manager", "cnpg-system", "default", "elastic-system", "gitlab", "grafana-operator", "kube-system", "local-path-storage", "mariadb-system", "traefik", "velero", "victoria-metrics-operator"]
   },
   "secrets": {
-    "vault_static_secret": 95
+    "vault_static_secret": 89
   },
   "docs": {
     "adr": 16,

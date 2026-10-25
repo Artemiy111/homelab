@@ -26,7 +26,6 @@ CR и ретраи операторов — почему так, в `platform/ca
 | `shared` | `databases` | `authentik` (тестовый стенд) | `authentik` | 115 МБ |
 | `shared` | `databases` | `sure` | `sure` | 16 МБ |
 | `shared` | `databases` | `openwebui` (новая, не миграция) | `openwebui` | — |
-Не входят: `seafile` — это MariaDB, CNPG не про неё.
 
 Выделенные кластеры — `zitadel-db`, `immich-db`, `dawarich-db` — объявлены в
 юнитах своих сервисов (`apps/casa/<сервис>/manifests/`): кластер с одним

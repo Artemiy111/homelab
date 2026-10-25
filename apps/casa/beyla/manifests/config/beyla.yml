@@ -52,7 +52,6 @@ discovery:
     - k8s_namespace: gitea
     - k8s_namespace: authentik
     - k8s_namespace: nextcloud
-    - k8s_namespace: seafile
     - k8s_namespace: immich
     - k8s_namespace: paperless
     - k8s_namespace: dawarich

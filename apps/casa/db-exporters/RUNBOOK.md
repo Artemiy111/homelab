@@ -5,7 +5,7 @@
 Проверка, что все экспортеры живы:
 
 ```sh
-kubectl get pods -l 'app in (seafile-mariadb-exporter,uptime-kuma-mariadb-exporter,seafile-redis-exporter)'
+kubectl get pods -l 'app in (uptime-kuma-mariadb-exporter)'
 ```
 
 Состояние целей в VictoriaMetrics (ожидаем `1` для всех инстансов):
@@ -18,5 +18,5 @@ kubectl exec deploy/victoriametrics -- wget -qO- \
 Экспортер, вернувший `mysql_up 0` при `up 1`, означает, что сам экспортер жив, но не может подключиться к базе — смотреть его логи:
 
 ```sh
-kubectl logs deploy/seafile-mariadb-exporter
+kubectl logs deploy/uptime-kuma-mariadb-exporter
 ```

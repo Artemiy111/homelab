@@ -30,14 +30,11 @@ Prometheus-экспортеры для баз homelab, которые ещё н�
 ## Что покрыто
 
 Redis/Valkey: `dawarich-redis`, `element-valkey`, `glitchtip-valkey`,
-`immich-valkey`, `nextcloud-redis`, `paperless-broker`,
-`seafile-redis`, `sure-redis` — все без аутентификации, экспортеру нужен только
-`REDIS_ADDR`.
+`immich-valkey`, `nextcloud-redis`, `paperless-broker`, `sure-redis` — все без
+аутентификации, экспортеру нужен только `REDIS_ADDR`.
 
 MariaDB:
 
-- `seafile-mariadb-exporter` → `seafile-mariadb:3306` (пользователь `root`,
-  пароль из Secret `seafile`/`INIT_SEAFILE_MYSQL_ROOT_PASSWORD`);
 - `uptime-kuma-mariadb-exporter` → `uptime-kuma-mariadb:3306` (пользователь
   `root`, пароль из Secret `uptime-kuma-mariadb-root`/
   `INIT_UPTIME_KUMA_MARIADB_ROOT_PASSWORD`).
