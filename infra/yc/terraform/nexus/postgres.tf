@@ -25,12 +25,14 @@ resource "yandex_mdb_postgresql_cluster" "nexus" {
   }
 
   host {
+    name      = "nexus-d"
     zone      = "ru-central1-d"
     subnet_id = data.yandex_vpc_subnet.node["d"].id
     priority  = 0
   }
 
   host {
+    name      = "nexus-e"
     zone      = "ru-central1-e"
     subnet_id = data.yandex_vpc_subnet.node["e"].id
     priority  = 1
