@@ -45,7 +45,13 @@ data:
         - key_file: /run/secrets/mas/rsa_key
         - key_file: /run/secrets/mas/ec_key
     passwords:
-      enabled: false
+      enabled: true
+      schemes:
+        - version: 1
+          algorithm: bcrypt
+          unicode_normalization: true
+        - version: 2
+          algorithm: argon2id
     upstream_oauth2:
       providers:
         - id: 01K9A2B3C4D5E6F7G8H9J0KMNP
