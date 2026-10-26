@@ -17,7 +17,7 @@ spec:
       enableServiceLinks: false
       containers:
         - name: jellyfin-exporter
-          image: "rebelcore/jellyfin-exporter:v1.5.2@sha256:8a1294b7fea80993e4ec18220e391578e0f9ca9e109294fd6a379d2cb5213c85"
+          image: "rebelcore/jellyfin-exporter:v1.6.0@sha256:d1985ef9ad50b8924e74ee1dd12accd64936a65150375a8e190c2293b6e2678c"
           ports:
             - name: metrics
               containerPort: 9594
