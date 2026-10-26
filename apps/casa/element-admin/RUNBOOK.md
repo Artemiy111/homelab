@@ -34,8 +34,10 @@ curl -sS -o /dev/null -w '%{http_code} %{redirect_url}\n' \
 curl -sS -o /dev/null -w '%{http_code}\n' https://mas.<домен>/api/admin/v1/version
 ```
 
-Ожидается `401` — API включён и просит токен. `404` — в `http.listeners` MAS нет
-ресурса `adminapi` (публичный листенер `web`, `apps/casa/mas`).
+Ожидается `400` (`{"errors":[{"title":"Missing authorization header"}]}`), а с
+неизвестным токеном — `401`: значит API включён и просит токен. `404` — в
+`http.listeners` MAS нет ресурса `adminapi` (публичный листенер `web`,
+`apps/casa/mas`).
 
 ```sh
 curl -sS -D- -o /dev/null -X OPTIONS https://mas.<домен>/api/admin/v1/version \

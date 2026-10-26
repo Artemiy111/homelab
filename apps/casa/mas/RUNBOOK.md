@@ -8,7 +8,8 @@ curl -fsS https://mas.example.com/.well-known/openid-configuration
 
 Ожидается JSON с `"issuer":"https://mas.example.com/"` и
 `authorization_endpoint`. По нему видно, что сервис жив: остальные публичные
-ресурсы — редиректы на Zitadel и Admin API, который без токена отвечает `401`.
+ресурсы — редиректы на Zitadel и Admin API, который без заголовка авторизации
+отвечает `400`.
 
 ```sh
 kubectl -n mas get pods
@@ -18,6 +19,21 @@ kubectl -n mas logs deploy/mas --tail=20
 Ожидается `Running`/`Ready`; в логах — применение миграций БД и строка о
 запуске листенеров.
 
+## Изменение конфигурации
+
+`config.yaml` — обычный ConfigMap без хеша в имени: Argo применяет его, но под
+не перезапускает, а состав листенеров и провайдеры читаются только на старте.
+Поэтому после правки конфига — руками:
+
+```sh
+kubectl -n mas rollout restart deploy/mas
+kubectl -n mas rollout status deploy/mas
+```
+
+Ожидается `successfully rolled out`. Проверить конфиг до применения можно той же
+командой, в отдельном поде с этим ConfigMap: `mas-cli config check -c
+/etc/mas/config.yaml`.
+
 ## Admin API
 
 ```sh
@@ -25,9 +41,11 @@ curl -sS -o /dev/null -w '%{http_code}\n' https://mas.example.com/api/admin/v1/v
 curl -sS -o /dev/null -w '%{http_code}\n' https://mas.example.com/api/spec.json
 ```
 
-Ожидается `401` и `200`. `404` на первом — ресурс `adminapi` не добавлен в
-`http.listeners[].resources` публичного листенера: тогда Element Admin
-открывается, но данные MAS не грузятся.
+Ожидается `400` и `200`. `400` — это `Missing authorization header`, то есть
+ресурс включён и просит токен (с неизвестным токеном будет `401`). `404` на
+первом — ресурс `adminapi` не добавлен в `http.listeners[].resources`
+публичного листенера: тогда Element Admin открывается, но данные MAS не
+грузятся.
 
 ## Администраторы
 
