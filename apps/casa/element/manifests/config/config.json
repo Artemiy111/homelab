@@ -27,10 +27,6 @@
     "enabled": true,
     "roomServers": ["matrix.org"]
   },
-  "login": {
-    "mqtt": false,
-    "flows": [{"type": "m.login.password"}]
-  },
   "disable_login_language_selector": false,
   "set_mxc_hs_endpoint": "https://element.biplane.casa/"
 }
