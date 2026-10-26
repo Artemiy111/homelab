@@ -38,6 +38,7 @@ resources:
   - apps/navidrome.yaml
   - apps/nextcloud.yaml
   - apps/node-exporter.yaml
+  - apps/ntfy.yaml
   - apps/oauth2-proxy.yaml
   - apps/open-webui.yaml
   - apps/opencost.yaml
