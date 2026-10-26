@@ -1,0 +1,16 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: ReferenceGrant
+metadata:
+  name: mas-from-element
+  namespace: mas
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  from:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      namespace: element
+  to:
+    - group: ""
+      kind: Service
+      name: mas

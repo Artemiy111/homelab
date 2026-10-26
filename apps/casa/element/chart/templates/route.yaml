@@ -40,6 +40,31 @@ spec:
           port: 80
     - matches:
         - path:
+            type: Exact
+            value: /_matrix/client/v3/login
+        - path:
+            type: Exact
+            value: /_matrix/client/v3/logout
+        - path:
+            type: Exact
+            value: /_matrix/client/v3/refresh
+        - path:
+            type: Exact
+            value: /_matrix/client/r0/login
+        - path:
+            type: Exact
+            value: /_matrix/client/r0/logout
+        - path:
+            type: Exact
+            value: /_matrix/client/r0/refresh
+      backendRefs:
+        - group: ""
+          kind: Service
+          name: mas
+          namespace: mas
+          port: 80
+    - matches:
+        - path:
             type: PathPrefix
             value: /_matrix
       backendRefs:

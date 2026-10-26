@@ -1,6 +1,10 @@
 server_name: biplane.casa
 public_baseurl: https://element.biplane.casa/
 serve_server_wellknown: true
+matrix_authentication_service:
+  enabled: true
+  endpoint: http://mas.mas.svc.cluster.local:80/
+  secret_path: /run/secrets/mas-shared/matrix_secret
 extra_well_known_client_content:
   org.matrix.msc4143.rtc_foci:
     - type: livekit
