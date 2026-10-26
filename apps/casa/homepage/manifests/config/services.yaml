@@ -99,6 +99,10 @@
         icon: mdi-chart-sankey
         href: https://mermaid.{{HOMEPAGE_VAR_DOMAIN}}/
         description: Редактор диаграмм
+    - Petri Nets:
+        icon: mdi-transit-connection-variant
+        href: https://petri-nets.{{HOMEPAGE_VAR_DOMAIN}}/
+        description: Симулятор сетей Петри
     - Structurizr:
         icon: mdi-sitemap
         href: https://structurizr.{{HOMEPAGE_VAR_DOMAIN}}/

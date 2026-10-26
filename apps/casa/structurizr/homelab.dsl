@@ -194,6 +194,10 @@ workspace {
                 tags "apps"
             }
 
+            petrinets = softwareSystem "Petri Nets" "Симулятор временных сетей Петри в браузере, собственное приложение (petri-nets.example.com)" {
+                tags "apps"
+            }
+
             structurizr = softwareSystem "Structurizr" "Инструмент C4-диаграмм, этот воркспейс (structurizr.example.com)" {
                 tags "apps"
             }
@@ -285,6 +289,9 @@ workspace {
         traefik -> mermaid "маршрутизирует Host(mermaid.*)" "HTTPS" {
             tags "http"
         }
+        traefik -> petrinets "маршрутизирует Host(petri-nets.*)" "HTTPS" {
+            tags "http"
+        }
         traefik -> structurizr "маршрутизирует Host(structurizr.*)" "HTTPS" {
             tags "http"
         }
@@ -331,6 +338,7 @@ workspace {
         forgejo -> athens "CI тянет Go-модули" "Go proxy"
         forgejo -> verdaccio "CI тянет npm-пакеты" "npm"
         forgejo -> zot "CI тянет образы" "OCI"
+        petrinets -> glitchtip "отправляет клиентские ошибки (DSN из HTML)" "HTTPS"
 
         traefik -> letsencrypt "получает сертификаты (ACME DNS-01)" "ACME DNS-01"
         letsencrypt -> dns_provider "публикует TXT-записи _acme-challenge через TSIG" "DNS (TSIG)"

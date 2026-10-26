@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: petri-nets
+  namespace: petri-nets
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  type: ClusterIP
+  selector:
+    app: petri-nets
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP

@@ -167,6 +167,14 @@ endpoints:
     conditions: *https-ok
     alerts: *alerts-all
 
+  - name: Petri Nets
+    group: Applications
+    url: https://petri-nets.${DOMAIN}/
+    interval: 60s
+    client: *https-client
+    conditions: *https-ok
+    alerts: *alerts-all
+
   - name: Nextcloud
     group: Applications
     url: https://nextcloud.${DOMAIN}/status.php

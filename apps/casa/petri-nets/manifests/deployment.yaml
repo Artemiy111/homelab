@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: petri-nets
+  namespace: petri-nets
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  revisionHistoryLimit: 1
+  replicas: 1
+  selector:
+    matchLabels:
+      app: petri-nets
+  template:
+    metadata:
+      labels:
+        app: petri-nets
+    spec:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: petri-nets
+          image: "ghcr.io/artemiy111/timed-petri-nets:latest@sha256:b6053e56f1f0dc8a4cb4323b69516a57ddfa788a8a9c5472f5b8af7b67e7be91"
+          ports:
+            - name: http
+              containerPort: 3000
+          env:
+            - name: SENTRY_DSN
+              value: "https://7ce6990c1baa4a14bf8716eecec610a0@glitchtip.biplane.casa/1"
+            - name: SENTRY_ENVIRONMENT
+              value: production
+            - name: SENTRY_TRACES_SAMPLE_RATE
+              value: "0"
+          startupProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 5
+            timeoutSeconds: 10
+            failureThreshold: 12
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 20m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          volumeMounts:
+            - name: next-cache
+              mountPath: /app/.next/cache
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: next-cache
+          emptyDir: {}
+        - name: tmp
+          emptyDir:
+            medium: Memory
+            sizeLimit: 16Mi

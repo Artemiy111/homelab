@@ -46,6 +46,7 @@ resources:
   - apps/otel-collector.yaml
   - apps/paperless.yaml
   - apps/pdf.yaml
+  - apps/petri-nets.yaml
   - apps/postgres.yaml
   - apps/pyroscope.yaml
   - apps/rustfs.yaml
