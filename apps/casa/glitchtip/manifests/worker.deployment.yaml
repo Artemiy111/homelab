@@ -14,6 +14,8 @@ spec:
       labels:
         app: glitchtip-worker
     spec:
+      securityContext:
+        fsGroup: 5000
       initContainers:
         - name: migrate
           image: "glitchtip/glitchtip:6@sha256:a3d8eb1b36c1e1603d55ab32711ea3dd8115874742a781a57391a62a16e0dff6"
@@ -119,6 +121,9 @@ spec:
               drop: ["ALL"]
             seccompProfile:
               type: RuntimeDefault
+          volumeMounts:
+            - name: uploads
+              mountPath: /code/uploads
           resources:
             requests:
               cpu: 10m
@@ -126,3 +131,7 @@ spec:
             limits:
               cpu: 300m
               memory: 512Mi
+      volumes:
+        - name: uploads
+          persistentVolumeClaim:
+            claimName: glitchtip-uploads

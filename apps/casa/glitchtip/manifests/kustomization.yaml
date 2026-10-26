@@ -11,6 +11,7 @@ resources:
   - worker.deployment.yaml
   - valkey.deployment.yaml
   - valkey.pvc.yaml
+  - uploads.pvc.yaml
   - networkpolicy.yaml
   - route.yaml
   - vaultauth.yaml

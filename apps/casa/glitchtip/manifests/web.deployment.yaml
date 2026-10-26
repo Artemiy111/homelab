@@ -14,6 +14,8 @@ spec:
       labels:
         app: glitchtip
     spec:
+      securityContext:
+        fsGroup: 5000
       initContainers:
         - name: migrate
           image: "glitchtip/glitchtip:6@sha256:a3d8eb1b36c1e1603d55ab32711ea3dd8115874742a781a57391a62a16e0dff6"
@@ -56,6 +58,8 @@ spec:
             - name: bootstrap
               mountPath: /opt/bootstrap
               readOnly: true
+            - name: uploads
+              mountPath: /code/uploads
           securityContext:
             runAsUser: 5000
             runAsGroup: 5000
@@ -168,3 +172,6 @@ spec:
         - name: bootstrap
           configMap:
             name: glitchtip-bootstrap
+        - name: uploads
+          persistentVolumeClaim:
+            claimName: glitchtip-uploads

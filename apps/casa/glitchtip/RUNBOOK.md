@@ -59,6 +59,26 @@ PY
 Пока в базе нет ни одного пользователя, GlitchTip открывает и регистрацию по
 паролю (`enableUserRegistration` в `/api/settings/`), после первого — закрывает.
 
+## Загруженные артефакты
+
+Source maps и DIF складываются в том `glitchtip-uploads`, смонтированный в web и
+worker. Проверка, что артефакт доехал:
+
+```sh
+KUBECONFIG=~/.kube/configs/homelab.yaml kubectl -n databases exec shared-1 -- \
+  psql -U postgres -d glitchtip -Atc "select count(*) from sourcecode_debugsymbolbundle"
+```
+
+Ноль после успешной загрузки означает, что сломан assemble. Смотреть логи воркера:
+
+```sh
+KUBECONFIG=~/.kube/configs/homelab.yaml kubectl -n glitchtip logs deploy/glitchtip-worker --since=15m | grep -iE "assemble|FileNotFoundError"
+```
+
+`FileNotFoundError` на `/code/uploads/file_blobs/...` значит, что web и worker не
+делят том: чанки остались в файловой системе web-пода. Лечится монтированием
+`glitchtip-uploads` в оба деплоймента, а не повторной загрузкой.
+
 ## Пересоздание базы с нуля
 
 Данные не нужны — база удаляется без дампа. Схема, `SocialApp` и всё остальное,
