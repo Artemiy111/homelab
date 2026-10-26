@@ -90,6 +90,7 @@ spec:
     # 64MB — несколько сегментов на всплеск и ничего лишнего.
     parameters:
       wal_keep_size: "64MB"
+      max_locks_per_transaction: "512"
 
   bootstrap:
     initdb:
