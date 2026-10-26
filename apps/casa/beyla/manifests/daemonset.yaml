@@ -30,7 +30,7 @@ spec:
         homelab.io/beyla: enabled
       containers:
         - name: beyla
-          image: "grafana/beyla:3.39.0@sha256:9319563766b263b4f60de6f657e0f33c1783f112228e1019d5d922cff7bb7c1a"
+          image: "grafana/beyla:3.40.0@sha256:59e31947a79178f7228e3886d061e1261f792e84ea7365b8b54113232437a8b4"
           env:
             - name: BEYLA_CONFIG_PATH
               value: /config/beyla.yml
