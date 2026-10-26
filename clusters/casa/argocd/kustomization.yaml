@@ -17,6 +17,7 @@ resources:
   - apps/code-server.yaml
   - apps/dawarich.yaml
   - apps/db-exporters.yaml
+  - apps/element-admin.yaml
   - apps/element.yaml
   - apps/filestash.yaml
   - apps/forgejo.yaml

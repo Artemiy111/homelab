@@ -391,6 +391,15 @@ endpoints:
       - "[CERTIFICATE_EXPIRATION] > 168h"
     alerts: *alerts-all
 
+  - name: Element Admin
+    group: Applications
+    url: http://element-admin.element-admin.svc.cluster.local/health
+    interval: 60s
+    client: *docker-client
+    conditions:
+      - "[STATUS] == 200"
+    alerts: *alerts-all
+
   - name: Synapse
     group: Applications
     # Client-Server API Synapse, опубликованный по пути /_matrix.

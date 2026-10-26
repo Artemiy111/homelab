@@ -7,8 +7,8 @@ curl -fsS https://mas.example.com/.well-known/openid-configuration
 ```
 
 Ожидается JSON с `"issuer":"https://mas.example.com/"` и
-`authorization_endpoint`. Это единственный публичный эндпоинт, по которому видно,
-что сервис жив: остальное — редиректы на Zitadel.
+`authorization_endpoint`. По нему видно, что сервис жив: остальные публичные
+ресурсы — редиректы на Zitadel и Admin API, который без токена отвечает `401`.
 
 ```sh
 kubectl -n mas get pods
@@ -17,6 +17,45 @@ kubectl -n mas logs deploy/mas --tail=20
 
 Ожидается `Running`/`Ready`; в логах — применение миграций БД и строка о
 запуске листенеров.
+
+## Admin API
+
+```sh
+curl -sS -o /dev/null -w '%{http_code}\n' https://mas.example.com/api/admin/v1/version
+curl -sS -o /dev/null -w '%{http_code}\n' https://mas.example.com/api/spec.json
+```
+
+Ожидается `401` и `200`. `404` на первом — ресурс `adminapi` не добавлен в
+`http.listeners[].resources` публичного листенера: тогда Element Admin
+открывается, но данные MAS не грузятся.
+
+## Администраторы
+
+Права админа — это `can_request_admin` у пользователя MAS: с ним MAS выдаёт
+скоупы `urn:mas:admin` и `urn:synapse:admin:*`, а без него — отказывает в них.
+
+```sh
+kubectl -n mas exec deploy/mas -- \
+  mas-cli manage list-admin-users -c /etc/mas/config.yaml
+kubectl -n mas exec deploy/mas -- \
+  mas-cli manage promote-admin -c /etc/mas/config.yaml <username>
+kubectl -n mas exec deploy/mas -- \
+  mas-cli manage demote-admin -c /etc/mas/config.yaml <username>
+```
+
+Ожидается строка `username=<username>` в списке после `promote-admin`.
+`promote-admin` включает `can_request_admin` в таблице `users`, схема БД не
+меняется, перезапуск не нужен; уже выданные токены привилегий задним числом не
+получают.
+
+Отдельный вход в admin API без браузера — client credentials: клиент должен быть
+в `policy.data.admin_clients`, скоуп запрашивается как `urn:mas:admin`.
+
+```sh
+curl -sS -u "<client_id>:<client_secret>" \
+  -d 'grant_type=client_credentials&scope=urn:mas:admin' \
+  https://mas.example.com/oauth2/token | jq -r .access_token
+```
 
 ## Секреты
 
