@@ -86,6 +86,13 @@ KUBECONFIG=~/.kube/configs/homelab.yaml kubectl -n petri-nets logs job/petri-net
 загруженных файлов. Строка `SENTRY_AUTH_TOKEN is empty` означает, что токен не
 пришёл из Vault — порядок включения ниже.
 
+Если `sentry-cli` падает с `Timeout was reached ... port 80`, дело в сети, а не в
+токене. Политика двухсторонняя: egress этого юнита разрешает в namespace
+`glitchtip` порты 80 (порт сервиса) и 8000 (порт пода — Calico может проверять
+политику до DNAT, поэтому разрешены оба), а ingress самого GlitchTip разрешает
+namespace `petri-nets` только на 8000. Новому потребителю нужно править оба
+юнита, иначе пакет уйдёт в никуда молча.
+
 ### Первое включение и ротация токена
 
 1. GlitchTip → **User settings → Auth Tokens** → создать токен со scope

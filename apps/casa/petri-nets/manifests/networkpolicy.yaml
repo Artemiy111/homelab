@@ -52,6 +52,8 @@ spec:
             matchLabels:
               kubernetes.io/metadata.name: glitchtip
       ports:
+        - port: 80
+          protocol: TCP
         - port: 8000
           protocol: TCP
 ---
