@@ -28,16 +28,36 @@ kubectl -n glitchtip logs deploy/glitchtip -c migrate --tail=5
 
 ## Первый вход и администратор
 
-Вход через Zitadel администратора не создаёт: `/admin/` требует superuser'а.
+Вход через Zitadel администратора не создаёт: allauth заводит пользователя с
+непригодным паролем (`set_unusable_password`), поэтому форма входа в `/admin/`
+для него не работает. Права выдаются уже существующей учётке, а в админку
+пускает та же сессия Zitadel — Django проверяет только `is_active` и `is_staff`.
+
+1. Войти на страницу входа кнопкой Zitadel: пользователь создастся сам.
+2. Выдать права по адресу из его профиля:
 
 ```sh
-kubectl -n glitchtip exec deploy/glitchtip -c glitchtip -- ./manage.py createsuperuser
+kubectl -n glitchtip exec -i deploy/glitchtip -c glitchtip -- ./manage.py shell <<'PY'
+from apps.users.models import User
+
+user = User.objects.get(email="<email>")
+user.is_staff = True
+user.is_superuser = True
+user.save(update_fields=["is_staff", "is_superuser"])
+print(user.email, user.is_staff, user.is_superuser)
+PY
 ```
 
-Дальше — обычный вход кнопкой Zitadel на странице входа; первый такой вход
-создаёт пользователя. Пока в базе нет ни одного пользователя, GlitchTip
-открывает и регистрацию по паролю (`enableUserRegistration` в
-`/api/settings/`), после первого — закрывает.
+Ожидается `<email> True True`.
+
+3. Открыть `/admin/` в том же браузере, где уже выполнен вход. Перелогин не
+   нужен: пользователь читается из базы на каждый запрос.
+
+`./manage.py createsuperuser` тут не нужен и заводит отдельную локальную учётку
+с паролем: она не связана с Zitadel, а пароль обходит SSO и его MFA.
+
+Пока в базе нет ни одного пользователя, GlitchTip открывает и регистрацию по
+паролю (`enableUserRegistration` в `/api/settings/`), после первого — закрывает.
 
 ## Пересоздание базы с нуля
 

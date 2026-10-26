@@ -38,8 +38,8 @@ auth method `CODE` (Basic), grant Authorization Code.
 - `ENABLE_SOCIAL_APPS_USER_REGISTRATION=true` — вход через провайдера создаёт
   пользователя, даже когда обычная регистрация закрыта;
 - `SOCIAL_AUTH_BLOCK_PRIVATE_IPS=false` — разрешает discovery к IdP в LAN;
-- администратором вход через Zitadel не делает: для `/admin/` нужен superuser,
-  порядок — в `RUNBOOK.md`;
+- администратором вход через Zitadel не делает: права выдаются учётке после
+  первого входа, порядок — в `RUNBOOK.md`;
 - `ENABLE_ORGANIZATION_CREATION=true` — организацию заводит любой вошедший.
 
 ## Подключение приложений
