@@ -58,8 +58,6 @@ spec:
             - name: bootstrap
               mountPath: /opt/bootstrap
               readOnly: true
-            - name: uploads
-              mountPath: /code/uploads
           securityContext:
             runAsUser: 5000
             runAsGroup: 5000
@@ -161,6 +159,9 @@ spec:
               drop: ["ALL"]
             seccompProfile:
               type: RuntimeDefault
+          volumeMounts:
+            - name: uploads
+              mountPath: /code/uploads
           resources:
             requests:
               cpu: 10m
