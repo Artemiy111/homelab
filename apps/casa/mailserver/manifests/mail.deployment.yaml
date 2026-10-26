@@ -24,7 +24,7 @@ spec:
         fsGroup: 1000
       containers:
         - name: mail
-          image: "ghcr.io/bulwarkmail/webmail:1.8@sha256:97d9d96adfb7c1d221b71b90b8380b98e2e5623f64ba62b090e45911f4ee0b3b"
+          image: "ghcr.io/bulwarkmail/webmail:1.17@sha256:395232a8b62c371619c3692f63c42ee26bd0258faa5d60d4c9132948c8418729"
           ports:
             - name: http
               containerPort: 3000
