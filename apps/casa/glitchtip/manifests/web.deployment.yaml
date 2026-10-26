@@ -15,9 +15,6 @@ spec:
         app: glitchtip
     spec:
       initContainers:
-        # Аналог compose-сервиса migrate (depends_on: service_completed_successfully):
-        # Django-миграции идемпотентны, поэтому можно выполнять в обоих подах
-        # (web и worker) перед стартом приложения.
         - name: migrate
           image: "glitchtip/glitchtip:6@sha256:a3d8eb1b36c1e1603d55ab32711ea3dd8115874742a781a57391a62a16e0dff6"
           env:
@@ -49,9 +46,11 @@ spec:
                   key: GLITCHTIP_CLIENT_SECRET
           command: ["/bin/sh", "-c"]
           args:
-            - |
-              ./manage.py migrate &&
-              ./manage.py shell -c "import os; from allauth.socialaccount.models import SocialApp; cid = os.environ.get('GLITCHTIP_CLIENT_ID') or ''; sec = os.environ.get('GLITCHTIP_CLIENT_SECRET') or ''; print('OIDC: client id/secret not set, skipping') if not (cid and sec) else SocialApp.objects.update_or_create(provider='openid_connect', provider_id='zitadel', defaults=dict(name='Zitadel', client_id=cid, secret=sec, settings={'server_url': 'https://id.$(DOMAIN)/.well-known/openid-configuration'}))"
+            - ./bin/run-migrate.sh && ./manage.py shell < /opt/bootstrap/oidc.py
+          volumeMounts:
+            - name: bootstrap
+              mountPath: /opt/bootstrap
+              readOnly: true
           securityContext:
             runAsUser: 5000
             runAsGroup: 5000
@@ -83,6 +82,12 @@ spec:
                 configMapKeyRef:
                   name: homelab-config
                   key: DOMAIN
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: ALLOWED_HOSTS
+              value: "glitchtip.$(DOMAIN),glitchtip.glitchtip.svc.cluster.local"
             - name: POSTGRES_USER
               value: glitchtip
             - name: POSTGRES_DB
@@ -116,20 +121,23 @@ spec:
             - name: SOCIAL_AUTH_BLOCK_PRIVATE_IPS
               value: "false"
           startupProbe:
-            exec:
-              command: ["python", "/code/healthcheck.py"]
+            httpGet:
+              path: /_health/
+              port: http
             periodSeconds: 5
             timeoutSeconds: 10
             failureThreshold: 18
           livenessProbe:
-            exec:
-              command: ["python", "/code/healthcheck.py"]
+            httpGet:
+              path: /_health/
+              port: http
             periodSeconds: 30
             timeoutSeconds: 10
             failureThreshold: 3
           readinessProbe:
-            exec:
-              command: ["python", "/code/healthcheck.py"]
+            httpGet:
+              path: /_health/
+              port: http
             periodSeconds: 30
             timeoutSeconds: 10
             failureThreshold: 3
@@ -149,3 +157,7 @@ spec:
             limits:
               cpu: 500m
               memory: 768Mi
+      volumes:
+        - name: bootstrap
+          configMap:
+            name: glitchtip-bootstrap

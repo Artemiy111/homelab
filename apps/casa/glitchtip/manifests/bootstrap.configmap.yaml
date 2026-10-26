@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: glitchtip-bootstrap
+  namespace: glitchtip
+data:
+  oidc.py: |
+    import os
+
+    from allauth.socialaccount.models import SocialApp
+
+    client_id = os.environ.get("GLITCHTIP_CLIENT_ID") or ""
+    client_secret = os.environ.get("GLITCHTIP_CLIENT_SECRET") or ""
+
+    if not (client_id and client_secret):
+        print("OIDC: client id/secret not set, skipping")
+    else:
+        SocialApp.objects.update_or_create(
+            provider="openid_connect",
+            provider_id="zitadel",
+            defaults={
+                "name": "Zitadel",
+                "client_id": client_id,
+                "secret": client_secret,
+                "settings": {
+                    "server_url": "https://id.{}/.well-known/openid-configuration".format(
+                        os.environ["DOMAIN"]
+                    )
+                },
+            },
+        )
+        print("OIDC: Zitadel application is up to date")

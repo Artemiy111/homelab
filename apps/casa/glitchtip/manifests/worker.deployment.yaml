@@ -34,21 +34,9 @@ spec:
                   key: password
             - name: DATABASE_URL
               value: "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@shared-rw.databases.svc.cluster.local:5432/$(POSTGRES_DB)"
-            - name: GLITCHTIP_CLIENT_ID
-              valueFrom:
-                secretKeyRef:
-                  name: glitchtip-secrets
-                  key: GLITCHTIP_CLIENT_ID
-            - name: GLITCHTIP_CLIENT_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: glitchtip-secrets
-                  key: GLITCHTIP_CLIENT_SECRET
           command: ["/bin/sh", "-c"]
           args:
-            - |
-              ./manage.py migrate &&
-              ./manage.py shell -c "import os; from allauth.socialaccount.models import SocialApp; cid = os.environ.get('GLITCHTIP_CLIENT_ID') or ''; sec = os.environ.get('GLITCHTIP_CLIENT_SECRET') or ''; print('OIDC: client id/secret not set, skipping') if not (cid and sec) else SocialApp.objects.update_or_create(provider='openid_connect', provider_id='zitadel', defaults=dict(name='Zitadel', client_id=cid, secret=sec, settings={'server_url': 'https://id.$(DOMAIN)/.well-known/openid-configuration'}))"
+            - ./bin/run-migrate.sh
           securityContext:
             runAsUser: 5000
             runAsGroup: 5000

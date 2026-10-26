@@ -3,6 +3,7 @@ kind: Kustomization
 namespace: glitchtip
 resources:
   - homelab-config.yaml
+  - bootstrap.configmap.yaml
   - namespace.yaml
   - web.service.yaml
   - valkey.service.yaml

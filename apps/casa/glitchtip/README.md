@@ -5,34 +5,42 @@ URL: `https://glitchtip.example.com/`
 
 ## Хранилище
 
-База — PostgreSQL в общем кластере CNPG `shared` (namespace `databases`,
-эндпоинт `shared-rw.databases.svc.cluster.local:5432`). Роль `glitchtip`, база
-`glitchtip` и NetworkPolicy объявлены в `platform/casa/cnpg/`; пароль роль берёт из
-Secret'а `glitchtip-db-auth`, а приложение — из своего Secret'а `glitchtip`
-(ключ `POSTGRES_PASSWORD`), поэтому в `DATABASE_URL` менялся только хост. Данные
-перенесены из локального `glitchtip-postgres` дампом (`pg_dump`/`pg_restore`),
-старый Deployment снят.
+Единственное состояние GlitchTip — PostgreSQL в общем кластере CNPG `shared`:
+роль, база и NetworkPolicy объявлены в `platform/casa/cnpg/`. На диске лежит
+только том Valkey — очередь задач, кэш и сессии; их потеря стоит разлогина и
+повторной постановки периодических задач.
+
+Из этого следует, что база восстановима без дампа: схему создают миграции при
+старте пода, а конфигурацию — манифесты и Vault. Теряются только учётные записи,
+проекты и события, поэтому полное пересоздание — штатная операция, а не авария.
+Порядок — в `RUNBOOK.md`.
 
 ## Вход через Zitadel (OIDC)
 
-Провайдер настраивается переменными из Vault (`kv/glitchtip/secret`) — вручную
-ничего в БД добавлять не нужно:
+Задать OIDC-приложение переменными окружения GlitchTip не умеет: в настройках
+есть только URL'ы отдельных провайдеров (`gitlab`, `gitea`, `nextcloud`,
+`microsoft`). Штатный путь upstream — завести `SocialApp` в Django admin, а
+появившийся в v6 per-org SSO рассчитан на уже существующую организацию и
+показывает провайдера только на её странице входа.
 
-- `GLITCHTIP_CLIENT_ID`, `GLITCHTIP_CLIENT_SECRET` — учётные данные
-  OIDC-приложения Zitadel;
-- `ENABLE_SOCIAL_APPS_USER_REGISTRATION=true` — первый вход создаёт
-  пользователя автоматически (независимо от закрытой обычной регистрации);
-- `SOCIAL_AUTH_BLOCK_PRIVATE_IPS=false` — разрешает discovery к IdP в LAN.
+Поэтому приложение Zitadel создаётся декларативно: init-контейнер web на каждом
+старте выполняет `bootstrap.configmap.yaml` — upsert `SocialApp` с
+`provider_id` `zitadel` из `GLITCHTIP_CLIENT_ID` и `GLITCHTIP_CLIENT_SECRET`
+(Vault). Пустые переменные — шаг пропускается. `provider_id` входит в callback
+URL, поэтому его переименование требует правки redirect URI в Zitadel.
 
 Приложение в Zitadel: Redirect URI
 `https://glitchtip.example.com/accounts/oidc/zitadel/login/callback/`,
-auth method `CODE` (Basic), grant Authorization Code. Init-контейнер при каждом
-старте синхронизирует SocialApp с переменными окружения; если переменные
-пустые — пропуск.
+auth method `CODE` (Basic), grant Authorization Code.
 
-Регистрация новых пользователей закрыта (`ENABLE_USER_REGISTRATION=false`),
-создание организаций разрешено любому вошедшему
-(`ENABLE_ORGANIZATION_CREATION=true`).
+Вокруг входа:
+
+- `ENABLE_SOCIAL_APPS_USER_REGISTRATION=true` — вход через провайдера создаёт
+  пользователя, даже когда обычная регистрация закрыта;
+- `SOCIAL_AUTH_BLOCK_PRIVATE_IPS=false` — разрешает discovery к IdP в LAN;
+- администратором вход через Zitadel не делает: для `/admin/` нужен superuser,
+  порядок — в `RUNBOOK.md`;
+- `ENABLE_ORGANIZATION_CREATION=true` — организацию заводит любой вошедший.
 
 ## Подключение приложений
 
