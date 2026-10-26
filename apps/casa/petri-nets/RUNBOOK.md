@@ -90,7 +90,9 @@ KUBECONFIG=~/.kube/configs/homelab.yaml kubectl -n petri-nets logs job/petri-net
 
 1. GlitchTip → **User settings → Auth Tokens** → создать токен со scope
    `project:write`.
-2. `vault kv put kv/petri-nets/glitchtip SENTRY_AUTH_TOKEN=<токен>`.
+2. `vault kv put "kv/glitchtip/@petri-nets/sourcemaps-token" SENTRY_AUTH_TOKEN=<токен>`.
+   Путь с `@` — правило 3 [ADR 0006](../../../docs/adr/0006-vault-secret-path-layout.md):
+   кред выпустил GlitchTip, а читает его другой принципал.
 3. В `infra/casa/terraform/` выполнить `terraform apply` — политика
    `app/petri-nets` и роль для ServiceAccount `vso-petri-nets`.
 4. `argocd app sync petri-nets`, чтобы Job запустился (или дождаться следующего

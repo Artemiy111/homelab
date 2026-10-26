@@ -88,8 +88,8 @@ resource "vault_policy" "app_petri_nets" {
   name = "app/petri-nets"
 
   policy = <<-EOT
-    path "kv/data/petri-nets/glitchtip"      { capabilities = ["read"] }
-    path "kv/metadata/petri-nets/glitchtip"  { capabilities = ["read", "list"] }
+    path "kv/data/glitchtip/@petri-nets/sourcemaps-token"      { capabilities = ["read"] }
+    path "kv/metadata/glitchtip/@petri-nets/sourcemaps-token"  { capabilities = ["read", "list"] }
   EOT
 }
 
