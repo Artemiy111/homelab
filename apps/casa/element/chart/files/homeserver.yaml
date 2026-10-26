@@ -56,21 +56,7 @@ enable_registration_without_verification: false
 registration_shared_secret_path: /run/secrets/element/registration_shared_secret
 bcrypt_rounds: 12
 password_config:
-  enabled: true
-  min_length: 8
-oidc_providers:
-  - idp_id: zitadel
-    idp_name: Zitadel
-    issuer: https://id.biplane.casa
-    client_id: "392807610333555725"
-    client_secret_path: /run/secrets/oidc/client_secret
-    scopes: ["openid", "profile", "email"]
-    allow_existing_users: true
-    user_mapping_provider:
-      config:
-        localpart_template: "{{ (user.email.split('@')[0]) if user.email else (user.preferred_username.split('@')[0] if user.preferred_username else 'u' ~ user.sub) }}"
-        display_name_template: "{{ user.name or user.preferred_username or user.sub }}"
-        email_template: "{{ user.email }}"
+  enabled: false
 rc_message:
   per_second: 0.5
   burst_count: 30
