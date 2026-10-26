@@ -29,6 +29,14 @@ resource "vault_policy" "terraform" {
     path "auth/kubernetes/role/*" {
       capabilities = ["create", "read", "update", "delete", "list"]
     }
+
+    path "kv/data/rustfs/credentials" {
+      capabilities = ["read"]
+    }
+
+    path "kv/metadata/rustfs/credentials" {
+      capabilities = ["read", "list"]
+    }
   EOT
 }
 
