@@ -48,7 +48,7 @@ spec:
             - name: NTFY_AUTH_DEFAULT_ACCESS
               value: "deny-all"
             - name: NTFY_AUTH_ACCESS
-              value: "*:up*:write-only"
+              value: "*:up*:read-write"
           startupProbe:
             httpGet:
               path: /v1/health
