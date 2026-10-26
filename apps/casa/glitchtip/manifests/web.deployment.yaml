@@ -123,6 +123,8 @@ spec:
               value: "true"
             - name: ENABLE_OBSERVABILITY_API
               value: "true"
+            - name: GLITCHTIP_CHUNK_UPLOAD_USE_RELATIVE_URL
+              value: "true"
             - name: SOCIAL_AUTH_BLOCK_PRIVATE_IPS
               value: "false"
           startupProbe:
