@@ -34,7 +34,7 @@ spec:
         - name: gitlab
           # Тег и digest — один конкретный релиз; digest пинится, потому что
           # образ по тегу не перекачивается сам.
-          image: "gitlab/gitlab-ce:19.4.0-ce.0@sha256:a948f7a7ed49ae469fb2bfed9fd75fa4f44b3f098e1dfd33b223bd5487068518"
+          image: "gitlab/gitlab-ce:19.5.1-ce.0@sha256:bb79dc86267c557fd11e7feb0cd9dd506dd02e991ecdd6cae11ca7d7e5d36fc3"
           ports:
             - name: http
               containerPort: 80
