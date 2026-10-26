@@ -84,6 +84,12 @@ spec:
           podSelector:
             matchLabels:
               app: zitadel
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: petri-nets
+          podSelector:
+            matchLabels:
+              app: petri-nets
       ports:
         - port: 4317
           protocol: TCP

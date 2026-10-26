@@ -27,7 +27,7 @@ spec:
           type: RuntimeDefault
       initContainers:
         - name: export
-          image: "ghcr.io/artemiy111/timed-petri-nets:latest@sha256:ed20d15d046a8ae0cb025be91fe986e107da66f5a4f944560b5a6d2482a033b2"
+          image: "ghcr.io/artemiy111/timed-petri-nets:latest@sha256:e1f28719fa1401a0ec2a7306be71364a3b6c3adb64ec5aa7ddebc9987609308e"
           command: ["/bin/sh", "-c"]
           args:
             - cp -r /app/.next/static /shared/static && printf '%s' "$SENTRY_RELEASE" > /shared/release
