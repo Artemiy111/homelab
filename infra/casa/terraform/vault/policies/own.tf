@@ -84,6 +84,15 @@ resource "vault_policy" "app_pdf" {
   EOT
 }
 
+resource "vault_policy" "app_petri_nets" {
+  name = "app/petri-nets"
+
+  policy = <<-EOT
+    path "kv/data/petri-nets/glitchtip"      { capabilities = ["read"] }
+    path "kv/metadata/petri-nets/glitchtip"  { capabilities = ["read", "list"] }
+  EOT
+}
+
 resource "vault_policy" "app_samba" {
   name = "app/samba"
 

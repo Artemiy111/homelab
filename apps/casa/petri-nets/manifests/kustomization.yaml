@@ -3,7 +3,10 @@ kind: Kustomization
 resources:
   - namespace.yaml
   - networkpolicy.yaml
+  - vaultauth.yaml
+  - vaultstaticsecret.yaml
   - deployment.yaml
   - service.yaml
   - route.yaml
   - petri-nets.vpa.yaml
+  - sourcemaps.job.yaml

@@ -1,0 +1,105 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: petri-nets-sourcemaps
+  namespace: petri-nets
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  backoffLimit: 1
+  activeDeadlineSeconds: 300
+  ttlSecondsAfterFinished: 600
+  template:
+    metadata:
+      labels:
+        app: petri-nets-sourcemaps
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        - name: export
+          image: "ghcr.io/artemiy111/timed-petri-nets:latest@sha256:ed20d15d046a8ae0cb025be91fe986e107da66f5a4f944560b5a6d2482a033b2"
+          command: ["/bin/sh", "-c"]
+          args:
+            - cp -r /app/.next/static /shared/static && printf '%s' "$SENTRY_RELEASE" > /shared/release
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          volumeMounts:
+            - name: shared
+              mountPath: /shared
+      containers:
+        - name: upload
+          image: "getsentry/sentry-cli:2@sha256:2a60d341709d8ae040b842556c66f98443cc6d59101cab751f9811f3a1df9362"
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              release="$(cat /shared/release)"
+              if [ -z "$SENTRY_AUTH_TOKEN" ]; then
+                echo "SENTRY_AUTH_TOKEN is empty: source maps upload skipped for release ${release:-unknown}"
+                exit 0
+              fi
+              echo "uploading source maps for release $release"
+              sentry-cli --url http://glitchtip.glitchtip.svc.cluster.local \
+                releases new "$release" \
+                --org biplane \
+                --project timed-petry-nets-simulator \
+                --auth-token "$SENTRY_AUTH_TOKEN" \
+                || echo "release $release already exists, continuing"
+              sentry-cli --url http://glitchtip.glitchtip.svc.cluster.local \
+                sourcemaps upload /shared/static \
+                --url-prefix '~/_next/static' \
+                --release "$release" \
+                --org biplane \
+                --project timed-petry-nets-simulator \
+                --auth-token "$SENTRY_AUTH_TOKEN"
+          env:
+            - name: HOME
+              value: /tmp
+            - name: SENTRY_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: petri-nets-glitchtip
+                  key: SENTRY_AUTH_TOKEN
+                  optional: true
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          volumeMounts:
+            - name: shared
+              mountPath: /shared
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: shared
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}

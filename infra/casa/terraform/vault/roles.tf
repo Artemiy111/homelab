@@ -26,6 +26,7 @@ locals {
     "open-webui"     = { namespace = "open-webui", policy = "app/open-webui" },
     "paperless"      = { namespace = "paperless", policy = "app/paperless" },
     "pdf"            = { namespace = "pdf", policy = "app/pdf" },
+    "petri-nets"     = { namespace = "petri-nets", policy = "app/petri-nets" },
     "postgres"       = { namespace = "postgres", policy = "app/postgres" },
     "rustfs"         = { namespace = "rustfs", policy = "app/rustfs" },
     "samba"          = { namespace = "samba", policy = "app/samba" },

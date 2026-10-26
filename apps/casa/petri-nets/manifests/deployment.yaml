@@ -26,7 +26,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: petri-nets
-          image: "ghcr.io/artemiy111/timed-petri-nets:latest@sha256:b6053e56f1f0dc8a4cb4323b69516a57ddfa788a8a9c5472f5b8af7b67e7be91"
+          image: "ghcr.io/artemiy111/timed-petri-nets:latest@sha256:ed20d15d046a8ae0cb025be91fe986e107da66f5a4f944560b5a6d2482a033b2"
           ports:
             - name: http
               containerPort: 3000

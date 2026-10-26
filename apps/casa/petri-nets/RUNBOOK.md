@@ -71,6 +71,35 @@ KUBECONFIG=~/.kube/configs/homelab.yaml kubectl -n petri-nets logs deploy/petri-
 
 DSN — публичное значение, в Vault его не кладут: он всё равно уезжает в HTML.
 
+## Source maps
+
+Карты загружает Job `petri-nets-sourcemaps` при каждом синке приложения (хук
+`PostSync`). Политика `BeforeHookCreation` удаляет его перед следующим синком,
+поэтому «Job'а нет» — нормальное состояние: смотреть надо логи сразу после синка
+и сам release в GlitchTip.
+
+```sh
+KUBECONFIG=~/.kube/configs/homelab.yaml kubectl -n petri-nets logs job/petri-nets-sourcemaps
+```
+
+Ожидается `uploading source maps for release <sha>` и итог `sentry-cli` с числом
+загруженных файлов. Строка `SENTRY_AUTH_TOKEN is empty` означает, что токен не
+пришёл из Vault — порядок включения ниже.
+
+### Первое включение и ротация токена
+
+1. GlitchTip → **User settings → Auth Tokens** → создать токен со scope
+   `project:write`.
+2. `vault kv put kv/petri-nets/glitchtip SENTRY_AUTH_TOKEN=<токен>`.
+3. В `infra/casa/terraform/` выполнить `terraform apply` — политика
+   `app/petri-nets` и роль для ServiceAccount `vso-petri-nets`.
+4. `argocd app sync petri-nets`, чтобы Job запустился (или дождаться следующего
+   синка).
+5. Проверить логи Job и release в GlitchTip.
+
+Ротация — тот же путь: новое значение в Vault, VSO подхватит его за `refreshAfter`,
+карты перезальёт следующий синк.
+
 ## Обновление версии
 
 Обычный путь — PR от Renovate с новым digest: проверить, что сборка в
