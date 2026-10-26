@@ -94,6 +94,9 @@ spec:
             - name: oidc
               mountPath: /run/secrets/oidc
               readOnly: true
+            - name: mas-shared
+              mountPath: /run/secrets/mas-shared
+              readOnly: true
             - name: tmp
               mountPath: /tmp
       volumes:
@@ -119,5 +122,9 @@ spec:
             items:
               - key: OIDC_CLIENT_SECRET
                 path: client_secret
+        - name: mas-shared
+          secret:
+            secretName: mas-shared
+            defaultMode: 0440
         - name: tmp
           emptyDir: {}

@@ -10,14 +10,14 @@
     "exceptions": []
   },
   "network_policy": {
-    "objects": 125,
+    "objects": 126,
     "namespaces": 49,
     "namespaces_total": 62,
     "percent": 79,
     "exceptions": ["argocd", "cert-manager", "cnpg-system", "default", "elastic-system", "gitlab", "grafana-operator", "kube-system", "local-path-storage", "mariadb-system", "traefik", "velero", "victoria-metrics-operator"]
   },
   "secrets": {
-    "vault_static_secret": 93
+    "vault_static_secret": 95
   },
   "docs": {
     "adr": 16,
