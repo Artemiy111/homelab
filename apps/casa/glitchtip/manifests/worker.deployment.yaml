@@ -32,6 +32,11 @@ spec:
                 secretKeyRef:
                   name: glitchtip-db
                   key: password
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: glitchtip-secrets
+                  key: SECRET_KEY
             - name: DATABASE_URL
               value: "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@shared-rw.databases.svc.cluster.local:5432/$(POSTGRES_DB)"
           command: ["/bin/sh", "-c"]
