@@ -28,6 +28,53 @@ kubectl -n <ns> delete pod <cluster>-1
 нового размера. Удаление пода заставляет его перемонтировать том, FS
 расширяется, PVC показывает новый размер, кластер поднимается.
 
+## Как рестартовать кластер
+
+Часть параметров применяется только рестартом PostgreSQL (`PGC_POSTMASTER`) —
+например `max_locks_per_transaction`. Правка живёт в git, рестарт делает
+оператор: под он не пересоздаёт, перезапускает сам postgres внутри него.
+
+1. Поменять параметр в `spec.postgresql.parameters`, смержить и убедиться, что
+   спека доехала:
+
+```sh
+kubectl -n databases get cluster shared \
+  -o jsonpath='{.spec.postgresql.parameters.max_locks_per_transaction}{"\n"}'
+```
+
+2. Дождаться рестарта и проверить значение в работающем сервере:
+
+```sh
+kubectl -n databases exec shared-1 -c postgres -- \
+  psql -U postgres -d postgres -Atc \
+  'show max_locks_per_transaction; select pg_postmaster_start_time()'
+```
+
+Ожидается новое значение и свежее время старта. В выделенном кластере под
+называется `<cluster>-1`.
+
+Что происходит вокруг:
+
+- `instances: 1` — это простой всех баз кластера на секунды, а не switchover;
+  `enablePDB: false` по той же причине;
+- приложения переподключаются сами, но не мгновенно. Те, у кого нет ожидания
+  базы на старте, успевают упасть в `CrashLoopBackOff` и ждут backoff
+  (Nextcloud — около двух минут). Это не поломка: смотреть надо на
+  `pg_postmaster_start_time`, а не на конфиг приложения;
+- в логах потребителя это выглядит как `SQLSTATE[08006] connection refused`.
+
+Проверить, что поднялись все потребители:
+
+```sh
+for ns in nextcloud forgejo paperless element mas glitchtip gatus grafana \
+          openwebui authentik sure; do
+  kubectl -n "$ns" get pods --no-headers | grep -vE '1/1|2/2|Completed'
+done
+```
+
+Ожидается пусто. Старые Job'ы Renovate в `forgejo` попадут в этот список зря:
+они падают по своим причинам и к рестарту базы отношения не имеют.
+
 ## Предусловия
 
 1. Оператор установлен и CRD есть: `kubectl -n cnpg-system get deploy`.
