@@ -10,7 +10,7 @@
 image:
   registry: data.forgejo.org
   repository: forgejo/forgejo
-  tag: 17.0.0-rootless
+  tag: 17.0.1-rootless
   # Образ пинен по дагисту: чарт рендерит tag@digest, и разворачивается именно
   # дайджест — правка одного тега образ не меняет. Тег версионный, чтобы он и
   # дайджест называли одну и ту же версию.
