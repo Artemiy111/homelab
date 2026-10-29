@@ -6,6 +6,11 @@ rtc:
   port_range_start: 50000
   port_range_end: 50499
   use_external_ip: false
+  turn_servers:
+    - host: turn.biplane.casa
+      port: 443
+      protocol: tls
+      secret_file: /run/secrets/element/turn_shared_secret
 redis:
   address: element-valkey.element.svc.cluster.local:6379
 key_file: /etc/livekit-keys/keys.yaml

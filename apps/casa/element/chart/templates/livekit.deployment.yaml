@@ -98,6 +98,9 @@ spec:
             - name: keys
               mountPath: /etc/livekit-keys
               readOnly: true
+            - name: turn-secret
+              mountPath: /run/secrets/element
+              readOnly: true
             - name: tmp
               mountPath: /tmp
       volumes:
@@ -111,5 +114,12 @@ spec:
             items:
               - key: keys.yaml
                 path: keys.yaml
+        - name: turn-secret
+          secret:
+            secretName: element-secrets
+            defaultMode: 0440
+            items:
+              - key: TURN_SHARED_SECRET
+                path: turn_shared_secret
         - name: tmp
           emptyDir: {}

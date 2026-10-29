@@ -120,21 +120,22 @@ curl -sI https://element.example.com/widgets/element-call/index.html | grep -i x
 `element.<домен>`. Выпуск сертификата от этой записи не зависит (DNS-01 сам
 создаёт TXT), но звонок снаружи без неё не начнётся.
 
-Внешнему клиенту нужен ещё и TURN, поэтому проверяется, что Synapse отдаёт
-публичный адрес:
+Внешнему клиенту нужен ещё и TURN, а ICE-серверы клиент берёт из ответа SFU,
+поэтому проверяется конфиг LiveKit, а не `turn_uris` в Synapse — те нужны
+только звонкам без LiveKit:
 
 ```sh
-kubectl -n element exec deploy/element-synapse -c synapse -- \
-  grep -A3 '^turn_uris' /etc/synapse/homeserver.yaml
+kubectl -n element exec deploy/element-livekit -- \
+  grep -A6 'turn_servers:' /etc/livekit/config.yaml
 ```
 
-Ожидаемый результат: первая строка — `turns:turn.<домен>:443?transport=tcp`,
-за ней адреса для LAN. Конфиг Synapse на лету не перечитывается: после правки
-`homeserver.yaml` под перезапускается руками.
+Ожидаемый результат: `host: turn.<домен>`, `port: 443`, `protocol: tls` и
+`secret_file` с тем же секретом, что у coturn. Пустой список означает, что
+внешний клиент ICE-серверов не получит и звонок снаружи не установится.
 
-```sh
-kubectl -n element rollout restart deploy/element-synapse
-```
+Секрет монтируется в под SFU из `element-secrets` и обязан быть нечитаемым для
+остальных: LiveKit отказывается стартовать, если у файла выставлены права для
+`others`.
 
 Сертификат для coturn выпускает cert-manager, но под живёт и без него: coturn
 пишет `Certificate file not found` и поднимает только незашифрованный TURN.
