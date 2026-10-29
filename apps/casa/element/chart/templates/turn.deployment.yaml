@@ -71,6 +71,9 @@ spec:
             - name: config
               mountPath: /etc/turn
               readOnly: true
+            - name: tls
+              mountPath: /etc/turn/tls
+              readOnly: true
             - name: data
               mountPath: /var/lib/coturn
             - name: tmp
@@ -83,6 +86,10 @@ spec:
             items:
               - key: turnserver.conf
                 path: turnserver.conf
+        - name: tls
+          secret:
+            secretName: element-turn-tls
+            defaultMode: 0440
         - name: data
           emptyDir: {}
         - name: tmp

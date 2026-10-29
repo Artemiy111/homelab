@@ -112,3 +112,61 @@ curl -sI https://element.example.com/widgets/element-call/index.html | grep -i x
 `/livekit/sfu/rtc` нет ни одного `101`, а по `/livekit/jwt/sfu/get` — ни одного
 `POST` от браузера. Ассеты `/widgets/element-call/assets/*` при этом тоже не
 запрашиваются: заблокированный документ не доходит до разбора.
+
+### Звонки из интернета
+
+Сначала — публичная запись: в зоне домена нет wildcard, каждый хост заводится
+отдельно. Для TURN нужен `turn.<домен>` с адресом балансировщика, тот же, что у
+`element.<домен>`. Выпуск сертификата от этой записи не зависит (DNS-01 сам
+создаёт TXT), но звонок снаружи без неё не начнётся.
+
+Внешнему клиенту нужен ещё и TURN, поэтому проверяется, что Synapse отдаёт
+публичный адрес:
+
+```sh
+kubectl -n element exec deploy/element-synapse -c synapse -- \
+  grep -A3 '^turn_uris' /etc/synapse/homeserver.yaml
+```
+
+Ожидаемый результат: первая строка — `turns:turn.<домен>:443?transport=tcp`,
+за ней адреса для LAN. Конфиг Synapse на лету не перечитывается: после правки
+`homeserver.yaml` под перезапускается руками.
+
+```sh
+kubectl -n element rollout restart deploy/element-synapse
+```
+
+Сертификат для coturn выпускает cert-manager. Пока Secret не готов, под
+`element-turn` не стартует и звонки ломаются целиком, включая LAN, — поэтому
+проверка идёт до звонка:
+
+```sh
+kubectl -n element get certificate element-turn-tls
+kubectl -n element get secret element-turn-tls
+```
+
+Ожидаемый результат: `Ready=True` и Secret с ключами `tls.crt` и `tls.key`.
+
+TLS-порт coturn снаружи выглядит как `443` публичного входа. Проверяется
+хендшейком на `turn.<домен>`, то есть через `casa-edge`, минуя Traefik:
+
+```sh
+openssl s_client -connect turn.<домен>:443 -servername turn.<домен> </dev/null | \
+  openssl x509 -noout -subject -dates
+```
+
+Ожидаемый результат: сертификат на `turn.<домен>` от Let's Encrypt. Обрыв —
+coturn не слушает TLS или SNI-ветка не сработала; сертификат на `*.<домен>`
+того же происхождения означает, что соединение ушло в Traefik вместо coturn.
+Если под coturn поднят, а порт всё равно закрыт, — смотреть firewalld на узле:
+coturn публикует порт напрямую, мимо kube-proxy, и правило для `5349/tcp`
+нужно отдельно.
+
+Оба порта coturn видны в его конфиге:
+
+```sh
+kubectl -n element exec deploy/element-turn -- \
+  grep -E '^(tls-)?listening-port' /etc/turn/turnserver.conf
+```
+
+Ожидаемый результат: `listening-port=3479` и `tls-listening-port=5349`.

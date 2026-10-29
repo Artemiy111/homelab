@@ -79,6 +79,7 @@ experimental_features:
   msc4222_enabled: true
 max_event_delay_duration: 24h
 turn_uris:
+  - turns:turn.biplane.casa:443?transport=tcp
   - turn:192.168.1.254:3479?transport=udp
   - turn:192.168.1.254:3479?transport=tcp
 turn_shared_secret_path: /run/secrets/element/turn_shared_secret

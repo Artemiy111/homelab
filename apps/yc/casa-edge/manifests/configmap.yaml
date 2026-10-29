@@ -23,11 +23,16 @@ data:
       tcp-request inspect-delay 5s
       tcp-request content accept if { req_ssl_hello_type 1 }
       acl yc_sni req_ssl_sni -m end .yc.clusters.biplane.casa
+      acl turn_sni req_ssl_sni -i turn.biplane.casa
       use_backend yc_gateway if yc_sni
+      use_backend turn if turn_sni
       default_backend ingress
 
     backend ingress
       server ingress "${CASA_EDGE_TARGET}" send-proxy-v2
+
+    backend turn
+      server turn "${CASA_EDGE_TURN_TARGET}"
 
     backend yc_gateway
       server gateway ${NODE_IP}:30082

@@ -46,6 +46,18 @@ openssl s_client -connect uptime.biplane.casa:443 \
 
 Ожидается `200`/`302` и сертификат на `*.biplane.casa` от Let's Encrypt.
 
+Ветка TURN проверяется тем же хендшейком, но на `turn.<домен>`: здесь
+сертификат выписан на само имя, а не на wildcard.
+
+```sh
+openssl s_client -connect turn.<домен>:443 -servername turn.<домен> </dev/null | \
+  openssl x509 -noout -subject -dates
+```
+
+Ожидается сертификат на `turn.<домен>`. Wildcard в ответе значит, что SNI-ветка
+не совпала и соединение ушло в Traefik; обрыв — что coturn на домашнем узле не
+слушает TLS-порт.
+
 Если порт не отвечает, проверять по порядку:
 
 1. `terraform output` в `infra/yc/terraform/cluster` — у балансировщика есть

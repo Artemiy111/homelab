@@ -1,0 +1,15 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: element-turn-tls
+  namespace: element
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  secretName: element-turn-tls
+  issuerRef:
+    name: letsencrypt-prod-casa
+    kind: ClusterIssuer
+  dnsNames:
+    - turn.biplane.casa
+  renewBefore: 720h

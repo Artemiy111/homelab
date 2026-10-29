@@ -21,11 +21,14 @@ spec:
       containers:
         - name: haproxy
           image: haproxy:3.2-alpine
+          command:
+            - /bin/sh
+            - -c
           args:
-            - -W
-            - -db
-            - -f
-            - /etc/haproxy/haproxy.cfg
+            - |
+              CASA_EDGE_TURN_TARGET="${CASA_EDGE_TARGET%:*}:5349"
+              export CASA_EDGE_TURN_TARGET
+              exec haproxy -W -db -f /etc/haproxy/haproxy.cfg
           env:
             - name: CASA_EDGE_TARGET
               valueFrom:
