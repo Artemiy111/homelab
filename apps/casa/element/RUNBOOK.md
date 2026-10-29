@@ -136,9 +136,10 @@ kubectl -n element exec deploy/element-synapse -c synapse -- \
 kubectl -n element rollout restart deploy/element-synapse
 ```
 
-Сертификат для coturn выпускает cert-manager. Пока Secret не готов, под
-`element-turn` не стартует и звонки ломаются целиком, включая LAN, — поэтому
-проверка идёт до звонка:
+Сертификат для coturn выпускает cert-manager, но под живёт и без него: coturn
+пишет `Certificate file not found` и поднимает только незашифрованный TURN.
+Звонки из LAN при этом работают, а снаружи срываются молча, поэтому проверка
+идёт до звонка:
 
 ```sh
 kubectl -n element get certificate element-turn-tls
@@ -146,6 +147,14 @@ kubectl -n element get secret element-turn-tls
 ```
 
 Ожидаемый результат: `Ready=True` и Secret с ключами `tls.crt` и `tls.key`.
+
+cert-manager обновляет Secret сам, а coturn читает сертификат только на старте
+и перезагрузки не делает. После каждого обновления под перезапускается вручную,
+иначе TLS будет отдавать сертификат, который уже заменён в Secret:
+
+```sh
+kubectl -n element rollout restart deploy/element-turn
+```
 
 TLS-порт coturn снаружи выглядит как `443` публичного входа. Проверяется
 хендшейком на `turn.<домен>`, то есть через `casa-edge`, минуя Traefik:
