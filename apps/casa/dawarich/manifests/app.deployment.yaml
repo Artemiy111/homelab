@@ -37,7 +37,7 @@ spec:
         # (Dir.tmpdir) такие каталоги отвергает. Готовим каталог 0700 и
         # направляем туда TMPDIR.
         - name: prepare-tmp
-          image: "freikin/dawarich:1.17.0@sha256:27567ccd0e526b5ae8f987b91312d394c912260487229f65c31eaf198f615f69"
+          image: "freikin/dawarich:1.20.0@sha256:3b8cf159d21ced0b051b980c96e79ace956a5d47386adf61cd1ae86dd737068f"
           command: ["/bin/sh", "-c", "mkdir -p /var/app/tmp/tmpdir && chmod 700 /var/app/tmp/tmpdir"]
           securityContext:
             allowPrivilegeEscalation: false
@@ -56,7 +56,7 @@ spec:
               mountPath: /var/app/tmp
       containers:
         - name: dawarich
-          image: "freikin/dawarich:1.17.0@sha256:27567ccd0e526b5ae8f987b91312d394c912260487229f65c31eaf198f615f69"
+          image: "freikin/dawarich:1.20.0@sha256:3b8cf159d21ced0b051b980c96e79ace956a5d47386adf61cd1ae86dd737068f"
           command: ["web-entrypoint.sh"]
           args: ["bin/rails", "server", "-p", "3000", "-b", "::"]
           ports:
