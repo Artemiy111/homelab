@@ -1,0 +1,124 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: linkwarden
+  namespace: linkwarden
+spec:
+  # RWO-том архива: при rolling update два пода писали бы в один каталог.
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 1
+  replicas: 1
+  selector:
+    matchLabels:
+      app: linkwarden
+  template:
+    metadata:
+      labels:
+        app: linkwarden
+    spec:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      # Своего пользователя в образе нет: приложение работает от uid 1000,
+      # HOME указывает на том данных — Chromium и Next.js пишут туда профиль
+      # и кэш.
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: linkwarden
+          image: "ghcr.io/linkwarden/linkwarden:v2.17.0@sha256:7c11fde57d1a0c819b6de0079966eba3a33584d718464af7dacde22bd470ae46"
+          ports:
+            - name: http
+              containerPort: 3000
+          envFrom:
+            - configMapRef:
+                name: homelab-config
+          env:
+            - name: DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-config
+                  key: DOMAIN
+            - name: TZ
+              valueFrom:
+                configMapKeyRef:
+                  name: homelab-config
+                  key: TZ
+            - name: HOME
+              value: /data/data
+            - name: NEXTAUTH_URL
+              value: "https://linkwarden.$(DOMAIN)/api/v1/auth"
+            - name: BASE_URL
+              value: "https://linkwarden.$(DOMAIN)"
+            - name: STORAGE_FOLDER
+              value: /data/data
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: linkwarden-db-auth
+                  key: password
+            - name: DATABASE_URL
+              value: "postgresql://linkwarden:$(DB_PASSWORD)@shared-rw.databases.svc.cluster.local:5432/linkwarden"
+            - name: NEXTAUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: linkwarden-secrets
+                  key: NEXTAUTH_SECRET
+            - name: MEILI_HOST
+              value: "http://linkwarden-meilisearch.linkwarden.svc.cluster.local:7700"
+            - name: MEILI_MASTER_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: linkwarden-secrets
+                  key: MEILI_MASTER_KEY
+          startupProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 10
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+            limits:
+              cpu: "1"
+              memory: 2Gi
+          volumeMounts:
+            - name: data
+              mountPath: /data/data
+            - name: shm
+              mountPath: /dev/shm
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: linkwarden-data
+        - name: shm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 512Mi

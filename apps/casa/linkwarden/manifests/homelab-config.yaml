@@ -1,0 +1,11 @@
+# Конфиг общего окружения стенда. Копия лежит в каждом namespace, который его
+# читает: ConfigMap виден только внутри своего namespace.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: homelab-config
+  namespace: linkwarden
+data:
+  DOMAIN: biplane.casa
+  TZ: Asia/Yekaterinburg
+  DEFAULT_LOCALE: ru

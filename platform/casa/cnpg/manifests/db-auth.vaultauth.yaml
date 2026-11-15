@@ -214,6 +214,25 @@ spec:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
+  name: vso-linkwarden-db
+  namespace: databases
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultAuth
+metadata:
+  name: vso-linkwarden-db
+  namespace: databases
+spec:
+  vaultAuthGlobalRef:
+    name: vso-global
+    namespace: vault-secrets-operator
+  kubernetes:
+    role: linkwarden-db
+    serviceAccount: vso-linkwarden-db
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
   name: vso-sure-db
   namespace: databases
 ---

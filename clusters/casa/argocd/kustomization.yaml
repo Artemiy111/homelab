@@ -29,6 +29,7 @@ resources:
   - apps/homepage.yaml
   - apps/immich.yaml
   - apps/jellyfin.yaml
+  - apps/linkwarden.yaml
   - apps/local-ai.yaml
   - apps/loki.yaml
   - apps/lute.yaml

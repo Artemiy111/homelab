@@ -65,6 +65,15 @@ resource "vault_policy" "db_grafana" {
   EOT
 }
 
+resource "vault_policy" "db_linkwarden" {
+  name = "db/linkwarden"
+
+  policy = <<-EOT
+    path "kv/data/linkwarden/db"     { capabilities = ["read"] }
+    path "kv/metadata/linkwarden/db" { capabilities = ["read", "list"] }
+  EOT
+}
+
 resource "vault_policy" "db_nextcloud" {
   name = "db/nextcloud"
 

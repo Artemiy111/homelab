@@ -33,6 +33,17 @@ resource "vault_policy" "app_immich" {
   EOT
 }
 
+resource "vault_policy" "app_linkwarden" {
+  name = "app/linkwarden"
+
+  policy = <<-EOT
+    path "kv/data/linkwarden/db"           { capabilities = ["read"] }
+    path "kv/metadata/linkwarden/db"       { capabilities = ["read", "list"] }
+    path "kv/data/linkwarden/secrets"      { capabilities = ["read"] }
+    path "kv/metadata/linkwarden/secrets"  { capabilities = ["read", "list"] }
+  EOT
+}
+
 resource "vault_policy" "app_open_webui" {
   name = "app/open-webui"
 

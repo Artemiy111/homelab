@@ -1,0 +1,33 @@
+# Архив закладок: скриншоты, PDF и сохранённые страницы. Без backup target
+# поэтому longhorn-retain — удаление PVC не должно стирать данные.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false
+  name: linkwarden-data
+  namespace: linkwarden
+spec:
+  storageClassName: longhorn-retain
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 256Mi
+---
+# Индекс Meilisearch. Восстанавливается переиндексацией из базы, но это ручная
+# операция; том маленький, поэтому тоже retain.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false
+  name: linkwarden-meilisearch
+  namespace: linkwarden
+spec:
+  storageClassName: longhorn-retain
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 128Mi
