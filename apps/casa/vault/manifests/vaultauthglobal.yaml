@@ -22,6 +22,7 @@ spec:
     - home-assistant
     - immich
     - jellyfin
+    - linkwarden
     - local-ai
     - mailserver
     - mas
