@@ -13,7 +13,7 @@ data:
     proxy-providers:
       happ:
         type: http
-        url: http://mihomo-subconv.mihomo.svc.cluster.local:8081/provider
+        url: http://mihomo-bridge.mihomo.svc.cluster.local:8081/provider
         interval: 3600
         health-check:
           enable: true

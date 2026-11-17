@@ -6,10 +6,8 @@ metadata:
 data:
   bridge.py: |
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-    from urllib.parse import urlencode
     from urllib.request import Request, urlopen
 
-    SUBCONV_URL = "http://127.0.0.1:8080/sub"
     SECRET_PATH = "/var/run/secrets/mihomo/SUBSCRIPTION_URL"
 
     def provider_document(body: bytes) -> bytes:
@@ -48,14 +46,13 @@ data:
             if not subscription_url:
                 self.send_error(503, "subscription url is not configured")
                 return
-            target = SUBCONV_URL + "?" + urlencode({"target": "clash", "url": subscription_url})
             try:
-                request = Request(target, headers={"User-Agent": "mihomo-bridge"})
+                request = Request(subscription_url, headers={"User-Agent": "mihomo-bridge"})
                 with urlopen(request, timeout=30) as response:
                     body = response.read()
                     status = response.status
             except Exception:
-                self.send_error(502, "upstream conversion failed")
+                self.send_error(502, "upstream subscription failed")
                 return
             self.reply(status, provider_document(body), "text/yaml; charset=utf-8")
 

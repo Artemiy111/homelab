@@ -1,53 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mihomo-subconv
+  name: mihomo-bridge
   namespace: mihomo
 spec:
   replicas: 1
   revisionHistoryLimit: 1
   selector:
     matchLabels:
-      app: mihomo-subconv
+      app: mihomo-bridge
   template:
     metadata:
       labels:
-        app: mihomo-subconv
+        app: mihomo-bridge
     spec:
       containers:
-        - name: subconv
-          image: "wouisb/subconv:v4.0.2@sha256:ca7d1d981134c04f58c379aeacb84211c38776a3185f7bfb94fd2e34d394e775"
-          imagePullPolicy: IfNotPresent
-          ports:
-            - containerPort: 8080
-              name: http
-          readinessProbe:
-            httpGet:
-              path: /config
-              port: http
-            timeoutSeconds: 3
-            periodSeconds: 10
-            failureThreshold: 3
-          livenessProbe:
-            httpGet:
-              path: /config
-              port: http
-            timeoutSeconds: 3
-            periodSeconds: 30
-            failureThreshold: 3
-          securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: ["ALL"]
-            seccompProfile:
-              type: RuntimeDefault
-          resources:
-            requests:
-              cpu: 10m
-              memory: 64Mi
-            limits:
-              cpu: 400m
-              memory: 256Mi
         - name: bridge
           image: "python:3.13-alpine@sha256:9ef1a599f863231c3d91e941389bfdc4a2d6070557243d54df1a4e57015b960e"
           imagePullPolicy: IfNotPresent

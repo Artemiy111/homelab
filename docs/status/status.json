@@ -4,8 +4,8 @@
   "services": 62,
   "manifests": 664,
   "images": {
-    "pinned": 115,
-    "total": 115,
+    "pinned": 114,
+    "total": 114,
     "percent": 100,
     "exceptions": []
   },

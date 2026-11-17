@@ -5,8 +5,8 @@ resources:
   - namespace.yaml
   - config.yaml
   - bridge.yaml
-  - subconv.deployment.yaml
-  - subconv.service.yaml
+  - bridge.deployment.yaml
+  - bridge.service.yaml
   - mihomo.deployment.yaml
   - mihomo.service.yaml
   - networkpolicy.yaml

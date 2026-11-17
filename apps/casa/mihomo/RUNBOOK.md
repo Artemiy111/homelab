@@ -11,7 +11,7 @@
 vault kv put kv/mihomo/subscription SUBSCRIPTION_URL='<subscription-url>'
 ```
 
-Если секрета нет, под `mihomo-subconv` не стартует: контейнер моста ждёт смонтированный
+Если секрета нет, под `mihomo-bridge` не стартует: контейнер моста ждёт смонтированный
 файл с ключом `SUBSCRIPTION_URL`.
 
 ## Проверка на стенде
@@ -28,11 +28,11 @@ kubectl -n mihomo get pods
 kubectl -n mihomo get secret mihomo-subscription -o json | jq -r '.data | keys[]'
 ```
 
-Проверить, что конвертер отдаёт Clash YAML с узлами:
+Проверить, что мост отдаёт Clash YAML с узлами:
 
 ```sh
-kubectl -n mihomo exec deploy/mihomo-subconv -c bridge -- \
-  python -c 'import urllib.request as u; r=u.urlopen("http://127.0.0.1:8081/provider", timeout=30); print(r.status, len(r.read()))'
+kubectl -n mihomo exec deploy/mihomo-bridge -c bridge -- \
+  python -c 'import urllib.request as u; r=u.urlopen("http://127.0.0.1:8081/provider", timeout=30); d=r.read(); print(r.status, len(d), d.count(b"name:"))'
 ```
 
 Ожидаемый результат: `200` и ненулевой размер тела. Нулевой список `proxies`
@@ -50,7 +50,7 @@ curl -fsS http://127.0.0.1:9090/providers/proxies | jq '.providers.happ'
 Проверить проксирование через mihomo:
 
 ```sh
-kubectl -n mihomo exec deploy/mihomo-subconv -c bridge -- \
+kubectl -n mihomo exec deploy/mihomo-bridge -c bridge -- \
   python -c 'import urllib.request as u; p=u.ProxyHandler({"http":"http://mihomo.mihomo.svc.cluster.local:7890","https":"http://mihomo.mihomo.svc.cluster.local:7890"}); print(u.build_opener(p).open("https://example.com", timeout=15).status)'
 ```
 
@@ -74,13 +74,13 @@ vault kv put kv/mihomo/subscription SUBSCRIPTION_URL='<new-url>'
 
 - **Под висит в `CreateContainerConfigError`.** Нет Secret `mihomo-subscription`
   или в нём нет ключа `SUBSCRIPTION_URL`. Записать подписку заново.
-- **Мост отдаёт `502`.** SubConv не смог скачать подписку: просрочен URL,
-  истёк сертификат или подписка вернула не share-ссылки. Проверить мост и SubConv
-  отдельно, не меняя 3x-ui.
+- **Мост отдаёт `502`.** Подписка недоступна или вернула не тот формат: просрочен
+  URL, истёк сертификат или провайдер перестал отдавать Clash YAML под UA
+  `mihomo`. Проверить ответ моста отдельно, не меняя 3x-ui.
 - **Узлы `alive: false`.** Проверить health-check URL и доступность самих узлов.
   Это не влияет на 3x-ui.
 - **В логах mihomo ошибки загрузки провайдера.** Проверить, что Service
-  `mihomo-subconv` резолвится полным именем и что мост отвечает на `/provider`.
+  `mihomo-bridge` резолвится полным именем и что мост отвечает на `/provider`.
 
 ## Удаление
 
