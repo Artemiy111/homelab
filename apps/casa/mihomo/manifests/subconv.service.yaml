@@ -8,7 +8,7 @@ spec:
   selector:
     app: mihomo-subconv
   ports:
-    - name: http
+    - name: bridge
       port: 8081
-      targetPort: http
+      targetPort: bridge
       protocol: TCP
