@@ -16,7 +16,7 @@ on:
 
 jobs:
   tflint:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
@@ -47,7 +47,7 @@ jobs:
             --chdir=infra/casa/terraform \
             --config="$(pwd)/.tflint.hcl"
   terraform-fmt:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
@@ -76,7 +76,7 @@ jobs:
           terraform version
           terraform fmt -check -diff -no-color -recursive infra/casa/terraform
   terraform-validate:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7

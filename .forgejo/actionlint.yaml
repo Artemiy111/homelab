@@ -1,5 +1,9 @@
 # actionlint линтит workflow по грамматике GitHub Actions, а workflow лежат в
 # .forgejo/workflows, поэтому путь к конфигу передаётся явно (-config-file).
+self-hosted-runner:
+  labels:
+    - ubuntu-26.04
+
 paths:
   .forgejo/workflows/**/*.yml:
     ignore:
