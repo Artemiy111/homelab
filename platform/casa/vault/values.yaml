@@ -59,6 +59,7 @@ server:
       ui = true
 
       disable_mlock = true
+      log_format    = "json"
 
       storage "raft" {
         path = "/vault/data"
