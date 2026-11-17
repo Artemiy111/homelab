@@ -19,6 +19,3 @@ configMapGenerator:
   - name: vmagent-scrape
     files:
       - config/vmagent/scrape.yml
-  - name: vmagent-remote-write
-    files:
-      - config/vmagent/remote-write-relabel.yml

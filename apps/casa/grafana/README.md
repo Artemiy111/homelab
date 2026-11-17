@@ -357,7 +357,6 @@ URL `https://ntfy.sh/<тема>?template=alertmanager`, а не только т�
 | `pipeline-traces-stalled` | victoria-metrics | Поток трейсов в Tempo остановился |
 | `vmagent-data-loss` | victoria-metrics | vmagent выбрасывает данные из очереди |
 | `loki-active-streams-high` | victoria-metrics | Кардинальность Loki выросла выше привычной |
-| `monium-write-stalled` | victoria-metrics | Копия метрик в Monium не отправляется |
 | `logs-error-spike` | logs | Всплеск ошибок в логах приложений |
 | `logs-pipeline-stalled` | logs | Поток логов в Loki остановился |
 | `node-disk-low` | logs | Мало свободного места на корневом разделе узла |
@@ -409,9 +408,8 @@ git без `deleteRules`, то есть **остались вычислятьс�
 кавычках обратный слэш читается как escape, поэтому regex с `\.` роняет
 вычисление с `cannot parse string literal`. Правило уходит в состояние Error:
 в UI оно выглядит созданным, в Grafana нет ни ошибки, ни уведомления, а в
-логах видно `Failed to evaluate rule`. В селекторах либо пишутся обычные точки
-(`url=~".*cloud.yandex.net.*"`), либо regex берётся в бэктики, где слэш
-литерален.
+логах видно `Failed to evaluate rule`. В селекторах обычные точки пишутся без
+экранирования, либо regex берётся в бэктики, где слэш литерален.
 
 Намеренно мало правил, а не полный набор: каждое лишнее правило растит шанс,
 что его начнут игнорировать, а алерт-фатиг обесценивает систему целиком.
