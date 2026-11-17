@@ -74,7 +74,7 @@ vault kv put kv/mihomo/subscription SUBSCRIPTION_URL='<new-url>'
 
 - **Под висит в `CreateContainerConfigError`.** Нет Secret `mihomo-subscription`
   или в нём нет ключа `SUBSCRIPTION_URL`. Записать подписку заново.
-- **`/provider` отдаёт `502`.** SubConv не смог скачать подписку: просрочен URL,
+- **Мост отдаёт `502`.** SubConv не смог скачать подписку: просрочен URL,
   истёк сертификат или подписка вернула не share-ссылки. Проверить мост и SubConv
   отдельно, не меняя 3x-ui.
 - **Узлы `alive: false`.** Проверить health-check URL и доступность самих узлов.
