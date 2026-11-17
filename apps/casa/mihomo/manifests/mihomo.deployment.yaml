@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mihomo
+  namespace: mihomo
+spec:
+  replicas: 1
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app: mihomo
+  template:
+    metadata:
+      labels:
+        app: mihomo
+    spec:
+      containers:
+        - name: mihomo
+          image: "metacubex/mihomo:v1.19.34@sha256:4c2495d705f152897a58eac410350f243835fd01ce2fe44949a571faa824d532"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 7890
+              name: mixed
+            - containerPort: 9090
+              name: controller
+          readinessProbe:
+            httpGet:
+              path: /providers/proxies
+              port: controller
+            timeoutSeconds: 3
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /providers/proxies
+              port: controller
+            timeoutSeconds: 3
+            periodSeconds: 30
+            failureThreshold: 3
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          volumeMounts:
+            - name: config
+              mountPath: /root/.config/mihomo/config.yaml
+              subPath: config.yaml
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: mihomo-config

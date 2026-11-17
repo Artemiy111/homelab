@@ -55,6 +55,15 @@ resource "vault_policy" "app_local_ai" {
   EOT
 }
 
+resource "vault_policy" "app_mihomo" {
+  name = "app/mihomo"
+
+  policy = <<-EOT
+    path "kv/data/mihomo/subscription"      { capabilities = ["read"] }
+    path "kv/metadata/mihomo/subscription"  { capabilities = ["read", "list"] }
+  EOT
+}
+
 resource "vault_policy" "app_navidrome" {
   name = "app/navidrome"
 

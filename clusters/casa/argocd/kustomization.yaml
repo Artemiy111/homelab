@@ -36,6 +36,7 @@ resources:
   - apps/mailserver.yaml
   - apps/mas.yaml
   - apps/mermaid-live-editor.yaml
+  - apps/mihomo.yaml
   - apps/monitoring-middlewares.yaml
   - apps/navidrome.yaml
   - apps/nextcloud.yaml

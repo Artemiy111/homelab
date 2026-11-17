@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mihomo-config
+  namespace: mihomo
+data:
+  config.yaml: |
+    mixed-port: 7890
+    allow-lan: true
+    mode: rule
+    log-level: info
+    external-controller: 0.0.0.0:9090
+    proxy-providers:
+      happ:
+        type: http
+        url: http://mihomo-subconv.mihomo.svc.cluster.local:8081/provider
+        interval: 3600
+        health-check:
+          enable: true
+          interval: 600
+          url: http://www.gstatic.com/generate_204
+    proxy-groups:
+      - name: proxy
+        type: url-test
+        use:
+          - happ
+        url: http://www.gstatic.com/generate_204
+        interval: 300
+        lazy: false
+    rules:
+      - DOMAIN-SUFFIX,cluster.local,DIRECT
+      - DOMAIN-SUFFIX,localhost,DIRECT
+      - IP-CIDR,127.0.0.0/8,DIRECT,no-resolve
+      - IP-CIDR,169.254.0.0/16,DIRECT,no-resolve
+      - IP-CIDR,10.0.0.0/8,DIRECT,no-resolve
+      - IP-CIDR,172.16.0.0/12,DIRECT,no-resolve
+      - IP-CIDR,192.168.0.0/16,DIRECT,no-resolve
+      - IP-CIDR6,::1/128,DIRECT,no-resolve
+      - MATCH,proxy

@@ -21,6 +21,7 @@ locals {
     "local-ai"       = { namespace = "local-ai", policy = "app/local-ai" },
     "mailserver"     = { namespace = "mailserver", policy = "app/mailserver" },
     "mas"            = { namespace = "mas", policy = "app/mas" },
+    "mihomo"         = { namespace = "mihomo", policy = "app/mihomo" },
     "navidrome"      = { namespace = "navidrome", policy = "app/navidrome" },
     "nextcloud"      = { namespace = "nextcloud", policy = "app/nextcloud" },
     "oauth2-proxy"   = { namespace = "oauth2-proxy", policy = "app/oauth2-proxy" },
