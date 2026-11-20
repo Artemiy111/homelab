@@ -4,11 +4,12 @@
 документации, спецификации W3C/CNCF/IETF, GitHub-репозитории). Этот документ
 о **подходах, стандартах и протоколах** — как телеметрия устроена под капотом
 и как сигналы сочетаются между собой. Сравнение конкретных продуктов и выбор
-стека для этого homelab — в отдельном исследовании.
+стека — в отдельном исследовании
+([monitoring-stacks-overview.md](monitoring-stacks-overview.md)).
 
 **См. также: [docs/research/observability/monitoring-stacks-overview.md](monitoring-stacks-overview.md)**
-— сравнение продуктов (Prometheus-стек, LGTM, VictoriaMetrics, Zabbix и т.д.),
-аудит уже установленных приложений и план внедрения.
+— сравнение продуктов (Prometheus-стек, LGTM, VictoriaMetrics, Zabbix, ELK),
+их официальные требования к ресурсам и расчёты по сценариям эксплуатации.
 
 ## Вывод
 
@@ -240,11 +241,11 @@ CRD (`VMServiceScrape`, `VMPodScrape`, `VMRule` и т.д. —
 тем, что он родной для Grafana/Loki/Tempo/Alloy/Prometheus-стека. Имена полей
 формат сам по себе не унифицирует (`traceID` vs `TraceId` vs `trace_id`).
 
-Практическое правило homelab: **приложение должно отдавать структуру** — JSON,
+Практическое правило: **приложение должно отдавать структуру** — JSON,
 если это его естественный формат, иначе logfmt; платформенные компоненты на
 Go/Grafana оставляем на logfmt. JSON-логи включаются у Traefik, Immich, Vault,
 Stalwart переменными окружения (см.
-[monitoring-stacks-overview.md](monitoring-stacks-overview.md) §7).
+[log-output-formats.md](log-output-formats.md)).
 
 ### 3.2 Уровни (severity)
 
@@ -292,7 +293,7 @@ ERROR(17–20), FATAL(21–24); рядом хранится исходная с�
 - **Elasticsearch/OpenSearch** строят инвертированный индекс по токенам —
   произвольный поиск быстрый, но индекс сопоставим по объёму с данными;
   OpenSearch — Apache-2.0 форк ES 7.10 с бесплатными SAML/OIDC (см.
-  [monitoring-stacks-overview.md](monitoring-stacks-overview.md) §3).
+  [monitoring-stacks-overview.md](monitoring-stacks-overview.md) §5.2).
 - **VictoriaLogs** — «user-friendly cost-efficient database for logs» от
   команды VictoriaMetrics: колонко-ориентированный движок с битовыми индексами,
   полнотекстовый поиск по полям, LogsQL; принимает данные от Fluent Bit, Vector,
@@ -301,7 +302,7 @@ ERROR(17–20), FATAL(21–24); рядом хранится исходная с�
   [data ingestion](https://docs.victoriametrics.com/victorialogs/data-ingestion/)).
 - **ClickHouse-стеки** (SigNoz, qryn, HyperDX) используют колонко-ориентированную
   СУБД для логов+трейсов+метрик — скорость SQL-запросов по историческим данным
-  (сравнение стеков: [monitoring-stacks-overview.md](monitoring-stacks-overview.md) §3).
+  (сравнение стеков: [monitoring-stacks-overview.md](monitoring-stacks-overview.md) §5.4).
 
 ### 3.5 Языки запросов — кратко
 
@@ -586,7 +587,7 @@ connector** — из трейсов строит RED-метрики (`duration`,
 ### 6.2 VictoriaMetrics стек: vmagent + VictoriaMetrics + VictoriaLogs + vmalert
 
 Та же топология, другой набор продуктов (Apache-2.0, меньше ресурсов — детали
-выбора в [monitoring-stacks-overview.md](monitoring-stacks-overview.md) §2.3):
+выбора в [monitoring-stacks-overview.md](monitoring-stacks-overview.md) §3.1):
 
 ```
 exporters ──pull──▶ vmagent ──remote_write──▶ VictoriaMetrics ◀──OTLP── Alloy/OTel Collector
@@ -640,7 +641,9 @@ Loki/VictoriaLogs, Tempo/Jaeger/Elasticsearch + **Grafana Unified Alerting**
 [unified alerting](https://grafana.com/docs/grafana/latest/alerting/)).
 Плюс provisioning дашбордов и datasource'ов как код
 ([provisioning](https://grafana.com/docs/grafana/latest/administration/provisioning/)).
-Для homelab это означает: хранилища можно менять поодиночке, UI — один.
+Практический вывод: хранилища можно менять по отдельности от UI —
+паттерн «один пульт, много источников» работает в обе стороны: при переходе
+сданные подключаются к новому backend'у без изменения dashboards.
 
 ### 6.5 Таблица совместимости: кто какой протокол принимает
 
@@ -680,7 +683,7 @@ Loki/VictoriaLogs, Tempo/Jaeger/Elasticsearch + **Grafana Unified Alerting**
 
 Оба стека решают одну задачу — «весь мониторинг кластера из Helm-чарта», разница
 в хранилище и CRD-механике (детальное сравнение —
-[monitoring-stacks-overview.md](monitoring-stacks-overview.md) §5):
+[monitoring-stacks-overview.md](monitoring-stacks-overview.md) §8):
 
 | | kube-prometheus-stack | victoria-metrics-k8s-stack |
 |---|---|---|
@@ -721,15 +724,14 @@ Fluent Bit (лёгкий и многоцелевой). Метаданные по
   ядра без изменения приложений — хороший вариант для чужих/унаследованных
   образов.
 
-Паттерн для homelab: sidecar `OTEL_SERVICE_NAME=app` + `OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317`
+Паттерн (схема, чего избегать при изменении инструмента): sidecar `OTEL_SERVICE_NAME=app` + `OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317`
 — минимальная связность кода с телеметрией, всё остальное решает коллектор.
 
 ---
 
-## 8. 🏠 Вывод для этого homelab
+## 8. Вывод: стандарты выбора
 
-Детальный план внедрения — в
-[monitoring-stacks-overview.md](monitoring-stacks-overview.md) (§8, этапы 1–3).
+Порядок и стек — смотрите в [monitoring-stacks-overview.md](monitoring-stacks-overview.md).
 Здесь — только **выбор стандартов**, чтобы не запереться в вендоре:
 
 1. **Метрики — формат Prometheus (OpenMetrics) как язык данных** и

@@ -31,6 +31,7 @@ Forward auth перед приложениями без своей автори�
 
 Приложение обязано доверять этим заголовкам только от прокси: прямой доступ к
 upstream должен быть закрыт, а заголовки — перезаписываться. Проверку отрицательного
-сценария см. в `docs/research/identity/identity-providers.md` (этап 3).
+сценария см. в `docs/research/identity/idp-comparison-matrix.md` (параграф
+«Proxy pattern», схема: клиент → proxy → upstream, заголовки перезаписываются прокси).
 
 Эксплуатация — в `RUNBOOK.md`.

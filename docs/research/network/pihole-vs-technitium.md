@@ -247,5 +247,5 @@ Settings → SSO → Enable OpenID Connect → ввести:
 ## 📎 Связанные документы
 
 - [per-service-auth-strategies.md](../identity/per-service-auth-strategies.md) — матрица OIDC поддержки всех сервисов homelab
-- [idp-comparison-matrix.md](../identity/idp-comparison-matrix.md) — сравнение IdP провайдеров
-- [identity-providers.md](../identity/identity-providers.md) — стратегии аутентификации
+- [idp-comparison-matrix.md](../identity/idp-comparison-matrix.md) — сравнение IdP провайдеров, lifecycle-схема
+- [per-service-auth-strategies.md](../identity/per-service-auth-strategies.md) — матрица SSO поддержки в сервисах

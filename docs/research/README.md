@@ -87,11 +87,9 @@
 
 | Документ | О чём | Проверено |
 | --- | --- | --- |
-| [`identity-providers.md`](identity/identity-providers.md) | обзор и выбор IdP (ZITADEL) для сервисов homelab | 2026-08-16 |
-| [`idp-comparison-matrix.md`](identity/idp-comparison-matrix.md) | компактные таблицы сравнения IdP по всем параметрам | 2026-08-18 |
-| [`per-service-auth-strategies.md`](identity/per-service-auth-strategies.md) | матрица OIDC/SSO-поддержки в конкретных сервисах | 2026-08-18 |
-| [`identity-lifecycle.md`](identity/identity-lifecycle.md) | единый пользователь: SCIM, JML, back-channel logout, токены | 2026-08-18 |
-| [`zitadel-vault-infisical.md`](identity/zitadel-vault-infisical.md) | ZITADEL как OIDC-провайдер для Vault и Infisical | — |
+| [`idp-comparison-matrix.md`](identity/idp-comparison-matrix.md) | сводная матрица провайдеров: протоколы, жизненный цикл, состояние стенда | 2026-11-20 (провайдеры — 2026-08-18) |
+| [`per-service-auth-strategies.md`](identity/per-service-auth-strategies.md) | матрица поддержки OIDC в конкретных сервисах и состояние кластера | 2026-11-20 |
+| [`zitadel-vault.md`](identity/zitadel-vault.md) | ZITADEL как OIDC-провайдер для Vault (без Infisical) | 2026-11-20 |
 
 ### k8s
 
@@ -129,7 +127,7 @@
 | Документ | О чём | Проверено |
 | --- | --- | --- |
 | [`observability-standards.md`](observability/observability-standards.md) | подходы, стандарты и протоколы телеметрии | 2026-09-14 |
-| [`monitoring-stacks-overview.md`](observability/monitoring-stacks-overview.md) | анатомия мониторинга, сравнение стеков, план внедрения | 2026-08-21 |
+| [`monitoring-stacks-overview.md`](observability/monitoring-stacks-overview.md) | инструменты, стеки и ресурсы: сравнение, формулы capacity planning, профили эксплуатации | 2026-11-20 |
 | [`observability-pitfalls.md`](observability/observability-pitfalls.md) | реальные грабли при настройке стека | — |
 | [`log-output-formats.md`](observability/log-output-formats.md) | какой контейнер отдаёт JSON, logfmt или текст | 2026-09-28 |
 | [`uptime-kuma-declarative-config.md`](observability/uptime-kuma-declarative-config.md) | декларативная конфигурация Uptime Kuma 2.x | 2026-08-14 |

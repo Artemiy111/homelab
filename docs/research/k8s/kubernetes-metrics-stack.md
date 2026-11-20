@@ -8,8 +8,9 @@ GitHub Releases API и исходниками чартов/CRD на дату и�
 **См. также:**
 
 - [monitoring-stacks-overview.md](../observability/monitoring-stacks-overview.md) — сравнение
-  продуктов (Prometheus-стек, LGTM, VictoriaMetrics, Zabbix…), аудит уже
-  установленного и поэтапный план внедрения. Здесь это **не повторяется**.
+  продуктов (Prometheus-стек, LGTM, VictoriaMetrics, Zabbix, ELK) и расчёт ресурсов.
+  Исследование, а не описание кластера: проверяйте этот документ с ограничением —
+  здесь это **не повторяется**.
 - [observability-standards.md](../observability/observability-standards.md)
   — стандарты и протоколы (exposition format, remote write, OTLP, service
   discovery, паттерн ServiceMonitor CRD как концепция).
