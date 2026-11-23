@@ -345,8 +345,8 @@ URL `https://ntfy.sh/<тема>?template=alertmanager`, а не только т�
 
 Реестр правил: что какое правило означает и в какой группе живёт. Условия,
 пороги, `severity` и `for` здесь не дублируются — источник правды
-`manifests/alerts.yaml`, а соответствие реестра манифесту проверяет
-`scripts/alert-rules-docs.sh`.
+`manifests/alerts-*.yaml` (по файлу на группу), а соответствие реестра
+манифестам проверяет `scripts/alert-rules-docs.sh`.
 
 | uid | Группа | Смысл |
 |---|---|---|

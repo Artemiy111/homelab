@@ -1,0 +1,63 @@
+# Алертинг Grafana на CR. Движок — Unified Alerting, источники данных —
+# локальные VictoriaMetrics и Loki (uid зафиксированы в manifests/datasources.yaml).
+#
+# Правила и дерево политик живут в соседних файлах alerts-*.yaml, а contact
+# point остался в провижининге (config/alerting/contact-points.yaml): его URL
+# содержит тему ntfy, а valuesFrom у оператора заменяет поле целиком, поэтому
+# в секрете должен лежать весь URL, а в Vault лежит только тема. Подробности и
+# условия возврата в git — в README, раздел «Алертинг».
+#
+# Форма правила и почему обе части A -> B -> C обязательны — в шапке файлов
+# alerts-victoria-metrics.yaml, alerts-logs.yaml, alerts-storage.yaml и
+# alerts-certificates.yaml, проза перенесена из исходных файлов провижининга.
+---
+# spec.uid закреплён намеренно. Оператор ищет папку по uid, а если не нашёл —
+# по title, и тогда GetGrafanaUID() возвращает metadata.uid объекта Kubernetes,
+# а не uid папки в Grafana (в коде оператора на это есть TODO). Для папки,
+# созданной оператором, uid совпадает с metadata.uid, поэтому баг не виден; для
+# папки, унаследованной от провижининга, — проявляется сразу, и GrafanaAlertRuleGroup
+# с folderRef получает «folder with uid ... not found». Закреплённый uid решает
+# это и заодно делает набор папок воспроизводимым из git.
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaFolder
+metadata:
+  name: victoria-metrics
+spec:
+  instanceSelector:
+    matchLabels:
+      app: grafana
+  title: VictoriaMetrics
+  uid: afzeqhxdxlkhse
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaFolder
+metadata:
+  name: logs
+spec:
+  instanceSelector:
+    matchLabels:
+      app: grafana
+  title: Logs
+  uid: dfzmtnvaln6yoe
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaFolder
+metadata:
+  name: storage
+spec:
+  instanceSelector:
+    matchLabels:
+      app: grafana
+  title: Хранилище
+  uid: dfzpwv6hjq1a8c
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaFolder
+metadata:
+  name: certificates
+spec:
+  instanceSelector:
+    matchLabels:
+      app: grafana
+  title: Сертификаты
+  uid: cfzpwv60mesxsb
