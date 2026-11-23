@@ -7,6 +7,7 @@ resources:
   - appprojects/homelab.yaml
   - appprojects/upstream.yaml
   - apps/3x-ui.yaml
+  - apps/alertmanager.yaml
   - apps/alloy-profiler.yaml
   - apps/alloy.yaml
   - apps/athens.yaml
