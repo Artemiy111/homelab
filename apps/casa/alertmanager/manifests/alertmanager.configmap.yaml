@@ -17,6 +17,9 @@ data:
         - receiver: am-inbox
           matchers:
             - source="grafana"
+        - receiver: am-inbox
+          matchers:
+            - __grafana_receiver__!=""
         - receiver: ntfy
           matchers:
             - source="vmalert"
