@@ -21,7 +21,7 @@ spec:
       initContainers:
         # задаёт учётку и base path, только если база ещё не создана (иначе ничего не меняет).
         - name: initialize
-          image: "ghcr.io/mhsanaei/3x-ui:v3.6.0@sha256:652ef431a2d351cfcc7b5dc91798de5c1dd50da8c1b44f9e3afee1c60817035e"
+          image: "ghcr.io/mhsanaei/3x-ui:v3.11.0@sha256:1628adbd9bed680d25d6f714bef4a20f132105f4612ea294952f6665dad32e5b"
           command:
             - /bin/sh
             - -ec
@@ -60,7 +60,7 @@ spec:
               mountPath: /etc/x-ui
       containers:
         - name: 3x-ui
-          image: "ghcr.io/mhsanaei/3x-ui:v3.6.0@sha256:652ef431a2d351cfcc7b5dc91798de5c1dd50da8c1b44f9e3afee1c60817035e"
+          image: "ghcr.io/mhsanaei/3x-ui:v3.11.0@sha256:1628adbd9bed680d25d6f714bef4a20f132105f4612ea294952f6665dad32e5b"
           ports:
             - name: panel
               containerPort: 2053
