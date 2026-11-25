@@ -90,6 +90,7 @@
 | [`idp-comparison-matrix.md`](identity/idp-comparison-matrix.md) | сводная матрица провайдеров: протоколы, жизненный цикл, состояние стенда | 2026-11-20 (провайдеры — 2026-08-18) |
 | [`per-service-auth-strategies.md`](identity/per-service-auth-strategies.md) | матрица поддержки OIDC в конкретных сервисах и состояние кластера | 2026-11-20 |
 | [`zitadel-vault.md`](identity/zitadel-vault.md) | ZITADEL как OIDC-провайдер для Vault (без Infisical) | 2026-11-20 |
+| [`directory-and-aaa.md`](identity/directory-and-aaa.md) | LDAP, Kerberos и RADIUS: протоколы, реализации, ресурсы, стыковка с IdP | 2026-11-21 |
 
 ### k8s
 
