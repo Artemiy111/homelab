@@ -65,6 +65,7 @@ resources:
   - apps/vault.yaml
   - apps/verdaccio.yaml
   - apps/victoria-metrics.yaml
+  - apps/vmalert.yaml
   - apps/zitadel.yaml
   - apps/zot.yaml
   - platform/argocd.yaml

@@ -1,0 +1,226 @@
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMRule
+metadata:
+  name: vmalert-certificates
+  namespace: monitoring
+  labels:
+    app: vmalert
+spec:
+  groups:
+  - name: certificates
+    rules:
+    - alert: Certificate expires in less than 14 days
+      expr: max((certmanager_certificate_expiration_timestamp_seconds - time() < bool
+        14 * 86400) and on (namespace, name) (certmanager_certificate_expiration_timestamp_seconds
+        > 0)) > 0
+      for: 1h
+      labels:
+        severity: warning
+        source: vmalert
+      annotations:
+        summary: Сертификат истекает менее чем через 14 дней
+        description: 'cert-manager не смог продлить сертификат, либо продление не
+          настроено. Сертификаты на грани: {{ $value }}. Проверить Certificate и CertificateRequest
+          в его namespace, состояние ACME-челленджа и не исчерпан ли rate limit Let''s
+          Encrypt (инцидент #0002). Если сертификат уже истёк, HTTPS-сервисы отдают
+          недоверенный сертификат.'
+        runbook: platform/casa/cert-manager/README.md
+    - alert: Certificate already expired
+      expr: max(certmanager_certificate_expiration_timestamp_seconds - time() < bool
+        0) > 0
+      for: 5m
+      labels:
+        severity: critical
+        source: vmalert
+      annotations:
+        summary: Сертификат уже истёк
+        description: 'Срок действия сертификата истёк, HTTPS-сервисы отдают недоверенный
+          сертификат пользователям. Истёкшие: {{ $value }}. Это уже не предупреждение,
+          а отказ: чинить немедленно.'
+        runbook: platform/casa/cert-manager/README.md
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMRule
+metadata:
+  name: vmalert-logs
+  namespace: monitoring
+  labels:
+    app: vmalert
+spec:
+  groups:
+  - name: logs
+    rules:
+    - alert: Логи не пишутся
+      expr: (sum(rate(loki_distributor_lines_received_total{is_internal_stream="false"}[10m]))
+        == bool 0) > 0
+      for: 10m
+      labels:
+        severity: critical
+        source: vmalert
+      annotations:
+        summary: Loki не принимает логи
+        description: За 10 минут в Loki не пришло ни одной строки. Обычно это остановка
+          Alloy или сбой записи. Проверить `kubectl -n monitoring get pods -l app=alloy`
+          и `up{job=~"loki|alloy"}`.
+        runbook: apps/casa/alloy/README.md
+    - alert: Мало свободного места на узле
+      expr: ((node_filesystem_avail_bytes{fstype!~"tmpfs|overlay|squashfs"} / node_filesystem_size_bytes{fstype!~"tmpfs|overlay|squashfs"})
+        < 0.15 and node_filesystem_size_bytes{fstype!~"tmpfs|overlay|squashfs"} >
+        10e9) > 0
+      for: 30m
+      labels:
+        severity: critical
+        source: vmalert
+      annotations:
+        summary: Меньше 15% свободного места на узле {{ $labels.instance }} ({{ $labels.mountpoint
+          }})
+        description: 'Доля свободного места на файловой системе упала ниже 15%. Проверить
+          крупнейшие тома: `longhorn_volume_actual_size_bytes` в VictoriaMetrics,
+          топ — zot-data, immich-library, victoriametrics-vmdata. Действия: расширить
+          PVC, сократить retention либо почистить неиспользуемые тома.'
+        runbook: apps/casa/grafana/manifests/config/dashboards/storage-capacity.json
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMRule
+metadata:
+  name: vmalert-storage
+  namespace: monitoring
+  labels:
+    app: vmalert
+spec:
+  groups:
+  - name: storage
+    rules:
+    - alert: PVC fills within 3 days
+      expr: max((predict_linear(kubelet_volume_stats_available_bytes{namespace!="",persistentvolumeclaim!=""}[1d],
+        3 * 86400) < bool 0) and on (namespace, persistentvolumeclaim) (kubelet_volume_stats_capacity_bytes{namespace!="",persistentvolumeclaim!=""}
+        > 5e9)) > 0
+      for: 30m
+      labels:
+        severity: warning
+        source: vmalert
+      annotations:
+        summary: PVC заполнится в течение 3 дней
+        description: 'По линейной экстраполяции за последние сутки доступное место
+          на томе закончится за трое суток. Затронутые тома: {{ $value }}. Порог 5
+          ГиБ отсекает мелкие служебные тома, для которых предсказание бессмысленно.
+          Действия: расширить PVC, сократить retention либо удалить неиспользуемые
+          данные.'
+        runbook: docs/incidents/0001-dawarich-db-overflow.md, apps/casa/victoria-metrics/README.md
+    - alert: PVC low free space
+      expr: max((kubelet_volume_stats_available_bytes{namespace!="",persistentvolumeclaim!=""}
+        / kubelet_volume_stats_capacity_bytes{namespace!="",persistentvolumeclaim!=""}
+        < 0.15) and on (namespace, persistentvolumeclaim) (kubelet_volume_stats_capacity_bytes{namespace!="",persistentvolumeclaim!=""}
+        > 5e9)) > 0
+      for: 30m
+      labels:
+        severity: warning
+        source: vmalert
+      annotations:
+        summary: Мало свободного места на PVC
+        description: 'Доля свободного места на томе упала ниже 15%. Затронутые тома:
+          {{ $value }}. Порог 5 ГиБ отсекает мелкие тома, где 15% — это несколько
+          мегабайт. Действия: расширить PVC, сократить retention либо почистить неиспользуемые
+          данные.'
+        runbook: apps/casa/victoria-metrics/README.md, раздел «Алерты»
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMRule
+metadata:
+  name: vmalert-victoria-metrics
+  namespace: monitoring
+  labels:
+    app: vmalert
+spec:
+  groups:
+  - name: victoria-metrics
+    rules:
+    - alert: VictoriaMetrics storage is read-only
+      expr: (vm_storage_is_read_only{job="victoriametrics", path="/data"} == 1) >
+        0
+      for: 1m
+      labels:
+        severity: critical
+        source: vmalert
+      annotations:
+        summary: Хранилище VictoriaMetrics в read-only, метрики не принимаются
+        description: 'TSDB на /data не принимает запись. vmagent получает 503 на remote
+          write, новые метрики теряются; уже записанные данные целы. Срочно освободить
+          или расширить PVC: после перезапуска пода накопленные в vmagent данные могут
+          частично потеряться.'
+        runbook: docs/incidents/0003-victoriametrics-pvc-read-only.md
+    - alert: VictoriaMetrics pending rows backlog
+      expr: (max(vm_pending_rows{job="victoriametrics"}) > 1e6) > 0
+      for: 30m
+      labels:
+        severity: warning
+        source: vmalert
+      annotations:
+        summary: VictoriaMetrics не сбрасывает pending rows на диск
+        description: 'Очередь несохранённых строк держится выше 1 млн (норма 5-50
+          тыс.) дольше 30 минут. Обычно это предшествует переходу TSDB в read-only:
+          сначала замедляется сброс, потом он падает.'
+        runbook: docs/incidents/0003-victoriametrics-pvc-read-only.md
+    - alert: Scrape target down
+      expr: "(count by (job) (up == 0) > 0) > 0"
+      for: 10m
+      labels:
+        severity: warning
+        source: vmalert
+      annotations:
+        summary: Скрейп-таргет vmagent не отдаёт метрики
+        description: В значении job перечислены таргеты с up == 0 дольше 10 минут.
+          Проверить /metrics таргета и его токен из Secret'а vmagent.
+        runbook: apps/casa/victoria-metrics/README.md, раздел «Проверка»
+    - alert: Метрики не поступают в VictoriaMetrics
+      expr: (sum(rate(vm_http_requests_total{job="vmagent"}[10m])) == bool 0) > 0
+      for: 15m
+      labels:
+        severity: critical
+        source: vmalert
+      annotations:
+        summary: vmagent не отправляет метрики в VictoriaMetrics
+        description: 'Компонент жив (up=1), но поток remote_write пустой: vmagent
+          завис, потерял креды или упёрся в remote_write. Без этого алерта пайплайн
+          метрик может молча остановиться. Проверить up{job="vmagent"}, логи vmagent
+          и доступность VictoriaMetrics.'
+        runbook: apps/casa/victoria-metrics/README.md
+    - alert: Трейсы не поступают в Tempo
+      expr: (sum(rate(tempo_distributor_spans_received_total{job="tempo"}[10m])) ==
+        bool 0) > 0
+      for: 15m
+      labels:
+        severity: warning
+        source: vmalert
+      annotations:
+        summary: В Tempo не поступают трейсы
+        description: 'Tempo и OTel Collector живы, но поток спанов пуст. Источники
+          трейсов: Traefik (ingress) и Beyla (сервисы namespace element). После #542
+          именно поломка Beyla делает внутренние трейсы пустыми незаметно. Проверить
+          up{job="beyla"} и логи подов beyla.'
+        runbook: apps/casa/beyla/README.md
+    - alert: vmagent теряет данные
+      expr: "(sum(rate(vm_persistentqueue_bytes_dropped_total[10m])) > 0) > 0"
+      for: 5m
+      labels:
+        severity: critical
+        source: vmalert
+      annotations:
+        summary: vmagent отбрасывает семплы (переполнение persistent queue)
+        description: 'Данные теряются молча: часть семплов не доходит до VictoriaMetrics.
+          Обычно причина в недоступном remote_write или нехватке места под очередь.
+          Проверить vm_persistentqueue_blocks_dropped_total и логи vmagent.'
+        runbook: apps/casa/victoria-metrics/README.md
+    - alert: Много активных серий в Loki
+      expr: (sum(loki_ingester_memory_streams{job="loki"}) > 10000) > 0
+      for: 10m
+      labels:
+        severity: warning
+        source: vmalert
+      annotations:
+        summary: Активных серий в Loki больше 10000 (норма порядка 165)
+        description: 'Рост кардинальности — главный способ положить Loki: новый лейбл
+          с высокой уникальностью в приложении создаёт поток серий. Проверить, какое
+          приложение добавило лейблы.'
+        runbook: apps/casa/loki/README.md

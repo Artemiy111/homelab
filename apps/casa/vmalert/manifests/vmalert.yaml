@@ -1,0 +1,17 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMAlert
+metadata:
+  name: vmalert
+  namespace: monitoring
+spec:
+  datasource:
+    url: http://victoriametrics.monitoring.svc.cluster.local:8428
+  notifier:
+    url: http://alertmanager.monitoring.svc.cluster.local:9093
+  evaluationInterval: 1m
+  ruleSelector:
+    matchLabels:
+      app: vmalert
+  ruleNamespaceSelector:
+    matchLabels:
+      kubernetes.io/metadata.name: monitoring

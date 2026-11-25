@@ -267,6 +267,11 @@ Grafana. Для папки, созданной оператором, это не
 `grafana-ntfy` (`NTFY_TOPIC`) и совпадает с темой Gatus, поэтому проверки
 доступности и метрические алерты приходят в один поток.
 
+Тот же contact point содержит вторую интеграцию — `prometheus-alertmanager`. Она
+дублирует все алерты во внутренний Alertmanager с лейблом `source="grafana"`.
+Прямой webhook в ntfy остаётся основным каналом: копия в Alertmanager нужна для
+маршрутизации, ингибирования и инспекции в UI, а не для второй доставки.
+
 Шаблон `alertmanager`, а не `grafana`: первый рассчитан на payload Unified
 Alerting (`receiver`/`status`/`alerts[]`), второй — на плоский legacy-формат
 `{status, title, message}` и на нашем payload падает с 400.

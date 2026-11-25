@@ -114,6 +114,7 @@ spec:
       isPaused: false
       labels:
         severity: critical
+        source: grafana
       annotations:
         summary: "Хранилище VictoriaMetrics в read-only, метрики не принимаются"
         description: >-
@@ -200,6 +201,7 @@ spec:
       isPaused: false
       labels:
         severity: warning
+        source: grafana
       annotations:
         summary: "VictoriaMetrics не сбрасывает pending rows на диск"
         description: >-
@@ -286,6 +288,7 @@ spec:
       isPaused: false
       labels:
         severity: warning
+        source: grafana
       annotations:
         summary: "Скрейп-таргет vmagent не отдаёт метрики"
         description: >-
@@ -372,6 +375,7 @@ spec:
       isPaused: false
       labels:
         severity: critical
+        source: grafana
       annotations:
         summary: "vmagent не отправляет метрики в VictoriaMetrics"
         description: >-
@@ -458,6 +462,7 @@ spec:
       isPaused: false
       labels:
         severity: warning
+        source: grafana
       annotations:
         summary: "В Tempo не поступают трейсы"
         description: >-
@@ -544,6 +549,7 @@ spec:
       isPaused: false
       labels:
         severity: critical
+        source: grafana
       annotations:
         summary: "vmagent отбрасывает семплы (переполнение persistent queue)"
         description: >-
@@ -630,6 +636,7 @@ spec:
       isPaused: false
       labels:
         severity: warning
+        source: grafana
       annotations:
         summary: "Активных серий в Loki больше 10000 (норма порядка 165)"
         description: >-

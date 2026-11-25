@@ -99,6 +99,7 @@ spec:
       isPaused: false
       labels:
         severity: warning
+        source: grafana
       annotations:
         summary: "Всплеск ошибок в логах (namespace {{ $labels.namespace }})"
         description: >-
@@ -185,6 +186,7 @@ spec:
       isPaused: false
       labels:
         severity: critical
+        source: grafana
       annotations:
         summary: "Loki не принимает логи"
         description: >-
@@ -271,6 +273,7 @@ spec:
       isPaused: false
       labels:
         severity: critical
+        source: grafana
       annotations:
         summary: "Меньше 15% свободного места на узле {{ $labels.instance }} ({{ $labels.mountpoint }})"
         description: >-

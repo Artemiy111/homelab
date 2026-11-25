@@ -26,3 +26,7 @@ contactPoints:
         settings:
           url: https://ntfy.sh/$NTFY_TOPIC?template=alertmanager
           httpMethod: POST
+      - uid: grafana-to-alertmanager
+        type: prometheus-alertmanager
+        settings:
+          url: http://alertmanager.monitoring.svc.cluster.local:9093

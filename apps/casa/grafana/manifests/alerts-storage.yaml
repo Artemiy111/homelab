@@ -117,6 +117,7 @@ spec:
       isPaused: false
       labels:
         severity: warning
+        source: grafana
       annotations:
         summary: "PVC заполнится в течение 3 дней"
         description: >-
@@ -210,6 +211,7 @@ spec:
       isPaused: false
       labels:
         severity: warning
+        source: grafana
       annotations:
         summary: "Мало свободного места на PVC"
         description: >-

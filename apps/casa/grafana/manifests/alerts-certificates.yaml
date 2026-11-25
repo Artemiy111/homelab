@@ -115,6 +115,7 @@ spec:
       isPaused: false
       labels:
         severity: warning
+        source: grafana
       annotations:
         summary: "Сертификат истекает менее чем через 14 дней"
         description: >-
@@ -206,6 +207,7 @@ spec:
       isPaused: false
       labels:
         severity: critical
+        source: grafana
       annotations:
         summary: "Сертификат уже истёк"
         description: >-
