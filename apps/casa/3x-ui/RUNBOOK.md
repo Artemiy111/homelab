@@ -45,3 +45,17 @@ kubectl -n monitoring annotate vaultstaticsecret xui-egress \
 
 Обратный порядок оставит Gatus без рабочего прокси, и Telegram-уведомления
 перестанут ходить.
+
+## Обновление подписки
+
+Панель загружает подписку через Go-клиент и проверяет TLS с системными корнями
+образа. Если провайдер отдаёт только лист без цепочки, в логе будет
+`x509: certificate signed by unknown authority`. Для сертификатов Let's Encrypt
+Generation Y в под смонтирован публичный промежуточный сертификат `YE2` из
+ConfigMap `xui-letsencrypt-geny`: Go читает файлы из `/etc/ssl/certs` рядом с
+основным набором корней, и цепочка до уже доверенного `ISRG Root X2`
+собирается без пересборки образа.
+
+После смены подписки проверить, что правила Xray не ссылаются на удалённые
+`outTag`, и что egress доступен потребителям (`gatus`, `dns01-webhook`,
+`renovate`, `mirror-sync`).

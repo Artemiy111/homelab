@@ -133,9 +133,16 @@ spec:
               mountPath: /etc/x-ui
             - name: log
               mountPath: /var/log/x-ui
+            - name: letsencrypt-geny
+              mountPath: /etc/ssl/certs/ye2.pem
+              subPath: ye2.pem
+              readOnly: true
       volumes:
         - name: db
           persistentVolumeClaim:
             claimName: 3x-ui-db
         - name: log
           emptyDir: {}
+        - name: letsencrypt-geny
+          configMap:
+            name: xui-letsencrypt-geny
