@@ -19,6 +19,9 @@ spec:
           image: "python:3.13-alpine@sha256:9ef1a599f863231c3d91e941389bfdc4a2d6070557243d54df1a4e57015b960e"
           imagePullPolicy: IfNotPresent
           command: ["python", "/opt/bridge/bridge.py"]
+          env:
+            - name: SSL_CERT_DIR
+              value: "/etc/ssl/certs:/usr/local/share/geny"
           ports:
             - containerPort: 8081
               name: bridge
@@ -56,6 +59,9 @@ spec:
             - name: subscription
               mountPath: /var/run/secrets/mihomo
               readOnly: true
+            - name: geny
+              mountPath: /usr/local/share/geny
+              readOnly: true
       volumes:
         - name: script
           configMap:
@@ -67,3 +73,7 @@ spec:
             items:
               - key: SUBSCRIPTION_URL
                 path: SUBSCRIPTION_URL
+        - name: geny
+          configMap:
+            name: mihomo-bridge-geny
+            defaultMode: 0444

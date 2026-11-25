@@ -6,6 +6,7 @@ resources:
   - config.yaml
   - bridge.yaml
   - bridge.deployment.yaml
+  - bridge.certs.yaml
   - bridge.service.yaml
   - mihomo.deployment.yaml
   - mihomo.service.yaml
